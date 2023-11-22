@@ -1,0 +1,45 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "import": [
+    "css:config/app/init/initialize-intro.json",
+    "css:config/app/main/default.json",
+    "css:config/app/variables/default.json",
+    "css:config/http/handler/default.json",
+    "css:config/http/middleware/default.json",
+    "css:config/http/notifications/all.json",
+    "css:config/http/server-factory/http.json",
+    "css:config/http/static/default.json",
+    "css:config/identity/access/public.json",
+    "css:config/identity/email/default.json",
+    "css:config/identity/handler/default.json",
+    "css:config/identity/oidc/disabled.json",
+    "css:config/identity/ownership/token.json",
+    "css:config/identity/pod/static.json",
+    "css:config/ldp/handler/default.json",
+    "css:config/ldp/metadata-parser/default.json",
+    "css:config/ldp/modes/default.json",
+    "css:config/storage/backend/memory.json",
+    "css:config/storage/key-value/resource-store.json",
+    "css:config/storage/middleware/default.json",
+    "css:config/util/auxiliary/acl.json",
+    "css:config/util/identifiers/suffix.json",
+    "css:config/util/index/default.json",
+    "css:config/util/logging/winston.json",
+    "css:config/util/representation-conversion/default.json",
+    "css:config/util/resource-locker/memory.json",
+    "css:config/util/variables/default.json",
+    "uma-css:config/uma/default.json",
+    "uma-css:config/ldp/authentication/uma.json",
+    "uma-css:config/ldp/authorization/uma.json",
+    "uma-css:config/ldp/metadata-writer/uma.json",
+    "css:config/storage/location/pod.json"
+  ],
+  "@graph": [
+    {
+      "comment": "A single-pod server that trusts a pre-configured UMA AS."
+    }
+  ]
+}

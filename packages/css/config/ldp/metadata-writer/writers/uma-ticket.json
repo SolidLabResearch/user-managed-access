@@ -1,0 +1,18 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Returns the UMA ticket in case of an unauthorized request.",
+      "@id": "urn:solid-server:default:MetadataWriter_UmaTicket",
+      "@type": "UmaTicketMetadataWriter",
+      "umaClient": {
+        "@id": "urn:solid-server:default:UmaClient"
+      },
+      "ownerUtil": {
+        "@id": "urn:solid-server:default:OwnerUtil"
+      }
+    }
+  ]
+}

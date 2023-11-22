@@ -1,0 +1,30 @@
+{
+    "@context": [
+      "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+    ],
+    "@graph": [
+        {
+            "@id": "urn:authorization-service:default:DefaultKeyholder",
+            "@type": "InMemoryJwksKeyHolder",
+            "alg": "ES256"
+        },
+        {
+            "@id": "urn:authorization-service:default:JwksRoute",
+            "@type": "HttpHandlerRoute",
+            "operations": [
+                {
+                    "@type": "HttpHandlerOperation",
+                    "method": "GET",
+                    "publish": true
+                }
+            ],
+            "handler": {
+              "@type": "JwksRequestHandler",
+              "keyholder": {
+                 "@id": "urn:authorization-service:default:DefaultKeyholder"
+              }
+            },
+            "path": "/uma/keys"
+        }
+    ]
+}

@@ -1,0 +1,62 @@
+{
+    "@context": [
+      "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+    ],
+    "import": [
+        "sai-uma:config/variables/default.json",
+        "sai-uma:config/discovery/default.json",
+        "sai-uma:config/keys/default.json",
+        "sai-uma:config/token/default.json",
+        "sai-uma:config/ticket/default.json",
+        "sai-uma:config/authz/interop.json"
+    ],
+    "@graph": [
+        {
+            "@id": "urn:authorization-service:default:NodeHttpServer",
+            "@type": "NodeHttpServer",
+            "port": { "@id": "urn:authorization-service:variables:port" },
+            "host": { "@id": "urn:authorization-service:variables:host"},
+            "nodeHttpStreamsHandler": {
+                "@id": "urn:authorization-service:default:NodeHttpRequestResponseHandler",
+                "@type": "NodeHttpRequestResponseHandler",
+                "httpHandler": {
+                    "@id": "urn:authorization-service:default:RoutedHttpRequestHandler",
+                    "@type": "RoutedHttpRequestHandler",
+                    "handlerControllerList": [
+                        {
+                            "@id": "urn:authorization-service:default:HttpHandlerController",
+                            "@type": "HttpHandlerController",
+                            "label": "ControllerList",
+                            "routes": [
+                                {
+                                    "@id": "urn:authorization-service:default:UmaConfigRoute"
+                                },
+                                {
+                                    "@id": "urn:authorization-service:default:JwksRoute"
+                                },
+                                {
+                                    "@id": "urn:authorization-service:default:TokenRoute"
+                                },
+                                {
+                                    "@id": "urn:authorization-service:default:PermissionRegistrationRoute"
+                                },
+                                {
+                                    "@id": "urn:authorization-service:default:ResourceRegistrationRoute"
+                                },
+                                {
+                                    "@id": "urn:authorization-service:default:IntrospectionRoute"
+                                }
+                            ]
+                        }
+                    ],
+                    "defaultHandler": {
+                        "@type": "DefaultRouteHandler"
+                    }
+                }
+            }
+        },
+        {
+            "comment": "Configuration for the UMA AS."
+        }
+    ]
+}

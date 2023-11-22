@@ -1,0 +1,27 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:authorization-service:default:ResourceRegistrationRoute",
+      "@type": "HttpHandlerRoute",
+      "operations": [
+        {
+          "@type": "HttpHandlerOperation",
+          "method": "POST",
+          "publish": true
+        }
+      ],
+      "handler": {
+        "@type": "JsonHttpErrorHandler",
+        "nestedHandler": {
+          "@type": "TokenRequestHandler",
+          "processors": [
+          ]
+        }
+      },
+      "path": "/uma/resources"
+    }
+  ]
+}

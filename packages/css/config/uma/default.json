@@ -1,0 +1,25 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Returns the UMA ticket in case of an unauthorized request.",
+      "@id": "urn:solid-server:default:UmaClient",
+      "@type": "UmaClientImpl",
+      "UmaClientImpl:pat": "MYPAT",
+      "UmaClientImpl:_options_maxTokenAge": 600
+    },
+    {
+      "@id": "urn:solid-server:default:OwnerUtil",
+      "@type": "OwnerUtil",
+      "podStore": {
+        "@id": "urn:solid-server:default:PodStore"
+      },
+      "storageStrategy": {
+        "@id": "urn:solid-server:default:StorageLocationStrategy"
+      }
+    }
+  ]
+}

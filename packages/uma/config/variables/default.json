@@ -1,0 +1,21 @@
+{
+    "@context": "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld",
+    "comment": "Variables used throughout the other configs. Can be set using the CLI.",
+    "@graph": [
+      {
+        "comment": "Port of the server.",
+        "@id": "urn:authorization-service:variables:port",
+        "@type": "Variable"
+      },
+      {
+        "comment": "Base URL of the server.",
+        "@id": "urn:authorization-service:variables:baseUrl",
+        "@type": "Variable"
+      },
+      {
+        "comment": "Hostname of the server.",
+        "@id": "urn:authorization-service:variables:host",
+        "@type": "Variable"
+      }
+    ]
+  }

@@ -1,0 +1,49 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Caches the credentials based on the incoming request.",
+      "@id": "urn:solid-server:default:CredentialsExtractor",
+      "@type": "CachedHandler",
+      "source": {
+        "comment": "Supports UMA tokens, or no credentials.",
+        "@type": "UnionCredentialsExtractor",
+        "extractors": [
+          {
+            "comment": "Extracts information from UMA access tokens.",
+            "@id": "urn:solid-server:default:UMATokenExtractor",
+            "@type": "UmaTokenExtractor",
+            "client": {
+              "@id": "urn:solid-server:default:UmaClient"
+            },
+            "targetExtractor": {
+              "@id": "urn:solid-server:default:TargetExtractor"
+            },
+            "ownerUtil": {
+              "@id": "urn:solid-server:default:OwnerUtil"
+            },
+            "introspect": false
+          },
+          {
+            "@type": "PublicCredentialsExtractor"
+          }
+        ]
+      }
+    },
+    {
+      "comment": "Returns the UMA ticket in case of an unauthorized request.",
+      "@id": "urn:solid-server:default:UmaClient",
+      "@type": "UmaClientImpl",
+      "UmaClientImpl:_args_asUrl": "http://localhost:4000/uma",
+      "UmaClientImpl:_args_credentials_ecAlgorithm": "ES256",
+      "UmaClientImpl:_args_credentials_ecPrivateKey": "-----BEGIN PRIVATE KEY-----MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg/cteLEDr0AH+7mA3lvCtf2pY32NMVpy2yWCk8LbfJ+WhRANCAAQYmTM7fikydPHi7GhMPT528HiBVpez1f6qSC7NQI1P1nNtn+idNmu9AMtUB0f75zuxL++Z+s24AJR42Euv1pgU-----END PRIVATE KEY----",
+      "UmaClientImpl:_args_baseUrl": {
+        "@id": "urn:solid-server:default:variable:baseUrl"
+      },
+      "UmaClientImpl:_args_maxTokenAge": 600
+    }
+  ]
+}

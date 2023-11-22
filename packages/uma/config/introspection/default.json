@@ -1,0 +1,41 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:authorization-service:default:IntrospectionRoute",
+      "@type": "HttpHandlerRoute",
+      "operations": [
+        {
+          "@type": "HttpHandlerOperation",
+          "method": "POST",
+          "publish": true
+        }
+      ],
+      "handler": {
+        "@type": "JsonHttpErrorHandler",
+        "nestedHandler": {
+          "@type": "IntrospectionHandler",
+          "tokenStore": {
+            "@id": "urn:authorization-service:TokenStore",
+            "@type": "MemoryStore"
+          },
+          "jwtTokenFactory": {
+            "@id": "urn:authorization-service:IntrospectionFactory",
+            "@type": "JwtTokenFactory",
+            "params_expirationTime": "5m",
+            "params_aud": "solid",
+            "issuer": {
+              "@id": "urn:authorization-service:variables:baseUrl"
+            },
+            "keyholder": {
+              "@id": "urn:authorization-service:default:DefaultKeyholder"
+            }
+          }
+        }
+      },
+      "path": "/uma/introspect"
+    }
+  ]
+}
