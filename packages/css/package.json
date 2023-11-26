@@ -60,10 +60,10 @@
     "build:ts": "yarn run -T tsc",
     "build:components": "yarn run -T componentsjs-generator -r uma-css -s src/ -c dist/components -i .componentsignore --lenient",
     "test": "jest --coverage",
-    "start": "npx @solid/community-server -m . -c ./config/default.json --seedConfig ./config/seed.json"
+    "start": "yarn run community-solid-server -m . -c ./config/default.json --seedConfig ./config/seed.json"
   },
   "dependencies": {
-    "@solid/community-server": "https://github.com/CommunitySolidServer/CommunitySolidServer.git",
+    "@solid/community-server": "^7.0.2",
     "componentsjs": "^5.4.2",
     "cross-fetch": "^4.0.0",
     "jose": "^4.15.4",

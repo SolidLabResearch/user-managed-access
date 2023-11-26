@@ -4606,9 +4606,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solid/community-server@https://github.com/CommunitySolidServer/CommunitySolidServer.git":
+"@solid/community-server@npm:^7.0.2":
   version: 7.0.2
-  resolution: "@solid/community-server@https://github.com/CommunitySolidServer/CommunitySolidServer.git#commit=1234acc0e10e3c39ee28c8ae72694e012793aba3"
+  resolution: "@solid/community-server@npm:7.0.2"
   dependencies:
     "@comunica/context-entries": "npm:^2.8.2"
     "@comunica/query-sparql": "npm:^2.9.0"
@@ -4680,7 +4680,7 @@ __metadata:
     yup: "npm:^1.3.2"
   bin:
     community-solid-server: bin/server.js
-  checksum: c8be1dcac52f7e6bd317c6c1c1f20c6c0e7432543abfbb6dc50375ee825e5aa62b0b6c26ab2ad088c95ca9a33a3f0e8b0629ae59152f15ae420ab0bb5462a3e9
+  checksum: 944d4c0ec91873f6d86c19e089e6e79a71612d779e8dc5df93afe74a797404814ac03b19980f9ff95e9bcb883546f516daaa3c69581a9ae846df641d179df9ba
   languageName: node
   linkType: hard
 
@@ -4688,7 +4688,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@solidlab/uma-css@workspace:packages/css"
   dependencies:
-    "@solid/community-server": "https://github.com/CommunitySolidServer/CommunitySolidServer.git"
+    "@solid/community-server": "npm:^7.0.2"
     "@types/n3": "npm:^1.16.4"
     "@types/node": "npm:^18.18.11"
     componentsjs: "npm:^5.4.2"
