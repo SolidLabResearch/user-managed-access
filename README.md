@@ -24,6 +24,13 @@ This will boot up a UMA server and compatible Community Solid Server instance.
 You can then execute the happy UMA flow by executing `yarn script:flow` in a parallel terminal.
 
 
+## Implemented features
+
+The packages in this project currently only support a fixed UMA AS per CSS RS, and contain only the trivial [AllAuthorizer](packages/uma/src/models/AllAuthorizer.ts) that allows all access. More useful features are coming soon ...
+
+
 ## Next steps
 
-- [Wout Slabbinck](https://github.com/woutslabbinck) will try to hack an Authorizer in the UMA AS (such as the current [AllAuthorizer](packages/uma/src/authz/AllAuthorizer.ts)) and include Koreografeye there for the research on Usage Control Patterns.
+- [Wout Slabbinck](https://github.com/woutslabbinck) will look into custom [Authorizers](packages/uma/src/models/Authorizer.ts), in particular an integratation with Koreografeye for the research on Usage Control Patterns.
+
+- [Wouter Termont](https://github.com/termontwouter) will implement UMA Resource Registration (as specified in UMA 2.0 Federation), and integrate UMA AS coupling into the onboarding flow of the CSS.
