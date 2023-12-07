@@ -77,7 +77,8 @@ export abstract class UmaClient {
     try {
       const issuer = decodeJwt(token).iss;
       if (!issuer) throw new Error('The JWT does not contain an "iss" parameter.');
-      if (!validIssuers.includes(issuer)) throw new Error(`The JWT wasn't issued by one of the target owners' issuers.`);
+      if (!validIssuers.includes(issuer)) 
+        throw new Error(`The JWT wasn't issued by one of the target owners' issuers.`);
       const umaConfig = await this.fetchUmaConfig(issuer);
       return await verifyUmaJwtToken(token, umaConfig, this.options);
     } catch (error: unknown) {

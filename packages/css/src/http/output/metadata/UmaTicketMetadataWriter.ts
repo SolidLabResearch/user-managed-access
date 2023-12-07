@@ -1,5 +1,6 @@
 import { MetadataWriter, getLoggerFor, HttpResponse,
-  RepresentationMetadata, HTTP, addHeader, SOLID_META, AccessMap, IdentifierSetMultiMap, AccessMode } from '@solid/community-server';
+  RepresentationMetadata, HTTP, addHeader, SOLID_META, 
+  AccessMap, IdentifierSetMultiMap, AccessMode } from '@solid/community-server';
 import { UmaClient } from '../../../uma/UmaClient';
 import { OwnerUtil } from '../../../util/OwnerUtil';
 import { DataFactory } from 'n3';
@@ -56,8 +57,13 @@ export class UmaTicketMetadataWriter extends MetadataWriter {
     const requestedModes: AccessMap = new IdentifierSetMultiMap();
 
     for (const bnode of metadata.getAll(SOLID_META.terms.requestedAccess).map(term => term.value)) {
-      const [ target ] = metadata.quads(blankNode(bnode), SOLID_META.terms.accessTarget).map(quad => quad.object.value);
-      const modes = metadata.quads(blankNode(bnode), SOLID_META.terms.accessMode).map(quad => <AccessMode>quad.object.value);
+      const [ target ] = metadata
+        .quads(blankNode(bnode), SOLID_META.terms.accessTarget)
+        .map(quad => quad.object.value);
+
+      const modes = metadata
+        .quads(blankNode(bnode), SOLID_META.terms.accessMode)
+        .map(quad => <AccessMode>quad.object.value);
       
       requestedModes.add({ path: target }, new Set(modes));
     }

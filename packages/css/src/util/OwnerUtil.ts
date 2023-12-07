@@ -1,9 +1,9 @@
-import {PodStore, ResourceIdentifier, StorageLocationStrategy, WrappedSetMultiMap, 
-  fetchDataset, getLoggerFor, readableToQuads} from '@solid/community-server';
-import {UMA} from './Vocabularies.js';
-import {DataFactory} from 'n3';
+import { PodStore, ResourceIdentifier, StorageLocationStrategy, WrappedSetMultiMap, 
+  fetchDataset, getLoggerFor, readableToQuads } from '@solid/community-server';
+import { UMA } from './Vocabularies.js';
+import { DataFactory } from 'n3';
 
-const {namedNode} = DataFactory;
+const { namedNode } = DataFactory;
 
 /**
  * ...

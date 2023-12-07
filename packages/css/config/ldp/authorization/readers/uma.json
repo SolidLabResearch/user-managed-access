@@ -37,6 +37,7 @@
                 "@id": "urn:solid-server:default:IdentifierStrategy"
               },
               "reader": {
+                "comment": "The main reader, checks permissions from UMA token.",
                 "@id": "urn:solid-server:default:UmaPermissionReader",
                 "@type": "UmaPermissionReader"
               }

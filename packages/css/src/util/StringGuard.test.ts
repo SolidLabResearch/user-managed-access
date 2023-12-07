@@ -1,4 +1,4 @@
-import {isString} from './StringGuard';
+import { isString } from './StringGuard';
 
 describe('StringGuard', () => {
   it('should return true for a valid string', () => {

@@ -34,9 +34,9 @@ export async function fetchUmaConfig(issuer: string): Promise<UmaConfig> {
   }
 
   const noString = REQUIRED_METADATA.filter((value) => !isString(configuration[value]));
-  if (noString.length !== 0) {
-    throw new Error(`The Authorization Server Metadata of '${issuer}' should have string attributes ${noString.join(', ')}`);
-  }
+  if (noString.length !== 0) throw new Error(
+    `The Authorization Server Metadata of '${issuer}' should have string attributes ${noString.join(', ')}`
+  );
 
   return { ...configuration, jwks: jose.createRemoteJWKSet(new URL(configuration.jwks_uri)) };
 }
