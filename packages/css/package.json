@@ -64,6 +64,7 @@
   },
   "dependencies": {
     "@solid/community-server": "^7.0.2",
+    "@solidlab/uma": "workspace:^",
     "componentsjs": "^5.4.2",
     "cross-fetch": "^4.0.0",
     "jose": "^4.15.4",

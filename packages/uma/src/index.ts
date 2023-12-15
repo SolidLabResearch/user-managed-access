@@ -2,7 +2,8 @@
 // Models
 export * from './models/Ticket';
 export * from './models/Permission';
-export * from './models/ResourceIdentifier';
+export * from './models/ResourceDescription';
+export * from './models/ScopeDescription';
 export * from './models/Authorizer';
 export * from './models/AccessToken';
 

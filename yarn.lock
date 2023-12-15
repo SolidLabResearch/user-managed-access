@@ -4689,6 +4689,7 @@ __metadata:
   resolution: "@solidlab/uma-css@workspace:packages/css"
   dependencies:
     "@solid/community-server": "npm:^7.0.2"
+    "@solidlab/uma": "workspace:^"
     "@types/n3": "npm:^1.16.4"
     "@types/node": "npm:^18.18.11"
     componentsjs: "npm:^5.4.2"
@@ -4698,7 +4699,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@solidlab/uma@workspace:packages/uma":
+"@solidlab/uma@workspace:^, @solidlab/uma@workspace:packages/uma":
   version: 0.0.0-use.local
   resolution: "@solidlab/uma@workspace:packages/uma"
   dependencies:
