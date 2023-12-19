@@ -4731,7 +4731,6 @@ __metadata:
     componentsjs-generator: "npm:^3.1.2"
     cross-fetch: "npm:^4.0.0"
     eslint: "npm:^8.10.0"
-    husky: "npm:^7.0.4"
     jest: "npm:^29.7.0"
     lerna: "npm:^4.0.0"
     shx: "npm:^0.3.3"
@@ -8686,15 +8685,6 @@ __metadata:
   dependencies:
     ms: "npm:^2.0.0"
   checksum: f34a2c20161d02303c2807badec2f3b49cbfbbb409abd4f95a07377ae01cfe6b59e3d15ac609cffcd8f2521f0eb37b7e1091acf65da99aa2a4f1ad63c21e7e7a
-  languageName: node
-  linkType: hard
-
-"husky@npm:^7.0.4":
-  version: 7.0.4
-  resolution: "husky@npm:7.0.4"
-  bin:
-    husky: lib/bin.js
-  checksum: aacb2b8fbfed0ec161f94e9b08d422c51fec073def4e165e57da42f47c10f520a5f0a88b42efc667784e314a1af83cf1994b582cd6f4b0333739921a601c6187
   languageName: node
   linkType: hard
 

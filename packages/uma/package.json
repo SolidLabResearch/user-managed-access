@@ -55,7 +55,7 @@
     "build": "yarn build:ts && yarn build:components",
     "build:ts": "yarn run -T tsc",
     "build:components": "yarn run -T componentsjs-generator -r sai-uma -s src -c dist/components -i .componentsignore --lenient",
-    "test": "jest --coverage",
+    "test": "yarn run -T jest --coverage",
     "start": "node dist/main.js"
   },
   "dependencies": {

@@ -47,9 +47,9 @@
   "scripts": {
     "postinstall": "husky install && yarn build:all",
     "clean": "shx rm -rf ./**/node_modules",
-    "build:all": "yarn workspaces foreach -pA run build",
-    "test:all": "yarn workspaces foreach -pA run test",
-    "start:all": "yarn workspaces foreach -pA run start",
+    "build:all": "yarn workspaces foreach --exclude . -A -pi -t run build",
+    "test:all": "yarn workspaces foreach --exclude . -A -pi run test",
+    "start:all": "yarn workspaces foreach --exclude . -A -pi run start",
     "script:flow": "yarn exec ts-node ./scripts/test-flow.ts"
   },
   "devDependencies": {
@@ -62,7 +62,6 @@
     "componentsjs-generator": "^3.1.2",
     "cross-fetch": "^4.0.0",
     "eslint": "^8.10.0",
-    "husky": "^7.0.4",
     "jest": "^29.7.0",
     "lerna": "^4.0.0",
     "shx": "^0.3.3",

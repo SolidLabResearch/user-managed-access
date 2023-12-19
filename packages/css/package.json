@@ -59,7 +59,7 @@
     "build": "yarn build:ts && yarn build:components",
     "build:ts": "yarn run -T tsc",
     "build:components": "yarn run -T componentsjs-generator -r uma-css -s src/ -c dist/components -i .componentsignore --lenient",
-    "test": "jest --coverage",
+    "test": "yarn run -T jest --coverage",
     "start": "yarn run community-solid-server -m . -c ./config/default.json --seedConfig ./config/seed.json"
   },
   "dependencies": {
@@ -73,6 +73,11 @@
   "devDependencies": {
     "@types/n3": "^1.16.4",
     "@types/node": "^18.18.11"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts)$"
   },
   "lsd:module": "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css",
   "lsd:components": "dist/components/components.jsonld",
