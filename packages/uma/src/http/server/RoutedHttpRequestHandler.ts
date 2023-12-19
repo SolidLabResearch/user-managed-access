@@ -1,5 +1,3 @@
-import { Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
 import { getLogger } from '../../logging/LoggerUtils';
 import { HttpHandler } from '../models/HttpHandler';
 import { HttpHandlerContext } from '../models/HttpHandlerContext';
@@ -48,9 +46,9 @@ export class RoutedHttpRequestHandler implements HttpHandler {
   /**
    * Passes the { HttpHandlerContext } to the handler of the { HttpHandlerRoute } matching the request's path.
    *
-   * @param { HttpHandlerContext } context - a HttpHandlerContext object containing a HttpHandlerRequest and HttpHandlerRoute
+   * @param { HttpHandlerContext } context - a HttpHandlerContext containing a HttpHandlerRequest and HttpHandlerRoute
    */
-  handle(context: HttpHandlerContext): Observable<HttpHandlerResponse> {
+  async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
 
     const request = context.request;
     const path = request.url.pathname;
@@ -90,34 +88,39 @@ export class RoutedHttpRequestHandler implements HttpHandler {
 
         this.logger.info(`Operation not supported. Supported operations:`, { allowedMethods });
 
-        return of({ body: '', headers: { Allow: allowedMethods.join(', ') }, status: request.method === 'OPTIONS' ? 204 : 405 });
-
+        return {
+          status: request.method === 'OPTIONS' ? 204 : 405,
+          headers: { 
+            'allow': allowedMethods.join(', ')
+          }, 
+          body: '', 
+        };
       }
 
       // Add the route's path to the logger's variables
       this.logger.setVariable('route', matchingRouteWithOperation.route.path);
 
       // add parameters from requestPath to the request object
-      const parameters = this.extractParameters(matchingRouteWithOperation.route.path.split('/').slice(1), pathSegments);
+      const paramNames = matchingRouteWithOperation.route.path.split('/').slice(1);
+      const parameters = this.extractParameters(paramNames, pathSegments);
       this.logger.debug('Extracted parameters from path: ', { parameters });
       const requestWithParams = Object.assign(request, { parameters });
       const newContext = { ... context, request: requestWithParams, route: matchingRouteWithOperation.route };
       const preResponseHandler = matchingRouteWithOperation.controller.preResponseHandler;
 
-      return (preResponseHandler
-        ? preResponseHandler.handle(newContext)
-        : of(newContext)
-      ).pipe(
-        switchMap((preresponse) => matchingRouteWithOperation.route.handler.handle(preresponse)),
-        map((response) => ({
-          ... response,
-          headers: {
-            ... response.headers,
-            ... (request.method === 'OPTIONS') && { Allow: allowedMethods.join(', ') },
-            ... (matchingRouteWithOperation.operation?.vary) && { vary: matchingRouteWithOperation.operation.vary.join(', ') },
+      const preResponse = preResponseHandler ? await preResponseHandler.handle(newContext) : newContext;
+      const response = await matchingRouteWithOperation.route.handler.handle(preResponse);
+      
+      return {
+        ... response,
+        headers: {
+          ... response.headers,
+          ... (request.method === 'OPTIONS') && { Allow: allowedMethods.join(', ') },
+          ... (matchingRouteWithOperation.operation?.vary) && { 
+            vary: matchingRouteWithOperation.operation.vary.join(', ') 
           },
-        })),
-      );
+        },
+      };
 
     } else if (this.defaultHandler) {
 
@@ -129,8 +132,7 @@ export class RoutedHttpRequestHandler implements HttpHandler {
 
       this.logger.error('No matching route found.', { path });
 
-      return of({ body: '', headers: {}, status: 404 });
-
+      return { body: '', headers: {}, status: 404 };
     }
 
   }

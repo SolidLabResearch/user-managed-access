@@ -1,8 +1,6 @@
 import {HttpHandler} from '../http/models/HttpHandler';
 import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../http/models/HttpHandlerResponse';
-import {Observable, from} from 'rxjs';
-import {map} from 'rxjs/operators';
 import {Logger} from '../logging/Logger';
 import {getLoggerFor} from '../logging/LoggerUtils';
 import {JwksKeyHolder} from '../secrets/JwksKeyHolder';
@@ -27,11 +25,17 @@ export class JwksRequestHandler implements HttpHandler {
      * @param {HttpHandlerContext} context - an irrelevant incoming context
      * @return {Observable<HttpHandlerResponse>} - the JWKS response
      */
-  handle(context: HttpHandlerContext): Observable<HttpHandlerResponse> {
+  async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
     this.logger.info(`Received JWKS request at '${context.request.url}'`);
 
-    return from(this.keyholder.getJwks()).pipe(map((data) => {
-      return {body: JSON.stringify(data), headers: {'content-type': 'application/json'}, status: 200};
-    }));
+    const jwks = await this.keyholder.getJwks();
+
+    return {
+      status: 200,
+      headers: {
+        'content-type': 'application/json'
+      }, 
+      body: JSON.stringify(jwks),
+    };
   }
 }

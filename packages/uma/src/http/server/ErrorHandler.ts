@@ -1,8 +1,6 @@
 import {HttpHandler} from '../models/HttpHandler';
 import {HttpHandlerContext} from '../models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../models/HttpHandlerResponse';
-import {Observable, of} from 'rxjs';
-import {catchError} from 'rxjs/operators';
 import {Logger} from '../../logging/Logger';
 import {getLoggerFor} from '../../logging/LoggerUtils';
 
@@ -69,22 +67,24 @@ export class JsonHttpErrorHandler implements HttpHandler {
    * @param {HttpHandlerContext} context - Request context
    * @return {Observable<HttpHandlerResponse>}
    */
-  handle(context: HttpHandlerContext): Observable<HttpHandlerResponse> {
-    return this.nestedHandler.handle(context).pipe(
-        catchError((error) => {
-          this.logger.error(`Returned error for ${context.request.method} '${context.request.url}':` +
-          ` ${(error as Error).name} ${(error as Error).message}`, error);
-          return of({
-            status: statusCodes[error?.statusCode] ? error.statusCode : 500,
-            headers: {'content-type': 'application/json'},
-            body: JSON.stringify({
-              'status': statusCodes[error?.statusCode] ? error.statusCode : 500,
-              'description': statusCodes[error?.statusCode] ? statusCodes[error.statusCode] : statusCodes[500],
-              'error': error?.type ?? error.type,
-              'message': error?.message ?? error.message,
-              ...(error?.additionalParams?error.additionalParams:{}),
-            }),
-          });
-        }));
+  async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
+    try {
+      return await this.nestedHandler.handle(context);
+    } catch (error) {
+      this.logger.error(`Returned error for ${context.request.method} '${context.request.url}':` +
+      ` ${(error as Error).name} ${(error as Error).message}`, error);
+
+      return {
+        status: statusCodes[error?.statusCode] ? error.statusCode : 500,
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify({
+          'status': statusCodes[error?.statusCode] ? error.statusCode : 500,
+          'description': statusCodes[error?.statusCode] ? statusCodes[error.statusCode] : statusCodes[500],
+          'error': error?.type ?? error.type,
+          'message': error?.message ?? error.message,
+          ...(error?.additionalParams?error.additionalParams:{}),
+        }),
+      };
+    };
   }
 }

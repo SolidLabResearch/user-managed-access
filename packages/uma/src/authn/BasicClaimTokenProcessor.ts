@@ -1,7 +1,7 @@
-import {Logger} from '../logging/Logger';
-import {getLoggerFor} from '../logging/LoggerUtils';
-import {Principal} from '../models/AccessToken';
-import {ClaimTokenProcessor, ClaimTokenRequest} from './ClaimTokenProcessor';
+import { Logger } from '../logging/Logger';
+import { getLoggerFor } from '../logging/LoggerUtils';
+import { Principal } from '../models/AccessToken';
+import { ClaimTokenProcessor, ClaimTokenRequest } from './ClaimTokenProcessor';
 
 const DUMMY_TOKEN_FORMAT = 'urn:authorization-agent:dummy-token';
 /**
@@ -48,11 +48,15 @@ export class BasicClaimTokenProcessor extends ClaimTokenProcessor {
       if (tokenContents.length > 2) {
         throw new Error('Invalid token format, only one \':\' is expected.');
       }
-      const principal: Principal = {webId: new URL(decodeURIComponent(tokenContents[0])).toString()};
+
+      const principal: Principal = { 
+        webId: new URL(decodeURIComponent(tokenContents[0])).toString() 
+      };
 
       if (tokenContents.length === 2) {
         principal.clientId = new URL(decodeURIComponent(tokenContents[1])).toString();
       }
+      
       this.logger.info(`Authenticated as ${principal.webId} via a dummy token.`);
       return principal;
     } catch (error: unknown) {

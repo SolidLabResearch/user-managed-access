@@ -1,17 +1,17 @@
-import {BadRequestHttpError} from '../http/errors/BadRequestHttpError';
-import {HttpHandler} from '../http/models/HttpHandler';
-import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
-import {HttpHandlerResponse} from '../http/models/HttpHandlerResponse';
-import {UnauthorizedHttpError} from '../http/errors/UnauthorizedHttpError';
-import {UnsupportedMediaTypeHttpError} from '../http/errors/UnsupportedMediaTypeHttpError';
-import {from, map, Observable, throwError} from 'rxjs';
+import { BadRequestHttpError } from '../http/errors/BadRequestHttpError';
+import { HttpHandler } from '../http/models/HttpHandler';
+import { HttpHandlerContext } from '../http/models/HttpHandlerContext';
+import { HttpHandlerResponse } from '../http/models/HttpHandlerResponse';
+import { UnauthorizedHttpError } from '../http/errors/UnauthorizedHttpError';
+import { UnsupportedMediaTypeHttpError } from '../http/errors/UnsupportedMediaTypeHttpError';
 import * as jose from 'jose';
-import {Logger} from '../logging/Logger';
-import {getLoggerFor} from '../logging/LoggerUtils';
-import {KeyValueStore} from '../storage/models/KeyValueStore';
-import {Ticket} from '../models/Ticket';
-import {assertPermissions} from '../models/Permission';
-import {v4} from 'uuid';
+import { Logger } from '../logging/Logger';
+import { getLoggerFor } from '../logging/LoggerUtils';
+import { KeyValueStore } from '../storage/models/KeyValueStore';
+import { Ticket } from '../models/Ticket';
+import { v4 } from 'uuid';
+import { array, reType } from '../util/ReType';
+import { Permission } from '../models/Permission';
 
 type ErrorConstructor = { new(msg: string): Error };
 
@@ -73,30 +73,27 @@ export class PermissionRegistrationHandler implements HttpHandler {
   * @param {HttpHandlerContext} param0
   * @return {Observable<HttpHandlerResponse<PermissionRegistrationResponse>>}
   */
-  handle({request}: HttpHandlerContext): Observable<HttpHandlerResponse<any>> {
+  async handle({request}: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
     if (!request.headers.authorization) {
-      return throwError(() => new UnauthorizedHttpError('Missing authorization header in request.'));
+      throw new UnauthorizedHttpError('Missing authorization header in request.');
     }
 
     if (request.headers['content-type'] !== 'application/json') {
-      return throwError(() => new UnsupportedMediaTypeHttpError(
-          'Only Media Type "application/json" is supported for this route.'));
+      throw new UnsupportedMediaTypeHttpError(
+          'Only Media Type "application/json" is supported for this route.');
     }
 
     if (!request.body || !(request.body instanceof Object)) {
-      return throwError(() => new BadRequestHttpError('Missing request body.'));
+      throw new BadRequestHttpError('Missing request body.');
     }
 
+    const response = await this.processRequestingPartyRegistration(request.headers.authorization, request.body);
 
-    return from(this.processRequestingPartyRegistration(request.headers.authorization, request.body))
-        .pipe(map((response) => {
-          return {
-            headers: {'content-type': 'application/json'},
-            status: 200,
-            body: response,
-          };
-        },
-        ));
+    return {
+      headers: {'content-type': 'application/json'},
+      status: 200,
+      body: response,
+    };
   }
 
   /**
@@ -114,7 +111,7 @@ export class PermissionRegistrationHandler implements HttpHandler {
 
 this.logger.debug('PROCESS');
     try {
-      assertPermissions(body);
+      reType(body, array(Permission));
     } catch (e) {
       this.logger.debug('Syntax error: ' + (e as Error).message, body);
       e instanceof Error 

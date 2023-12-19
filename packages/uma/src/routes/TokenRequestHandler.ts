@@ -3,8 +3,6 @@ import {BadRequestHttpError} from '../http/errors/BadRequestHttpError';
 import {HttpHandler} from '../http/models/HttpHandler';
 import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../http/models/HttpHandlerResponse';
-import {throwError} from 'rxjs';
-import {from, map, Observable} from 'rxjs';
 import {GrantTypeProcessor} from '../grant/GrantTypeProcessor';
 
 const GRANT_TYPE = 'grant_type';
@@ -31,15 +29,15 @@ export class TokenRequestHandler implements HttpHandler {
    * @param {HttpHandlerContext} input - Request context
    * @return {Observable<HttpHandlerResponse<any>>} - response
    */
-  handle(input: HttpHandlerContext): Observable<HttpHandlerResponse<any>> {
+  async handle(input: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
     if (input.request.headers['content-type'] !== 'application/x-www-form-urlencoded') {
-      return throwError(() => new UnsupportedMediaTypeHttpError());
+      throw new UnsupportedMediaTypeHttpError();
     }
 
     const bodyParams = new URLSearchParams(input.request.body);
 
     if (!bodyParams.has(GRANT_TYPE) || !bodyParams.get(GRANT_TYPE)) {
-      return throwError(() => new BadRequestHttpError('Request body is missing required key \'grant_type\'.'));
+      throw new BadRequestHttpError('Request body is missing required key \'grant_type\'.');
     }
     const grantType = bodyParams.get(GRANT_TYPE)!;
 
@@ -49,16 +47,14 @@ export class TokenRequestHandler implements HttpHandler {
     });
 
     if (!this.grantProcessors.has(grantType)) {
-      return throwError(() => new BadRequestHttpError(`Unsupported grant type: '${grantType}'`));
+      throw new BadRequestHttpError(`Unsupported grant type: '${grantType}'`);
     }
 
     const grantProcessor = this.grantProcessors.get(grantType)!;
 
-    const tokenResponse = from(grantProcessor.process(parsedRequestBody, input));
+    const tokenResponse = await grantProcessor.process(parsedRequestBody, input);
 
-    return tokenResponse.pipe(map((data) => {
-      return {body: JSON.stringify(data), headers: {'content-type': 'application/json'}, status: 200};
-    }));
+    return {body: JSON.stringify(tokenResponse), headers: {'content-type': 'application/json'}, status: 200};
   }
 }
 

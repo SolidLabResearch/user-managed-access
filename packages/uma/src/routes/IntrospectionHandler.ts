@@ -4,7 +4,6 @@ import {HttpHandler} from '../http/models/HttpHandler';
 import {HttpHandlerResponse} from '../http/models/HttpHandlerResponse';
 import {UnauthorizedHttpError} from '../http/errors/UnauthorizedHttpError';
 import {UnsupportedMediaTypeHttpError} from '../http/errors/UnsupportedMediaTypeHttpError';
-import {from, map, Observable, of, throwError} from 'rxjs';
 import {Logger} from '../logging/Logger';
 import {getLoggerFor} from '../logging/LoggerUtils';
 import {KeyValueStore} from '../storage/models/KeyValueStore';
@@ -31,7 +30,7 @@ export class IntrospectionHandler implements HttpHandler {
   * @param {HttpHandlerContext} param0
   * @return {Observable<HttpHandlerResponse<any>>}
   */
-  handle({request}: HttpHandlerContext): Observable<HttpHandlerResponse<any>> {
+  async handle({request}: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
       // const request = {
       //   method: 'POST',
       //   headers: {
@@ -44,34 +43,35 @@ export class IntrospectionHandler implements HttpHandler {
 
     // TODO: check PAT
     if (!request.headers.authorization) {
-      return throwError(() => new UnauthorizedHttpError('Missing authorization header in request.'));
+      throw new UnauthorizedHttpError('Missing authorization header in request.');
     }
 
     if (request.headers['content-type'] !== 'application/x-www-form-urlencoded') {
-      return throwError(() => new UnsupportedMediaTypeHttpError(
-          'Only Media Type "application/x-www-form-urlencoded" is supported for this route.'));
+      throw new UnsupportedMediaTypeHttpError(
+          'Only Media Type "application/x-www-form-urlencoded" is supported for this route.');
     }
 
     if (request.headers['accept'] !== 'application/json') {
-      return throwError(() => new UnsupportedMediaTypeHttpError(
-          'Only "application/json" can be served by this route.'));
+      throw new UnsupportedMediaTypeHttpError(
+          'Only "application/json" can be served by this route.');
     }
 
     if (!request.body || !(request.body instanceof Object)) {
-      return throwError(() => new BadRequestHttpError('Missing request body.'));
+      throw new BadRequestHttpError('Missing request body.');
     }
 
     try {
       const opaqueToken = new URLSearchParams(request.body).get('token');
       if (!opaqueToken) throw new Error ();
       
-      return from(this.opaqueToJwt(opaqueToken)).pipe((jwt) => of({
+      const jwt = this.opaqueToJwt(opaqueToken);
+      return {
         headers: {'content-type': 'application/json'},
         status: 200,
         body: jwt,
-      }));
+      };
     } catch (e) {
-      return throwError(() => new BadRequestHttpError('Invalid request body.'));
+      throw new BadRequestHttpError('Invalid request body.');
     }
 
   }

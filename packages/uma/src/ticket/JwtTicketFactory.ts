@@ -6,7 +6,8 @@ import {InvalidGrantError} from '../error/InvalidGrantError';
 import {JwksKeyHolder} from '../secrets/JwksKeyHolder';
 import {TicketFactory} from './TicketFactory';
 import {Ticket} from '../models/Ticket';
-import {assertPermissions} from '../models/Permission';
+import { array, reType } from '../util/ReType.js';
+import { Permission } from '../models/Permission.js';
 
 const AUD = 'solid';
 
@@ -69,7 +70,7 @@ export class JwtTicketFactory extends TicketFactory {
       //   throw new Error('JWT claim "owner" is not a string.');
       // }
       const permissions = payload.permissions;
-      assertPermissions(permissions);
+      reType(permissions, array(Permission));
       return {
         // sub: {iri: payload.sub},
         // owner: payload.owner,

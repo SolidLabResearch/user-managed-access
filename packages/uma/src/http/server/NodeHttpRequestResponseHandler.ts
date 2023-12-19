@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable no-null/no-null */
-import { Observable, of, Subject, throwError } from 'rxjs';
-import { map, switchMap, toArray, catchError } from 'rxjs/operators';
 import { v4 } from 'uuid';
 import { getLogger, makeErrorLoggable } from '../../logging/LoggerUtils';
 import { BadRequestHttpError } from '../errors/BadRequestHttpError';
@@ -12,6 +8,7 @@ import { HttpMethods } from '../models/HttpMethod';
 import { statusCodes } from './ErrorHandler';
 import { NodeHttpStreamsHandler } from './NodeHttpStreamsHandler';
 import { NodeHttpStreams } from './NodeHttpStreams';
+
 
 /**
  * A { NodeHttpStreamsHandler } reading the request stream into a { HttpHandlerRequest },
@@ -47,12 +44,7 @@ export class NodeHttpRequestResponseHandler implements NodeHttpStreamsHandler {
     body: string,
     contentType?: string,
   ): string | { [key: string]: string } {
-
-    // TODO: parse x-www-form-urlencoded body
-    // case 'application/':
-    //   return JSON.parse(`{"${decodeURIComponent(body).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"')}"}`);
-
-    this.logger.debug('Parsing request body', { body: body.slice(0, 2000), contentType });
+    this.logger.debug('Parsing request body', { body, contentType });
 
     if (contentType?.startsWith('application/json')) {
 
@@ -62,8 +54,7 @@ export class NodeHttpRequestResponseHandler implements NodeHttpStreamsHandler {
 
       } catch (error: any) {
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        throw new BadRequestHttpError(error.message);
+        throw new BadRequestHttpError(error instanceof Error ? error.message : '');
 
       }
 
@@ -79,7 +70,7 @@ export class NodeHttpRequestResponseHandler implements NodeHttpStreamsHandler {
   ) {
 
     // don't log the body if it is a buffer. It results in a long, illegible log.
-    this.logger.debug('Parsing response body', { body: body instanceof Buffer ? '<Buffer>' : typeof body === 'string' ? body.slice(0, 2000) : body, contentType });
+    this.logger.debug('Parsing response body', { body: body instanceof Buffer ? '<Buffer>' : body, contentType });
 
     if (contentType?.startsWith('application/json')) {
 
@@ -99,244 +90,247 @@ export class NodeHttpRequestResponseHandler implements NodeHttpStreamsHandler {
    * and writes the result to the responseStream.
    *
    * @param { NodeHttpStreams } noteHttpStreams - the incoming set of Node.js HTTP read and write streams
-   * @returns an { Observable<void> } for completion detection
+   * @returns an { Promise<void> } for completion detection
    */
-  handle(nodeHttpStreams: NodeHttpStreams): Observable<void> {
+  async handle(nodeHttpStreams: NodeHttpStreams): Promise<void> {
 
     if (!nodeHttpStreams) {
 
       this.logger.error('No node http streams received');
 
-      return throwError(() => new Error('node http streams object cannot be null or undefined.'));
+      throw new Error('node http streams object cannot be null or undefined.');
 
     }
 
-    if (!nodeHttpStreams.requestStream) {
+    const { requestStream, responseStream } = nodeHttpStreams;
+
+    if (!requestStream) {
 
       // No request was received, this path is technically impossible to reach
       this.logger.error('No request stream received', { nodeHttpStreams });
 
-      return throwError(() => new Error('request stream cannot be null or undefined.'));
+      throw new Error('request stream cannot be null or undefined.');
 
     }
 
-    if (!nodeHttpStreams.requestStream.headers) {
+    const { headers } = requestStream;
+
+    if (!headers) {
 
       // No request headers were received, this path is technically impossible to reach
-      this.logger.error('No request headers received', { requestStream: nodeHttpStreams.requestStream });
+      this.logger.error('No request headers received', { requestStream });
 
-      return throwError(() => new Error('headers of the request cannot be null or undefined.'));
+      throw new Error('headers of the request cannot be null or undefined.');
 
     }
 
     // Add a request id to to be logged with every log from here on
-    const requestIdHeader = nodeHttpStreams.requestStream.headers['x-request-id'];
+    const requestIdHeader = headers['x-request-id'];
     this.requestId = (Array.isArray(requestIdHeader) ? requestIdHeader[0] : requestIdHeader) ?? v4();
     this.logger.setVariable('requestId', this.requestId);
     // Add a correlation id to be logged with every log from here on
-    const correlationIdHeader = nodeHttpStreams.requestStream.headers['x-correlation-id'];
+    const correlationIdHeader = headers['x-correlation-id'];
     this.correlationId = (Array.isArray(correlationIdHeader) ? correlationIdHeader[0] : correlationIdHeader) ?? v4();
     this.logger.setVariable('correlationId', this.correlationId);
 
     // Set the logger label to the last 5 characters of the request id
     this.logger.debug('Set initial Logger variables', { variables: this.logger.getVariables() });
 
-    if (!nodeHttpStreams.responseStream) {
+    if (!responseStream) {
 
       // No response was received, this path is technically impossible to reach
       this.logger.error('No response stream received', { nodeHttpStreams });
 
-      return throwError(() => new Error('response stream cannot be null or undefined.'));
+      throw new Error('response stream cannot be null or undefined.');
 
     }
 
-    const url = nodeHttpStreams.requestStream.url;
+    const url = requestStream.url;
 
     if (!url) {
 
       // No request url was received, this path is technically impossible to reach
-      this.logger.warn('No url received', { requestStream: nodeHttpStreams.requestStream });
+      this.logger.warn('No url received', { requestStream });
 
-      return throwError(() => new Error('url of the request cannot be null or undefined.'));
+      throw new Error('url of the request cannot be null or undefined.');
 
     }
 
     // Check if the request method is an HTTP method + this ensures typing throughout the file
-    const method = Object.values(HttpMethods).find((m) => m === nodeHttpStreams.requestStream.method);
+    const method = Object.values(HttpMethods).find((m) => m === requestStream.method);
 
     if (!method) {
 
-      if (nodeHttpStreams.requestStream.method) {
+      if (requestStream.method) {
 
         // An unsupported method was received
-        this.logger.debug('Invalid method received', { method: nodeHttpStreams.requestStream.method });
+        this.logger.debug('Invalid method received', { method: requestStream.method });
         this.logger.clearVariables();
-        nodeHttpStreams.responseStream.writeHead(501, { 'Content-Type': 'application/json' });
+        responseStream.writeHead(501, { 'Content-Type': 'application/json' });
 
-        nodeHttpStreams.responseStream.write(JSON.stringify({
+        responseStream.write(JSON.stringify({
           error: 'http_request_method_not_valid',
           error_description: 'This is not a known HTTP verb',
         }));
 
-        nodeHttpStreams.responseStream.end();
+        responseStream.end();
 
-        return of(void 0);
+        return Promise.resolve();
 
       } else {
 
         // No request method was received, this path is technically impossible to reach
-        this.logger.warn('No method received', { requestStream: nodeHttpStreams.requestStream });
+        this.logger.warn('No method received', { requestStream });
 
-        return throwError(() => new Error('method of the request cannot be null or undefined.'));
+        throw new Error('method of the request cannot be null or undefined.');
 
       }
 
     }
 
-    const buffer = new Subject<any>();
+    const chunks = [];
 
-    nodeHttpStreams.requestStream.on('data', (chunk) => buffer.next(chunk));
-    nodeHttpStreams.requestStream.on('end', () => buffer.complete());
+    for await (const chunk of requestStream) {
 
-    return buffer.pipe(
-      toArray(),
-      map((chunks) => Buffer.concat(chunks).toString()),
-      map((body) => {
+      chunks.push(chunk);
 
-        // Make sure first param doesn't start with multiple slashes
-        const urlObject: URL = new URL(url.replace(/^\/+/, '/'), `http://${nodeHttpStreams.requestStream.headers.host}`);
+    }
 
-        // Add host, path and method to the logger variables
-        this.logger.setVariable('host', urlObject.host);
-        this.logger.setVariable('path', urlObject.pathname + urlObject.search + urlObject.hash);
-        this.logger.setVariable('method', method);
+    const buffer = Buffer.concat(chunks);
+    const message = buffer.toString();
 
-        const httpHandlerRequest: HttpHandlerRequest = {
-          url: urlObject,
-          method,
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          headers: nodeHttpStreams.requestStream.headers as { [key: string]: string },
-          ... (body && body !== '') && { body: this.parseBody(body, nodeHttpStreams.requestStream.headers['content-type']) },
-        };
+    // Make sure first param doesn't start with multiple slashes
+    const urlObject: URL = new URL(url.replace(/^\/+/, '/'), `http://${headers.host}`);
 
-        return { request: httpHandlerRequest };
+    // Add host, path and method to the logger variables
+    this.logger.setVariable('host', urlObject.host);
+    this.logger.setVariable('path', urlObject.pathname + urlObject.search + urlObject.hash);
+    this.logger.setVariable('method', method);
 
-      }),
-      switchMap((context: HttpHandlerContext) => {
+    const httpHandlerRequest: HttpHandlerRequest = {
+      url: urlObject,
+      method,
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      headers: headers as { [key: string]: string },
+      ... (message && message !== '') && { body: this.parseBody(message, headers['content-type']) },
+    };
 
-        this.logger.info('Domestic request:', { eventType: 'domestic_request', context });
+    const context: HttpHandlerContext = { request: httpHandlerRequest };
 
-        return this.httpHandler.handle(context);
+    this.logger.info('Domestic request:', { eventType: 'domestic_request', context });
 
-      }),
-      catchError((error) => {
+    let response = await this.httpHandler.handle(context).catch((error) => {
 
-        const status = error?.statusCode ?? error.status;
-        const message = error?.message ?? error.body;
+      const status = error?.statusCode ?? error.status;
+      const message = error?.message ?? error.body;
 
-        this.logger.warn(`Unhandled error is handled by Handlersjs :`, { error: makeErrorLoggable(error) });
+      this.logger.warn(`Unhandled error is handled by Handlersjs :`, { error: makeErrorLoggable(error) });
 
-        return of({ headers: {}, ... error, body: message ?? 'Internal Server Error', status: statusCodes[status] ? status : 500 });
+      return { 
+        headers: {}, 
+        ... error, 
+        body: message ?? 'Internal Server Error', 
+        status: statusCodes[status] ? status : 500 
+      };
 
-      }),
-      switchMap((response) => {
+    });
 
-        const contentTypeHeader = response.headers['content-type'];
+    const contentTypeHeader = response.headers['content-type'];
 
-        const charsetString = contentTypeHeader ? contentTypeHeader.split(';')
-          .filter((part: string[]) => part.includes('charset='))
-          .map((part: string) => part.split('=')[1].toLowerCase())[0]
-          ?? 'utf-8' : 'utf-8';
+    const charsetString = contentTypeHeader ? contentTypeHeader.split(';')
+      .filter((part: string[]) => part.includes('charset='))
+      .map((part: string) => part.split('=')[1].toLowerCase())[0]
+      ?? 'utf-8' : 'utf-8';
 
-        if (
-          charsetString !== 'ascii'
-          && charsetString !== 'utf8'
-          && charsetString !== 'utf-8'
-          && charsetString !== 'utf16le'
-          && charsetString !== 'ucs2'
-          && charsetString !== 'ucs-2'
-          && charsetString !== 'base64'
-          && charsetString !== 'latin1'
-          && charsetString !== 'binary'
-          && charsetString !== 'hex'
-        ) {
+    if (
+      charsetString !== 'ascii'
+      && charsetString !== 'utf8'
+      && charsetString !== 'utf-8'
+      && charsetString !== 'utf16le'
+      && charsetString !== 'ucs2'
+      && charsetString !== 'ucs-2'
+      && charsetString !== 'base64'
+      && charsetString !== 'latin1'
+      && charsetString !== 'binary'
+      && charsetString !== 'hex'
+    ) {
 
-          this.logger.warn('Unsupported charset', { charsetString });
+      this.logger.warn('Unsupported charset', { charsetString });
 
-          return throwError(() => new Error('The specified charset is not supported'));
+      throw new Error('The specified charset is not supported');
 
-        }
+    }
 
-        // If the body is not a string or a buffer, for example an object, stringify it. This is needed
-        // to use Buffer.byteLength and to eventually write the body to the response.
-        // Functions will result in 'undefined' which is desired behavior
-        const body: string | Buffer = response.body !== undefined && response.body !== null ? typeof response.body === 'string' || response.body instanceof Buffer ? response.body : JSON.stringify(response.body) : undefined;
+    // If the body is not a string or a buffer, for example an object, stringify it. This is needed
+    // to use Buffer.byteLength and to eventually write the body to the response.
+    // Functions will result in 'undefined' which is desired behavior
+    const body: string | Buffer = response.body !== undefined && response.body !== null 
+      ? typeof response.body === 'string' || response.body instanceof Buffer 
+        ? response.body 
+        : JSON.stringify(response.body) 
+      : undefined;
 
-        const extraHeaders = {
-          ... (body !== undefined && body !== null && !response.headers['content-type'] && !response.headers['Content-Type'] && typeof response.body !== 'string' && !(response.body instanceof Buffer)) && { 'content-type': 'application/json' },
-          ... (body !== undefined && body !== null && !response.headers['content-length'] && !response.headers['Content-Length']) && { 'content-length': Buffer.byteLength(body, charsetString).toString() },
-          ... (this.hsts?.maxAge) && { 'strict-transport-security': `max-age=${this.hsts.maxAge}${this.hsts.includeSubDomains ? '; includeSubDomains' : ''}` },
-          'x-powered-by': this.poweredBy,
-          'x-request-id': this.requestId,
-          'x-correlation-id': this.correlationId,
-        };
-
-        // Reset variables so new requests will never share ids
-        this.requestId = '';
-        this.correlationId = '';
-
-        return of({
-          ... response,
-          body,
-          headers: {
-            ... response.headers,
-            ... extraHeaders,
+    const extraHeaders = {
+      ... (
+        body !== undefined && body !== null && 
+        !response.headers['content-type'] && 
+        !response.headers['Content-Type'] && 
+        typeof response.body !== 'string' && !(response.body instanceof Buffer)) && { 
+          'content-type': 'application/json' },
+          ... (body !== undefined && body !== null) && { 
+            'content-length': Buffer.byteLength(body, charsetString).toString() 
           },
-        });
+          ... (this.hsts?.maxAge) && { 
+            'strict-transport-security': `max-age=${this.hsts.maxAge}${this.hsts.includeSubDomains 
+              ? '; includeSubDomains' 
+              : ''
+          }` 
+      },
+      'x-powered-by': this.poweredBy,
+      'x-request-id': this.requestId,
+      'x-correlation-id': this.correlationId,
+    };
 
-      }),
-      map((response) => {
+    // Reset variables so new requests will never share ids
+    this.requestId = '';
+    this.correlationId = '';
 
-        this.logger.debug('Sending response');
+    response = {
+      ... response,
+      body,
+      headers: {
+        ... response.headers,
+        ... extraHeaders,
+      },
+    };
 
-        nodeHttpStreams.responseStream.writeHead(response.status, response.headers);
+    this.logger.debug('Sending response');
 
-        if (response.body !== undefined && response.body !== null) {
+    responseStream.writeHead(response.status, response.headers);
 
-          const contentTypeHeader = response.headers['content-type'] || response.headers['Content-Type'];
+    if (response.body !== undefined && response.body !== null) {
 
-          const body = this.parseResponseBody(response.body, contentTypeHeader);
-          nodeHttpStreams.responseStream.write(body);
+      const contentTypeHeader = response.headers['content-type'] || response.headers['Content-Type'];
 
-        }
+      const body = this.parseResponseBody(response.body, contentTypeHeader);
+      responseStream.write(body);
 
-        nodeHttpStreams.responseStream.end();
+    }
 
-        let bodyToLog = '';
+    responseStream.end();
 
+    this.logger.info('Domestic response:', {
+      eventType: 'domestic_response',
+      response: {
+        ... response,
         // Set body to string '<Buffer>' if it is a Buffer Object to not pollute logs
-        if (response.body && response.body instanceof Buffer) {
+        ... (response.body && response.body instanceof Buffer) && { body: '<Buffer>' },
+      },
+    });
 
-          bodyToLog = '<Buffer>';
+    this.logger.clearVariables();
 
-        } else if (response.body && typeof response.body === 'string') {
-
-          bodyToLog = response.body.slice(0, 2000);
-
-        }
-
-        this.logger.info('Domestic response:', {
-          eventType: 'domestic_response',
-          response: {
-            ... response,
-            ... (bodyToLog) && { body: bodyToLog },
-          },
-        });
-
-        this.logger.clearVariables();
-
-      }),
-    );
+    return Promise.resolve();
 
   }
 

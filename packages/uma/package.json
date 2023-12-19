@@ -65,7 +65,6 @@
     "cross-fetch": "^4.0.0",
     "jose": "^4.5.1",
     "logform": "^2.6.0",
-    "rxjs": "^7.5.4",
     "typescript-memoize": "^1.1.0",
     "uuid": "^9.0.1",
     "winston": "^3.11.0"

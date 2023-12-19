@@ -7,7 +7,8 @@ import {JwksKeyHolder} from '../secrets/JwksKeyHolder';
 import {isString} from '../util/StringGuard';
 import {SerializedToken, TokenFactory} from './TokenFactory';
 import {AccessToken} from '../models/AccessToken';
-import {assertPermissions} from '../models/Permission';
+import { array, reType } from '../util/ReType.js';
+import { Permission } from '../models/Permission.js';
 
 const AUD = 'solid';
 
@@ -84,7 +85,7 @@ export class JwtTokenFactory extends TokenFactory {
 
       const permissions = payload.permissions;
 
-      assertPermissions(permissions);
+      reType(permissions, array(Permission));
 
       return {
         webId: payload.webid!,

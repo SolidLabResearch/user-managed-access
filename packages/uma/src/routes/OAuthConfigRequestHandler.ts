@@ -1,7 +1,6 @@
 import {HttpHandler} from '../http/models/HttpHandler';
 import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../http/models/HttpHandlerResponse';
-import {Observable, of} from 'rxjs';
 import {Logger} from '../logging/Logger';
 import {getLoggerFor} from '../logging/LoggerUtils';
 
@@ -42,15 +41,13 @@ export abstract class OAuthConfigRequestHandler<T extends OAuthConfiguration = O
      * @param {HttpHandlerContext} context - an irrelevant incoming context
      * @return {Observable<HttpHandlerResponse>} - the mock response
      */
-  handle(context: HttpHandlerContext): Observable<HttpHandlerResponse> {
+  async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
     this.logger.info(`Received discovery request at '${context.request.url}'`);
-    const response: HttpHandlerResponse = {
+    return {
       body: JSON.stringify(this.getConfig()),
       headers: {'content-type': 'application/json'},
       status: 200,
     };
-
-    return of(response);
   }
 }
 

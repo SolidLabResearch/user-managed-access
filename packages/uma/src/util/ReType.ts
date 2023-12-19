@@ -32,7 +32,11 @@ export type Assertion<T> = (value: unknown) => asserts value is T;
 export type ReType = Literal | Assertion<unknown> | { [_: PropertyKey]: ReType };
 
 export type Type<R extends ReType> = 
-  R extends { [_: PropertyKey]: ReType } ? { [K in keyof R]: Type<R[K]> } :
+  R extends { [_: PropertyKey]: ReType } ? { 
+    [K in keyof R as undefined extends Type<R[K]> ? never : K]: Type<R[K]> 
+  } & {
+    [K in keyof R as undefined extends Type<R[K]> ? K : never]?: Type<R[K]> 
+  } :
   R extends Assertion<infer T> ? T : 
   R;
 
@@ -49,9 +53,7 @@ export function reType<R extends ReType>(value: unknown, assertion: R): asserts 
       const assertionKeys: (string | symbol)[] = [] as const;
       assertionKeys.push(...Object.getOwnPropertyNames(assertion));
       assertionKeys.push(...Object.getOwnPropertySymbols(assertion));
-      assertionKeys.forEach(key => {
-        if (isIn(key, value)) reType(value[key], assertion[key])
-      });
+      assertionKeys.forEach(key => reType(isIn(key, value) ? value[key] : undefined, assertion[key]));
 
       break; 
     }

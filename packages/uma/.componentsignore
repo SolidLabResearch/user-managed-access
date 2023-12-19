@@ -1,5 +1,14 @@
 [
   "AccessToken",
+  "AccessToken",
+  "Authorization",
   "Error",
+  "EventEmitter",
+  "Permission",
+  "Principal",
+  "ResourceDescription",
+  "ReType",
+  "ScopeDescription",
+  "Ticket",
   "URL"
 ]

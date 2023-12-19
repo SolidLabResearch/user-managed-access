@@ -1,7 +1,6 @@
 import {HttpHandler} from '../http/models/HttpHandler';
 import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../http/models/HttpHandlerResponse';
-import {Observable, of} from 'rxjs';
 
 /**
  * Default route handler
@@ -12,8 +11,8 @@ export class DefaultRouteHandler extends HttpHandler {
      * @param {HttpHandlerContext} input
      * @return {Observable<HttpHandlerResponse<any>>}
      */
-  handle(input: HttpHandlerContext): Observable<HttpHandlerResponse<any>> {
-    const response: HttpHandlerResponse = {
+  async handle(input: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
+    return {
       body: JSON.stringify({
         'status': 404,
         'error': 'Not Found',
@@ -21,7 +20,5 @@ export class DefaultRouteHandler extends HttpHandler {
       headers: {'content-type': 'application/json'},
       status: 404,
     };
-
-    return of(response);
   }
 }

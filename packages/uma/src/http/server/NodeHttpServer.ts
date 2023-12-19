@@ -1,10 +1,26 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { createServer, IncomingMessage, ServerResponse, Server as NodeServer } from 'http';
-import { Subject } from 'rxjs';
 import { getLogger } from '../../logging/LoggerUtils';
 import { Server } from '../models/Server';
 import { NodeHttpStreams } from './NodeHttpStreams';
 import { NodeHttpStreamsHandler } from './NodeHttpStreamsHandler';
+
+const events = [
+  'checkContinue',
+  'checkExpectation',
+  'clientError',
+  'close',
+  'connect',
+  'connection',
+  'drop',
+  'dropRequest',
+  'error',
+  'listening',
+  'newListener',
+  'removeListener',
+  'request',
+  'upgrade',
+];
 
 /**
  * A { Server } implemented with [Node.js HTTP]{@link https://nodejs.org/api/http.html}, handling requests through a { NodeHttpStreamsHandler }.
@@ -26,7 +42,7 @@ export class NodeHttpServer extends Server {
     protected host: string,
     protected port: number,
     private nodeHttpStreamsHandler: NodeHttpStreamsHandler,
-  ) {
+  ){
 
     super(`http`, host, port);
 
@@ -50,34 +66,41 @@ export class NodeHttpServer extends Server {
 
     this.server = createServer(this.serverHelper.bind(this));
 
+    for (const event of events) {
+
+      this.server.on(event, (... args) => this.emit(event, ... args));
+
+    }
+
   }
 
   /**
    * @override
    * { @inheritDoc Server.start }
    */
-  start() {
+  async start(): Promise<this> {
 
-    const subject = new Subject<this>();
+    const server = new Promise<this>((resolve, reject) => {
 
-    this.server.on(('error'), (err: unknown) => {
+      this.on('listening', () => {
 
-      this.logger.fatal(`The server ran into a problem: `, { error: err });
-      subject.error(new Error(`The server ran into a problem: ${err}`));
+        this.logger.info(`The server is listening on ${this.host}:${this.port}`);
+        resolve(this);
 
-    });
+      });
 
-    this.server.on('listening', () => {
+      this.on('error', (err: unknown) => {
 
-      subject.next(this);
-      subject.complete();
+        this.logger.fatal(`The server ran into a problem: `, { error: err });
+        reject(new Error(`The server ran into a problem: ${err}`));
+
+      });
 
     });
 
     this.server.listen(this.port, this.host);
-    this.logger.info(`The server is listening on ${this.host}:${this.port}`);
 
-    return subject;
+    return server;
 
   }
 
@@ -85,28 +108,29 @@ export class NodeHttpServer extends Server {
    * @override
    * { @inheritDoc Server.start }
    */
-  stop() {
+  stop(): Promise<this> {
 
-    const subject = new Subject<this>();
+    const server = new Promise<this>((resolve, reject) => {
 
-    this.server.on(('error'), (err: unknown) => {
+      this.on('close', () => {
 
-      this.logger.fatal(`The server ran into a problem: `, { error: err });
-      subject.error(new Error(`The server ran into a problem: ${err}`));
+        this.logger.info(`The server is stopped.`);
+        resolve(this);
+
+      });
+
+      this.on(('error'), (err: unknown) => {
+
+        this.logger.fatal(`The server ran into a problem: `, { error: err });
+        reject(new Error(`The server ran into a problem: ${err}`));
+
+      });
 
     });
 
-    this.server.on('close', () => {
-
-      subject.next(this);
-      subject.complete();
-
-    });
-
-    this.logger.info(`The server is closing`);
     this.server.close();
 
-    return subject;
+    return server;
 
   }
 
@@ -118,7 +142,7 @@ export class NodeHttpServer extends Server {
    * @param { IncomingMessage } req - the Node.js HTTP callback's request stream
    * @param { ServerResponse } res - the Node.js HTTP callback's response stream
    */
-  serverHelper(req: IncomingMessage, res: ServerResponse): void {
+  async serverHelper(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
     if (!req) {
 
@@ -139,7 +163,7 @@ export class NodeHttpServer extends Server {
       responseStream: res,
     };
 
-    this.nodeHttpStreamsHandler.handle(nodeHttpStreams).subscribe();
+    await this.nodeHttpStreamsHandler.handle(nodeHttpStreams);
 
   }
 
