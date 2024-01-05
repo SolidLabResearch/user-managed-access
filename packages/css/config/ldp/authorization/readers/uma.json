@@ -30,17 +30,9 @@
               }
             },
             {
-              "comment": "Adds parent container checks needed for create/delete permissions.",
-              "@id": "urn:solid-server:default:ParentContainerReader",
-              "@type": "ParentContainerReader",
-              "identifierStrategy": {
-                "@id": "urn:solid-server:default:IdentifierStrategy"
-              },
-              "reader": {
-                "comment": "The main reader, checks permissions from UMA token.",
-                "@id": "urn:solid-server:default:UmaPermissionReader",
-                "@type": "UmaPermissionReader"
-              }
+              "comment": "The main reader, checks permissions from UMA token.",
+              "@id": "urn:solid-server:default:UmaPermissionReader",
+              "@type": "UmaPermissionReader"
             }
           ]
         }

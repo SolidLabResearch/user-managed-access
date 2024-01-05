@@ -4,12 +4,12 @@
     ],
     "@graph": [
         {
-            "@id": "urn:authorization-service:default:DefaultKeyholder",
+            "@id": "urn:uma:default:DefaultKeyholder",
             "@type": "InMemoryJwksKeyHolder",
             "alg": "ES256"
         },
         {
-            "@id": "urn:authorization-service:default:JwksRoute",
+            "@id": "urn:uma:default:JwksRoute",
             "@type": "HttpHandlerRoute",
             "operations": [
                 {
@@ -21,7 +21,7 @@
             "handler": {
               "@type": "JwksRequestHandler",
               "keyholder": {
-                 "@id": "urn:authorization-service:default:DefaultKeyholder"
+                 "@id": "urn:uma:default:DefaultKeyholder"
               }
             },
             "path": "/uma/keys"

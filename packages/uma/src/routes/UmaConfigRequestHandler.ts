@@ -35,7 +35,7 @@ export class UmaConfigRequestHandler extends OAuthConfigRequestHandler<UmaConfig
       token_endpoint: `${this.baseUrl}/token`,
       grant_types_supported: ['urn:ietf:params:oauth:grant-type:uma-ticket'],
       issuer: `${this.baseUrl}`,
-      permission_endpoint: `${this.baseUrl}/register`,
+      permission_endpoint: `${this.baseUrl}/ticket`,
       introspection_endpoint: `${this.baseUrl}/introspect`,
       resource_registration_endpoint: `${this.baseUrl}/resources`,
       uma_profiles_supported: ['http://openid.net/specs/openid-connect-core-1_0.html#IDToken'],

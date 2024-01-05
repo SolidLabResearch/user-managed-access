@@ -1,37 +1,38 @@
 
 // Models
-export * from './models/Ticket';
+export * from './models/AccessToken';
+export * from './models/Authorizer';
 export * from './models/Permission';
 export * from './models/ResourceDescription';
 export * from './models/ScopeDescription';
-export * from './models/Authorizer';
-export * from './models/AccessToken';
+export * from './models/Ticket';
 
 // Routes
 export * from './routes/DefaultRouteHandler';
-export * from './routes/OAuthConfigRequestHandler';
-export * from './routes/JwksRequestHandler';
 export * from './routes/IntrospectionHandler';
-export * from './routes/UmaConfigRequestHandler';
+export * from './routes/JwksRequestHandler';
+export * from './routes/OAuthConfigRequestHandler';
 export * from './routes/PermissionRegistrationHandler';
+export * from './routes/ResourceRegistrationHandler';
 export * from './routes/TokenRequestHandler';
+export * from './routes/UmaConfigRequestHandler';
 
 // Token
-export * from './token/TokenFactory';
 export * from './token/JwtTokenFactory';
+export * from './token/TokenFactory';
 
 // Grant
-export * from './grant/UmaGrantProcessor';
 export * from './grant/GrantTypeProcessor';
+export * from './grant/UmaGrantProcessor';
 
 // Ticket
-export * from './ticket/TicketFactory';
 export * from './ticket/JwtTicketFactory';
+export * from './ticket/TicketFactory';
 
 // Authn
+export * from './authn/BasicClaimTokenProcessor';
 export * from './authn/ClaimTokenProcessor';
 export * from './authn/DpopClaimTokenProcessor';
-export * from './authn/BasicClaimTokenProcessor';
 
 // Authz
 export * from './authz/AllAuthorizer';

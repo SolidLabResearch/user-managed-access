@@ -51,7 +51,7 @@ export class UmaGrantProcessor extends GrantTypeProcessor {
    * @param {string} message - the error message
    */
   private error(constructor: ErrorConstructor, message: string): never {
-    this.logger.error(message);
+    this.logger.warn(message);
     throw new constructor(message);
   }
 
@@ -87,19 +87,15 @@ export class UmaGrantProcessor extends GrantTypeProcessor {
     const ticket = await this.ticketStore.get(ticketId);
     if (!ticket) this.error(BadRequestHttpError, 'The provided ticket is not valid.');
 
-    this.logger.debug(`processing ticket`, ticket);
+    this.logger.debug(`Processing ticket.`, ticket);
 
     // Construct principal object
     const principal = await this.authenticate(request, ticket);
-this.logger.debug(`authenticated`, principal);
+
     // Authorize request using principal
     const authorization = await this.authorize(principal, ticket);
-this.logger.debug(`authorized`, authorization);
-    if (authorization.permissions.length === 0) this.error(RequestDeniedError, 'Unable to authorize request.');
 
-    this.logger.info(`Generating new Access Token for principal '${principal.webId}' and resources ${
-      authorization.permissions.map((p) => p.resource_id).join(', ')
-    }`);
+    if (authorization.permissions.length === 0) this.error(RequestDeniedError, 'Unable to authorize request.');
 
     // Serialize Authorization into Access Token
     const {token, tokenType} = await this.tokenFactory.serialize({...principal, ...authorization});

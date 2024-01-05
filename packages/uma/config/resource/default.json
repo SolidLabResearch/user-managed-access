@@ -4,7 +4,16 @@
   ],
   "@graph": [
     {
-      "@id": "urn:authorization-service:default:ResourceRegistrationRoute",
+      "@id": "urn:uma:default:ResourceRegistrationHandler",
+      "@type": "ResourceRegistrationHandler",
+      "baseUrl": "urn:uma:variables:baseUrl",
+      "resourceStore": {
+        "@id": "urn:uma:default:ResourceRegistrationStore",
+        "@type": "MemoryStore"
+      }
+    },
+    {
+      "@id": "urn:uma:default:ResourceRegistrationRoute",
       "@type": "HttpHandlerRoute",
       "operations": [
         {
@@ -14,14 +23,24 @@
         }
       ],
       "handler": {
-        "@type": "JsonHttpErrorHandler",
-        "nestedHandler": {
-          "@type": "TokenRequestHandler",
-          "processors": [
-          ]
-        }
+        "@id": "urn:uma:default:ResourceRegistrationHandler"
       },
       "path": "/uma/resources"
+    },
+    {
+      "@id": "urn:uma:default:ResourceRegistrationOpsRoute",
+      "@type": "HttpHandlerRoute",
+      "operations": [
+        {
+          "@type": "HttpHandlerOperation",
+          "method": "DELETE",
+          "publish": true
+        }
+      ],
+      "handler": {
+        "@id": "urn:uma:default:ResourceRegistrationHandler"
+      },
+      "path": "/uma/resources/:id"
     }
   ]
 }

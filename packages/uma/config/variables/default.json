@@ -4,17 +4,17 @@
     "@graph": [
       {
         "comment": "Port of the server.",
-        "@id": "urn:authorization-service:variables:port",
+        "@id": "urn:uma:variables:port",
         "@type": "Variable"
       },
       {
         "comment": "Base URL of the server.",
-        "@id": "urn:authorization-service:variables:baseUrl",
+        "@id": "urn:uma:variables:baseUrl",
         "@type": "Variable"
       },
       {
         "comment": "Hostname of the server.",
-        "@id": "urn:authorization-service:variables:host",
+        "@id": "urn:uma:variables:host",
         "@type": "Variable"
       }
     ]

@@ -30,7 +30,7 @@ export class UmaTokenExtractor extends CredentialsExtractor {
   public async canHandle({ headers }: HttpRequest): Promise<void> {
     const {authorization} = headers;
     if (!authorization || !/^Bearer /ui.test(authorization)) {
-      this.logger.info('No Bearer Authorization header specified.');
+      this.logger.debug('No Bearer Authorization header specified.');
       throw new NotImplementedHttpError('No Bearer Authorization header specified.');
     }
   }
@@ -42,27 +42,22 @@ export class UmaTokenExtractor extends CredentialsExtractor {
     this.logger.info('Extracting token from ' + request.headers.authorization);
     const token = request.headers.authorization?.replace(/^Bearer/, '')?.trimStart();
     if (!token) throw new BadRequestHttpError('Found empty Bearer token.');
-    this.logger.info('HEEEEEEEEERE');
-    this.logger.info(JSON.stringify(decodeJwt(token)));
     try {
       const target = await this.targetExtractor.handle({ request });
-      this.logger.info('TARGET: ' + target.path);
       const owners = await this.ownerUtil.findOwners(target);
-      this.logger.info('OWNERS: ' + owners.join(', '));
       const issuers = await Promise.all(owners.map(o => this.ownerUtil.findIssuer(o)))
-      this.logger.info('ISSUERS: ' + issuers.join(', '));
       const validIssuers = issuers.filter((i): i is string => i !== undefined);
     
       if (this.introspect) {
-        this.logger.info('performing token introspection.');
+        this.logger.debug('Performing token introspection.');
         const results = await Promise.allSettled(owners.map(owner => this.tryIntrospection(token, owner)));
         const succeeded = results.filter((r): r is PromiseFulfilledResult<UmaClaims>  => r.status === 'fulfilled');
         if (succeeded.length === 0) throw new Error ();
         return { uma: { rpt: succeeded[0].value }};
       } else {
-        this.logger.info('Verifying JWT.');
+        this.logger.debug('Verifying JWT.');
         const rpt = await this.client.verifyJwtToken(token, validIssuers ?? []);
-        this.logger.info(JSON.stringify(rpt));
+
         return { uma: { rpt } };
       }
     } catch (error: unknown) {

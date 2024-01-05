@@ -3,48 +3,53 @@
       "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
     ],
     "import": [
-        "sai-uma:config/variables/default.json",
+        "sai-uma:config/authz/all.json",
         "sai-uma:config/discovery/default.json",
+        "sai-uma:config/introspection/default.json",
         "sai-uma:config/keys/default.json",
-        "sai-uma:config/token/default.json",
+        "sai-uma:config/resource/default.json",
         "sai-uma:config/ticket/default.json",
-        "sai-uma:config/authz/interop.json"
+        "sai-uma:config/token/default.json",
+        "sai-uma:config/variables/default.json"
     ],
     "@graph": [
         {
-            "@id": "urn:authorization-service:default:NodeHttpServer",
+            "@id": "urn:uma:default:NodeHttpServer",
             "@type": "NodeHttpServer",
-            "port": { "@id": "urn:authorization-service:variables:port" },
-            "host": { "@id": "urn:authorization-service:variables:host"},
+            "port": { "@id": "urn:uma:variables:port" },
+            "host": { "@id": "urn:uma:variables:host"},
             "nodeHttpStreamsHandler": {
-                "@id": "urn:authorization-service:default:NodeHttpRequestResponseHandler",
+                "@id": "urn:uma:default:NodeHttpRequestResponseHandler",
                 "@type": "NodeHttpRequestResponseHandler",
                 "httpHandler": {
-                    "@id": "urn:authorization-service:default:RoutedHttpRequestHandler",
+                    "@id": "urn:uma:default:RoutedHttpRequestHandler",
                     "@type": "RoutedHttpRequestHandler",
                     "handlerControllerList": [
                         {
-                            "@id": "urn:authorization-service:default:HttpHandlerController",
+                            "@id": "urn:uma:default:HttpHandlerController",
                             "@type": "HttpHandlerController",
                             "label": "ControllerList",
                             "routes": [
                                 {
-                                    "@id": "urn:authorization-service:default:UmaConfigRoute"
+                                    "@id": "urn:uma:default:UmaConfigRoute"
                                 },
                                 {
-                                    "@id": "urn:authorization-service:default:JwksRoute"
+                                    "@id": "urn:uma:default:JwksRoute"
                                 },
                                 {
-                                    "@id": "urn:authorization-service:default:TokenRoute"
+                                    "@id": "urn:uma:default:TokenRoute"
                                 },
                                 {
-                                    "@id": "urn:authorization-service:default:PermissionRegistrationRoute"
+                                    "@id": "urn:uma:default:PermissionRegistrationRoute"
                                 },
                                 {
-                                    "@id": "urn:authorization-service:default:ResourceRegistrationRoute"
+                                    "@id": "urn:uma:default:ResourceRegistrationRoute"
                                 },
                                 {
-                                    "@id": "urn:authorization-service:default:IntrospectionRoute"
+                                    "@id": "urn:uma:default:ResourceRegistrationOpsRoute"
+                                },
+                                {
+                                    "@id": "urn:uma:default:IntrospectionRoute"
                                 }
                             ]
                         }

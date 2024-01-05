@@ -18,8 +18,8 @@ export class UmaPermissionReader extends PermissionReader {
     const result = new IdentifierMap<PermissionSet>();
     const { rpt } = input.credentials['uma'] as { rpt: UmaClaims };
     const { permissions, iat: t_iat, exp: t_exp, nbf: t_nbf } = rpt;
-    this.logger.info('Checking permissions ' + permissions);
-    this.logger.info('It is now ' + now);
+
+    this.logger.info(`Reading UMA permissions at ${now}`);
   
     try {
       if (t_iat && t_iat >= now) throw new Error(`Token seems to be issued in the future at ${t_iat}.`);
@@ -31,9 +31,7 @@ export class UmaPermissionReader extends PermissionReader {
     }
     
     for (const { resource_id, resource_scopes, iat: p_iat, exp: p_exp, nbf: p_nbf } of permissions ?? []) {
-      this.logger.info('checking permissions for ' + resource_id);
       const permissionSet = Object.fromEntries(resource_scopes.map(scope => {
-
         try {
           if (p_iat && p_iat >= now) throw new Error(`UMA permission seems to be issued in the future at ${p_iat}.`);
           if (p_exp && p_exp <= now) throw new Error(`UMA permission is expired since ${p_exp}.`);
@@ -49,8 +47,6 @@ export class UmaPermissionReader extends PermissionReader {
       result.set({ path: resource_id }, permissionSet);
     }
 
-    this.logger.info('done checking permissions');
-    this.logger.info(JSON.stringify(result));
     return result;
   }
 

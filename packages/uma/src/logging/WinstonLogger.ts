@@ -41,7 +41,7 @@ export class WinstonLogger extends Logger {
     const logLevel = LoggerLevel[level];
     const printData = level <= this.minimumLevelPrintData;
 
-    if (level <= this.minimumLevel) {
+    if (level >= this.minimumLevel) {
       this.logger.log({level: logLevel, message, typeName: this.label, data, printData});
     }
   }

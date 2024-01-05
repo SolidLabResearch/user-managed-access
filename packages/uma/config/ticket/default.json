@@ -4,7 +4,7 @@
   ],
   "@graph": [
     {
-      "@id": "urn:authorization-service:default:PermissionRegistrationRoute",
+      "@id": "urn:uma:default:PermissionRegistrationRoute",
       "@type": "HttpHandlerRoute",
       "operations": [
         {
@@ -20,20 +20,20 @@
           "resourceServers": [
             {
               "@type": "RequestingPartyRegistration",
-              "baseUri": "http://localhost:3000",
+              "baseUrl": "urn:uma:variables:baseUrl",
               "ecPublicKey": "-----BEGIN PUBLIC KEY-----MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGJkzO34pMnTx4uxoTD0+dvB4gVaXs9X+qkguzUCNT9ZzbZ/onTZrvQDLVAdH++c7sS/vmfrNuACUeNhLr9aYFA==-----END PUBLIC KEY-----",
               "ecAlgorithm": "ES256"
             }
           ],
           "ticketStore": {
-            "@id": "urn:authorization-service:TicketStore"
+            "@id": "urn:uma:TicketStore"
           },
           "baseUrl": {
-            "@id": "urn:authorization-service:variables:baseUrl"
+            "@id": "urn:uma:variables:baseUrl"
           }
         }
       },
-      "path": "/uma/register"
+      "path": "/uma/ticket"
     }
   ]
 }

@@ -29,7 +29,6 @@ export class AllAuthorizer extends Authorizer {
    * @return {Promise<Set<Permission[]>>} - granted access modes
    */
   public async authorize(client: Principal, request: Ticket): Promise<Permission[]> {
-    this.logger.debug(`Authorized request by ${client.webId} for ${request.map((r) => r.resource_id).join(', ')}`);
     return request;
   }
 }

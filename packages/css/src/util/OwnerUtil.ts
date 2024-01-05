@@ -1,4 +1,4 @@
-import { PodStore, ResourceIdentifier, StorageLocationStrategy, WrappedSetMultiMap, 
+import { KeyValueStorage, PodStore, ResourceIdentifier, StorageLocationStrategy, WrappedSetMultiMap, 
   fetchDataset, getLoggerFor, readableToQuads } from '@solid/community-server';
 import { UMA } from './Vocabularies.js';
 import { DataFactory } from 'n3';
@@ -20,6 +20,7 @@ export class OwnerUtil {
   public constructor(
     protected podStore: PodStore,
     protected storageStrategy: StorageLocationStrategy,
+    protected umaPatStore: KeyValueStorage<string, { issuer: string, pat: string }>,
   ) {}
 
   /**
@@ -54,30 +55,46 @@ export class OwnerUtil {
   }
 
   public async findCommonOwner(resources: Iterable<ResourceIdentifier>): Promise<string> {
+    const resourceSet = new Set(resources);
     const ownerMap = new WrappedSetMultiMap<string, string>();
-
-    let ts = 0;
-    for (const target of resources) {
-      ts += 1;
-
+    
+    for (const target of resourceSet) {
       const storage = await this.findStorage(target);
       const owners = await this.findOwners(storage);
 
       for (const owner of owners) ownerMap.add(owner, target.path);
     }
 
-    for (const [owner, targets] of ownerMap.entrySets()) if (targets.size === ts) return owner;
+    for (const [owner, targets] of ownerMap.entrySets()) {
+      if (targets.size === resourceSet.size) return owner;
+    }
 
-    throw new Error(`No common owner found for resources: ${Array.from(resources).join(', ')}`);
+    throw new Error(`No common owner found for resources: ${Array.from(resources).map(r => r.path).join(', ')}`);
+  }
+
+  public async retrievePat(owner: string): Promise<string | undefined> {
+    return 'MYPAT';
+
+    // TODO: softcode
+    
+    // const result = await this.umaPatStore.get(owner);
+
+    // if (!result) throw new Error(`No registered issuer with PAT found for owner ${owner}`);
+
+    // const { issuer, pat } = result;
+
+    // return pat;
   }
 
   public async findIssuer(webid: string): Promise<string | undefined> {
     return 'http://localhost:4000/uma';
 
-    const profile = await fetchDataset(webid);
-    const quads = await readableToQuads(profile.data);
-    const issuers = quads.getObjects(namedNode(webid), UMA.terms.as, null);
+    // TODO: softcode
 
-    return issuers.length > 0 ? issuers[0].value : undefined;
+    // const profile = await fetchDataset(webid);
+    // const quads = await readableToQuads(profile.data);
+    // const issuers = quads.getObjects(namedNode(webid), UMA.terms.as, null);
+
+    // return issuers.length > 0 ? issuers[0].value : undefined;
   }
 }

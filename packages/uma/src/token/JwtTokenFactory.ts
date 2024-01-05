@@ -106,7 +106,7 @@ export class JwtTokenFactory extends TokenFactory {
    * @param {string} message - the error message
    */
   private error(constructor: ErrorConstructor, message: string): never {
-    this.logger.error(message);
+    this.logger.warn(message);
     throw new constructor(message);
   }
 }

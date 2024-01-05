@@ -23,13 +23,15 @@ export class RequestingPartyRegistration {
   /**
    * Registration for a Requesting Party (i.e. Pod Server)
    *
-   * @param {string} baseUri - Base URI of the Pod Service
+   * @param {string} baseUrl - Base URI of the Pod Service
    * @param {string} ecPublicKey - Public Key of the Pod Service
    * @param {string} ecAlgorithm - Algorithm used
    */
-  constructor(public readonly baseUri: string,
-      public readonly ecPublicKey: string,
-     public readonly ecAlgorithm: 'ES256' | 'ES384' | 'ES512') {}
+  constructor(
+    public readonly baseUrl: string,
+    public readonly ecPublicKey: string,
+    public readonly ecAlgorithm: 'ES256' | 'ES384' | 'ES512'
+  ) {}
 
   /**
    * Get Public Key
@@ -109,7 +111,6 @@ export class PermissionRegistrationHandler implements HttpHandler {
 
     if (!body || !Array.isArray(body)) this.error(BadRequestHttpError, 'Request body must be a JSON array.');
 
-this.logger.debug('PROCESS');
     try {
       reType(body, array(Permission));
     } catch (e) {
@@ -118,10 +119,9 @@ this.logger.debug('PROCESS');
         ? this.error(BadRequestHttpError, 'Request has bad syntax: ' + e.message)
         : this.error(BadRequestHttpError, 'Request has bad syntax');
     }
-this.logger.debug('ASSERTED SYNTAX');
     const ticket = v4();
     this.ticketStore.set(ticket, body);
-this.logger.debug('TICKET');
+
     return {ticket};
   }
 
@@ -133,7 +133,7 @@ this.logger.debug('TICKET');
    * @param {string} message - the error message
    */
   private error(constructor: ErrorConstructor, message: string): never {
-    this.logger.error(message);
+    this.logger.warn(message);
     throw new constructor(message);
   }
 
@@ -145,7 +145,7 @@ this.logger.debug('TICKET');
    */
   private async validateAuthorization(authorization: string): Promise<RequestingPartyRegistration> {
     if (!/^Bearer /ui.test(authorization)) {
-      this.logger.debug('Missing Bearer authorization header.');
+      this.logger.warn('Missing Bearer authorization header.');
       throw new BadRequestHttpError('Expected Bearer authorization header.');
     }
     // TODO: prevent replay.
@@ -163,7 +163,8 @@ this.logger.debug('TICKET');
       // ignored
       }
     }
-    this.logger.debug('Bearer token could not be matched against resource server.');
+
+    this.logger.warn('Bearer token could not be matched against resource server.');
     throw new UnauthorizedHttpError('Bearer token is invalid.');
   }
 }

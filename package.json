@@ -50,7 +50,8 @@
     "build:all": "yarn workspaces foreach --exclude . -A -pi -t run build",
     "test:all": "yarn workspaces foreach --exclude . -A -pi run test",
     "start:all": "yarn workspaces foreach --exclude . -A -pi run start",
-    "script:flow": "yarn exec ts-node ./scripts/test-flow.ts"
+    "script:flow": "yarn exec ts-node ./scripts/test-flow.ts",
+    "script:registration": "yarn exec ts-node ./scripts/test-registration.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",

@@ -4,7 +4,7 @@
   ],
   "@graph": [
     {
-      "@id": "urn:authorization-service:default:IntrospectionRoute",
+      "@id": "urn:uma:default:IntrospectionRoute",
       "@type": "HttpHandlerRoute",
       "operations": [
         {
@@ -18,19 +18,19 @@
         "nestedHandler": {
           "@type": "IntrospectionHandler",
           "tokenStore": {
-            "@id": "urn:authorization-service:TokenStore",
+            "@id": "urn:uma:TokenStore",
             "@type": "MemoryStore"
           },
           "jwtTokenFactory": {
-            "@id": "urn:authorization-service:IntrospectionFactory",
+            "@id": "urn:uma:IntrospectionFactory",
             "@type": "JwtTokenFactory",
             "params_expirationTime": "5m",
             "params_aud": "solid",
             "issuer": {
-              "@id": "urn:authorization-service:variables:baseUrl"
+              "@id": "urn:uma:variables:baseUrl"
             },
             "keyholder": {
-              "@id": "urn:authorization-service:default:DefaultKeyholder"
+              "@id": "urn:uma:default:DefaultKeyholder"
             }
           }
         }

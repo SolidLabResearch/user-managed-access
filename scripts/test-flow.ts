@@ -1,6 +1,6 @@
 import { fetch } from 'cross-fetch'
 
-const privateResource = "http://localhost:3000/alice/profile/"
+const privateResource = "http://localhost:3000/alice/profile/test.ttl"
 
 function parseJwt (token:string) {
   return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
@@ -11,7 +11,7 @@ async function main() {
   console.log(`3.1 Send request to protected resource (${privateResource}) without access token.`);
   // https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html#rfc.section.3.1
   // 3.1 Client Requests Resource Without Providing an Access Token
-  const noTokenResponse = await fetch(privateResource)
+  const noTokenResponse = await fetch(privateResource, { method: "GET" });
   console.log(noTokenResponse.status);
   console.log(await noTokenResponse.text());
 
@@ -54,8 +54,10 @@ async function main() {
   // 3.3.5 or 3.3.6 Authorization Server Response to Client on Authorization Success or Failure
   // Note: it is required to have a debug uma server loaded
 
-  console.log("Access token decoded:",parseJwt(asResponse.access_token))
-  
+  const decodedToken = parseJwt(asResponse.access_token);
+
+  console.log("Access token decoded:",decodedToken)
+  console.log("Permissioned scopes:", decodedToken.permissions[0].resource_scopes)
   
   /* error message example
   {

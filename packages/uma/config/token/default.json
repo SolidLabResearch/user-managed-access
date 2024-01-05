@@ -4,7 +4,7 @@
   ],
   "@graph": [
     {
-      "@id": "urn:authorization-service:default:TokenRoute",
+      "@id": "urn:uma:default:TokenRoute",
       "@type": "HttpHandlerRoute",
       "operations": [
         {
@@ -19,22 +19,22 @@
           "@type": "TokenRequestHandler",
           "processors": [
             {
-              "@id": "urn:authorization-service:UmaGrantProcessor",
+              "@id": "urn:uma:UmaGrantProcessor",
               "@type": "UmaGrantProcessor",
               "ticketStore": {
-                "@id": "urn:authorization-service:TicketStore",
+                "@id": "urn:uma:TicketStore",
                 "@type": "MemoryStore"
               },
               "tokenFactory": {
-                "@id": "urn:authorization-service:TokenFactory",
+                "@id": "urn:uma:TokenFactory",
                 "@type": "JwtTokenFactory",
                 "params_expirationTime": "5m",
                 "params_aud": "solid",
                 "issuer": {
-                  "@id": "urn:authorization-service:variables:baseUrl"
+                  "@id": "urn:uma:variables:baseUrl"
                 },
                 "keyholder": {
-                  "@id": "urn:authorization-service:default:DefaultKeyholder"
+                  "@id": "urn:uma:default:DefaultKeyholder"
                 }
               },
               "claimTokenProcessors": [
@@ -44,7 +44,7 @@
               ],
               "authorizers": [
                 {
-                  "@id": "urn:authorization-service:default:Authorizer"
+                  "@id": "urn:uma:default:Authorizer"
                 }
               ]
             }

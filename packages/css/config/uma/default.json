@@ -19,7 +19,36 @@
       },
       "storageStrategy": {
         "@id": "urn:solid-server:default:StorageLocationStrategy"
+      },
+      "umaPatStore": {
+        "@id": "urn:solid-server:default:UmaPatStore",
+        "@type": "MemoryMapStorage"
       }
+    },
+    {
+      "comment": "Listens to the activities emitted by the MonitoringStore.",
+      "@id": "urn:solid-server:default:ResourceRegistrar",
+      "@type": "ResourceRegistrar",
+      "store": {
+        "@id": "urn:solid-server:default:ResourceStore"
+      },
+      "ownerUtil": {
+        "@id": "urn:solid-server:default:OwnerUtil"
+      },
+      "umaIdStore": {
+        "@id": "urn:solid-server:default:UmaIdStore",
+        "@type": "MemoryMapStorage"
+      }
+    },
+    {
+      "comment": "The ResourceRegistrar is added to the list of Initializers so Components.js finds and instantiates it.",
+      "@id": "urn:solid-server:default:PrimaryParallelInitializer",
+      "@type": "ParallelHandler",
+      "handlers": [
+        {
+          "@id": "urn:solid-server:default:ResourceRegistrar"
+        }
+      ]
     }
   ]
 }
