@@ -18,7 +18,6 @@
     "css:config/identity/oidc/disabled.json",
     "css:config/identity/ownership/token.json",
     "css:config/identity/pod/static.json",
-    "css:config/ldp/handler/default.json",
     "css:config/ldp/metadata-parser/default.json",
     "css:config/ldp/modes/default.json",
     "css:config/storage/backend/memory.json",
@@ -34,6 +33,7 @@
     "uma-css:config/uma/default.json",
     "uma-css:config/ldp/authentication/uma.json",
     "uma-css:config/ldp/authorization/uma.json",
+    "uma-css:config/ldp/handler/uma.json",
     "uma-css:config/ldp/metadata-writer/uma.json",
     "css:config/storage/location/pod.json"
   ],

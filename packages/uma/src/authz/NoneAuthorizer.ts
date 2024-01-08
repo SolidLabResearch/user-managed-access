@@ -3,24 +3,14 @@ import {getLoggerFor} from '../logging/LoggerUtils';
 import {Authorizer} from './Authorizer';
 import {Principal} from '../models/AccessToken';
 import {Ticket} from '../models/Ticket';
-import {Permission} from '../models/Permission';
+
+const UNSOLVABLE_GRANT = Symbol('unsolvable-grant');
 
 /**
- * Mock authorizer granting all specified access modes
- * to any client.
- *
- * NOTE: DO NOT USE THIS IN PRODUCTION
+ * Mock authorizer granting no access to any client.
  */
-export class AllAuthorizer extends Authorizer {
+export class NoneAuthorizer extends Authorizer {
   protected readonly logger: Logger = getLoggerFor(this);
-
-  /**
-   *
-   */
-  constructor() {
-    super();
-    this.logger.warn(`The AllAuthorizer was enabled. DO NOT USE THIS IN PRODUCTION!`);
-  }
 
   /**
    * Authorizes the client for specified request
@@ -29,6 +19,8 @@ export class AllAuthorizer extends Authorizer {
    * @return {Promise<Permission[]>} - granted access modes
    */
   public async authorize(ticket: Ticket, client?: Principal): Promise<Ticket> {
+    ticket.necessaryGrants.push(UNSOLVABLE_GRANT);
+    
     return ticket;
   }
 }

@@ -1,7 +1,7 @@
 
 // Models
 export * from './models/AccessToken';
-export * from './models/Authorizer';
+export * from './authz/Authorizer';
 export * from './models/Permission';
 export * from './models/ResourceDescription';
 export * from './models/ScopeDescription';
@@ -22,12 +22,12 @@ export * from './token/JwtTokenFactory';
 export * from './token/TokenFactory';
 
 // Grant
-export * from './grant/GrantTypeProcessor';
+export * from './grant/GrantProcessor';
 export * from './grant/UmaGrantProcessor';
 
 // Ticket
-export * from './ticket/JwtTicketFactory';
-export * from './ticket/TicketFactory';
+export * from './ticket/TicketStore';
+export * from './ticket/AuthorizerBasedTicketStore';
 
 // Authn
 export * from './authn/BasicClaimTokenProcessor';
@@ -36,6 +36,8 @@ export * from './authn/DpopClaimTokenProcessor';
 
 // Authz
 export * from './authz/AllAuthorizer';
+export * from './authz/NoneAuthorizer';
+export * from './authz/PublicNamespaceAuthorizer';
 
 // Utils
 export * from './util/StringGuard';

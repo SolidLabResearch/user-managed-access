@@ -1,18 +1,19 @@
 import {BadRequestHttpError} from '../http/errors/BadRequestHttpError';
 import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
-import {Authorizer} from '../models/Authorizer';
+import {Authorizer} from '../authz/Authorizer';
 import {Principal} from '../models/AccessToken';
 import {Ticket} from '../models/Ticket';
 import {AccessToken} from '../models/AccessToken';
 import {ClaimTokenProcessor, ClaimTokenRequest} from '../authn/ClaimTokenProcessor';
 import {TokenFactory} from '../token/TokenFactory';
-import {GrantTypeProcessor, TokenResponse} from '../grant/GrantTypeProcessor';
+import {GrantProcessor, TokenResponse} from './GrantProcessor';
 import {getLoggerFor} from '../logging/LoggerUtils';
 import {Logger} from '../logging/Logger';
 import {RequestDeniedError} from '../error/RequestDeniedError';
 import {NeedInfoError} from '../error/NeedInfoError';
 import {KeyValueStore} from '../storage/models/KeyValueStore';
 import {v4} from 'uuid';
+import { TicketStore } from '../ticket/TicketStore';
 
 type ErrorConstructor = { new(msg: string): Error };
 
@@ -20,7 +21,7 @@ type ErrorConstructor = { new(msg: string): Error };
  * A concrete Grant Processor for the 'urn:ietf:params:oauth:grant-type:uma-ticket' grant
  * type.
  */
-export class UmaGrantProcessor extends GrantTypeProcessor {
+export class UmaGrantProcessor extends GrantProcessor {
   protected readonly logger: Logger = getLoggerFor(this);
   private readonly processors = new Map<string, ClaimTokenProcessor>();
   /**
@@ -30,7 +31,7 @@ export class UmaGrantProcessor extends GrantTypeProcessor {
   public constructor(
       claimTokenProcessors: ClaimTokenProcessor[],
     private authorizers: Authorizer[],
-    private ticketStore: KeyValueStore<string, Ticket>,
+    private ticketStore: TicketStore,
     private tokenFactory: TokenFactory,
   ) {
     super();
@@ -95,10 +96,14 @@ export class UmaGrantProcessor extends GrantTypeProcessor {
     // Authorize request using principal
     const authorization = await this.authorize(principal, ticket);
 
+    this.logger.warn(JSON.stringify(authorization));
+
     if (authorization.permissions.length === 0) this.error(RequestDeniedError, 'Unable to authorize request.');
 
     // Serialize Authorization into Access Token
     const {token, tokenType} = await this.tokenFactory.serialize({...principal, ...authorization});
+
+    this.logger.warn(JSON.stringify(token));
 
     return {access_token: token, token_type: tokenType};
   }
@@ -122,24 +127,23 @@ export class UmaGrantProcessor extends GrantTypeProcessor {
       if (!processor) this.error(BadRequestHttpError, 'The provided "claim_token_format" is not supported.');
 
       try {
-        return await processor.process(req);
+        return processor.process(req);
       } catch (e: any) {
         this.requireClaims(ticket, (e as Error).message);
       }
     }
 
-    this.requireClaims(ticket);
+    return this.requireClaims(ticket);
   }
 
   /**
    * @param {Ticket} ticket
    * @param {string | undefined} msg
    */
-  private requireClaims(ticket: Ticket, msg?: string): never {
-    const newTicket = v4();
-    this.ticketStore.set(newTicket, ticket);
+  private async requireClaims(ticket: Ticket, msg?: string): Promise<never> {
+    const newTicket = await this.ticketStore.create(ticket.requestedPermissions);
     const response = {required_claims: {claim_token_format: Array.from(this.processors.keys())}};
-    throw new NeedInfoError(msg ?? 'Need Info', newTicket, response);
+    throw new NeedInfoError(msg ?? 'Need Info', newTicket.id, response);
   }
 
   /**
@@ -150,7 +154,9 @@ export class UmaGrantProcessor extends GrantTypeProcessor {
    * @return {Promise<Authorization>} - authorization decision
    */
   private async authorize(principal: Principal, ticket: Ticket): Promise<AccessToken> {
-    const ps = Promise.all(this.authorizers.map(async (authorizer) => await authorizer.authorize(principal, ticket)));
-    return {...principal, permissions: (await ps).flat()};
+    const tickets = await Promise.all(
+      this.authorizers.map(async (authorizer) => await authorizer.authorize(ticket, principal))
+    );
+    return {...principal, permissions: (tickets.map(ticket => ticket.requestedPermissions)).flat()};
   }
 }

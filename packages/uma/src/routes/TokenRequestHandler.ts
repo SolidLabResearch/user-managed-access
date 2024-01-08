@@ -3,7 +3,7 @@ import {BadRequestHttpError} from '../http/errors/BadRequestHttpError';
 import {HttpHandler} from '../http/models/HttpHandler';
 import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../http/models/HttpHandlerResponse';
-import {GrantTypeProcessor} from '../grant/GrantTypeProcessor';
+import {GrantProcessor} from '../grant/GrantProcessor';
 
 const GRANT_TYPE = 'grant_type';
 /**
@@ -11,14 +11,14 @@ const GRANT_TYPE = 'grant_type';
  * using application/x-www-form-urlencoded as a serialization for the POST body.
  */
 export class TokenRequestHandler implements HttpHandler {
-  private readonly grantProcessors: Map<string, GrantTypeProcessor>;
+  private readonly grantProcessors: Map<string, GrantProcessor>;
 
   /**
    * The Token Request Handler implements the interface of the OAuth/UMA Token Endpoint
    * using application/x-www-form-urlencoded as a serialization for the POST body.
-   * @param {GrantTypeProcessor[]} processors - a list of Grant Type Processors.
+   * @param {GrantProcessor[]} processors - a list of Grant Type Processors.
    */
-  constructor(processors: GrantTypeProcessor[]) {
+  constructor(processors: GrantProcessor[]) {
     this.grantProcessors = new Map();
     processors.forEach((value) => this.grantProcessors.set(value.getSupportedGrantType(), value));
   }

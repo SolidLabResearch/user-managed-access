@@ -7,11 +7,11 @@ import { UnsupportedMediaTypeHttpError } from '../http/errors/UnsupportedMediaTy
 import * as jose from 'jose';
 import { Logger } from '../logging/Logger';
 import { getLoggerFor } from '../logging/LoggerUtils';
-import { KeyValueStore } from '../storage/models/KeyValueStore';
-import { Ticket } from '../models/Ticket';
 import { v4 } from 'uuid';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../models/Permission';
+import { TicketStore } from '../ticket/TicketStore';
+import { Ticket } from '../models/Ticket';
 
 type ErrorConstructor = { new(msg: string): Error };
 
@@ -45,10 +45,6 @@ export class RequestingPartyRegistration {
   }
 }
 
-export type PermissionRegistrationResponse = {
-    ticket: string
-}
-
 /**
  * A PermissionRegistrationHandler is tasked with implementing
  * section 3.2 from the User-Managed Access (UMA) Profile of OAuth 2.0.
@@ -66,7 +62,7 @@ export class PermissionRegistrationHandler implements HttpHandler {
    */
   constructor(
     private readonly baseUrl: string,
-    private readonly ticketStore: KeyValueStore<string, Ticket>,
+    private readonly ticketStore: TicketStore,
     private readonly resourceServers: RequestingPartyRegistration[],
   ) {}
 
@@ -89,12 +85,14 @@ export class PermissionRegistrationHandler implements HttpHandler {
       throw new BadRequestHttpError('Missing request body.');
     }
 
-    const response = await this.processRequestingPartyRegistration(request.headers.authorization, request.body);
+    const ticket = await this.processRequestingPartyRegistration(request.headers.authorization, request.body);
+
+    if (ticket.necessaryGrants.length === 0) return { status: 200 };
 
     return {
       headers: {'content-type': 'application/json'},
-      status: 200,
-      body: response,
+      status: 201,
+      body: { ticket: ticket.id },
     };
   }
 
@@ -105,7 +103,7 @@ export class PermissionRegistrationHandler implements HttpHandler {
    * @return {Promise<PermissionRegistrationResponse>}
    */
   private async processRequestingPartyRegistration(authorizationHeader: string, body: any)
-  : Promise<PermissionRegistrationResponse> {
+  : Promise<Ticket> {
     // TODO: validate PAT
     //await this.validateAuthorization(authorizationHeader);
 
@@ -119,10 +117,9 @@ export class PermissionRegistrationHandler implements HttpHandler {
         ? this.error(BadRequestHttpError, 'Request has bad syntax: ' + e.message)
         : this.error(BadRequestHttpError, 'Request has bad syntax');
     }
-    const ticket = v4();
-    this.ticketStore.set(ticket, body);
+    const ticket = await this.ticketStore.create(body);
 
-    return {ticket};
+    return ticket;
   }
 
 

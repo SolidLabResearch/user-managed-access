@@ -5,7 +5,10 @@
   "@graph": [
     {
       "@id": "urn:uma:default:Authorizer",
-      "@type": "AllAuthorizer"
+      "@type": "PublicNamespaceAuthorizer",
+      "authorizer": {
+        "@type": "NoneAuthorizer"
+      }
     }
   ]
 }

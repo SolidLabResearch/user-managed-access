@@ -9,7 +9,11 @@ import fetch from 'cross-fetch';
    * @param {string} endpoint - the authorization server permissions endpoint
    * @param {string} pat - the AS PAT 
    */
-export async function fetchPermissionTicket(permissions: AccessMap, endpoint: string, pat: string): Promise<string> {
+export async function fetchPermissionTicket(
+  permissions: AccessMap, 
+  endpoint: string, 
+  pat: string
+): Promise<string | undefined> {
   const body = [];
 
   for (const [ target, modes ] of permissions.entrySets()) {
@@ -31,7 +35,9 @@ export async function fetchPermissionTicket(permissions: AccessMap, endpoint: st
 
   const response = await fetch(endpoint, request);
 
-  if (response.status !== 200) {
+  if (response.status === 200) return undefined;
+
+  if (response.status !== 201) {
     throw new Error(`Error while retrieving UMA Ticket: Received status ${response.status} from '${endpoint}'.`);
   }
 

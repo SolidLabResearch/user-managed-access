@@ -57,12 +57,12 @@ export abstract class UmaClient {
    * @param {string} issuer - the issuer from which to request the permission ticket
    * @return {Promise<string>} - the permission ticket
    */
-  public async fetchTicket(requestedModes: AccessMap, owner: string, issuer: string): Promise<string> {
+  public async fetchTicket(requestedModes: AccessMap, owner: string, issuer: string): Promise<string | undefined> {
     const pat = await this.retrievePat(issuer, owner);
 
     try {
       const permissionEndpoint = (await fetchUmaConfig(issuer)).permission_endpoint;
-      return await fetchPermissionTicket(requestedModes, permissionEndpoint, pat);
+      return fetchPermissionTicket(requestedModes, permissionEndpoint, pat);
     } catch (e: any) {
       throw new Error(`Error while retrieving ticket: ${(e as Error).message}`);
     }
@@ -80,7 +80,7 @@ export abstract class UmaClient {
       if (!validIssuers.includes(issuer)) 
         throw new Error(`The JWT wasn't issued by one of the target owners' issuers.`);
       const umaConfig = await this.fetchUmaConfig(issuer);
-      return await verifyUmaJwtToken(token, umaConfig, this.options);
+      return verifyUmaJwtToken(token, umaConfig, this.options);
     } catch (error: unknown) {
       const message = `Error verifying UMA access token: ${(error as Error).message}`;
       this.logger.warn(message);
@@ -97,7 +97,7 @@ export abstract class UmaClient {
     try {
       const umaConfig = await this.fetchUmaConfig(issuer);
       const pat = await this.retrievePat(owner, issuer)
-      return await verifyUmaOpaqueToken(token, umaConfig, pat, this.options);
+      return verifyUmaOpaqueToken(token, umaConfig, pat, this.options);
     } catch (error: unknown) {
       const message = `Error verifying UMA access token: ${(error as Error).message}`;
       this.logger.warn(message);
@@ -111,6 +111,6 @@ export abstract class UmaClient {
    * @return {Promise<UmaConfig>} - UMA Configuration
    */
   protected async fetchUmaConfig(issuer: string): Promise<UmaConfig> {
-    return await fetchUmaConfig(issuer);
+    return fetchUmaConfig(issuer);
   }
 }

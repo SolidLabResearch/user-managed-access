@@ -1,5 +1,6 @@
 export * from './authentication/UmaTokenExtractor';
 
+export * from './authorization/UmaAuthorizer';
 export * from './authorization/UmaPermissionReader';
 
 export * from './http/output/metadata/UmaTicketMetadataWriter';

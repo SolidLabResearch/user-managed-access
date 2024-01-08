@@ -23,7 +23,9 @@
               "@type": "UmaGrantProcessor",
               "ticketStore": {
                 "@id": "urn:uma:TicketStore",
-                "@type": "MemoryStore"
+                "@type": "AuthorizerBasedTicketStore",
+                "store": { "@type": "MemoryStore" },
+                "authorizer": { "@id": "urn:uma:default:Authorizer" }
               },
               "tokenFactory": {
                 "@id": "urn:uma:TokenFactory",
