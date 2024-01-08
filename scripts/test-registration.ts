@@ -1,13 +1,23 @@
 import { fetch } from 'cross-fetch'
 
-const resource = "http://localhost:3000/alice/public/resource.txt"
+const container = "http://localhost:3000/alice/public/"
+const slug = "resource.txt"
 
 async function main() {
 
+  console.log("=== Creating container (if needed) ...")
+
+  const containerResponse = await fetch(container, {
+    method: "PUT",
+  })
+
+  console.log(`= Status: ${containerResponse.status}`);
+
   console.log("=== Creating resource ...")
 
-  const createResponse = await fetch(resource, {
-    method: "PUT",
+  const createResponse = await fetch(container, {
+    method: "POST",
+    headers: { slug },
     body: "This is a resource."
   })
 
@@ -15,7 +25,7 @@ async function main() {
 
   console.log("=== Creating resource ...")
 
-  const readResponse = await fetch(resource, {
+  const readResponse = await fetch(container + slug, {
     method: "GET",
   })
 
@@ -25,7 +35,7 @@ async function main() {
   console.log("=== Deleting resource ...")
 
 
-  const deleteResponse = await fetch(resource, {
+  const deleteResponse = await fetch(container + slug, {
     method: "DELETE",
   })
 

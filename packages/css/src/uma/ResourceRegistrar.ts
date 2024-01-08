@@ -84,7 +84,7 @@ export class ResourceRegistrar extends StaticHandler {
     try {
       if (!umaId) throw new Error('Trying to delete unknown/unregistered resource; no UMA id found.');
 
-      const resp = await fetch(new URL('', endpoint), {
+      const resp = await fetch(`${endpoint}/${umaId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${pat}`,

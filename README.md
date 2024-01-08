@@ -19,10 +19,15 @@ In order to run this project you need to perform the following steps.
 1. Run `yarn install` in the project root (this will automatically call `yarn build:all`).
 1. Run `yarn start:all`.
 
-This will boot up a UMA server and compatible Community Solid Server instance.
+This will boot up a UMA server and compatible Community Solid Server instance. 
 
-You can then execute the happy UMA flow by executing `yarn script:flow` in a parallel terminal.
+You can then execute the following flows:
 
+- `yarn script:public`: `GET` the public `/alice/profile/card` without redirection to the UMA server;
+- `yarn script:private`: `PUT` some text to the private `/alice/private/resource.txt`, with redirection to the UMA server;
+- `yarn script:registration`: `POST`, `GET` and `DELETE` some text `/alice/public/resource.txt` without redirection to the UMA server, to test the correct creation and deletion of resource registrations on the UNA server.
+
+`yarn script:flow` runs all flows in sequence.
 
 ## Implemented features
 
