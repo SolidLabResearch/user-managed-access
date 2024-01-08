@@ -42,7 +42,7 @@ const WEBID = 'http://pod.example.org/alice/profile/card#me';
 
 const getJwt = async (ecPrivateKey: string, ecAlgorithm: string, iss: string, aud: string) => {
   const privateKey = await jose.importPKCS8(ecPrivateKey, ecAlgorithm);
-  return await new jose.SignJWT({})
+  return new jose.SignJWT({})
       .setProtectedHeader({alg: ecAlgorithm})
       .setIssuedAt()
       .setIssuer(iss)

@@ -36,7 +36,7 @@ export class JsonFileStore<M extends Record<string, any>> implements TypedKeyVal
 
   async set<T extends keyof M>(key: T, value: M[T]): Promise<this> {
 
-    return await this.updateJson((json: M): this => {
+    return this.updateJson((json: M): this => {
 
       json[key] = value;
 
@@ -48,7 +48,7 @@ export class JsonFileStore<M extends Record<string, any>> implements TypedKeyVal
 
   async delete<T extends keyof M>(key: T): Promise<boolean> {
 
-    return await this.updateJson((json: M): boolean => {
+    return this.updateJson((json: M): boolean => {
 
       if (typeof json[key] !== 'undefined') {
 

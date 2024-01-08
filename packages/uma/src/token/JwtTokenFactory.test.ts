@@ -201,7 +201,7 @@ describe('Test anonymous client', () => {
 });
 
 const createJwt = async (payload: JWTPayload, key: KeyLike, issuer: string = ISSUER) => {
-  return await new SignJWT(payload)
+  return new SignJWT(payload)
       .setProtectedHeader({alg: ALG})
       .setIssuedAt()
       .setIssuer(issuer)

@@ -69,7 +69,7 @@ export class JsonHttpErrorHandler implements HttpHandler {
    */
   async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
     try {
-      return await this.nestedHandler.handle(context);
+      return this.nestedHandler.handle(context);
     } catch (error) {
       this.logger.error(`Returned error for ${context.request.method} '${context.request.url}':` +
       ` ${(error as Error).name} ${(error as Error).message}`, error);
