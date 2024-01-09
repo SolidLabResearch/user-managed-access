@@ -1,4 +1,4 @@
-import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
+import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
 
 export interface TokenResponse {
     access_token: string,

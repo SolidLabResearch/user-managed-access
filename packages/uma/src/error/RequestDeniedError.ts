@@ -1,4 +1,4 @@
-import {ForbiddenHttpError} from '../http/errors/ForbiddenHttpError';
+import {ForbiddenHttpError} from '../util/http/errors/ForbiddenHttpError';
 
 /**
  * The client is not authorized to have these permissions. The authorization

@@ -1,6 +1,6 @@
-import {HttpHandler} from '../http/models/HttpHandler';
-import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
-import {HttpHandlerResponse} from '../http/models/HttpHandlerResponse';
+import {HttpHandler} from '../util/http/models/HttpHandler';
+import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
+import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
 
 /**
  * Default route handler

@@ -1,8 +1,8 @@
-import {UnsupportedMediaTypeHttpError} from '../http/errors/UnsupportedMediaTypeHttpError';
-import {BadRequestHttpError} from '../http/errors/BadRequestHttpError';
-import {HttpHandler} from '../http/models/HttpHandler';
-import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
-import {HttpHandlerResponse} from '../http/models/HttpHandlerResponse';
+import {UnsupportedMediaTypeHttpError} from '../util/http/errors/UnsupportedMediaTypeHttpError';
+import {BadRequestHttpError} from '../util/http/errors/BadRequestHttpError';
+import {HttpHandler} from '../util/http/models/HttpHandler';
+import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
+import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
 import {GrantProcessor} from '../grant/GrantProcessor';
 
 const GRANT_TYPE = 'grant_type';

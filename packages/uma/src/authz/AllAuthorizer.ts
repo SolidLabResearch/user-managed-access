@@ -1,5 +1,5 @@
-import {Logger} from '../logging/Logger';
-import {getLoggerFor} from '../logging/LoggerUtils';
+import {Logger} from '../util/logging/Logger';
+import {getLoggerFor} from '../util/logging/LoggerUtils';
 import {Authorizer} from './Authorizer';
 import {Principal} from '../models/AccessToken';
 import {Ticket} from '../models/Ticket';

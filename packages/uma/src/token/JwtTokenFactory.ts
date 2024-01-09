@@ -1,6 +1,6 @@
-import {BadRequestHttpError} from '../http/errors/BadRequestHttpError';
-import {Logger} from '../logging/Logger';
-import {getLoggerFor} from '../logging/LoggerUtils';
+import {BadRequestHttpError} from '../util/http/errors/BadRequestHttpError';
+import {Logger} from '../util/logging/Logger';
+import {getLoggerFor} from '../util/logging/LoggerUtils';
 import {createLocalJWKSet, jwtVerify, SignJWT} from 'jose';
 import {v4} from 'uuid';
 import {JwksKeyHolder} from '../secrets/JwksKeyHolder';

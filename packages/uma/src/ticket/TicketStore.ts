@@ -1,6 +1,6 @@
 import { v4 } from "uuid";
 import { Ticket } from "../models/Ticket";
-import { KeyValueStore } from '../storage/models/KeyValueStore';
+import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { Permission } from "../models/Permission";
 
 /**

@@ -1,5 +1,5 @@
-import {BadRequestHttpError} from '../http/errors/BadRequestHttpError';
-import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
+import {BadRequestHttpError} from '../util/http/errors/BadRequestHttpError';
+import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
 import {Authorizer} from '../authz/Authorizer';
 import {Principal} from '../models/AccessToken';
 import {Ticket} from '../models/Ticket';
@@ -7,11 +7,11 @@ import {AccessToken} from '../models/AccessToken';
 import {ClaimTokenProcessor, ClaimTokenRequest} from '../authn/ClaimTokenProcessor';
 import {TokenFactory} from '../token/TokenFactory';
 import {GrantProcessor, TokenResponse} from './GrantProcessor';
-import {getLoggerFor} from '../logging/LoggerUtils';
-import {Logger} from '../logging/Logger';
+import {getLoggerFor} from '../util/logging/LoggerUtils';
+import {Logger} from '../util/logging/Logger';
 import {RequestDeniedError} from '../error/RequestDeniedError';
 import {NeedInfoError} from '../error/NeedInfoError';
-import {KeyValueStore} from '../storage/models/KeyValueStore';
+import {KeyValueStore} from '../util/storage/models/KeyValueStore';
 import {v4} from 'uuid';
 import { TicketStore } from '../ticket/TicketStore';
 

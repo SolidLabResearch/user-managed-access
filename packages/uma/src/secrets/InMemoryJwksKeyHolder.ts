@@ -1,8 +1,8 @@
 import {exportJWK, generateKeyPair, JSONWebKeySet, JWK, KeyLike} from 'jose';
 import {JwksKeyHolder} from './JwksKeyHolder';
 import {v4} from 'uuid';
-import {Logger} from '../logging/Logger';
-import {getLoggerFor} from '../logging/LoggerUtils';
+import {Logger} from '../util/logging/Logger';
+import {getLoggerFor} from '../util/logging/LoggerUtils';
 import {Memoize} from 'typescript-memoize';
 
 const SUPPORTED_ALGORITHMS = new Set(['ES256', 'ES384', 'ES512', 'RS256', 'RS384', 'RS512']);

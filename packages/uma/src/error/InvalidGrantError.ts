@@ -1,4 +1,4 @@
-import {BadRequestHttpError} from '../http/errors/BadRequestHttpError';
+import {BadRequestHttpError} from '../util/http/errors/BadRequestHttpError';
 
 /**
  * If the provided permission ticket was not found at the authorization server,

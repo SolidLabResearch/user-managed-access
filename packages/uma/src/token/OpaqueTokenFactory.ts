@@ -1,6 +1,6 @@
 import {AccessToken} from '../models/AccessToken';
 import {SerializedToken, TokenFactory} from './TokenFactory';
-import {KeyValueStore} from '../storage/models/KeyValueStore';
+import {KeyValueStore} from '../util/storage/models/KeyValueStore';
 import {v4} from 'uuid';
 
 /**

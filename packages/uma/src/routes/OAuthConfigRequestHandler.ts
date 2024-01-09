@@ -1,8 +1,8 @@
-import {HttpHandler} from '../http/models/HttpHandler';
-import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
-import {HttpHandlerResponse} from '../http/models/HttpHandlerResponse';
-import {Logger} from '../logging/Logger';
-import {getLoggerFor} from '../logging/LoggerUtils';
+import {HttpHandler} from '../util/http/models/HttpHandler';
+import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
+import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
+import {Logger} from '../util/logging/Logger';
+import {getLoggerFor} from '../util/logging/LoggerUtils';
 
 export enum ResponseType {
     // eslint-disable-next-line no-unused-vars

@@ -1,4 +1,4 @@
-import {ForbiddenHttpError} from '../http/errors/ForbiddenHttpError';
+import {ForbiddenHttpError} from '../util/http/errors/ForbiddenHttpError';
 
 export type RedirectUserInfo = {
     redirect_user: string

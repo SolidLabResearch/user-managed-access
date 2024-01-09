@@ -1,5 +1,5 @@
-import { Logger } from '../logging/Logger';
-import { getLoggerFor } from '../logging/LoggerUtils';
+import { Logger } from '../util/logging/Logger';
+import { getLoggerFor } from '../util/logging/LoggerUtils';
 import { Principal } from '../models/AccessToken';
 import { ClaimTokenProcessor, ClaimTokenRequest } from './ClaimTokenProcessor';
 
