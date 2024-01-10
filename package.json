@@ -45,7 +45,7 @@
   "exports": {},
   "files": [],
   "scripts": {
-    "postinstall": "husky install && yarn build:all",
+    "postinstall": "yarn build:all",
     "clean": "shx rm -rf ./**/node_modules",
     "build:all": "yarn workspaces foreach --exclude . -A -pi -t run build",
     "test:all": "yarn workspaces foreach --exclude . -A -pi run test",
