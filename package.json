@@ -45,7 +45,7 @@
   "exports": {},
   "files": [],
   "scripts": {
-    "postinstall": "yarn build:all",
+    "prepare": "yarn build:all",
     "clean": "shx rm -rf ./**/node_modules",
     "build:all": "yarn workspaces foreach --exclude . -A -pi -t run build",
     "test:all": "yarn workspaces foreach --exclude . -A -pi run test",
