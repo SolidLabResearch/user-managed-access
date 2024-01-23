@@ -4,7 +4,7 @@ import { ComponentsManager } from 'componentsjs';
 import { NodeHttpServer } from './util/http/server/NodeHttpServer';
 import { setLogger } from './util/logging/LoggerUtils';
 import { WinstonLogger } from './util/logging/WinstonLogger';
-import { ResponseType } from './routes/OAuthConfigRequestHandler';
+import { ResponseType } from './routes/Config';
 import { ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM } 
   from '@solid/access-token-verifier/dist/constant/ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM';
 
