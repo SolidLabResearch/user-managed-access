@@ -5,7 +5,7 @@ import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
 /**
  * Default route handler
  */
-export class DefaultRouteHandler extends HttpHandler {
+export class DefaultRequestHandler extends HttpHandler {
   /**
      * Default request handler returning a 404 error
      * @param {HttpHandlerContext} input

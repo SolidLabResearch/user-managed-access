@@ -46,16 +46,16 @@ export class RequestingPartyRegistration {
 }
 
 /**
- * A PermissionRegistrationHandler is tasked with implementing
+ * A TicketRequestHandler is tasked with implementing
  * section 3.2 from the User-Managed Access (UMA) Profile of OAuth 2.0.
  *
  * It provides an endpoint to a Resource Server for requesting UMA tickets.
  */
-export class PermissionRegistrationHandler implements HttpHandler {
+export class TicketRequestHandler implements HttpHandler {
   protected readonly logger: Logger = getLoggerFor(this);
 
   /**
-   * A PermissionRegistrationHandler is tasked with implementing
+   * A TicketRequestHandler is tasked with implementing
    * section 3.2 from the User-Managed Access (UMA) Profile of OAuth 2.0.
    * @param {string} baseUrl - Base URL of the AS.
    * @param {RequestingPartyRegistration[]} resourceServers - Pod Servers to be registered with the UMA AS

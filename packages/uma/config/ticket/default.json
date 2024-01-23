@@ -16,7 +16,7 @@
       "handler": {
         "@type": "JsonHttpErrorHandler",
         "nestedHandler": {
-          "@type": "PermissionRegistrationHandler",
+          "@type": "TicketRequestHandler",
           "resourceServers": [
             {
               "@type": "RequestingPartyRegistration",

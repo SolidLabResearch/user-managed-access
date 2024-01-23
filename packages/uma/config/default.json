@@ -59,7 +59,7 @@
             }
           ],
           "defaultHandler": {
-            "@type": "DefaultRouteHandler"
+            "@type": "DefaultRequestHandler"
           }
         }
       }

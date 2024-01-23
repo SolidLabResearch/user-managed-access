@@ -5,7 +5,7 @@
   "@graph": [
     {
       "@id": "urn:uma:default:ResourceRegistrationHandler",
-      "@type": "ResourceRegistrationHandler",
+      "@type": "ResourceRegistrationRequestHandler",
       "baseUrl": "urn:uma:variables:baseUrl",
       "resourceStore": {
         "@id": "urn:uma:default:ResourceRegistrationStore",

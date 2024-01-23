@@ -3,7 +3,6 @@ import {JwksKeyHolder} from './JwksKeyHolder';
 import {v4} from 'uuid';
 import {Logger} from '../util/logging/Logger';
 import {getLoggerFor} from '../util/logging/LoggerUtils';
-import {Memoize} from 'typescript-memoize';
 
 const SUPPORTED_ALGORITHMS = new Set(['ES256', 'ES384', 'ES512', 'RS256', 'RS384', 'RS512']);
 
@@ -77,7 +76,6 @@ export class InMemoryJwksKeyHolder extends JwksKeyHolder {
    * @param {string} kid - key identfier
    * @return {KeyLike}
    */
-  @Memoize()
   getPrivateKey(kid: string): KeyLike {
     if (!this.keys.has(kid)) {
       const msg = `The specified kid '${kid}' does not exist in the holder.`;
@@ -93,7 +91,6 @@ export class InMemoryJwksKeyHolder extends JwksKeyHolder {
    * @param {string} kid - key identfier
    * @return {KeyLike}
    */
-  @Memoize()
   getPublicKey(kid: string): KeyLike {
     if (!this.keys.has(kid)) {
       const msg = `The specified kid '${kid}' does not exist in the holder.`;
@@ -109,7 +106,6 @@ export class InMemoryJwksKeyHolder extends JwksKeyHolder {
    * @param {string} kid key identifier
    * @return {Promise<JWK>} the JWK of the public key.
    */
-  @Memoize()
   async toPublicJwk(kid: string): Promise<JWK> {
     if (!this.keys.has(kid)) {
       const msg = `The specified kid '${kid}' does not exist in the holder.`;

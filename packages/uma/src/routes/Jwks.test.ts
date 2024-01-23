@@ -1,5 +1,5 @@
 import {JwksRequestHandler} from './JwksRequestHandler';
-import {InMemoryJwksKeyHolder} from './../secrets/InMemoryJwksKeyHolder';
+import {InMemoryJwksKeyHolder} from '../secrets/InMemoryJwksKeyHolder';
 import {lastValueFrom} from 'rxjs';
 import {HttpHandlerContext} from '../http/models/HttpHandlerContext';
 

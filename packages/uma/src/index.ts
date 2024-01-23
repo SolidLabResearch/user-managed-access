@@ -8,14 +8,13 @@ export * from './models/ScopeDescription';
 export * from './models/Ticket';
 
 // Routes
-export * from './routes/DefaultRouteHandler';
-export * from './routes/IntrospectionHandler';
-export * from './routes/JwksRequestHandler';
-export * from './routes/OAuthConfigRequestHandler';
-export * from './routes/PermissionRegistrationHandler';
-export * from './routes/ResourceRegistrationHandler';
-export * from './routes/TokenRequestHandler';
-export * from './routes/UmaConfigRequestHandler';
+export * from './routes/Default';
+export * from './routes/Introspection';
+export * from './routes/Jwks';
+export * from './routes/Ticket';
+export * from './routes/ResourceRegistration';
+export * from './routes/Token';
+export * from './routes/Config';
 
 // Token
 export * from './token/JwtTokenFactory';

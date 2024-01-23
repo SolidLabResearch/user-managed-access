@@ -18,12 +18,12 @@ import { reType } from '../util/ReType.js';
 type ErrorConstructor = { new(msg: string): Error };
 
 /**
- * A ResourceRegistrationHandler is tasked with implementing
+ * A ResourceRegistrationRequestHandler is tasked with implementing
  * section 3.2 from the User-Managed Access (UMA) Federated Auth 2.0.
  *
  * It provides an endpoint to a Resource Server for registering its resources.
  */
-export class ResourceRegistrationHandler implements HttpHandler {
+export class ResourceRegistrationRequestHandler implements HttpHandler {
   protected readonly logger: Logger = getLoggerFor(this);
 
   /**
