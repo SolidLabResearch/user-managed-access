@@ -4725,7 +4725,6 @@ __metadata:
     cross-fetch: "npm:^4.0.0"
     jose: "npm:^4.5.1"
     logform: "npm:^2.6.0"
-    typescript-memoize: "npm:^1.1.0"
     uuid: "npm:^9.0.1"
     winston: "npm:^3.11.0"
   languageName: unknown
@@ -13921,13 +13920,6 @@ __metadata:
   version: 0.0.6
   resolution: "typedarray@npm:0.0.6"
   checksum: 6005cb31df50eef8b1f3c780eb71a17925f3038a100d82f9406ac2ad1de5eb59f8e6decbdc145b3a1f8e5836e17b0c0002fb698b9fe2516b8f9f9ff602d36412
-  languageName: node
-  linkType: hard
-
-"typescript-memoize@npm:^1.1.0":
-  version: 1.1.1
-  resolution: "typescript-memoize@npm:1.1.1"
-  checksum: 685f49c200fb94b461869f4945f50da2682541f745410bf548d79f41627dde23be8065854fe7e05793b0a3655c1e3583b96ee987486597620a6175010b6c42f8
   languageName: node
   linkType: hard
 
