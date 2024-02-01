@@ -65,7 +65,10 @@ async function main() {
   const decodedToken = parseJwt(asResponse.access_token);
 
   console.log("Access token decoded:",decodedToken)
-  console.log("Permissioned scopes:", decodedToken.permissions[0].resource_scopes)
+  for (const permission of decodedToken.permissions) {
+    console.log(`Permissioned scopes for resource ${permission.resource_id}:`, permission.resource_scopes)
+
+  }
   
   console.log(`3.4 Client Requests Resource and Provides an RPT`);
   // https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html#rfc.section.3.4

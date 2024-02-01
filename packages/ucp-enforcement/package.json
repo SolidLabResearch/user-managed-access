@@ -1,0 +1,67 @@
+{
+    "name": "@solidlab/uma-enforcement",
+    "version": "0.1.0",
+    "description": "UMA interfaces and server implementation.",
+    "keywords": [
+        "uma",
+        "user managed access",
+        "access control",
+        "usage control",
+        "authorization",
+        "policies",
+        "grants"
+    ],
+    "author": {
+        "name": "Wout Slabbinck",
+        "email": "wout.slabbinck@ugent.be",
+        "url": "https://woutslabbinck.com"
+    },
+    "license": "MIT",
+    "repository": "github:SolidLabResearch/user-managed-access",
+    "homepage": "https://github.com/SolidLabResearch/user-managed-access/README.md",
+    "bugs": "https://github.com/SolidLabResearch/user-managed-access/issues",
+    "contributors": [
+        {
+            "name": "Wout Slabbink",
+            "email": "wout.slabbink@ugent.be",
+            "url": "https://pod.woutslabbinck.com/profile/card#me"
+        },
+        {
+            "name": "Wouter Termont",
+            "email": "wouter.termont@ugent.be",
+            "url": "https://wouter.termont.online"
+        }
+    ],
+    "private": true,
+    "packageManager": "yarn@4.0.2",
+    "engines": {
+        "node": ">=18.18",
+        "yarn": ">=4.0"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "require": "./dist/index.js"
+        }
+    },
+    "files": [
+        "dist",
+        "config"
+    ],
+    "scripts": {
+        "build": "yarn build:ts",
+        "build:ts": "yarn run -T tsc"
+    },
+    "dependencies": {
+        "@types/n3": "^1.16.3",
+        "koreografeye": "^0.4.7",
+        "n3": "^1.17.1"
+    },
+    "devDependencies": {
+        "@solid/community-server": "7.0.3",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.3.3"
+    }
+}
