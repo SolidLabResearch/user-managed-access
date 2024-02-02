@@ -17,8 +17,10 @@ This repository contains SolidLab research artefacts on use of UMA in the Solid 
 In order to run this project you need to perform the following steps. 
 
 1. Ensure that you are using Node.js 18.18 or higher with Yarn 4.0 or higher.
-1. Run `yarn install` in the project root (this will automatically call `yarn build:all`).
-1. Run `yarn start:all`.
+   - `nvm use` 
+   - `yarn set version 4.1.0`
+2. Run `yarn install` in the project root (this will automatically call `yarn build:all`).
+3. Run `yarn start:all`.
 
 This will boot up a UMA server and compatible Community Solid Server instance. 
 
