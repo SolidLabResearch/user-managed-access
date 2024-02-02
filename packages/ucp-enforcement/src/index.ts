@@ -5,6 +5,7 @@ export * from './plugins/UCPPlugin'
 // storage
 export * from './storage/ContainerUCRulesStorage'
 export * from './storage/DirectoryUCRulesStorage'
+export * from './storage/MemoryUCRulesStorage'
 export * from './storage/UCRulesStorage'
 
 // util

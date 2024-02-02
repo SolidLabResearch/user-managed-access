@@ -10,6 +10,7 @@ This repository contains SolidLab research artefacts on use of UMA in the Solid 
 
 - [`@solidlab/uma-css`](packages/css): UMA modules for the [Community Solid Server](https://github.com/CommunitySolidServer/CommunitySolidServer/). 
 
+- [`@solidlab/uma-enforcement`](packages/ucp-enforcement): Usage Control Policy decision/enforcement component.
 
 ## Getting started
 
@@ -32,6 +33,20 @@ You can then execute the following flows:
 ## Implemented features
 
 The packages in this project currently only support a fixed UMA AS per CSS RS, and contain only the trivial [AllAuthorizer](packages/uma/src/models/AllAuthorizer.ts) that allows all access. More useful features are coming soon ...
+
+### Usage control policy enforcement
+
+Used for creating a modular engine that calculates which access modes are granted based on:
+
+- Usage Control Rules
+- Interpretation of those rules
+- The request of the Requested Party together with all its claims
+
+For more information, you can check out its [own repository](https://github.com/woutslabbinck/ucp-enforcement) which has three engines that use [ODRL rules](https://www.w3.org/TR/odrl-model/).
+
+A test script is provided for a CRUD ODRL engine: `yarn script:ucp-enforcement`.
+In the [script](./scripts/test-ucp-enforcement.ts) a read Usage Control Rule (in ODRL) is present together with N3 interpretation rules. 
+Then a read request is performed using the engine, which results in a list of grants. This list is then printed to the console.
 
 
 ## Next steps

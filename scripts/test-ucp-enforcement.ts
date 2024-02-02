@@ -67,8 +67,8 @@ const crud = `
 }.
 `
 
-import { ContainerUCRulesStorage, PolicyExecutor, SimplePolicy, UCRulesStorage, UconRequest, UcpPatternEnforcement, UcpPlugin, turtleStringToStore } from "@solidlab/uma-enforcement";
 import { EyeJsReasoner } from "koreografeye";
+import { PolicyExecutor, SimplePolicy, UconRequest, UcpPatternEnforcement, UcpPlugin, turtleStringToStore, MemoryUCRulesStorage } from "@solidlab/uma-enforcement";
 
 
 
@@ -139,18 +139,6 @@ export function createConstraints(ruleIRI: string, constraints: Constraint[]): s
     }
     return constraintsString
 }
-/**
- * Create an instantiated usage control policy using ODRL and add it to the policy container
- * @param uconStorage 
- * @param type 
- * @returns 
- */
-export async function createPolicy(uconStorage: UCRulesStorage, type: UCPPolicy): Promise<SimplePolicy> {
-    const policyIRI: string = `http://example.org/${new Date().valueOf()}#`
-    let SimplePolicy = await basicPolicy(type, policyIRI)
-    await uconStorage.addRule(SimplePolicy.representation)
-    return SimplePolicy
-}
 
 async function main() {
     // Note: assumption - Solid server is set up with public read and write access on port 3123
@@ -166,16 +154,6 @@ async function main() {
     const owner = "https://pod.woutslabbinck.com/profile/card#me"
     const resource = "http://localhost:3000/test.ttl"
     const requestingParty = "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me"
-
-    const portNumber = 3123
-    const containerURL = `http://localhost:${portNumber}/`
-
-    // set up policy container
-    const uconRulesContainer = `${containerURL}ucon/`
-    await fetch(uconRulesContainer, {
-        method: "PUT"
-    }).then(res => console.log("status creating ucon container:", res.status))
-    console.log();
 
     // requests
     const readPolicyRequest: UconRequest = {
@@ -226,7 +204,7 @@ async function main() {
     // instantiate koreografeye policy executor
     const policyExecutor = new PolicyExecutor(plugins)
     // ucon storage
-    const uconRulesStorage = new ContainerUCRulesStorage(uconRulesContainer)
+    const uconRulesStorage = new MemoryUCRulesStorage()
     // load N3 Rules from a directory | TODO: utils are needed
     const n3Rules: string[] = [crud]
     // instantiate the enforcer using the policy executor,
@@ -235,7 +213,8 @@ async function main() {
         "--nope",
         "--pass"]), policyExecutor)
 
-    await createPolicy(uconRulesStorage, readPolicy)
+    const policy = await basicPolicy(readPolicy)
+    await uconRulesStorage.addRule(policy.representation)
     const result = await ucpPatternEnforcement.calculateAccessModes(readPolicyRequest)
     console.log(result);
 }
