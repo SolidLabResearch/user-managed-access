@@ -7,11 +7,12 @@ import { UnsupportedMediaTypeHttpError } from '../util/http/errors/UnsupportedMe
 import * as jose from 'jose';
 import { Logger } from '../util/logging/Logger';
 import { getLoggerFor } from '../util/logging/LoggerUtils';
-import { v4 } from 'uuid';
 import { array, reType } from '../util/ReType';
-import { Permission } from '../models/Permission';
-import { TicketStore } from '../ticket/TicketStore';
-import { Ticket } from '../models/Ticket';
+import { Permission } from '../views/Permission';
+import { Ticket } from '../ticketing/Ticket';
+import { KeyValueStore } from '../util/storage/models/KeyValueStore';
+import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
+import { v4 } from 'uuid';
 
 type ErrorConstructor = { new(msg: string): Error };
 
@@ -62,7 +63,8 @@ export class TicketRequestHandler implements HttpHandler {
    */
   constructor(
     private readonly baseUrl: string,
-    private readonly ticketStore: TicketStore,
+    private readonly ticketingStrategy: TicketingStrategy,
+    private readonly ticketStore: KeyValueStore<string, Ticket>,
     private readonly resourceServers: RequestingPartyRegistration[],
   ) {}
 
@@ -72,6 +74,8 @@ export class TicketRequestHandler implements HttpHandler {
   * @return {Observable<HttpHandlerResponse<PermissionRegistrationResponse>>}
   */
   async handle({request}: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
+    this.logger.info('Received permission registration request.', request);
+
     if (!request.headers.authorization) {
       throw new UnauthorizedHttpError('Missing authorization header in request.');
     }
@@ -87,12 +91,15 @@ export class TicketRequestHandler implements HttpHandler {
 
     const ticket = await this.processRequestingPartyRegistration(request.headers.authorization, request.body);
 
-    if (ticket.necessaryGrants.length === 0) return { status: 200 };
+    if (Object.keys(ticket.required).length === 0) return { status: 200 };
+
+    const id = v4();
+    this.ticketStore.set(id, ticket);
 
     return {
       headers: {'content-type': 'application/json'},
       status: 201,
-      body: { ticket: ticket.id },
+      body: { ticket: id },
     };
   }
 
@@ -117,7 +124,8 @@ export class TicketRequestHandler implements HttpHandler {
         ? this.error(BadRequestHttpError, 'Request has bad syntax: ' + e.message)
         : this.error(BadRequestHttpError, 'Request has bad syntax');
     }
-    const ticket = await this.ticketStore.create(body);
+
+    const ticket = await this.ticketingStrategy.initializeTicket(body);
 
     return ticket;
   }

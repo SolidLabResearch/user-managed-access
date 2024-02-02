@@ -1,11 +1,27 @@
 
-// Models
-export * from './models/AccessToken';
-export * from './authz/Authorizer';
-export * from './models/Permission';
-export * from './models/ResourceDescription';
-export * from './models/ScopeDescription';
-export * from './models/Ticket';
+// Credentials
+export * from './credentials/ClaimSet';
+export * from './credentials/Requirements';
+export * from './credentials/Credential';
+
+// Verifiers
+export * from './credentials/verify/Verifier';
+export * from './credentials/verify/TypedVerifier';
+export * from './credentials/verify/UnsecureVerifier';
+export * from './credentials/verify/SolidOidcVerifier';
+
+// Dialog
+export * from './dialog/Input';
+export * from './dialog/Output';
+export * from './dialog/Negotiator';
+export * from './dialog/BaseNegotiator';
+
+// Authorizers
+export * from './policies/authorizers/Authorizer';
+export * from './policies/authorizers/AllAuthorizer';
+export * from './policies/authorizers/NoneAuthorizer';
+export * from './policies/authorizers/PublicNamespaceAuthorizer';
+export * from './policies/authorizers/WebIdAuthorizer';
 
 // Routes
 export * from './routes/Default';
@@ -16,36 +32,32 @@ export * from './routes/ResourceRegistration';
 export * from './routes/Token';
 export * from './routes/Config';
 
-// Token
-export * from './token/JwtTokenFactory';
-export * from './token/TokenFactory';
+// Secrets
+export * from './secrets/JwksKeyHolder';
+export * from './secrets/InMemoryJwksKeyHolder';
 
-// Grant
-export * from './grant/GrantProcessor';
-export * from './grant/UmaGrantProcessor';
+// Tickets
+export * from './ticketing/Ticket';
+export * from './ticketing/strategy/TicketingStrategy';
+export * from './ticketing/strategy/ClaimEliminationStrategy';
+export * from './ticketing/strategy/ImmediateAuthorizerStrategy';
 
-// Ticket
-export * from './ticket/TicketStore';
-export * from './ticket/AuthorizerBasedTicketStore';
-
-// Authn
-export * from './authn/BasicClaimTokenProcessor';
-export * from './authn/ClaimTokenProcessor';
-export * from './authn/DpopClaimTokenProcessor';
-
-// Authz
-export * from './authz/AllAuthorizer';
-export * from './authz/NoneAuthorizer';
-export * from './authz/PublicNamespaceAuthorizer';
+// Tokens
+export * from './tokens/AccessToken';
+export * from './tokens/JwtTokenFactory';
+export * from './tokens/TokenFactory';
 
 // Utils
 export * from './util/StringGuard';
 export * from './util/FetchFactory';
 export * from './util/RoutePath';
 
-// Secrets
-export * from './secrets/JwksKeyHolder';
-export * from './secrets/InMemoryJwksKeyHolder';
+// Views
+export * from './views/Permission';
+export * from './views/ResourceDescription';
+export * from './views/ScopeDescription';
+
+/* Replace the following with CSS types */
 
 // Logging
 export * from './util/logging/Logger';

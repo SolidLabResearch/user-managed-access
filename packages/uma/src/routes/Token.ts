@@ -1,27 +1,25 @@
-import {UnsupportedMediaTypeHttpError} from '../util/http/errors/UnsupportedMediaTypeHttpError';
-import {BadRequestHttpError} from '../util/http/errors/BadRequestHttpError';
-import {HttpHandler} from '../util/http/models/HttpHandler';
-import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
-import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
-import {GrantProcessor} from '../grant/GrantProcessor';
+import { UnsupportedMediaTypeHttpError } from '../util/http/errors/UnsupportedMediaTypeHttpError';
+import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
+import { HttpHandler } from '../util/http/models/HttpHandler';
+import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
+import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
+import { Negotiator } from '../dialog/Negotiator';
+import { Logger } from '../util/logging/Logger';
+import { getLoggerFor } from '../util/logging/LoggerUtils';
+import { DialogInput } from '../dialog/Input';
+import { reType } from '../util/ReType';
+import { NeedInfoError } from '../errors/NeedInfoError';
+import { ForbiddenHttpError } from '../util/http/errors/ForbiddenHttpError';
 
-const GRANT_TYPE = 'grant_type';
 /**
- * The Token Request Handler implements the interface of the OAuth/UMA Token Endpoint
- * using application/x-www-form-urlencoded as a serialization for the POST body.
+ * The TokenRequestHandler implements the interface of the UMA Token Endpoint.
  */
 export class TokenRequestHandler implements HttpHandler {
-  private readonly grantProcessors: Map<string, GrantProcessor>;
+  protected readonly logger: Logger = getLoggerFor(this);
 
-  /**
-   * The Token Request Handler implements the interface of the OAuth/UMA Token Endpoint
-   * using application/x-www-form-urlencoded as a serialization for the POST body.
-   * @param {GrantProcessor[]} processors - a list of Grant Type Processors.
-   */
-  constructor(processors: GrantProcessor[]) {
-    this.grantProcessors = new Map();
-    processors.forEach((value) => this.grantProcessors.set(value.getSupportedGrantType(), value));
-  }
+  constructor(
+    protected negotiator: Negotiator,
+  ) {}
 
   /**
    * Handles an incoming token request.
@@ -30,31 +28,44 @@ export class TokenRequestHandler implements HttpHandler {
    * @return {Observable<HttpHandlerResponse<any>>} - response
    */
   async handle(input: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
-    if (input.request.headers['content-type'] !== 'application/x-www-form-urlencoded') {
+    this.logger.info('Received token request.', input);
+
+    // This deviates from UMA, which reads application/x-www-form-urlencoded
+    if (input.request.headers['content-type'] !== 'application/json') { 
       throw new UnsupportedMediaTypeHttpError();
     }
 
-    const bodyParams = new URLSearchParams(input.request.body);
+    const params = input.request.body;
 
-    if (!bodyParams.has(GRANT_TYPE) || !bodyParams.get(GRANT_TYPE)) {
-      throw new BadRequestHttpError('Request body is missing required key \'grant_type\'.');
-    }
-    const grantType = bodyParams.get(GRANT_TYPE)!;
-
-    const parsedRequestBody = new Map<string, string>();
-    bodyParams.forEach((value, key) => {
-      parsedRequestBody.set(key, value);
-    });
-
-    if (!this.grantProcessors.has(grantType)) {
-      throw new BadRequestHttpError(`Unsupported grant type: '${grantType}'`);
+    if (params['grant_type'] !== 'urn:ietf:params:oauth:grant-type:uma-ticket') {
+      throw new BadRequestHttpError(`Expected 'grant_type' to be set to 'urn:ietf:params:oauth:grant-type:uma-ticket'`);
     }
 
-    const grantProcessor = this.grantProcessors.get(grantType)!;
+    try {
+      reType(params, DialogInput);
+    } catch (e) {
+      throw new BadRequestHttpError(`Invalid token request body: ${e instanceof Error ? e.message : ''}`);
+    }
 
-    const tokenResponse = await grantProcessor.process(parsedRequestBody, input);
+    try {
+      const tokenResponse = await this.negotiator.negotiate(params);
 
-    return {body: JSON.stringify(tokenResponse), headers: {'content-type': 'application/json'}, status: 200};
+      return {
+        status: 200,
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify(tokenResponse)
+      };
+    } catch (e) {
+      if (ForbiddenHttpError.isInstance(e)) return ({
+        status: 403,
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify({
+          ticket: (e as NeedInfoError).ticket,
+          ...(e as NeedInfoError).additionalParams
+        })
+      });
+      throw e; // TODO: distinguish other errors
+    }
   }
 }
 

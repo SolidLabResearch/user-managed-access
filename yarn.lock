@@ -4718,6 +4718,7 @@ __metadata:
   dependencies:
     "@solid/access-token-verifier": "npm:^1.2.0"
     "@types/clone": "npm:^2.1.4"
+    "@types/n3": "npm:^1.16.4"
     "@types/node": "npm:^18.18.11"
     "@types/uuid": "npm:^8.3.4"
     clone: "npm:^2.1.2"
@@ -4725,6 +4726,7 @@ __metadata:
     cross-fetch: "npm:^4.0.0"
     jose: "npm:^4.5.1"
     logform: "npm:^2.6.0"
+    n3: "npm:^1.17.2"
     uuid: "npm:^9.0.1"
     winston: "npm:^3.11.0"
   languageName: unknown

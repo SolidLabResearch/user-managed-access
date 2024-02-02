@@ -12,7 +12,7 @@ import {v4} from 'uuid';
 import { HttpMethods } from '../util/http/models/HttpMethod';
 import { MethodNotAllowedHttpError } from '../util/http/errors/MethodNotAllowedHttpError';
 import { HttpHandlerRequest } from '../util/http/models/HttpHandlerRequest';
-import { ResourceDescription } from '../models/ResourceDescription';
+import { ResourceDescription } from '../views/ResourceDescription';
 import { reType } from '../util/ReType.js';
 
 type ErrorConstructor = { new(msg: string): Error };

@@ -18,12 +18,12 @@ async function main() {
   // https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html#rfc.section.3.1
   // 3.1 Client Requests Resource Without Providing an Access Token
   const noTokenResponse = await fetch(privateResource, request);
-  console.log(noTokenResponse.status);
-  console.log(await noTokenResponse.text());
 
   console.log("3.2 Resource Server Responds to Client's Tokenless Access Attempt");
   // https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html#rfc.section.3.2
   // 3.2 Resource Server Responds to Client's Tokenless Access Attempt
+  console.log(noTokenResponse.status);
+  console.log(await noTokenResponse.text());
   const wwwAuthenticateHeader = noTokenResponse.headers.get("WWW-Authenticate")!
   // Note: needs errorhandling when not present
   console.log(wwwAuthenticateHeader);
@@ -43,17 +43,23 @@ async function main() {
   console.log(`3.3.1 Client Request to Authorization Server (${as_uri}) for RPT`);
   // https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html#rfc.section.3.3.1
   // 3.3.1 Client Request to Authorization Server for RPT
+  const body = JSON.stringify({
+    grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
+    ticket,
+    claim_token: encodeURIComponent(claim_token),
+    claim_token_format: 'urn:solidlab:uma:claims:formats:webid',
+  });
+  console.log("Token request body: ", body);
   const asRequestResponse = await fetch(tokenEndpoint, {
       method: "POST",
       headers: {
-          "content-type":"application/x-www-form-urlencoded"
+        "content-type":"application/json"
       },
-      body: 
-          `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Auma-ticket&ticket=${ticket}&claim_token=${encodeURIComponent(encodeURIComponent(claim_token))}&claim_token_format=${encodeURIComponent("urn:authorization-agent:dummy-token")}`
+      body
   })
 
-    // console.log("Authorization Server response:", await asRequestResponse.text());
-    // throw 'stop'
+  // console.log("Authorization Server response:", await asRequestResponse.text());
+  // throw 'stop'
   const asResponse = await asRequestResponse.json()
   console.log("Authorization Server response:", asResponse);
 

@@ -7,9 +7,9 @@ import {UnsupportedMediaTypeHttpError} from '../util/http/errors/UnsupportedMedi
 import {Logger} from '../util/logging/Logger';
 import {getLoggerFor} from '../util/logging/LoggerUtils';
 import {KeyValueStore} from '../util/storage/models/KeyValueStore';
-import {AccessToken} from '../models/AccessToken';
-import { JwtTokenFactory } from '../token/JwtTokenFactory';
-import { SerializedToken } from '../token/TokenFactory';
+import {AccessToken} from '../tokens/AccessToken';
+import { JwtTokenFactory } from '../tokens/JwtTokenFactory';
+import { SerializedToken } from '../tokens/TokenFactory';
 
 /**
  * 

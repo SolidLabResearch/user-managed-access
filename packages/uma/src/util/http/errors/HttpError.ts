@@ -30,7 +30,9 @@ export class HttpError extends Error {
 
     this.logger.info(`Checking if ${error} is an instance of ${this.name}`);
 
-    return types.isNativeError(error) && Object.entries(error).find(([ key, val ]) => key === 'statusCode' && typeof val === 'number') !== undefined;
+    return types.isNativeError(error) && Object.entries(error).find(
+      ([ key, val ]) => key === 'statusCode' && typeof val === 'number'
+    ) !== undefined;
 
   }
 

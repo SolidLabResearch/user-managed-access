@@ -55,6 +55,7 @@ export class ConfigRequestHandler extends HttpHandler {
    */
   async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
     this.logger.info(`Received discovery request at '${context.request.url}'`);
+    
     return {
       body: JSON.stringify(this.getConfig()),
       headers: {'content-type': 'application/json'},
