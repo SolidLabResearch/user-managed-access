@@ -1,0 +1,20 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:default:Authorizer",
+      "@type": "PublicNamespaceAuthorizer",
+      "authorizer": {
+        "@type": "WebIdAuthorizer",
+        "webids": [
+          "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me"
+        ],
+        "authorizer": {
+          "@type": "NoneAuthorizer"
+        }
+      }
+    }
+  ]
+}

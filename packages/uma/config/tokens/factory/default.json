@@ -1,0 +1,15 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:default:TokenFactory",
+      "@type": "JwtTokenFactory",
+      "params_expirationTime": "5m",
+      "params_aud": "solid",
+      "issuer": { "@id": "urn:uma:variables:baseUrl" },
+      "keyholder": { "@id": "urn:uma:default:DefaultKeyholder" }
+    }
+  ]
+}

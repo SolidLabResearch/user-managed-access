@@ -5154,6 +5154,7 @@ __metadata:
   dependencies:
     "@solid/community-server": "npm:7.0.3"
     "@types/n3": "npm:^1.16.3"
+    "@types/node": "npm:^20.11.16"
     koreografeye: "npm:^0.4.7"
     n3: "npm:^1.17.1"
     ts-node: "npm:^10.9.1"
@@ -5167,6 +5168,7 @@ __metadata:
   dependencies:
     "@solid/access-token-verifier": "npm:^1.2.0"
     "@types/clone": "npm:^2.1.4"
+    "@types/n3": "npm:^1.16.4"
     "@types/node": "npm:^18.18.11"
     "@types/uuid": "npm:^8.3.4"
     clone: "npm:^2.1.2"
@@ -5174,7 +5176,7 @@ __metadata:
     cross-fetch: "npm:^4.0.0"
     jose: "npm:^4.5.1"
     logform: "npm:^2.6.0"
-    typescript-memoize: "npm:^1.1.0"
+    n3: "npm:^1.17.2"
     uuid: "npm:^9.0.1"
     winston: "npm:^3.11.0"
   languageName: unknown
@@ -14627,13 +14629,6 @@ __metadata:
   version: 0.0.6
   resolution: "typedarray@npm:0.0.6"
   checksum: 10c0/6005cb31df50eef8b1f3c780eb71a17925f3038a100d82f9406ac2ad1de5eb59f8e6decbdc145b3a1f8e5836e17b0c0002fb698b9fe2516b8f9f9ff602d36412
-  languageName: node
-  linkType: hard
-
-"typescript-memoize@npm:^1.1.0":
-  version: 1.1.1
-  resolution: "typescript-memoize@npm:1.1.1"
-  checksum: 10c0/685f49c200fb94b461869f4945f50da2682541f745410bf548d79f41627dde23be8065854fe7e05793b0a3655c1e3583b96ee987486597620a6175010b6c42f8
   languageName: node
   linkType: hard
 

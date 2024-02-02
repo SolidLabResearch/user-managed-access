@@ -65,12 +65,13 @@
     "cross-fetch": "^4.0.0",
     "jose": "^4.5.1",
     "logform": "^2.6.0",
-    "typescript-memoize": "^1.1.0",
+    "n3": "^1.17.2",
     "uuid": "^9.0.1",
     "winston": "^3.11.0"
   },
   "devDependencies": {
     "@types/clone": "^2.1.4",
+    "@types/n3": "^1.16.4",
     "@types/node": "^18.18.11",
     "@types/uuid": "^8.3.4"
   },

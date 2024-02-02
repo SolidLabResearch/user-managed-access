@@ -4,6 +4,7 @@
   "Authorization",
   "Error",
   "EventEmitter",
+  "NodeJS.Dict",
   "Permission",
   "Principal",
   "ResourceDescription",

@@ -145,3 +145,26 @@ export const union = <Ts extends ReType[]> (...types: Ts): Assertion<Union<Ts>> 
 export const optional = <T extends ReType> (pattern: T): Assertion<Union<[T, undefined]>> => {
   return union<[T, undefined]>(pattern, undefined);
 }
+
+export const record = <
+  K extends Assertion<PropertyKey>,
+  V extends ReType
+> (k: K, v: V): Assertion<Record<Type<K>, V>> => {
+  return (value: unknown): asserts value is Record<Type<K>, V> => {
+    if (typeof value !== 'object' || value === null) throw new Error('value is not a record');
+    
+    const keys: (string | symbol)[] = [] as const;
+    keys.push(...Object.getOwnPropertyNames(value));
+    keys.push(...Object.getOwnPropertySymbols(value));
+    keys.forEach(key => {
+      reType(key, k);
+      reType(isIn(key, value) ? value[key] : undefined, v);
+    });
+  }
+}
+
+export const dict = <T extends ReType> (records: T): Assertion<NodeJS.Dict<Type<T>>> => {
+  return record(string, records);
+}
+
+// type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;  // https://www.npmjs.com/package/type-expand

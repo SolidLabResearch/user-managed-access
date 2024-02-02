@@ -3,13 +3,20 @@
     "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
   ],
   "import": [
-    "sai-uma:config/authz/public-ns.json",
-    "sai-uma:config/discovery/default.json",
-    "sai-uma:config/introspection/default.json",
-    "sai-uma:config/keys/default.json",
-    "sai-uma:config/resource/default.json",
-    "sai-uma:config/ticket/default.json",
-    "sai-uma:config/token/default.json",
+    "sai-uma:config/credentials/verifiers/default.json",
+    "sai-uma:config/dialog/negotiators/default.json",
+    "sai-uma:config/policies/authorizers/public-ns.json",
+    "sai-uma:config/resources/storage/default.json",
+    "sai-uma:config/routes/discovery.json",
+    "sai-uma:config/routes/introspection.json",
+    "sai-uma:config/routes/keys.json",
+    "sai-uma:config/routes/resources.json",
+    "sai-uma:config/routes/tickets.json",
+    "sai-uma:config/routes/tokens.json",
+    "sai-uma:config/tickets/storage/default.json",
+    "sai-uma:config/tickets/strategy/claim-elimination.json",
+    "sai-uma:config/tokens/factory/default.json",
+    "sai-uma:config/tokens/storage/default.json",
     "sai-uma:config/variables/default.json"
   ],
   "@graph": [
@@ -34,32 +41,18 @@
               "@type": "HttpHandlerController",
               "label": "ControllerList",
               "routes": [
-                {
-                  "@id": "urn:uma:default:UmaConfigRoute"
-                },
-                {
-                  "@id": "urn:uma:default:JwksRoute"
-                },
-                {
-                  "@id": "urn:uma:default:TokenRoute"
-                },
-                {
-                  "@id": "urn:uma:default:PermissionRegistrationRoute"
-                },
-                {
-                  "@id": "urn:uma:default:ResourceRegistrationRoute"
-                },
-                {
-                  "@id": "urn:uma:default:ResourceRegistrationOpsRoute"
-                },
-                {
-                  "@id": "urn:uma:default:IntrospectionRoute"
-                }
+                { "@id": "urn:uma:default:UmaConfigRoute" },
+                { "@id": "urn:uma:default:JwksRoute" },
+                { "@id": "urn:uma:default:TokenRoute" },
+                { "@id": "urn:uma:default:PermissionRegistrationRoute" },
+                { "@id": "urn:uma:default:ResourceRegistrationRoute" },
+                { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
+                { "@id": "urn:uma:default:IntrospectionRoute" }
               ]
             }
           ],
           "defaultHandler": {
-            "@type": "DefaultRouteHandler"
+            "@type": "DefaultRequestHandler"
           }
         }
       }
