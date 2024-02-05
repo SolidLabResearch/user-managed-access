@@ -20,48 +20,30 @@ export class WebIdAuthorizer implements Authorizer {
    */
   constructor(
     protected webids: string[],
-    protected namespaces: string[] = [ 'private' ],
-    protected authorizer: Authorizer,
   ) {}
-
-  private inNamespaces(query: Permission) {
-    return this.namespaces.includes(new URL(query.resource_id).pathname.split('/')?.[2] ?? '');
-  }
 
   /** @inheritdoc */
   public async permissions(claims: ClaimSet, query?: Partial<Permission>[]): Promise<Permission[]> {
     this.logger.info('Calculating permissions.', { claims, query });
 
-    const permissions: Permission[] = await this.authorizer.permissions(claims, query);
-
     const webid = claims['webid'];
     
-    if (!(typeof webid === 'string' && this.webids.includes(webid))) return permissions;
+    if (!(typeof webid === 'string' && this.webids.includes(webid))) return [];
 
-    const extra: Permission[] = (query ?? []).filter(this.inNamespaces.bind(this)).map(
+    return (query ?? []).map(
       (permission): Permission => ({ 
         resource_id: permission.resource_id ?? ANY_RESOURCE, 
         resource_scopes: permission.resource_scopes ?? [ ANY_SCOPE ]
       })
     );
-
-    return permissions.concat(extra);
   }
 
   /** @inheritdoc */
   public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements> {
     this.logger.info('Calculating credentials.', { permissions, query });
 
-    const credentials = await this.authorizer.credentials(permissions.filter(
-      permission => !this.inNamespaces(permission)
-    ), query);
-
-    if (permissions.some(this.inNamespaces.bind(this)) && (!query || WEBID in query)) {
-      this.logger.debug('Detected WebID-protected namespace(s)');
-
-      credentials[WEBID] = this.webids.includes.bind(this.webids);
-    }
-
-    return credentials;
+    return {
+      [WEBID]: this.webids.includes.bind(this.webids),
+    };
   }
 }
