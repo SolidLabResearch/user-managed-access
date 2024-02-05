@@ -76,11 +76,12 @@ export class PolicyBasedAuthorizer implements Authorizer {
 
     return {
       [WEBID]: async (webid: string) => {
+
         const received = await this.permissions({ [WEBID]: webid }, permissions);
 
-        const sameResource = received[0]!.resource_id === permissions[0]!.resource_id;
-        const allScopes = permissions[0]!.resource_scopes.every(
-          scope => permissions[0]!.resource_scopes.includes(scope)
+        const sameResource = received[0].resource_id === permissions[0].resource_id;
+        const allScopes = permissions[0].resource_scopes.every(
+          scope => received[0].resource_scopes.includes(scope)
         );
 
         return sameResource && allScopes;
