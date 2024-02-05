@@ -1,5 +1,4 @@
 import { Store, DataFactory } from "n3";
-import { AccessMode } from "./UMAinterfaces"
 import { UconRequest, createContext } from "./Request"
 import { v4 as uuidv4 } from 'uuid';
 import { accesModesAllowed } from "./util/constants";
@@ -11,7 +10,7 @@ export interface Explanation {
     /**
      * The access modes allowed.
      */
-    decision: AccessMode[],
+    decision: string[],
     /**
      * The input request used as premise.
      */
@@ -66,7 +65,7 @@ export interface Conclusion {
      * The resulting grants allowed throught the reasoning.
      * (part of the conclusion of the rule)
      */
-    grants: AccessMode[],
+    grants: string[],
     /**
      * The time at which the reasoning happened.
      * (part of the conclusion of the rule)
