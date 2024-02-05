@@ -10,24 +10,24 @@
         {
           "NamespacedAuthorizer:_authorizers_key": "profile",
           "NamespacedAuthorizer:_authorizers_value": {
-            "@id": "urn:uma:default:WebIdAuthorizer",
-            "@type": "WebIdAuthorizer",
-            "webids": [
-              "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me"
-            ]
+            "@id": "urn:uma:default:AllAuthorizer",
+            "@type": "AllAuthorizer"
           }
         },
         {
           "NamespacedAuthorizer:_authorizers_key": "public",
           "NamespacedAuthorizer:_authorizers_value": {
-            "@id": "urn:uma:default:WebIdAuthorizer"
+            "@id": "urn:uma:default:AllAuthorizer"
           }
         },
         {
           "NamespacedAuthorizer:_authorizers_key": "private",
           "NamespacedAuthorizer:_authorizers_value": {
-            "@id": "urn:uma:default:AllAuthorizer",
-            "@type": "AllAuthorizer"
+            "@id": "urn:uma:default:WebIdAuthorizer",
+            "@type": "WebIdAuthorizer",
+            "webids": [
+              "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me"
+            ]
           }
         }
       ],
