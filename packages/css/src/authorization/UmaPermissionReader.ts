@@ -41,7 +41,7 @@ export class UmaPermissionReader extends PermissionReader {
           return [scope, false];
         }
 
-        return [scope, true];
+        return [scope.replace('urn:example:css:modes:', ''), true];
       }));
 
       result.set({ path: resource_id }, permissionSet);
