@@ -6,13 +6,10 @@
     {
       "@id": "urn:uma:default:Authorizer",
       "@type": "NamespacedAuthorizer",
-      "config": [
+      "authorizers": [
         {
-          "namespaces": [
-            "public",
-            "profile"
-          ],
-          "authorizer": {
+          "NamespacedAuthorizer:_authorizers_key": "profile",
+          "NamespacedAuthorizer:_authorizers_value": {
             "@id": "urn:uma:default:WebIdAuthorizer",
             "@type": "WebIdAuthorizer",
             "webids": [
@@ -21,10 +18,14 @@
           }
         },
         {
-          "namespaces": [
-            "private"
-          ],
-          "authorizer": {
+          "NamespacedAuthorizer:_authorizers_key": "public",
+          "NamespacedAuthorizer:_authorizers_value": {
+            "@id": "urn:uma:default:WebIdAuthorizer"
+          }
+        },
+        {
+          "NamespacedAuthorizer:_authorizers_key": "private",
+          "NamespacedAuthorizer:_authorizers_value": {
             "@id": "urn:uma:default:AllAuthorizer",
             "@type": "AllAuthorizer"
           }
@@ -33,8 +34,8 @@
       "fallback": {
         "@id": "urn:uma:default:PolicyBasedAuthorizer",
         "@type": "PolicyBasedAuthorizer",
-        "policyDir": "@sai-uma:config/rules/policy/",
-        "n3Rules": "@sai-uma:config/rules/crud.n3"
+        "policyDir": "config/rules/policy/",
+        "n3Rules": "config/rules/crud.n3"
       }
     }
   ]
