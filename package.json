@@ -55,7 +55,7 @@
     "script:registration": "yarn exec ts-node ./scripts/test-registration.ts",
     "script:ucp-enforcement": "yarn exec ts-node ./scripts/test-ucp-enforcement.ts",
     "script:uma-ucp": "yarn exec ts-node ./scripts/test-uma-ucp.ts",
-    "script:flow": "yarn run script:public && yarn run script:private && yarn run script:registration"
+    "script:flow": "yarn run script:public && yarn run script:private && yarn run script:registration && yarn run script:uma-ucp && yarn run script:ucp-enforcement"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
