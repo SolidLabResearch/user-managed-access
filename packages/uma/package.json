@@ -60,10 +60,12 @@
   },
   "dependencies": {
     "@solid/access-token-verifier": "^1.2.0",
+    "@solidlab/uma-enforcement": "workspace:^",
     "clone": "^2.1.2",
     "componentsjs": "5.4.2",
     "cross-fetch": "^4.0.0",
     "jose": "^4.5.1",
+    "koreografeye": "^0.4.7",
     "logform": "^2.6.0",
     "n3": "^1.17.2",
     "uuid": "^9.0.1",
