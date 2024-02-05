@@ -27,9 +27,11 @@ export function createContext(request: UconRequest): Store {
     const { owner, subject: requestingParty, action: requestedAccessModes, resource } = request;
     const contextIRI = 'http://example.org/context';
     contextStore.addQuads([
-        quad(namedNode(contextIRI), namedNode('http://example.org/resourceOwner'), namedNode(owner!)), // will probably fail if owner is not passed
         quad(namedNode(contextIRI), namedNode('http://example.org/requestingParty'), namedNode(requestingParty)),
         quad(namedNode(contextIRI), namedNode('http://example.org/target'), namedNode(resource))
+    ]);
+    if (owner) contextStore.addQuads([
+        quad(namedNode(contextIRI), namedNode('http://example.org/resourceOwner'), namedNode(owner)),
     ]);
 
     for (const accessMode of requestedAccessModes) {
