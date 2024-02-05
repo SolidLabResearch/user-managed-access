@@ -3,7 +3,6 @@ import { Store } from "n3";
 import { Conclusion, DecisionAlgorithm, Explanation } from "./Explanation";
 import { PolicyExecutor as IPolicyExecutor } from "./PolicyExecutor";
 import { UconRequest } from "./Request";
-import { AccessMode } from "./UMAinterfaces";
 import { UCRulesStorage } from "./storage/UCRulesStorage";
 import { createContext } from "./Request";
 
@@ -24,13 +23,13 @@ export class UcpPatternEnforcement implements UconEnforcementDecision {
      * On these, reasoning is applied with N3 Rules. Those N3 rules have as conclusion a koreografeye Policy.
      * The conclusion of the reasoning results into a graph with 0..n policies, which are then executed by the plugins. This executioner and plugins are given by the {@link IPolicyExecutor}
      *   If there are zero policies in the conclusion, a request will be sent to the Resource Owner. Furthermore, the user is notified that more information is needed. TODO:
-     *   Otherwise, {@link AccessMode | Access modes} are obtained from all the Koreografeye Plugin executions.
-     * Finally, all the obtained {@link AccessMode | Access modes} are returned
+     *   Otherwise, {@link string | Access modes} are obtained from all the Koreografeye Plugin executions.
+     * Finally, all the obtained {@link string | Access modes} are returned
      * 
      * @param context Context about the client and the request, parsed by an UMA Server.
      * @returns 
      */
-    async calculateAccessModes(request: UconRequest): Promise<AccessMode[]> {
+    async calculateAccessModes(request: UconRequest): Promise<string[]> {
         // go from context to an RDF graph that contains all context
         const contextStore = createContext(request)
 
@@ -51,7 +50,7 @@ export class UcpPatternEnforcement implements UconEnforcementDecision {
         // console.log(await rdfTransformStore(reasoningResult, 'text/turtle'));
 
         // Execute policies
-        const accessModes: AccessMode[] = []
+        const accessModes: string[] = []
         const executedPolicies = await this.executor.executePolicies(reasoningResult)
         // if no policies -> ask owner for request -> plugin?
         if (executedPolicies.length === 0) {
@@ -119,7 +118,7 @@ export interface UconEnforcementDecision {
      * @param request A parsed Usage Request containing `who` wants to perform `which action` on a given `resource` with a given `context`. 
      * @returns A list of Access Modes
      */
-    calculateAccessModes: (request: UconRequest) => Promise<AccessMode[]>;
+    calculateAccessModes: (request: UconRequest) => Promise<string[]>;
 
     /**
      * Calculates the modes granted (i.e. which `actions`) based on the request and the configured Usage Control Rules and how they are interpreted.
