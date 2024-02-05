@@ -19,7 +19,7 @@ export async function fetchPermissionTicket(
   for (const [ target, modes ] of permissions.entrySets()) {
     body.push({
       resource_id: target.path,
-      resource_scopes: Array.from(modes)
+      resource_scopes: Array.from(modes).map(mode => `urn:example:css:modes:${mode}`)
     });
   }
 
