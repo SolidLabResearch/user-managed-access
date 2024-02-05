@@ -1,7 +1,7 @@
 import { getLoggerFor } from '../../util/logging/LoggerUtils';
 import { Authorizer } from './Authorizer';
 import { Permission } from '../../views/Permission';
-import { Requirements } from '../../credentials/Requirements';
+import { Requirements, type ClaimVerifier } from '../../credentials/Requirements';
 import { ClaimSet } from '../../credentials/ClaimSet';
 
 const NO_RESOURCE = Symbol();
@@ -43,17 +43,26 @@ export class NamespacedAuthorizer implements Authorizer {
   public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements> {
     this.logger.info('Calculating credentials.', { permissions, query });
 
-    const credentials: Requirements = {};
+    const verifiers: NodeJS.Dict<ClaimVerifier[]> = {};
     for (const permission of permissions) {
       const resource = permission.resource_id;
       const ns = resource ? namespace(resource) : undefined;
       const authorizer = ns ? this.authorizers[ns] : undefined;
 
       const result = await (authorizer ?? this.fallback).credentials([ permission ], query);
-      // TODO: look into merging results with same key
-      for (const key of Object.keys(result)) credentials[key] = result[key]; 
+
+      for (const key of Object.keys(result)) {
+        verifiers[key] = (verifiers[key] ?? []).concat(result[key]!);
+      }; 
     }
 
-    return credentials;
+    const combined = Object.entries(verifiers).map(
+      ([claim, vs]) => [ 
+        claim, 
+        async (...args: unknown[]) => (await Promise.all((vs ?? []).map(v => v(...args)))).every(r => r)
+      ]
+    );
+
+    return Object.fromEntries(combined);
   }
 }
