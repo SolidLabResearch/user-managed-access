@@ -8,6 +8,8 @@ import { AccessMode, DirectoryUCRulesStorage, PolicyExecutor, UconRequest,
   UcpPatternEnforcement, UcpPlugin, UCRulesStorage } from '@solidlab/uma-enforcement';
 import { EyeJsReasoner } from "koreografeye";
 import { readFileSync } from 'fs';
+import path from 'path';
+import { UNSOLVABLE, WEBID } from '../../credentials/Claims';
 
 /**
  * An Authorizer granting access according to Usage Control Policies.
@@ -34,8 +36,8 @@ export class PolicyBasedAuthorizer implements Authorizer {
     policyDir: string,
     n3Rules: string,
   ) {
-    this.rules = new DirectoryUCRulesStorage(policyDir);
-    this.n3 = readFileSync(n3Rules).toString();
+    this.rules = new DirectoryUCRulesStorage(path.join(__dirname, '../../../', policyDir));
+    this.n3 = readFileSync(path.join(__dirname, '../../../', n3Rules)).toString();
     this.enforcer = new UcpPatternEnforcement(this.rules, [this.n3], this.reasoner, this.executor)
   }
 
@@ -44,17 +46,17 @@ export class PolicyBasedAuthorizer implements Authorizer {
   public async permissions(claims: ClaimSet, query?: Partial<Permission>[]): Promise<Permission[]> {
     this.logger.info('Calculating permissions.', { claims, query });
 
-    const webid = claims['webid'];
+    const webid = claims[WEBID];
     const subject = typeof webid === 'string' ? webid : 'urn:solidlab:uma:id:anonymous';
 
     const request: UconRequest = query && query.length > 0 ? {
       subject,
       resource: query[0].resource_id ?? ANY_RESOURCE,
-      action: query[0].resource_scopes ?? [ANY_SCOPE],
+      action: query[0].resource_scopes ?? [ANY_SCOPE]
     } : {
       subject,
       resource: ANY_RESOURCE,
-      action: [ANY_SCOPE],
+      action: [ANY_SCOPE]
     };
 
     const accessModes: AccessMode[] = await this.enforcer.calculateAccessModes(request);
@@ -67,6 +69,22 @@ export class PolicyBasedAuthorizer implements Authorizer {
 
   /** @inheritdoc */
   public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements> {
-    throw new Error('Not implemented');
+    this.logger.info('Calculating credentials.', { permissions, query });
+
+    if (permissions.length === 0) return ({});
+    if (query && !Object.keys(query).includes(WEBID)) return { [UNSOLVABLE]: async () => false };
+
+    return {
+      [WEBID]: async (webid: string) => {
+        const received = await this.permissions({ [WEBID]: webid }, permissions);
+
+        const sameResource = received[0]!.resource_id === permissions[0]!.resource_id;
+        const allScopes = permissions[0]!.resource_scopes.every(
+          scope => permissions[0]!.resource_scopes.includes(scope)
+        );
+
+        return sameResource && allScopes;
+      }
+    };
   }
 }

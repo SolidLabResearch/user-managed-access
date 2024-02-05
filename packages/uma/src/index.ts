@@ -21,6 +21,7 @@ export * from './policies/authorizers/Authorizer';
 export * from './policies/authorizers/AllAuthorizer';
 export * from './policies/authorizers/NamespacedAuthorizer';
 export * from './policies/authorizers/NoneAuthorizer';
+export * from './policies/authorizers/PolicyBasedAuthorizer';
 export * from './policies/authorizers/WebIdAuthorizer';
 
 // Routes
