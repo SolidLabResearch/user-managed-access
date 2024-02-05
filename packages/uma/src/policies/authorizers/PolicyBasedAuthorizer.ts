@@ -4,7 +4,7 @@ import { ANY_RESOURCE, ANY_SCOPE, Authorizer } from './Authorizer';
 import { Permission } from '../../views/Permission';
 import { Requirements } from '../../credentials/Requirements';
 import { ClaimSet } from '../../credentials/ClaimSet';
-import { AccessMode, DirectoryUCRulesStorage, PolicyExecutor, UconRequest, 
+import { DirectoryUCRulesStorage, PolicyExecutor, UconRequest, 
   UcpPatternEnforcement, UcpPlugin, UCRulesStorage } from '@solidlab/uma-enforcement';
 import { EyeJsReasoner } from "koreografeye";
 import { readFileSync } from 'fs';
@@ -46,25 +46,34 @@ export class PolicyBasedAuthorizer implements Authorizer {
   public async permissions(claims: ClaimSet, query?: Partial<Permission>[]): Promise<Permission[]> {
     this.logger.info('Calculating permissions.', { claims, query });
 
-    const webid = claims[WEBID];
-    const subject = typeof webid === 'string' ? webid : 'urn:solidlab:uma:id:anonymous';
+    if (!query) {
+      this.logger.warn('The PolicyBasedAuthorizer can only calculate permissions for explicit queries.')
+      return [];
+    }
 
-    const request: UconRequest = query && query.length > 0 ? {
-      subject,
-      resource: query[0].resource_id ?? ANY_RESOURCE,
-      action: query[0].resource_scopes ?? [ANY_SCOPE]
-    } : {
-      subject,
-      resource: ANY_RESOURCE,
-      action: [ANY_SCOPE]
-    };
+    const requests: UconRequest[] = [];
+    for (const { resource_id, resource_scopes} of query) {
 
-    const accessModes: AccessMode[] = await this.enforcer.calculateAccessModes(request);
+      if (!resource_id) {
+        this.logger.warn('The PolicyBasedAuthorizer can only calculate permissions for explicit resources.');
+        continue;
+      }
 
-    return [{
-      resource_id: request.resource,
-      resource_scopes: accessModes
-    }]
+      requests.push({
+        subject: typeof claims[WEBID] === 'string' ? claims[WEBID] : 'urn:solidlab:uma:id:anonymous',
+        resource: resource_id,
+        action: resource_scopes ?? [ "http://www.w3.org/ns/odrl/2/use" ],
+      });
+    }
+
+    const permissions: Permission[] = await Promise.all(requests.map(
+      async (request) => ({
+        resource_id: request.resource,
+        resource_scopes: await this.enforcer.calculateAccessModes(request)
+      })
+    ));
+
+    return permissions;
   }
 
   /** @inheritdoc */
@@ -76,15 +85,15 @@ export class PolicyBasedAuthorizer implements Authorizer {
 
     return {
       [WEBID]: async (webid: string) => {
-
         const received = await this.permissions({ [WEBID]: webid }, permissions);
 
-        const sameResource = received[0].resource_id === permissions[0].resource_id;
-        const allScopes = permissions[0].resource_scopes.every(
-          scope => received[0].resource_scopes.includes(scope)
-        );
+        if (received.length !== permissions.length) return false;
+        
+        return permissions.every((permission, index) => {
+          if (permission.resource_id !== received[index].resource_id) return false;
 
-        return sameResource && allScopes;
+          return permission.resource_scopes.every(scope => received[index].resource_scopes.includes(scope));
+        })
       }
     };
   }
