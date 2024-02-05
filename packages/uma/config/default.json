@@ -5,7 +5,7 @@
   "import": [
     "sai-uma:config/credentials/verifiers/default.json",
     "sai-uma:config/dialog/negotiators/default.json",
-    "sai-uma:config/policies/authorizers/public-ns.json",
+    "sai-uma:config/policies/authorizers/default.json",
     "sai-uma:config/resources/storage/default.json",
     "sai-uma:config/routes/discovery.json",
     "sai-uma:config/routes/introspection.json",

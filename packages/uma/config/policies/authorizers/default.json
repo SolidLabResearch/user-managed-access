@@ -1,0 +1,41 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:default:Authorizer",
+      "@type": "NamespacedAuthorizer",
+      "config": [
+        {
+          "namespaces": [
+            "public",
+            "profile"
+          ],
+          "authorizer": {
+            "@id": "urn:uma:default:WebIdAuthorizer",
+            "@type": "WebIdAuthorizer",
+            "webids": [
+              "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me"
+            ]
+          }
+        },
+        {
+          "namespaces": [
+            "private"
+          ],
+          "authorizer": {
+            "@id": "urn:uma:default:AllAuthorizer",
+            "@type": "AllAuthorizer"
+          }
+        }
+      ],
+      "fallback": {
+        "@id": "urn:uma:default:PolicyBasedAuthorizer",
+        "@type": "PolicyBasedAuthorizer",
+        "policyDir": "@sai-uma:config/rules/policy/",
+        "n3Rules": "@sai-uma:config/rules/crud.n3"
+      }
+    }
+  ]
+}
