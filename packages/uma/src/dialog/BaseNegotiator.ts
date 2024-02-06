@@ -11,7 +11,6 @@ import { DialogOutput } from './Output';
 import { reType } from '../util/ReType';
 import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
-import { success } from '../util/Result';
 import { v4 } from 'uuid';
 
 /**
@@ -56,7 +55,7 @@ export class BaseNegotiator implements Negotiator {
     const resolved = await this.ticketingStrategy.resolveTicket(updatedTicket);
 
     // ... on success, create Access Token
-    if (success(resolved)) {
+    if (resolved.success) {
       const { token, tokenType } = await this.tokenFactory.serialize({ permissions: resolved.value  });
 
       this.logger.debug('Minted token', JSON.stringify(token));
