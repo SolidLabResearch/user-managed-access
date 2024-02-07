@@ -5,10 +5,9 @@ import { Explanation, serializePremises } from "../../src/Explanation";
 import { UconRequest } from "../../src/Request";
 import { AccessMode } from "../../src/UMAinterfaces";
 import { UconEnforcementDecision } from "../../src/UcpPatternEnforcement";
-import { basicPolicy } from "../../src/policy/ODRL";
 import { SimplePolicy, UCPPolicy } from "../../src/policy/UsageControlPolicy";
-import { readLdpRDFResource } from "../../src/storage/ContainerUCRulesStorage";
 import { UCRulesStorage } from "../../src/storage/UCRulesStorage";
+import { createPolicy } from "./StorageUtil";
 
 export async function configSolidServer(port: number): Promise<App> {
     const input: AppRunnerInput = {
@@ -23,30 +22,6 @@ export async function configSolidServer(port: number): Promise<App> {
     return cssRunner
 }
 
-/**
- * Create an instantiated usage control policy using ODRL and add it to the policy container
- * @param uconStorage 
- * @param type 
- * @returns 
- */
-export async function createPolicy(uconStorage: UCRulesStorage, type: UCPPolicy): Promise<SimplePolicy> {
-    const policyIRI: string = `http://example.org/${new Date().valueOf()}#`
-    let SimplePolicy = basicPolicy(type, policyIRI)
-    await uconStorage.addRule(SimplePolicy.representation)
-    return SimplePolicy
-}
-
-export async function purgePolicyStorage(containerURL: string): Promise<void> {
-    const container = await readLdpRDFResource(fetch, containerURL);
-    const children = container.getObjects(containerURL, "http://www.w3.org/ns/ldp#contains", null).map(value => value.value)
-    for (const childURL of children) {
-        try {
-            await fetch(childURL, { method: "DELETE" })
-        } catch (e) {
-            console.log(`${childURL} could not be deleted`);
-        }
-    }
-}
 // util function that checks whether lists contain the same elements
 export function eqList(as: any[], bs: any[]): boolean {
     return as.length === bs.length && as.every(a => bs.includes(a))
@@ -99,7 +74,7 @@ export async function validate(input: {
     validationMessage?: string,
     expectedAccessModes: AccessMode[],
     n3Rules: string[]
-}): Promise<boolean> {
+}): Promise<{ successful: boolean, createdPolicies: SimplePolicy[] }> {
     const { request, policies, ucpExecutor, storage, expectedAccessModes } = input;
     // add policies
     const createdPolicies: SimplePolicy[] = [];
@@ -121,7 +96,7 @@ export async function validate(input: {
         debug(createdPolicies, request, input.n3Rules.join('\n'))
     }
     console.log();
-    return successful
+    return {successful, createdPolicies}
 }
 
 /**
@@ -142,7 +117,7 @@ export async function validateAndExplain(input: {
     validationMessage?: string,
     expectedAccessModes: AccessMode[],
     n3Rules: string[]
-}): Promise<{ successful: boolean, explanation: Explanation }> {
+}): Promise<{ successful: boolean, explanation: Explanation, createdPolicies: SimplePolicy[] }> {
     const { request, policies, ucpExecutor, storage, expectedAccessModes } = input;
     // add policies
     const createdPolicies: SimplePolicy[] = [];
@@ -164,5 +139,5 @@ export async function validateAndExplain(input: {
         debug(createdPolicies, request, input.n3Rules.join('\n'))
     }
     console.log();
-    return { successful, explanation }
+    return { successful, explanation, createdPolicies }
 }
