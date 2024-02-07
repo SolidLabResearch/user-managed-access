@@ -2,11 +2,17 @@
   {
     "email": "alice@example.org",
     "password": "abc123",
+    "authz": {
+      "server": "http://localhost:4000/uma"
+    },
     "pods": [ { "name": "alice" } ]
   },
   {
     "email": "bob@example.org",
     "password": "abc123",
+    "authz": {
+      "server": "http://localhost:4000/uma"
+    },
     "pods": [ { "name": "bob" } ]
   }
 ]

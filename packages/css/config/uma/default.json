@@ -17,6 +17,9 @@
       "podStore": {
         "@id": "urn:solid-server:default:PodStore"
       },
+      "accountStore": {
+        "@id": "urn:solid-server:default:AccountStore"
+      },
       "storageStrategy": {
         "@id": "urn:solid-server:default:StorageLocationStrategy"
       },
