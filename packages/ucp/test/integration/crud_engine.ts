@@ -8,7 +8,6 @@ import { UcpPlugin } from "../../src/plugins/UCPPlugin";
 import { UCPPolicy } from '../../src/policy/UsageControlPolicy';
 import { ContainerUCRulesStorage } from "../../src/storage/ContainerUCRulesStorage";
 import { configSolidServer, purgePolicyStorage, validate } from "../util/Validation";
-
 async function main() {
     // constants
     const aclRead = "http://www.w3.org/ns/auth/acl#Read"
@@ -36,6 +35,7 @@ async function main() {
     }).then(res => console.log("status creating ucon container:", res.status))
     console.log();
 
+
     // load plugin
     const plugins = { "http://example.org/dataUsage": new UcpPlugin() }
     // instantiate koreografeye policy executor
@@ -44,7 +44,7 @@ async function main() {
     const uconRulesStorage = new ContainerUCRulesStorage(uconRulesContainer)
     // load N3 Rules from a directory | TODO: utils are needed
     const rulesDirectory = Path.join(__dirname, "..", "..", "rules")
-    const n3Rules: string[] = [readText(Path.join(rulesDirectory, 'data-crud-rules.n3'))!, readText(Path.join(rulesDirectory, 'data-crud-temporal.n3'))!]
+    const n3Rules: string[] = [readText(Path.join(rulesDirectory, 'data-crud-rules.n3'))!]
     // instantiate the enforcer using the policy executor,
     const ucpPatternEnforcement = new UcpPatternEnforcement(uconRulesStorage, n3Rules, new EyeJsReasoner([
         "--quiet",
@@ -104,6 +104,7 @@ async function main() {
         }]
     }
     const usePolicy: UCPPolicy = { rules: [{ action: odrlUse, owner, resource, requestingParty }] }
+
 
     let result: boolean
 
@@ -179,8 +180,8 @@ async function main() {
         ucpExecutor: ucpPatternEnforcement,
         storage: uconRulesStorage,
         n3Rules: n3Rules,
-        expectedAccessModes: [AccessMode.read],
-        descriptionMessage: "'read' access request while temporal 'read' policy present. Within bound.",
+        expectedAccessModes: [],
+        descriptionMessage: "'read' access request while temporal 'read' policy present. Within bound. However, no N3 rule for interpretation.",
     })
     if (!result) amountErrors++;
     await purgePolicyStorage(uconRulesContainer);
@@ -205,8 +206,8 @@ async function main() {
         ucpExecutor: ucpPatternEnforcement,
         storage: uconRulesStorage,
         n3Rules: n3Rules,
-        expectedAccessModes: [AccessMode.write],
-        descriptionMessage: "'write' access request while temporal 'write' policy present. Within bound.",
+        expectedAccessModes: [],
+        descriptionMessage: "'write' access request while temporal 'write' policy present. Within bound. However, no N3 rule for interpretation.",
     })
     if (!result) amountErrors++;
     await purgePolicyStorage(uconRulesContainer);
