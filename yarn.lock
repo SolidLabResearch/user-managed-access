@@ -5133,6 +5133,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solidlab/ucp@workspace:^, @solidlab/ucp@workspace:packages/ucp":
+  version: 0.0.0-use.local
+  resolution: "@solidlab/ucp@workspace:packages/ucp"
+  dependencies:
+    "@solid/community-server": "npm:7.0.3"
+    "@types/n3": "npm:^1.16.3"
+    "@types/node": "npm:^20.11.16"
+    koreografeye: "npm:^0.4.8"
+    n3: "npm:^1.17.1"
+    ts-node: "npm:^10.9.1"
+    typescript: "npm:^5.3.3"
+  languageName: unknown
+  linkType: soft
+
 "@solidlab/uma-css@workspace:packages/css":
   version: 0.0.0-use.local
   resolution: "@solidlab/uma-css@workspace:packages/css"
@@ -5148,26 +5162,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@solidlab/uma-enforcement@workspace:^, @solidlab/uma-enforcement@workspace:packages/ucp-enforcement":
-  version: 0.0.0-use.local
-  resolution: "@solidlab/uma-enforcement@workspace:packages/ucp-enforcement"
-  dependencies:
-    "@solid/community-server": "npm:7.0.3"
-    "@types/n3": "npm:^1.16.3"
-    "@types/node": "npm:^20.11.16"
-    koreografeye: "npm:^0.4.8"
-    n3: "npm:^1.17.1"
-    ts-node: "npm:^10.9.1"
-    typescript: "npm:^5.3.3"
-  languageName: unknown
-  linkType: soft
-
 "@solidlab/uma@workspace:^, @solidlab/uma@workspace:packages/uma":
   version: 0.0.0-use.local
   resolution: "@solidlab/uma@workspace:packages/uma"
   dependencies:
     "@solid/access-token-verifier": "npm:^1.2.0"
-    "@solidlab/uma-enforcement": "workspace:^"
+    "@solidlab/ucp": "workspace:^"
     "@types/clone": "npm:^2.1.4"
     "@types/n3": "npm:^1.16.4"
     "@types/node": "npm:^18.18.11"
@@ -5190,6 +5190,7 @@ __metadata:
   dependencies:
     "@commitlint/cli": "npm:^16.1.0"
     "@commitlint/config-conventional": "npm:^16.0.0"
+    "@solidlab/ucp": "workspace:^"
     "@types/jest": "npm:^29.5.6"
     "@types/node": "npm:^20.9.4"
     "@typescript-eslint/eslint-plugin": "npm:^5.12.1"
@@ -5198,6 +5199,7 @@ __metadata:
     cross-fetch: "npm:^4.0.0"
     eslint: "npm:^8.10.0"
     jest: "npm:^29.7.0"
+    koreografeye: "npm:^0.4.8"
     lerna: "npm:^4.0.0"
     shx: "npm:^0.3.3"
     ts-jest: "npm:^29.1.1"

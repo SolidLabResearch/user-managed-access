@@ -1,12 +1,14 @@
 import { Store } from "n3";
 import { UCRulesStorage } from "./UCRulesStorage";
-import { storeToString } from "../util/Conversion";
-import { readLdpRDFResource, extractQuadsRecursive } from "../util/Util";
+import { storeToString, turtleStringToStore } from "../util/Conversion";
+import { extractQuadsRecursive } from "../util/Util";
 
 export type RequestInfo = string | Request;
+
 export class ContainerUCRulesStorage implements UCRulesStorage {
     private containerURL: string;
     private fetch: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>;
+
     /**
      * 
      * @param containerURL The URL to an LDP container
@@ -57,4 +59,17 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
         // would really benefit from a cache <ruleID, ldp:resource>
         throw Error('not implemented');
     }
+}
+
+async function readLdpRDFResource(fetch: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>, resourceURL: string): Promise<Store> {
+    const containerResponse = await fetch(resourceURL);
+
+    if (containerResponse.status !== 200) {
+        throw new Error(`Resource not found: ${resourceURL}`);
+    }
+    if (containerResponse.headers.get('content-type') !== 'text/turtle') { // note: should be all kinds of RDF, not only turtle
+        throw new Error('Works only on rdf data');
+    }
+    const text = await containerResponse.text();
+    return await turtleStringToStore(text, resourceURL);
 }

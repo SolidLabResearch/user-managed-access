@@ -10,25 +10,26 @@ This repository contains SolidLab research artefacts on use of UMA in the Solid 
 
 - [`@solidlab/uma-css`](packages/css): UMA modules for the [Community Solid Server](https://github.com/CommunitySolidServer/CommunitySolidServer/). 
 
-- [`@solidlab/uma-enforcement`](packages/ucp-enforcement): Usage Control Policy decision/enforcement component.
+- [`@solidlab/ucp`](packages/ucp): Usage Control Policy decision/enforcement component.
 
 ## Getting started
 
 In order to run this project you need to perform the following steps. 
 
-1. Ensure that you are using Node.js 18.18 or higher with Yarn 4.0 or higher.
-   - `nvm use` 
-   - `yarn set version 4.1.0`
-2. Run `yarn install` in the project root (this will automatically call `yarn build:all`).
-3. Run `yarn start:all`.
+1. Ensure that you are using Node.js 18.18 or higher, e.g. by running `nvm use`.
+1. Enable Node.js Corepack with `corepack enable`.
+1. Run `yarn install` in the project root (this will automatically call `yarn build:all`).
+1. Run `yarn start:all`.
 
 This will boot up a UMA server and compatible Community Solid Server instance. 
 
 You can then execute the following flows:
 
 - `yarn script:public`: `GET` the public `/alice/profile/card` without redirection to the UMA server;
-- `yarn script:private`: `PUT` some text to the private `/alice/private/resource.txt`, with redirection to the UMA server;
-- `yarn script:registration`: `POST`, `GET` and `DELETE` some text `/alice/public/resource.txt` without redirection to the UMA server, to test the correct creation and deletion of resource registrations on the UNA server.
+- `yarn script:private`: `PUT` some text to the private `/alice/private/resource.txt`, protected by a simple WebID check;
+- `yarn script:uma-ucp`: `PUT` some text to the private `/alice/other/resource.txt`, protected by a UCP enforcer checking WebIDs according to policies in `packages/uma/config/rules/policy/`.
+- `yarn script:registration`: `POST`, `GET` and `DELETE` some text to/from `/alice/public/resource.txt` to test the correct creation and deletion of resource registrations on the UNA server.
+- `yarn script:ucp-enforcement`: Run the UCP enforcer in a script (`scripts/test-ucp-enforcement.ts`). This does not need the servers to be started.
 
 `yarn script:flow` runs all flows in sequence.
 

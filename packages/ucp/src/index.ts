@@ -10,7 +10,7 @@ export * from './storage/UCRulesStorage'
 
 // util
 export * from './util/Conversion'
-export * from './util/constants'
+export * from './util/Constants'
 export * from './util/Util'
 // explanation
 export * from './Explanation'

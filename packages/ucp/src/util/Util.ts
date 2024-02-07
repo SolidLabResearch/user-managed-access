@@ -1,20 +1,5 @@
-import { RequestInfo } from "../storage/ContainerUCRulesStorage";
 import { Store } from "n3";
-import { turtleStringToStore } from "./Conversion";
 
-
-export async function readLdpRDFResource(fetch: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>, resourceURL: string): Promise<Store> {
-    const containerResponse = await fetch(resourceURL);
-
-    if (containerResponse.status !== 200) {
-        throw new Error(`Resource not found: ${resourceURL}`);
-    }
-    if (containerResponse.headers.get('content-type') !== 'text/turtle') { // note: should be all kinds of RDF, not only turtle
-        throw new Error('Works only on rdf data');
-    }
-    const text = await containerResponse.text();
-    return await turtleStringToStore(text, resourceURL);
-}
 /**
  * A recursive search algorithm that gives all quads that a subject can reach (working with circles)
  *

@@ -5,7 +5,7 @@ import { Permission } from '../../views/Permission';
 import { Requirements } from '../../credentials/Requirements';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { DirectoryUCRulesStorage, PolicyExecutor, UconRequest, 
-  UcpPatternEnforcement, UcpPlugin, UCRulesStorage } from '@solidlab/uma-enforcement';
+  UcpPatternEnforcement, UcpPlugin, UCRulesStorage } from '@solidlab/ucp';
 import { EyeJsReasoner } from "koreografeye";
 import { readFileSync } from 'fs';
 import path from 'path';

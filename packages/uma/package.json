@@ -13,7 +13,7 @@
   "author": {
     "name": "Wouter Termont",
     "email": "wouter.termont@ugent.be",
-    "url": "https://wouter.termont.online"
+    "url": "https://wouter.termont.online/"
   },
   "license": "MIT",
   "repository": "github:SolidLabResearch/user-managed-access",
@@ -28,7 +28,7 @@
     {
       "name": "Wouter Termont",
       "email": "wouter.termont@ugent.be",
-      "url": "https://wouter.termont.online"
+      "url": "https://wouter.termont.online/"
     }
   ],
   "private": true,
@@ -60,7 +60,7 @@
   },
   "dependencies": {
     "@solid/access-token-verifier": "^1.2.0",
-    "@solidlab/uma-enforcement": "workspace:^",
+    "@solidlab/ucp": "workspace:^",
     "clone": "^2.1.2",
     "componentsjs": "5.4.2",
     "cross-fetch": "^4.0.0",

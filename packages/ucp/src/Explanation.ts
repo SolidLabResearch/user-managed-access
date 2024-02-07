@@ -1,7 +1,7 @@
 import { Store, DataFactory } from "n3";
 import { UconRequest, createContext } from "./Request"
 import { v4 as uuidv4 } from 'uuid';
-import { accesModesAllowed } from "./util/constants";
+import { ACCESS_MODES_ALLOWED } from "./util/Constants";
 import { SimplePolicy } from "./util/Util";
 import { storeToString } from "./util/Conversion";
 const { namedNode, literal } = DataFactory
@@ -81,7 +81,7 @@ export function explanationToRdf(explanation: Explanation): Store {
 
     // decision
     for (const accessMode of explanation.decision) {
-        store.addQuad(explanationNode, namedNode(accesModesAllowed), namedNode(accessMode));
+        store.addQuad(explanationNode, namedNode(ACCESS_MODES_ALLOWED), namedNode(accessMode));
     }
 
     // algorithm
@@ -102,7 +102,7 @@ export function explanationToRdf(explanation: Explanation): Store {
         store.addQuad(conclusionNode, namedNode('http://purl.org/dc/terms/issued'), literal(conclusion.timestamp.toISOString(), namedNode('http://www.w3.org/2001/XMLSchema#dateTime')));
 
         for (const accessMode of conclusion.grants) {
-            store.addQuad(conclusionNode, namedNode(accesModesAllowed), namedNode(accessMode));
+            store.addQuad(conclusionNode, namedNode(ACCESS_MODES_ALLOWED), namedNode(accessMode));
         }
 
     }

@@ -68,7 +68,7 @@ const crud = `
 `
 
 import { EyeJsReasoner } from "koreografeye";
-import { PolicyExecutor, SimplePolicy, UconRequest, UcpPatternEnforcement, UcpPlugin, turtleStringToStore, MemoryUCRulesStorage } from "@solidlab/uma-enforcement";
+import { PolicyExecutor, SimplePolicy, UconRequest, UcpPatternEnforcement, UcpPlugin, turtleStringToStore, MemoryUCRulesStorage } from "@solidlab/ucp";
 
 
 
