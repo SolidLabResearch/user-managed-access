@@ -1,5 +1,5 @@
 import type { ResourceIdentifier, MonitoringStore, KeyValueStorage } from '@solid/community-server';
-import { AS, getLoggerFor, StaticHandler } from '@solid/community-server';
+import { AccessMode, AS, getLoggerFor, StaticHandler } from '@solid/community-server';
 import { OwnerUtil } from '../util/OwnerUtil';
 import { fetchUmaConfig } from './util/UmaConfigFetcher.js';
 import { ResourceDescription } from '@solidlab/uma';
@@ -34,7 +34,15 @@ export class ResourceRegistrar extends StaticHandler {
 
     const { resource_registration_endpoint: endpoint } = await fetchUmaConfig(issuer);
 
-    const description: ResourceDescription = { resource_scopes: [ 'CRUD' ] };
+    const description: ResourceDescription = {
+      resource_scopes: [
+        'urn:example:css:modes:read',
+        'urn:example:css:modes:append',
+        'urn:example:css:modes:create',
+        'urn:example:css:modes:delete',
+        'urn:example:css:modes:write',
+      ]
+    };
 
     this.logger.info(`Creating resource registration for <${resource.path}> at <${endpoint}>`);
 

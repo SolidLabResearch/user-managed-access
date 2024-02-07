@@ -1,6 +1,8 @@
 import { fetch } from 'cross-fetch'
 
-const privateResource = "http://localhost:3000/alice/private/resource.txt"
+// Resource and WebID as set in config/rules/policy/policy0.ttl
+const resource = "http://localhost:3000/alice/other/resource.txt" 
+const webid = "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me";
 
 function parseJwt (token:string) {
   return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
@@ -14,10 +16,10 @@ const request: RequestInit = {
 
 async function main() {
 
-  console.log(`3.1 Send request to protected resource (${privateResource}) without access token.`);
+  console.log(`3.1 Send request to protected resource (${resource}) without access token.`);
   // https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html#rfc.section.3.1
   // 3.1 Client Requests Resource Without Providing an Access Token
-  const noTokenResponse = await fetch(privateResource, request);
+  const noTokenResponse = await fetch(resource, request);
 
   console.log("3.2 Resource Server Responds to Client's Tokenless Access Attempt");
   // https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html#rfc.section.3.2
@@ -38,7 +40,7 @@ async function main() {
 
   // the claim that I am that person?
   // const claim_token = "http://localhost:3000/alice/profile/card#me"
-  const claim_token = "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me"
+  const claim_token = webid;
 
   console.log(`3.3.1 Client Request to Authorization Server (${as_uri}) for RPT`);
   // https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html#rfc.section.3.3.1
@@ -81,7 +83,7 @@ async function main() {
   // 3.4 Client Requests Resource and Provides an RPT
   // Only in happy flow (when we get a success 3.3.5)
   request.headers = { 'Authorization': `${asResponse.token_type} ${asResponse.access_token}` };
-  const tokenResponse = await fetch(privateResource, request);
+  const tokenResponse = await fetch(resource, request);
 
   console.log(`3.5 Resource Server Responds to Client's RPT-Accompanied Resource Request:`); 
   // https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html#rfc.section.3.3.5

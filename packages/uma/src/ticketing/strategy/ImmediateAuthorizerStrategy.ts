@@ -6,6 +6,7 @@ import { TicketingStrategy } from "./TicketingStrategy";
 import { Authorizer } from "../../policies/authorizers/Authorizer";
 import { getLoggerFor } from "../../util/logging/LoggerUtils";
 import { Logger } from "../../util/logging/Logger";
+import { UNSOLVABLE } from "../../credentials/Claims";
 
 /**
  * A TicketingStrategy that simply stores provided Claims, and calculates all
@@ -44,10 +45,16 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
   async resolveTicket(ticket: Ticket): Promise<Result<Permission[], NodeJS.Dict<unknown>>> {
     this.logger.info('Resolving ticket.', ticket);
 
+    const permissions = await this.calculatePermissions(ticket);
+
+    if (permissions.length === 0) return Failure({ [UNSOLVABLE]: async () => false });
+
     return Success(await this.calculatePermissions(ticket));
   }
 
   private async calculatePermissions(ticket: Ticket): Promise<Permission[]> {
-    return this.authorizer.permissions(ticket.provided, ticket.permissions);
+    return (await this.authorizer.permissions(ticket.provided, ticket.permissions)).filter(
+      permission => permission.resource_scopes.length > 0
+    );
   }
 }

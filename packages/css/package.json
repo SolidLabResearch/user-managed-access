@@ -17,7 +17,7 @@
   "author": {
     "name": "Wouter Termont",
     "email": "wouter.termont@ugent.be",
-    "url": "https://wouter.termont.online"
+    "url": "https://wouter.termont.online/"
   },
   "license": "MIT",
   "repository": "github:SolidLabResearch/user-managed-access",
@@ -32,7 +32,7 @@
     {
       "name": "Wouter Termont",
       "email": "wouter.termont@ugent.be",
-      "url": "https://wouter.termont.online"
+      "url": "https://wouter.termont.online/"
     }
   ],
   "private": true,

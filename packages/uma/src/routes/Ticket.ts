@@ -90,8 +90,9 @@ export class TicketRequestHandler implements HttpHandler {
     }
 
     const ticket = await this.processRequestingPartyRegistration(request.headers.authorization, request.body);
-
-    if (Object.keys(ticket.required).length === 0) return { status: 200 };
+    const resolved = await this.ticketingStrategy.resolveTicket(ticket);
+    
+    if (resolved.success) return { status: 200 };
 
     const id = v4();
     this.ticketStore.set(id, ticket);
