@@ -61,7 +61,7 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
     }
 }
 
-async function readLdpRDFResource(fetch: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>, resourceURL: string): Promise<Store> {
+export async function readLdpRDFResource(fetch: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>, resourceURL: string): Promise<Store> {
     const containerResponse = await fetch(resourceURL);
 
     if (containerResponse.status !== 200) {
