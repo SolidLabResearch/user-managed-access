@@ -4,7 +4,6 @@
     "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
   ],
   "import": [
-    "css:config/app/init/initialize-intro.json",
     "css:config/app/main/default.json",
     "css:config/app/variables/default.json",
     "css:config/http/handler/default.json",
@@ -14,7 +13,6 @@
     "css:config/http/static/default.json",
     "css:config/identity/access/public.json",
     "css:config/identity/email/default.json",
-    "css:config/identity/handler/default.json",
     "css:config/identity/oidc/disabled.json",
     "css:config/identity/ownership/token.json",
     "css:config/identity/pod/static.json",
@@ -35,6 +33,8 @@
     "uma-css:config/ldp/authorization/uma.json",
     "uma-css:config/ldp/handler/uma.json",
     "uma-css:config/ldp/metadata-writer/uma.json",
+    "uma-css:config/identity/handler/default.json",
+    "uma-css:config/app/init/initialize-intro.json",
     "css:config/storage/location/pod.json"
   ],
   "@graph": [
