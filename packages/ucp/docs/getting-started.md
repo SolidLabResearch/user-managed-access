@@ -160,7 +160,7 @@ From now on, when the access modes are calculated again, the following grants ar
 [ 'http://www.w3.org/ns/auth/acl#Read' ]
 ```
 
-The full code sample for this example can be found in [appendix I](#appendix-I:-Full-code-snippet)
+The full code sample for this example can be found in [appendix I](#appendix-I-Full-code-snippet)
 
 ### Temporal Policy engine
 
