@@ -1,7 +1,7 @@
 import { KeyValueStorage, PodStore, ResourceIdentifier, StorageLocationStrategy, WrappedSetMultiMap, 
-  fetchDataset, getLoggerFor, readableToQuads } from '@solid/community-server';
-import { UMA } from './Vocabularies.js';
+  getLoggerFor } from '@solid/community-server';
 import { DataFactory } from 'n3';
+import { ACCOUNT_SETTINGS_AUTHZ_SERVER, type AccountStore } from '../identity/interaction/account/util/AccountStore';
 
 const { namedNode } = DataFactory;
 
@@ -19,6 +19,7 @@ export class OwnerUtil {
    */
   public constructor(
     protected podStore: PodStore,
+    protected accountStore: AccountStore,
     protected storageStrategy: StorageLocationStrategy,
     protected umaPatStore: KeyValueStorage<string, { issuer: string, pat: string }>,
   ) {}
@@ -47,6 +48,9 @@ export class OwnerUtil {
     if (!pod) throw new Error(`Unable to find pod ${storage.path}`);
 
     this.logger.debug(`Looking up owners of pod ${pod.id}`);
+
+    const as = await this.accountStore.getSetting(pod.accountId, ACCOUNT_SETTINGS_AUTHZ_SERVER);
+    this.logger.warn(`REAL AS is ${JSON.stringify(as)}`);
 
     const owners = await this.podStore.getOwners(pod.id);
     if (!owners) throw new Error(`Unable to find owners for pod ${storage.path}`);

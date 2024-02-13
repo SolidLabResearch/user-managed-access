@@ -13,7 +13,7 @@ import { HttpMethods } from '../util/http/models/HttpMethod';
 import { MethodNotAllowedHttpError } from '../util/http/errors/MethodNotAllowedHttpError';
 import { HttpHandlerRequest } from '../util/http/models/HttpHandlerRequest';
 import { ResourceDescription } from '../views/ResourceDescription';
-import { reType } from '../util/ReType.js';
+import { reType } from '../util/ReType';
 
 type ErrorConstructor = { new(msg: string): Error };
 

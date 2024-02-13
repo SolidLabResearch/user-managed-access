@@ -1,0 +1,28 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "import": [
+    "css:config/app/init/initializers/root.json",
+    
+    "uma-css:config/app/init/default.json"
+  ],
+  "@graph": [
+    {
+      "comment": "Initializes the root container resource.",
+      "@id": "urn:solid-server:default:PrimaryParallelInitializer",
+      "@type": "ParallelHandler",
+      "handlers": [
+        {
+          "@id": "urn:solid-server:default:RootInitializer"
+        }
+      ]
+    },
+    {
+      "@id": "urn:solid-server:default:RootFolderGenerator",
+      "@type": "StaticFolderGenerator",
+      "templateFolder": "@css:templates/root/intro"
+    }
+  ]
+}
