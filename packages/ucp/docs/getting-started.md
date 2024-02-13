@@ -168,7 +168,87 @@ TODO:
 
 ### Engine with explanation
 
-TODO:
+First an elaboration is given for what is meant by explanation.
+Note: after implementation, similarities have been found with the idea of **ODRL Evaluator** from the [ODRL Formal Semantics Community Group](https://w3c.github.io/odrl/formal-semantics/).
+
+#### Explanation
+
+So what is the explanation exactly? It is an interface which contains four components:
+
+
+An **Explanation** consists of four components:
+
+- **decision**: This is the same as the grants (array of access modes) from `calculateAccessModes`. It is the **result** of the evaluation
+- **request**: The input *action request* 
+- **conclusions**: The conclusions of the reasoner. A conclusion itself consists of four parts: the **Rule Identifier**, the **Interpration N3 Rule Identifier**, the **grants** allowed (the actual conclusion) and the **timestamp** at which the conclusion was generated. A conclusion can be seen as the proof of following function: $interpretation(rule, context, timestamp) -> grants$
+- **algorithm**: Which algorithm is used to interpret the set of conclusions
+  - Note: only the **union** operator is currently implemented. That is: $\forall c \in C. grant \in c \Rightarrow grant \in D$ </br>
+    For all conclusions in **Conclusions**, if a grant is in conclusion, then it is part of the list of grants in **Decision**.
+
+Having the **Explanation** after an evaluation thus allows for logging with provenance/proof of why a certain action was granted at a certain time.
+
+#### Instantiation
+
+To have a **usage control decision** engine that can give **Explanations**, it needs to be instantiated correctly. This can be done with following code:
+
+```ts
+import { PolicyExecutor, UcpPatternEnforcement, UCPLogPlugin, MemoryUCRulesStorage } from "@solidlab/ucp";
+import { EyeJsReasoner } from "koreografeye";
+
+// load plugin
+const plugins = { "http://example.org/dataUsageLog": new UCPLogPlugin() }
+// instantiate koreografeye policy executor
+const policyExecutor = new PolicyExecutor(plugins)
+// ucon storage
+const uconRulesStorage = new ContainerUCRulesStorage(uconRulesContainer)
+// load N3 Rules from a directory 
+const response = await fetch('https://raw.githubusercontent.com/woutslabbinck/ucp-enforcement/main/rules/log-usage-rule.n3'); // loading from the github repo
+const n3Rules: string[] = [await response.text()]
+// instantiate the enforcer using the policy executor,
+const ucpPatternEnforcement = new UcpPatternEnforcement(uconRulesStorage, n3Rules, new EyeJsReasoner([
+    "--quiet",
+    "--nope",
+    "--pass"]), policyExecutor)
+```
+
+Not that compared to the previous engines, a different **plugin** and a different **N3 interpretation rules** are used.
+These allow for retrieving a proper explanation during the calculation of the requests.
+
+Another difference is the fact that know the method `calculateAndExplainAccessModes` has to be used. 
+Luckily, this still uses a `UconRequest` as input:
+
+```ts
+const explanation = await ucpEvaluator.calculateAndExplainAccessModes({
+    subject: "https://pod.rubendedecker.be/profile/card#me",
+    action: ["http://www.w3.org/ns/auth/acl#Read"],
+    resource: "urn:wout:age",
+    owner: "https://pod.woutslabbinck.com/profile/card#me"
+});
+console.log(explanation);
+```
+
+When a policy is added to the TODO: storage. This will print out a Javascript Object, which is not very nice.
+
+Luckily, it is possible to have a nice RDF serialization as output:
+
+```ts
+import { explanationToRdf, serializeFullExplanation } from "@solidlab/ucp";
+
+// use of explanationToRdf
+const explanationStore = explanationToRdf(explanation);
+
+// use of serializeFullExplanation
+const uconRules = await uconRulesStorage.getStore();
+const serialized: string = serializeFullExplanation(explanation, uconRules, n3Rules.join('\n'));
+```
+
+Or to be used as RDF in code with the N3 Store: 
+
+```ts
+// use of explanationToRdf
+const explanationStore = explanationToRdf(explanation);
+```
+
 
 ## appendix I: Full code snippet
 
@@ -223,6 +303,58 @@ async function main() {
     owner: "https://pod.woutslabbinck.com/profile/card#me"
     });
     console.log(accessModes);
+}
+main()
+```
+
+## appendix III: Full code snippet Explanation
+```ts
+import { PolicyExecutor, UcpPatternEnforcement, UCPLogPlugin, MemoryUCRulesStorage, explanationToRdf, serializeFullExplanation, turtleStringToStore } from "@solidlab/ucp";
+import { EyeJsReasoner } from "koreografeye";
+
+async function main() {
+    // load plugin(s)
+    const plugins = { "http://example.org/dataUsageLog": new UCPLogPlugin() }
+    // instantiate koreografeye policy executor
+    const policyExecutor = new PolicyExecutor(plugins)
+    // ucon storage
+    const uconRulesStorage = new MemoryUCRulesStorage()
+    // load N3 Rules from a directory 
+    const response = await fetch('https://raw.githubusercontent.com/woutslabbinck/ucp-enforcement/main/rules/log-usage-rule.n3'); // loading from the github repo
+    const n3Rules: string[] = [await response.text()]
+    // instantiate the enforcer using the policy executor,
+    const ucpEvaluator = new UcpPatternEnforcement(uconRulesStorage, n3Rules, new EyeJsReasoner([
+        "--quiet",
+        "--nope",
+        "--pass"]), policyExecutor)
+    
+    // add Usage Control Rule to Usage Control Rule Storage
+    const ucr = `@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix : <http://example.org/usageControlRule> .
+
+:permission
+  a odrl:Permission ;
+  odrl:action odrl:read ;
+  odrl:target <urn:wout:age> ;
+  odrl:assignee <https://pod.rubendedecker.be/profile/card#me> ;
+  odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+    `
+    const policyStore = await turtleStringToStore(ucr);
+    await uconRulesStorage.addRule(policyStore);
+
+    // calculate grants based on a request
+    const explanation = await ucpEvaluator.calculateAndExplainAccessModes({
+        subject: "https://pod.rubendedecker.be/profile/card#me",
+        action: ["http://www.w3.org/ns/auth/acl#Read"],
+        resource: "urn:wout:age",
+        owner: "https://pod.woutslabbinck.com/profile/card#me"
+    });
+    console.log(explanation);
+
+    // use of serializeFullExplanation
+    const uconRules = await uconRulesStorage.getStore();
+    const serialized = serializeFullExplanation(explanation, uconRules, n3Rules.join('\n'));
+    console.log(serialized);
 }
 main()
 ```
