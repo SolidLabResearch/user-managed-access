@@ -6,7 +6,6 @@
   "import": [
     "css:config/app/main/default.json",
     "css:config/app/variables/default.json",
-    "css:config/http/handler/default.json",
     "css:config/http/middleware/default.json",
     "css:config/http/notifications/all.json",
     "css:config/http/server-factory/http.json",
@@ -29,6 +28,7 @@
     "css:config/util/resource-locker/memory.json",
     "css:config/util/variables/default.json",
     "uma-css:config/uma/default.json",
+    "uma-css:config/http/handler/default.json",
     "uma-css:config/ldp/authentication/uma.json",
     "uma-css:config/ldp/authorization/uma.json",
     "uma-css:config/ldp/handler/uma.json",
