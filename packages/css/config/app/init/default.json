@@ -1,0 +1,29 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "import": [
+    "uma-css:config/app/init/base/init.json"
+  ],
+  "@graph": [
+    {
+      "comment": "These handlers are called for all processes whenever the server is started, and can be used to ensure that all necessary resources for booting are available.",
+      "@id": "urn:solid-server:default:EarlyProcessParallelInitializer",
+      "@type": "ParallelHandler",
+      "handlers": []
+    },
+    {
+      "comment": "These handlers are called only for the Primary process whenever the server is started, and can be used to ensure that all necessary resources for booting are available. (in singlethreaded mode, these are always called)",
+      "@id": "urn:solid-server:default:PrimaryParallelInitializer",
+      "@type": "ParallelHandler",
+      "handlers": []
+    },
+    {
+      "comment": "These handlers are called only for the workers processes whenever the server is started, and can be used to ensure that all necessary resources for booting are available. (in singlethreaded mode, these are always called)",
+      "@id": "urn:solid-server:default:WorkerParallelInitializer",
+      "@type": "ParallelHandler",
+      "handlers": []
+    }
+  ]
+}

@@ -5,6 +5,14 @@ export * from './authorization/UmaPermissionReader';
 
 export * from './http/output/metadata/UmaTicketMetadataWriter';
 
+export * from './identity/interaction/account/util/AccountStore';
+export * from './identity/interaction/account/util/BaseAccountStore';
+export * from './identity/interaction/account/util/LoginStorage';
+
+export * from './init/SeededAccountInitializer';
+
+export * from './storage/keyvalue/IndexedStorage';
+
 export * from './uma/ResourceRegistrar';
 export * from './uma/UmaClient';
 export * from './uma/UmaClientImpl';

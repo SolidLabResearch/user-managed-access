@@ -7,8 +7,8 @@ import {JwksKeyHolder} from '../secrets/JwksKeyHolder';
 import {isString} from '../util/StringGuard';
 import {SerializedToken, TokenFactory} from './TokenFactory';
 import {AccessToken} from './AccessToken';
-import { array, reType } from '../util/ReType.js';
-import { Permission } from '../views/Permission.js';
+import { array, reType } from '../util/ReType';
+import { Permission } from '../views/Permission';
 
 const AUD = 'solid';
 

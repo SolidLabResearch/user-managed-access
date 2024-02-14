@@ -1,7 +1,7 @@
 import type { ResourceIdentifier, MonitoringStore, KeyValueStorage } from '@solid/community-server';
 import { AccessMode, AS, getLoggerFor, StaticHandler } from '@solid/community-server';
 import { OwnerUtil } from '../util/OwnerUtil';
-import { fetchUmaConfig } from './util/UmaConfigFetcher.js';
+import { fetchUmaConfig } from './util/UmaConfigFetcher';
 import { ResourceDescription } from '@solidlab/uma';
 
 export class ResourceRegistrar extends StaticHandler {

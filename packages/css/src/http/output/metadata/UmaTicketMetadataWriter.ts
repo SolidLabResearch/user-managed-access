@@ -1,7 +1,7 @@
 import {
   MetadataWriter, getLoggerFor, HttpResponse, RepresentationMetadata, HTTP, addHeader
 } from '@solid/community-server';
-import { WWW_AUTH } from '../../../authorization/UmaAuthorizer.js';
+import { WWW_AUTH } from '../../../authorization/UmaAuthorizer';
 
 /**
  * Adds the `WWW-Authenticate` header with the injected value in case the response status code is 401.
