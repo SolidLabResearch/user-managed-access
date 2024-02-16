@@ -72,38 +72,12 @@ This first policy engine instantiation can perform an evaluation of policies mod
 More specifically, with a subset that only can interpret `odrl:Permission`s with as **action** `odrl:modify`, `odrl:read` and `odrl:use` (which means both modify and read) against action requests and where there are **no Constraints**.
 
 To initialise `UcpPatternEnforcement` as this engine, the following code is required:
+https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/simple-engine.ts#L1-L18
 
-```ts
-import { PolicyExecutor, UcpPatternEnforcement, UcpPlugin, MemoryUCRulesStorage } from "@solidlab/ucp";
-import { EyeJsReasoner } from "koreografeye";
-
-// load plugin
-const plugins = { "http://example.org/dataUsage": new UcpPlugin() }
-// instantiate koreografeye policy executor
-const policyExecutor = new PolicyExecutor(plugins)
-// ucon storage
-const uconRulesStorage = new MemoryUCRulesStorage();
-// load N3 Rules
-const response = await fetch('https://raw.githubusercontent.com/woutslabbinck/ucp-enforcement/main/rules/data-crud-rules.n3'); // loading from the github repo
-const n3Rules: string[] = [await response.text()]
-// instantiate the enforcer using the policy executor,
-const ucpEvaluator = new UcpPatternEnforcement(uconRulesStorage, n3Rules, new EyeJsReasoner([
-        "--quiet",
-        "--nope",
-        "--pass"]), policyExecutor)
-```
 
 At this point, the engine is ready to be used. Which means that now you can use the `calculateAccessModes` function to request the **grants** for following *action request*: "Ruben wants to know the age of Wout".
 
-```ts
-const accessModes = await ucpEvaluator.calculateAccessModes({
-    subject: "https://pod.rubendedecker.be/profile/card#me",
-    action: ["http://www.w3.org/ns/auth/acl#Read"],
-    resource: "urn:wout:age",
-    owner: "https://pod.woutslabbinck.com/profile/card#me"
-});
-console.log(accessModes);
-```
+https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/simple-engine.ts#L20-L27
 
 Unfortunately, this results into an empty list `[]`. Which means no **grants** are given and thus Ruben cannot know the age of Wout.
 
@@ -125,20 +99,8 @@ This can however be resolved by simply adding such a policy to the **Usage Contr
 
 To add this rule to the storage, the following code can be used:
 
-```ts
-const ucr = `
-  @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
-  @prefix : <http://example.org/usageControlRule> .
-  :permission
-    a odrl:Permission ;
-    odrl:action odrl:read ;
-    odrl:target <urn:wout:age> ;
-    odrl:assignee <https://pod.rubendedecker.be/profile/card#me> ;
-    odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
-`;
-const policyStore = await turtleStringToStore(ucr);
-await uconRulesStorage.addRule(policyStore);
-```
+https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/simple-engine.ts#L30-L41
+
 
 From now on, when the access modes are calculated again, the following grants are received:
 
@@ -177,25 +139,7 @@ Having the **Explanation** after an evaluation thus allows for logging with prov
 
 To have a **usage control decision** engine that can give **Explanations**, it needs to be instantiated correctly. This can be done with following code:
 
-```ts
-import { PolicyExecutor, UcpPatternEnforcement, UCPLogPlugin, MemoryUCRulesStorage } from "@solidlab/ucp";
-import { EyeJsReasoner } from "koreografeye";
-
-// load plugin
-const plugins = { "http://example.org/dataUsageLog": new UCPLogPlugin() }
-// instantiate koreografeye policy executor
-const policyExecutor = new PolicyExecutor(plugins)
-// ucon storage
-const uconRulesStorage = new ContainerUCRulesStorage(uconRulesContainer)
-// load N3 Rules from a directory 
-const response = await fetch('https://raw.githubusercontent.com/woutslabbinck/ucp-enforcement/main/rules/log-usage-rule.n3'); // loading from the github repo
-const n3Rules: string[] = [await response.text()]
-// instantiate the enforcer using the policy executor,
-const ucpPatternEnforcement = new UcpPatternEnforcement(uconRulesStorage, n3Rules, new EyeJsReasoner([
-    "--quiet",
-    "--nope",
-    "--pass"]), policyExecutor)
-```
+https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/log-engine.ts#L1-L18
 
 Not that compared to the previous engines, a different **plugin** and a different **N3 interpretation rules** are used.
 These allow for retrieving a proper explanation during the calculation of the requests.
@@ -203,143 +147,23 @@ These allow for retrieving a proper explanation during the calculation of the re
 Another difference is the fact that know the method `calculateAndExplainAccessModes` has to be used. 
 Luckily, this still uses a `UconRequest` as input:
 
-```ts
-const explanation = await ucpEvaluator.calculateAndExplainAccessModes({
-    subject: "https://pod.rubendedecker.be/profile/card#me",
-    action: ["http://www.w3.org/ns/auth/acl#Read"],
-    resource: "urn:wout:age",
-    owner: "https://pod.woutslabbinck.com/profile/card#me"
-});
-console.log(explanation);
-```
-
+https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/log-engine.ts#L34-L41
 When a policy is added to the storage, the above code print out a Javascript Object, which is not very nice.
 
 Luckily, it is possible to have a nice RDF serialization as output:
 
-```ts
-import { explanationToRdf, serializeFullExplanation } from "@solidlab/ucp";
-
-// use of explanationToRdf
-const explanationStore = explanationToRdf(explanation);
-
-// use of serializeFullExplanation
-const uconRules = await uconRulesStorage.getStore();
-const serialized: string = serializeFullExplanation(explanation, uconRules, n3Rules.join('\n'));
-```
+https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/log-engine.ts#L46-L49
 
 Or to be used as RDF in code with the N3 Store: 
 
-```ts
-// use of explanationToRdf
-const explanationStore = explanationToRdf(explanation);
-```
+https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/log-engine.ts#L43-L44
 
 
 ## appendix I: Full code snippet
 
-```ts
-import { PolicyExecutor, UcpPatternEnforcement, UcpPlugin, MemoryUCRulesStorage, turtleStringToStore } from "@solidlab/ucp";
-import { EyeJsReasoner } from "koreografeye";
+https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/simple-engine.ts#L1-L52
 
-async function main() {
-    // load plugin(s)
-    const plugins = { "http://example.org/dataUsage": new UcpPlugin() }
-    // Initialise koreografeye policy executor
-    const policyExecutor = new PolicyExecutor(plugins)
-    // Initialise Usage Control Rule Storage
-    const uconRulesStorage = new MemoryUCRulesStorage();
-    // load N3 Rules
-    const response = await fetch('https://raw.githubusercontent.com/woutslabbinck/ucp-enforcement/main/rules/data-crud-rules.n3'); // loading from the github repo
-    const n3Rules: string[] = [await response.text()]
-    // instantiate the enforcer using the policy executor,
-    const ucpEvaluator = new UcpPatternEnforcement(uconRulesStorage, n3Rules, new EyeJsReasoner([
-            "--quiet",
-            "--nope",
-            "--pass"]), policyExecutor)
-    
-    // calculate grants based on a request
-    const noAccessModes = await ucpEvaluator.calculateAccessModes({
-    subject: "https://pod.rubendedecker.be/profile/card#me",
-    action: ["http://www.w3.org/ns/auth/acl#Read"],
-    resource: "urn:wout:age",
-    owner: "https://pod.woutslabbinck.com/profile/card#me"
-    });
-    console.log(noAccessModes);
-    
-    // add Usage Control Rule to Usage Control Rule Storage
-    const ucr = `@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
-        @prefix : <http://example.org/usageControlRule> .
-        :permission
-            a odrl:Permission ;
-            odrl:action odrl:read ;
-            odrl:target <urn:wout:age> ;
-            odrl:assignee <https://pod.rubendedecker.be/profile/card#me> ;
-            odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
-    `;
-    const policyStore = await turtleStringToStore(ucr);
-    await uconRulesStorage.addRule(policyStore);
-
-    // calculate grants based on a request
-    const accessModes = await ucpEvaluator.calculateAccessModes({
-    subject: "https://pod.rubendedecker.be/profile/card#me",
-    action: ["http://www.w3.org/ns/auth/acl#Read"],
-    resource: "urn:wout:age",
-    owner: "https://pod.woutslabbinck.com/profile/card#me"
-    });
-    console.log(accessModes);
-}
-main()
-```
 
 ## appendix III: Full code snippet Explanation
-```ts
-import { PolicyExecutor, UcpPatternEnforcement, UCPLogPlugin, MemoryUCRulesStorage, explanationToRdf, serializeFullExplanation, turtleStringToStore } from "@solidlab/ucp";
-import { EyeJsReasoner } from "koreografeye";
 
-async function main() {
-    // load plugin(s)
-    const plugins = { "http://example.org/dataUsageLog": new UCPLogPlugin() }
-    // instantiate koreografeye policy executor
-    const policyExecutor = new PolicyExecutor(plugins)
-    // ucon storage
-    const uconRulesStorage = new MemoryUCRulesStorage()
-    // load N3 Rules from a directory 
-    const response = await fetch('https://raw.githubusercontent.com/woutslabbinck/ucp-enforcement/main/rules/log-usage-rule.n3'); // loading from the github repo
-    const n3Rules: string[] = [await response.text()]
-    // instantiate the enforcer using the policy executor,
-    const ucpEvaluator = new UcpPatternEnforcement(uconRulesStorage, n3Rules, new EyeJsReasoner([
-        "--quiet",
-        "--nope",
-        "--pass"]), policyExecutor)
-    
-    // add Usage Control Rule to Usage Control Rule Storage
-    const ucr = `@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
-        @prefix : <http://example.org/usageControlRule> .
-        :permission
-            a odrl:Permission ;
-            odrl:action odrl:read ;
-            odrl:target <urn:wout:age> ;
-            odrl:assignee <https://pod.rubendedecker.be/profile/card#me> ;
-            odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
-    `;
-    const policyStore = await turtleStringToStore(ucr);
-    await uconRulesStorage.addRule(policyStore);
-
-    // calculate grants based on a request
-    const explanation = await ucpEvaluator.calculateAndExplainAccessModes({
-        subject: "https://pod.rubendedecker.be/profile/card#me",
-        action: ["http://www.w3.org/ns/auth/acl#Read"],
-        resource: "urn:wout:age",
-        owner: "https://pod.woutslabbinck.com/profile/card#me"
-    });
-    console.log(explanation);
-
-    // use of serializeFullExplanation
-    const uconRules = await uconRulesStorage.getStore();
-    const serialized = serializeFullExplanation(explanation, uconRules, n3Rules.join('\n'));
-    console.log(serialized);
-}
-main()
-```
-
+https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/log-engine.ts#L1-L52
