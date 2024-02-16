@@ -166,4 +166,4 @@ https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843
 
 ## appendix III: Full code snippet Explanation
 
-https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/log-engine.ts#L1-L52
+https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/log-engine.ts#L1-L51
