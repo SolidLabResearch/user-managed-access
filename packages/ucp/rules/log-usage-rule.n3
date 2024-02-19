@@ -1,0 +1,80 @@
+@prefix : <http://example.org/> .
+@prefix acl: <http://www.w3.org/ns/auth/acl#>.
+@prefix fno:  <https://w3id.org/function/ontology#> .
+@prefix list: <http://www.w3.org/2000/10/swap/list#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix string: <http://www.w3.org/2000/10/swap/string#> .
+@prefix dct: <http://purl.org/dc/terms/>.
+@prefix time: <http://www.w3.org/2000/10/swap/time#> .
+
+# backwards rule to get the time
+{ :currentTime :is ?currentTime } <= { "" time:localTime ?currentTime }.
+
+# Read ODRL rule
+{ 
+  	?permission a odrl:Permission;
+      	odrl:action ?action ;
+      	odrl:target ?targetResource ;
+      	odrl:assignee ?requestedParty;
+      	odrl:assigner ?resourceOwner .   
+		
+	?action list:in (odrl:use odrl:read) . # multiple options
+
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }. # No odrl:constraints may be present
+
+    # context of a request
+  	?context 
+        :resourceOwner ?resourceOwner;
+      	:requestingParty ?requestedParty;
+      	:target ?targetResource;
+      	:requestPermission acl:Read.
+
+	:currentTime :is ?currentTime .
+
+    :uuid5 log:uuid ?uuidStringdataUsagePolicyExecution.
+    ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
+    ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+} =>
+{
+    ?dataUsagePolicyExecution a fno:Execution;
+        fno:executes <http://example.org/dataUsageLog> ; 
+        :accessModesAllowed acl:Read.
+    ?dataUsagePolicyExecution dct:issued ?currentTime.
+    ?dataUsagePolicyExecution :N3Identifier :odrlRead.
+    ?dataUsagePolicyExecution :UCrule ?permission.
+}.
+
+# Update ODRL Rule (odrl:modify: new asset is not created, not same as acl:write)
+{ 
+  	?permission a odrl:Permission;
+      	odrl:action ?action ;
+      	odrl:target ?targetResource ;
+      	odrl:assignee ?requestedParty;
+      	odrl:assigner ?resourceOwner .   
+		
+	?action list:in (odrl:use odrl:modify). # multiple options
+
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }. # No odrl:constraints may be present
+
+    # context of a request
+  	?context 
+        :resourceOwner ?resourceOwner;
+      	:requestingParty ?requestedParty;
+      	:target ?targetResource;
+      	:requestPermission acl:Write.
+
+	:currentTime :is ?currentTime .
+
+    :uuid4 log:uuid ?uuidStringdataUsagePolicyExecution.
+    ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
+    ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+} =>
+{
+    ?dataUsagePolicyExecution a fno:Execution;
+        fno:executes <http://example.org/dataUsageLog> ; 
+        :accessModesAllowed acl:Write.
+    ?dataUsagePolicyExecution dct:issued ?currentTime.
+    ?dataUsagePolicyExecution :N3Identifier :odrlWrite.
+    ?dataUsagePolicyExecution :UCrule ?permission.
+}.

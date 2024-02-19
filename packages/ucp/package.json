@@ -50,7 +50,14 @@
   ],
   "scripts": {
     "build": "yarn build:ts",
-    "build:ts": "yarn run -T tsc"
+    "build:ts": "yarn run -T tsc",
+    "test": "yarn run test:unit && yarn run test:integration",
+    "test:unit": "jest test/unit",
+    "test:integration": "yarn run test:engines && yarn exec ts-node test/integration/ContainerRulesStorage.ts",
+    "test:engines": "yarn run test:log-engine && yarn run test:crud-engine && yarn run test:crud-temporal-engine",
+    "test:log-engine": "yarn exec ts-node test/integration/LogEngine.ts",
+    "test:crud-engine": "yarn exec ts-node test/integration/CrudEngine.ts",
+    "test:crud-temporal-engine": "yarn exec ts-node test/integration/CrudEngineTemporal.ts"
   },
   "dependencies": {
     "@types/n3": "^1.16.3",
@@ -59,7 +66,10 @@
   },
   "devDependencies": {
     "@solid/community-server": "7.0.3",
-    "@types/node": "^20.11.16",
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0",
+    "jest-rdf": "^1.8.1",
+    "ts-jest": "^29.1.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.3"
   }

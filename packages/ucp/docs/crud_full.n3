@@ -1,0 +1,76 @@
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix : <http://example.org/> .
+@prefix acl: <http://www.w3.org/ns/auth/acl#>.
+@prefix fno:  <https://w3id.org/function/ontology#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix string: <http://www.w3.org/2000/10/swap/string#> .
+@prefix list: <http://www.w3.org/2000/10/swap/list#> .
+# Read ODRL rule
+{ 
+    ?permission a odrl:Permission;
+        odrl:action ?action ;
+        odrl:target ?targetResource ;
+        odrl:assignee ?requestedParty;
+        odrl:assigner ?resourceOwner .   
+        
+    ?action list:in (odrl:use odrl:read) . # multiple options
+
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }. # No odrl:constraints may be present
+    # context of a request
+    ?context 
+        :resourceOwner ?resourceOwner;
+        :requestingParty ?requestedParty;
+        :target ?targetResource;
+        :requestPermission acl:Read.
+
+    :uuid5 log:uuid ?uuidStringdataUsagePolicyExecution.
+    ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
+    ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+} =>
+{
+    ?dataUsagePolicyExecution a fno:Execution;
+        fno:executes <http://example.org/dataUsage> ; 
+        :accessModesAllowed acl:Read.
+}.
+
+# Update ODRL Rule (odrl:modify: new asset is not created, not same as acl:write)
+{ 
+    ?permission a odrl:Permission;
+        odrl:action ?action ;
+        odrl:target ?targetResource ;
+        odrl:assignee ?requestedParty;
+        odrl:assigner ?resourceOwner .   
+        
+    ?action list:in (odrl:use odrl:modify). # multiple options
+
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }. # No odrl:constraints may be present
+    
+    # context of a request
+    ?context 
+        :resourceOwner ?resourceOwner;
+        :requestingParty ?requestedParty;
+        :target ?targetResource;
+        :requestPermission acl:Write.
+
+    :uuid5 log:uuid ?uuidStringdataUsagePolicyExecution.
+    ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
+    ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+} =>
+{
+    ?dataUsagePolicyExecution a fno:Execution;
+        fno:executes <http://example.org/dataUsage> ; 
+        :accessModesAllowed acl:Write.
+}.
+<http://example.org/1705937573496#usagePolicy> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Agreement> .
+<http://example.org/1705937573496#usagePolicy> <http://www.w3.org/ns/odrl/2/permission> <http://example.org/1705937573496#permission> .
+<http://example.org/1705937573496#permission> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Permission> .
+<http://example.org/1705937573496#permission> <http://www.w3.org/ns/odrl/2/action> <http://www.w3.org/ns/odrl/2/use> .
+<http://example.org/1705937573496#permission> <http://www.w3.org/ns/odrl/2/target> <http://localhost:3000/test.ttl> .
+<http://example.org/1705937573496#permission> <http://www.w3.org/ns/odrl/2/assignee> <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+<http://example.org/1705937573496#permission> <http://www.w3.org/ns/odrl/2/assigner> <https://pod.woutslabbinck.com/profile/card#me> .
+     
+# <http://example.org/1705937573496#permission> odrl:constraint <test>. # Note: uncommenting this rule leads to error
+<http://example.org/context> <http://example.org/resourceOwner> <https://pod.woutslabbinck.com/profile/card#me> .
+<http://example.org/context> <http://example.org/requestingParty> <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+<http://example.org/context> <http://example.org/target> <http://localhost:3000/test.ttl> .
+<http://example.org/context> <http://example.org/requestPermission> <http://www.w3.org/ns/auth/acl#Write> .

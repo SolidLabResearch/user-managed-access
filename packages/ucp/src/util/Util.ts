@@ -28,12 +28,3 @@ export function extractQuadsRecursive(store: Store, subjectIRI: string, existing
     return tempStore;
 }// instantiated policy consisting of one agreement and one rule
 
-export interface SimplePolicy {
-    // representation of the ucon rule + agreement
-    representation: Store;
-    // identifier of the agreement
-    agreementIRI: string;
-    // identifier of the rule
-    ruleIRI: string;
-}
-

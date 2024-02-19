@@ -2,7 +2,7 @@ import { Store, DataFactory } from "n3";
 import { UconRequest, createContext } from "./Request"
 import { v4 as uuidv4 } from 'uuid';
 import { ACCESS_MODES_ALLOWED } from "./util/Constants";
-import { SimplePolicy } from "./util/Util";
+import { SimplePolicy } from "./policy/UsageControlPolicy";
 import { storeToString } from "./util/Conversion";
 const { namedNode, literal } = DataFactory
 
