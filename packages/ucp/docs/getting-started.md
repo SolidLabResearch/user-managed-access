@@ -102,11 +102,16 @@ To add this rule to the storage, the following code can be used:
 https://github.com/SolidLabResearch/user-managed-access/blob/1c0410b6f1c3f133843430f60d4f8c690273dff0/packages/ucp/docs/simple-engine.ts#L30-L41
 
 
-From now on, when the access modes are calculated again, the following grants are received:
+From now on, when the access modes are calculated again, the following list of grants is received:
 
 ```sh
 [ 'http://www.w3.org/ns/auth/acl#Read' ]
 ```
+
+With current initialisation of the **UC Decision engine**, grants are modelled with the [Access Control List (ACL)](https://www.w3.org/ns/auth/acl) Ontology.
+The reason for this is that this component is going to be used in an Authorisation Server (AS) for a [Solid](https://solidproject.org/) Resource Server (RS) using the [User-Managed Access (UMA)](https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html) specification. In the [Solid Protocol](https://solidproject.org/TR/protocol), ACL is the ontology used for **access modes** both its authorization specifications: the [Web Access Control (WAC)](https://solidproject.org/TR/wac) specification and the [Access Control Policy (ACP)](https://solidproject.org/TR/acp) specification.
+
+In the engine, this grant is calculated within the N3 interpretation rules, more specifically [here](https://github.com/SolidLabResearch/user-managed-access/blob/949917faa015195369e430f77200bf3273f79283/packages/ucp/rules/data-crud-rules.n3#L12-L38).
 
 The full code sample for this example can be found in [appendix I](#appendix-I-Full-code-snippet)
 
