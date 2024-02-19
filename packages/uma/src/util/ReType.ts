@@ -31,14 +31,22 @@ export type Assertion<T> = (value: unknown) => asserts value is T;
 
 export type ReType = Literal | Assertion<unknown> | { [_: PropertyKey]: ReType };
 
-export type Type<R extends ReType> = 
-  R extends { [_: PropertyKey]: ReType } ? { 
-    [K in keyof R as undefined extends Type<R[K]> ? never : K]: Type<R[K]> 
-  } & {
-    [K in keyof R as undefined extends Type<R[K]> ? K : never]?: Type<R[K]> 
-  } :
+type _Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
+
+type _Required<R extends { [_: PropertyKey]: ReType }> = {
+  [K in keyof R as undefined extends Type<R[K]> ? never : K]: Type<R[K]>
+};
+
+type _Optional<R extends { [_: PropertyKey]: ReType }> = {
+  [K in keyof R as undefined extends Type<R[K]> ? K : never]?: Type<R[K]>
+};
+
+type _Type<R extends ReType> = 
+  R extends { [_: PropertyKey]: ReType } ? _Required<R> & _Optional<R> :
   R extends Assertion<infer T> ? T : 
   R;
+  
+export type Type<R extends ReType> = _Expand<_Type<R>>;
 
 function isIn<T extends object>(key: PropertyKey, object: T): key is keyof T {
   return key in object;
@@ -72,7 +80,6 @@ export function isType<R extends ReType>(value: unknown, assertion: R): value is
   }
   return value === assertion;
 }
-
 
 export const any: Assertion<any> = () => {};
 export const unknown: Assertion<unknown> = () => {};
@@ -166,5 +173,3 @@ export const record = <
 export const dict = <T extends ReType> (records: T): Assertion<NodeJS.Dict<Type<T>>> => {
   return record(string, records);
 }
-
-// type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;  // https://www.npmjs.com/package/type-expand

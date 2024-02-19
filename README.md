@@ -12,6 +12,7 @@ This repository contains SolidLab research artefacts on use of UMA in the Solid 
 
 - [`@solidlab/ucp`](packages/ucp): Usage Control Policy decision/enforcement component.
 
+
 ## Getting started
 
 In order to run this project you need to perform the following steps. 
@@ -33,9 +34,11 @@ You can then execute the following flows:
 
 `yarn script:flow` runs all flows in sequence.
 
+
 ## Implemented features
 
 The packages in this project currently only support a fixed UMA AS per CSS RS, and contain only the trivial [AllAuthorizer](packages/uma/src/models/AllAuthorizer.ts) that allows all access. More useful features are coming soon ...
+
 
 ### Usage control policy enforcement
 
@@ -54,6 +57,4 @@ Then a read request is performed using the engine, which results in a list of gr
 
 ## Next steps
 
-- [Wout Slabbinck](https://github.com/woutslabbinck) will look into custom [Authorizers](packages/uma/src/models/Authorizer.ts), in particular an integratation with Koreografeye for the research on Usage Control Patterns.
-
-- [Wouter Termont](https://github.com/termontwouter) will implement UMA Resource Registration (as specified in UMA 2.0 Federation), and integrate UMA AS coupling into the onboarding flow of the CSS.
+Have a look at the [milestones](https://github.com/SolidLabResearch/user-managed-access/milestones) we set for ourselves, and other [issues](https://github.com/SolidLabResearch/user-managed-access/issues) we would like to solve.
