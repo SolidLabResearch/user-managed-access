@@ -11,6 +11,10 @@ export * from './identity/interaction/account/util/LoginStorage';
 
 export * from './init/SeededAccountInitializer';
 
+export * from './server/description/AccountSettingsStorageDescriber';
+
+export * from './server/middleware/JwksHandler';
+
 export * from './storage/keyvalue/IndexedStorage';
 
 export * from './uma/ResourceRegistrar';
