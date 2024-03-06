@@ -1,9 +1,9 @@
-import {HttpHandler} from '../util/http/models/HttpHandler';
-import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
-import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
-import {Logger} from '../util/logging/Logger';
-import {getLoggerFor} from '../util/logging/LoggerUtils';
-import {JwksKeyHolder} from '../secrets/JwksKeyHolder';
+import { HttpHandler } from '../util/http/models/HttpHandler';
+import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
+import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
+import { Logger } from '../util/logging/Logger';
+import { getLoggerFor } from '../util/logging/LoggerUtils';
+import { JwkGenerator } from '@solid/community-server';
 
 /**
  * An HttpHandler used for returning the configuration
@@ -16,9 +16,9 @@ export class JwksRequestHandler implements HttpHandler {
    * Yields a new request handler for JWKS
    * @param {JwksKeyHolder} keyholder - the keyholder to be used for serving JWKS
    */
-  public constructor(private readonly keyholder: JwksKeyHolder) {
-    this.keyholder = keyholder;
-  }
+  public constructor(
+    private readonly generator: JwkGenerator
+  ) {}
 
   /**
      * Returns the JSON Web KeySet for specified keyholder
@@ -28,14 +28,14 @@ export class JwksRequestHandler implements HttpHandler {
   async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
     this.logger.info(`Received JWKS request at '${context.request.url}'`);
 
-    const jwks = await this.keyholder.getJwks();
+    const key = await this.generator.getPublicKey();
 
     return {
       status: 200,
       headers: {
         'content-type': 'application/json'
       }, 
-      body: JSON.stringify(jwks),
+      body: JSON.stringify({ keys: [ key ] }),
     };
   }
 }

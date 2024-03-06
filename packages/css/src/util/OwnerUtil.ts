@@ -1,9 +1,6 @@
 import { KeyValueStorage, PodStore, ResourceIdentifier, StorageLocationStrategy, WrappedSetMultiMap, 
   getLoggerFor } from '@solid/community-server';
-import { DataFactory } from 'n3';
 import { ACCOUNT_SETTINGS_AUTHZ_SERVER, type AccountStore } from '../identity/interaction/account/util/AccountStore';
-
-const { namedNode } = DataFactory;
 
 /**
  * ...
@@ -50,7 +47,7 @@ export class OwnerUtil {
     this.logger.debug(`Looking up owners of pod ${pod.id}`);
 
     const as = await this.accountStore.getSetting(pod.accountId, ACCOUNT_SETTINGS_AUTHZ_SERVER);
-    // this.logger.warn(`REAL AS is ${JSON.stringify(as)}`);
+    this.logger.warn(`REAL AS is ${JSON.stringify(as)}`);
 
     const owners = await this.podStore.getOwners(pod.id);
     if (!owners) throw new Error(`Unable to find owners for pod ${storage.path}`);
@@ -74,20 +71,6 @@ export class OwnerUtil {
     }
 
     throw new Error(`No common owner found for resources: ${Array.from(resources).map(r => r.path).join(', ')}`);
-  }
-
-  public async retrievePat(owner: string): Promise<string | undefined> {
-    return 'MYPAT';
-
-    // TODO: softcode
-    
-    // const result = await this.umaPatStore.get(owner);
-
-    // if (!result) throw new Error(`No registered issuer with PAT found for owner ${owner}`);
-
-    // const { issuer, pat } = result;
-
-    // return pat;
   }
 
   public async findIssuer(webid: string): Promise<string | undefined> {

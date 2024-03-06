@@ -67,6 +67,7 @@
     "@solidlab/uma": "workspace:^",
     "componentsjs": "^5.4.2",
     "cross-fetch": "^4.0.0",
+    "http-message-signatures": "^1.0.4",
     "jose": "^5.2.2",
     "n3": "^1.17.2"
   },

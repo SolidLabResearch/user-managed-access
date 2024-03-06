@@ -68,7 +68,7 @@ export class UmaAuthorizer extends Authorizer {
     if (!issuer) throw new Error(`No UMA authorization server found for ${owner}.`);
 
     try {
-      const ticket = await this.umaClient.fetchTicket(requestedModes, owner, issuer);
+      const ticket = await this.umaClient.fetchTicket(requestedModes, issuer);
       return ticket ? `UMA realm="solid", as_uri="${issuer}", ticket="${ticket}"` : undefined;
     } catch (e) {
       this.logger.error(`Error while requesting UMA header: ${(e as Error).message}`);

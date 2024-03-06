@@ -1,12 +1,12 @@
-import {BadRequestHttpError} from '../util/http/errors/BadRequestHttpError';
-import {Logger} from '../util/logging/Logger';
-import {getLoggerFor} from '../util/logging/LoggerUtils';
-import {createLocalJWKSet, jwtVerify, SignJWT} from 'jose';
-import {v4} from 'uuid';
-import {JwksKeyHolder} from '../secrets/JwksKeyHolder';
-import {isString} from '../util/StringGuard';
-import {SerializedToken, TokenFactory} from './TokenFactory';
-import {AccessToken} from './AccessToken';
+import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
+import { Logger } from '../util/logging/Logger';
+import { getLoggerFor } from '../util/logging/LoggerUtils';
+import { importJWK, jwtVerify, SignJWT } from 'jose';
+import { v4 } from 'uuid';
+import { JwkGenerator } from '@solid/community-server';
+import { isString } from '../util/StringGuard';
+import { SerializedToken , TokenFactory} from './TokenFactory';
+import { AccessToken } from './AccessToken';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
 
@@ -27,10 +27,10 @@ export class JwtTokenFactory extends TokenFactory {
 
   /**
      * Construct a new ticket factory
-     * @param {JwksKeyHolder} keyholder - keyholder to be used in issuance
+     * @param {JwkGenerator} keyGen - key generator to be used in issuance
      */
   constructor(
-    private readonly keyholder: JwksKeyHolder, 
+    private readonly keyGen: JwkGenerator, 
     private readonly issuer: string,
     private readonly params: JwtTokenParams = {expirationTime: '30m', aud: 'solid'}
   ) {
@@ -43,15 +43,16 @@ export class JwtTokenFactory extends TokenFactory {
    * @return {Promise<SerializedToken>} - access token response
    */
   public async serialize(token: AccessToken): Promise<SerializedToken> {
-    const kid = await this.keyholder.getDefaultKey();
+    const key = await this.keyGen.getPrivateKey();
+    const jwk = await importJWK(key, key.alg);
     const jwt = await new SignJWT({ permissions: token.permissions })
-      .setProtectedHeader({alg: this.keyholder.getAlg(), kid})
+      .setProtectedHeader({alg: key.alg, kid: key.kid})
       .setIssuedAt()
       .setIssuer(this.issuer)
       .setAudience(AUD)
       .setExpirationTime(this.params.expirationTime)
       .setJti(v4())
-      .sign(this.keyholder.getPrivateKey(kid));
+      .sign(jwk);
 
     this.logger.debug('Issued new JWT Token', token);
     return {token: jwt, tokenType: 'Bearer'};
@@ -63,9 +64,10 @@ export class JwtTokenFactory extends TokenFactory {
    * @return {Promise<AccessToken>} - deserialized access token
    */
   public async deserialize(token: string): Promise<AccessToken> {
-    const jwks = createLocalJWKSet(await this.keyholder.getJwks());
+    const key = await this.keyGen.getPublicKey();
+    const jwk = await importJWK(key, key.alg);
     try {
-      const {payload} = await jwtVerify(token, jwks, {
+      const { payload } = await jwtVerify(token, jwk, {
         issuer: this.issuer,
         audience: AUD,
       });

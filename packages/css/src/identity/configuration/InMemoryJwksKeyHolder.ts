@@ -1,8 +1,7 @@
-import {exportJWK, generateKeyPair, JSONWebKeySet, JWK, KeyLike} from 'jose';
-import {JwksKeyHolder} from './JwksKeyHolder';
-import {v4} from 'uuid';
-import {Logger} from '../util/logging/Logger';
-import {getLoggerFor} from '../util/logging/LoggerUtils';
+import { exportJWK, generateKeyPair, JSONWebKeySet, JWK, KeyLike } from 'jose';
+import { JwksKeyHolder } from './JwksKeyHolder';
+import { v4 } from 'uuid';
+import { getLoggerFor } from '@solid/community-server';
 
 const SUPPORTED_ALGORITHMS = new Set(['ES256', 'ES384', 'ES512', 'RS256', 'RS384', 'RS512']);
 
@@ -15,7 +14,7 @@ export interface KeyPair {
  * In-memory implementation of a JWKS Key Holder.
  */
 export class InMemoryJwksKeyHolder extends JwksKeyHolder {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
   private readonly keys: Map<string, KeyPair>;
   private currentKid: undefined | string;
 
