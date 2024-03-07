@@ -17,7 +17,7 @@ This repository contains SolidLab research artefacts on use of UMA in the Solid 
 
 In order to run this project you need to perform the following steps. 
 
-1. Ensure that you are using Node.js 18.18 or higher, e.g. by running `nvm use`.
+1. Ensure that you are using Node.js 20 or higher, e.g. by running `nvm use`. (see [.nvmrc](./.nvmrc))
 1. Enable Node.js Corepack with `corepack enable`.
 1. Run `yarn install` in the project root (this will automatically call `yarn build:all`).
 1. Run `yarn start:all`.
