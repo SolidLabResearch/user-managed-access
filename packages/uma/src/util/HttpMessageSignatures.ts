@@ -4,6 +4,7 @@ import { verifyMessage } from 'http-message-signatures/lib/httpbis';
 import { type SignatureParameters, type VerifierFinder, type VerifyingKey } from 'http-message-signatures/lib/types';
 import type { HttpHandlerRequest } from './http/models/HttpHandlerRequest';
 import buildGetJwks from 'get-jwks';
+import crypto from 'node:crypto';
 
 const authParserMod = import('@httpland/authorization-parser');
 
