@@ -4,6 +4,7 @@ import { httpbis, type SigningKey, type Request as SignRequest } from 'http-mess
 import { isString } from '../util/StringGuard';
 import fetch from 'cross-fetch';
 import type { Fetcher } from "../util/fetch/Fetcher";
+import crypto from 'node:crypto';
 
 export interface Claims {
   [key: string]: unknown;
