@@ -1,0 +1,72 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/derived-resources-component/^1.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "We need to disable the index store as it might accidentally return derived template resources.",
+      "@id": "urn:solid-server:default:ResourceStore_Index",
+      "@type": "IndexRepresentationStore",
+      "mediaRange": ""
+    },
+    {
+      "comment": "A second converting store",
+      "@id": "urn:solid-server:derived:RepresentationConvertingStore",
+      "@type": "RepresentationConvertingStore",
+      "metadataStrategy": { "@id": "urn:solid-server:default:MetadataStrategy" },
+      "options_inConverter": { "@id": "urn:solid-server:default:RepresentationConverter" },
+      "options_outConverter": { "@id": "urn:solid-server:default:UiEnabledConverter" },
+      "source": { "@id":  "urn:solid-server:derived:DerivedResourceStore" }
+    },
+    {
+      "comment": "The store responsible for generating derived resources.",
+      "@id": "urn:solid-server:derived:DerivedResourceStore",
+      "@type": "DerivedResourceStore",
+      "manager": {
+        "@id": "urn:solid-server:derived:DerivationManager",
+        "@type": "MetadataDerivationManager",
+        "identifierStrategy": { "@id": "urn:solid-server:default:IdentifierStrategy" },
+        "store": { "@id": "urn:solid-server:default:ResourceStore_Patching" },
+        "derivationMatcher": {
+          "@type": "PresetDerivationMatcher",
+          "source": { "@type": "TemplateDerivationMatcher" }
+        },
+        "selectorHandler": {
+          "@id": "urn:solid-server:default:SelectorHandler",
+          "@type": "GlobSelectorHandler",
+          "store": { "@id": "urn:solid-server:default:ResourceStore_Patching" }
+        },
+        "filterHandler": {
+          "@id": "urn:solid-server:default:FilterHandler",
+          "@type": "SparqlFilterHandler",
+          "store": { "@id": "urn:solid-server:default:ResourceStore_Patching" }
+        }
+      },
+      "source": { "@id": "urn:solid-server:default:ResourceStore_Patching" }
+    },
+    {
+      "comment": "Insert our new stores in front of the original converting store.",
+      "@id": "urn:solid-server:derived:PatchOverride",
+      "@type": "Override",
+      "overrideInstance": { "@id": "urn:solid-server:default:ResourceStore_Locking" },
+      "overrideParameters": {
+        "@type": "PatchingStore",
+        "source": { "@id": "urn:solid-server:derived:RepresentationConvertingStore" }
+      }
+    },
+    {
+      "comment": [
+        "Keep query parameters in identifiers.",
+        "This makes it so that any query parameters can cause issues with normal resources so we might want a more robust solution."
+      ],
+      "@id": "urn:solid-server:derived:TargetExtractorOverride",
+      "@type": "Override",
+      "overrideInstance": { "@id": "urn:solid-server:default:TargetExtractor" },
+      "overrideParameters": {
+        "@type": "OriginalUrlExtractor",
+        "includeQueryString": true
+      }
+    }
+  ]
+}

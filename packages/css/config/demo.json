@@ -1,0 +1,22 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/derived-resources-component/^1.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:solid-server:derived:PodResourcesOverride",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:PodResourcesGenerator"
+      },
+      "overrideParameters": {
+        "@type": "StaticFolderGenerator",
+        "templateFolder": "templates/pod",
+        "resourcesGenerator": {
+          "@id": "urn:solid-server:default:TemplatedResourcesGenerator"
+        }
+      }
+    }
+  ]
+}

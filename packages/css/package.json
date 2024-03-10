@@ -60,11 +60,11 @@
     "build:ts": "yarn run -T tsc",
     "build:components": "yarn run -T componentsjs-generator -r uma-css -s src/ -c dist/components -i .componentsignore --lenient",
     "test": "yarn run -T jest --coverage",
-    "start": "yarn run community-solid-server -m . -c ./config/default.json --seedConfig ./config/seed.json"
+    "start": "yarn run community-solid-server -m . -c ./config/default.json ./config/derived.json ./config/demo.json --seedConfig ./config/seed.json"
   },
   "dependencies": {
     "@solid/community-server": "^7.0.2",
-    "@solidlab/derived-resources-component": "^1.0.0",
+    "@solidlab/derived-resources-component": "^1.0.1",
     "@solidlab/uma": "workspace:^",
     "componentsjs": "^5.4.2",
     "cross-fetch": "^4.0.0",

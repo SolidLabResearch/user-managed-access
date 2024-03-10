@@ -5,7 +5,13 @@
     "authz": {
       "server": "http://localhost:4000/uma"
     },
-    "pods": [ { "name": "alice" } ]
+    "pods": [{ 
+      "name": "alice",
+      "settings": {
+        "name": "Alice",
+        "umaServer": "http://localhost:4000/uma"
+      }
+    }]
   },
   {
     "email": "bob@example.org",
@@ -13,6 +19,30 @@
     "authz": {
       "server": "http://localhost:4000/uma"
     },
-    "pods": [ { "name": "bob" } ]
+    "pods": [
+      {
+        "name": "bob",
+        "settings": {
+          "name": "Bob",
+          "umaServer": "http://localhost:4000/uma"
+        }
+      }
+    ]
+  },
+  {
+    "email": "demo@example.org",
+    "password": "abc123",
+    "authz": {
+      "server": "http://localhost:4000/uma"
+    },
+    "pods": [
+      {
+        "name": "demo",
+        "settings": {
+          "name": "Demo",
+          "umaServer": "http://localhost:4000/uma"
+        }
+      }
+    ]
   }
 ]

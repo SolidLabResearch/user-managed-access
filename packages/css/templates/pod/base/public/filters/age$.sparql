@@ -1,0 +1,18 @@
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+CONSTRUCT { 
+  ?s foaf:age ?age .
+} WHERE {
+  ?s dbo:birthDate ?bday .
+  BIND(now() AS ?now)
+  BIND(year(?bday) AS ?bday_year)
+  BIND(month(?bday) AS ?bday_month)
+  BIND(day(?bday) AS ?bday_day)
+  BIND(year(?now) AS ?now_year)
+  BIND(month(?now) AS ?now_month)
+  BIND(day(?now) AS ?now_day)
+  BIND(IF (?now_day - ?bday_day < 0, 1, 0) AS ?extra_month)
+  BIND(IF (?now_month - ?bday_month - ?extra_month < 0, 1, 0) AS ?extra_year)
+  BIND(?now_year - ?bday_year - ?extra_year AS ?age)
+}
