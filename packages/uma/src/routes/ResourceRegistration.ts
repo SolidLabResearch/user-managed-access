@@ -4,7 +4,6 @@ import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
 import {UnauthorizedHttpError} from '../util/http/errors/UnauthorizedHttpError';
 import {UnsupportedMediaTypeHttpError} from '../util/http/errors/UnsupportedMediaTypeHttpError';
-import * as jose from 'jose';
 import {Logger} from '../util/logging/Logger';
 import {getLoggerFor} from '../util/logging/LoggerUtils';
 import {KeyValueStore} from '../util/storage/models/KeyValueStore';
@@ -14,6 +13,7 @@ import { MethodNotAllowedHttpError } from '../util/http/errors/MethodNotAllowedH
 import { HttpHandlerRequest } from '../util/http/models/HttpHandlerRequest';
 import { ResourceDescription } from '../views/ResourceDescription';
 import { reType } from '../util/ReType';
+import { extractRequestSigner, verifyRequest } from '../util/HttpMessageSignatures';
 
 type ErrorConstructor = { new(msg: string): Error };
 
@@ -27,13 +27,10 @@ export class ResourceRegistrationRequestHandler implements HttpHandler {
   protected readonly logger: Logger = getLoggerFor(this);
 
   /**
-   * @param {string} baseUrl - Base URL of the AS.
    * @param {RequestingPartyRegistration[]} resourceServers - Pod Servers to be registered with the UMA AS
    */
   constructor(
-    private readonly baseUrl: string,
     private readonly resourceStore: KeyValueStore<string, ResourceDescription>,
-    // private readonly resourceServers: RequestingPartyRegistration[],
   ) {}
 
   /**
@@ -41,13 +38,14 @@ export class ResourceRegistrationRequestHandler implements HttpHandler {
   * @param {HttpHandlerContext} param0
   * @return {Observable<HttpHandlerResponse<PermissionRegistrationResponse>>}
   */
-  handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
-    if (!request.headers.authorization) {
-      throw new UnauthorizedHttpError('Missing authorization header in request.');
-    }
+  async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
+    const signer = await extractRequestSigner(request);
 
-    // TODO: validate PAT
-    //await this.validateAuthorization(authorizationHeader);
+    // TODO: check if signer is actually the correct one
+
+    if (!await verifyRequest(request, signer)) {
+      throw new UnauthorizedHttpError(`Failed to verify signature of <${signer}>`);
+    }
 
     switch (request.method) {
       case HttpMethods.POST: return this.handlePost(request);

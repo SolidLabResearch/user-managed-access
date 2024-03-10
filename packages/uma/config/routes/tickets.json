@@ -17,17 +17,8 @@
         "@type": "JsonHttpErrorHandler",
         "nestedHandler": {
           "@type": "TicketRequestHandler",
-          "baseUrl": { "@id": "urn:uma:variables:baseUrl" },
           "ticketingStrategy": { "@id": "urn:uma:default:TicketingStrategy" },
-          "ticketStore": { "@id": "urn:uma:default:TicketStore" },
-          "resourceServers": [
-            {
-              "@type": "RequestingPartyRegistration",
-              "baseUrl": "urn:uma:variables:baseUrl",
-              "ecPublicKey": "-----BEGIN PUBLIC KEY-----MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGJkzO34pMnTx4uxoTD0+dvB4gVaXs9X+qkguzUCNT9ZzbZ/onTZrvQDLVAdH++c7sS/vmfrNuACUeNhLr9aYFA==-----END PUBLIC KEY-----",
-              "ecAlgorithm": "ES256"
-            }
-          ]
+          "ticketStore": { "@id": "urn:uma:default:TicketStore" }
         }
       },
       "path": "/uma/ticket"

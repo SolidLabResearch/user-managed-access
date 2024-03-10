@@ -2,7 +2,6 @@ import { CredentialsExtractor, getLoggerFor, HttpRequest,
   NotImplementedHttpError, BadRequestHttpError, Credentials, TargetExtractor } from '@solid/community-server';
 import { UmaClaims, UmaClient } from '../uma/UmaClient';
 import { OwnerUtil } from '../util/OwnerUtil';
-import { decodeJwt } from 'jose';
 
 export type UmaCredentials = Credentials & { uma: { rpt: UmaClaims } };
 
@@ -40,8 +39,10 @@ export class UmaTokenExtractor extends CredentialsExtractor {
    */
   public async handle(request: HttpRequest): Promise<UmaCredentials> {
     this.logger.info('Extracting token from ' + request.headers.authorization);
+    
     const token = request.headers.authorization?.replace(/^Bearer/, '')?.trimStart();
     if (!token) throw new BadRequestHttpError('Found empty Bearer token.');
+    
     try {
       const target = await this.targetExtractor.handle({ request });
       const owners = await this.ownerUtil.findOwners(target);
@@ -70,7 +71,7 @@ export class UmaTokenExtractor extends CredentialsExtractor {
   private async tryIntrospection(token: string, owner: string): Promise<UmaClaims> {
     const issuer = await this.ownerUtil.findIssuer(owner);
     if (!issuer) return Promise.reject();
-    return this.client.verifyOpaqueToken(token, issuer, owner)
+    return this.client.verifyOpaqueToken(token, issuer)
   }
 
 }

@@ -36,6 +36,6 @@ export class JwksHandler extends HttpHandler {
       return;
     }
 
-    response.end(JSON.stringify({ keys: [ key ] }));
+    response.end(JSON.stringify({ keys: [ Object.assign(key, { kid: 'TODO' }) ] }));
   }
 }

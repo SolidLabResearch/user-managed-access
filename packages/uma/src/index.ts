@@ -33,10 +33,6 @@ export * from './routes/ResourceRegistration';
 export * from './routes/Token';
 export * from './routes/Config';
 
-// Secrets
-export * from './secrets/JwksKeyHolder';
-export * from './secrets/InMemoryJwksKeyHolder';
-
 // Tickets
 export * from './ticketing/Ticket';
 export * from './ticketing/strategy/TicketingStrategy';
@@ -47,11 +43,6 @@ export * from './ticketing/strategy/ImmediateAuthorizerStrategy';
 export * from './tokens/AccessToken';
 export * from './tokens/JwtTokenFactory';
 export * from './tokens/TokenFactory';
-
-// Utils
-export * from './util/StringGuard';
-export * from './util/FetchFactory';
-export * from './util/RoutePath';
 
 // Views
 export * from './views/Permission';

@@ -59,11 +59,15 @@
     "start": "node dist/main.js"
   },
   "dependencies": {
+    "@httpland/authorization-parser": "^1.1.0",
     "@solid/access-token-verifier": "^1.2.0",
+    "@solid/community-server": "^7.0.4",
     "@solidlab/ucp": "workspace:^",
     "clone": "^2.1.2",
     "componentsjs": "5.4.2",
     "cross-fetch": "^4.0.0",
+    "get-jwks": "^9.0.1",
+    "http-message-signatures": "^1.0.4",
     "jose": "^4.5.1",
     "koreografeye": "^0.4.8",
     "logform": "^2.6.0",

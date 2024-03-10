@@ -8,7 +8,9 @@
     "noImplicitAny": true,
     "experimentalDecorators": true,
     "downlevelIteration": true,
-    "moduleResolution": "node",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "skipLibCheck": true, // voor ESM typings in CSS (@types/rdf-validate-shacl)
     "esModuleInterop": true,
     "strictNullChecks": true,
     "lib": ["ES2022"]

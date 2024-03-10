@@ -1,12 +1,18 @@
 {
   "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
   ],
   "@graph": [
     {
-      "@id": "urn:uma:default:DefaultKeyholder",
-      "@type": "InMemoryJwksKeyHolder",
-      "alg": "ES256"
+      "@id": "urn:uma:default:JwkGenerator",
+      "@type": "CachedJwkGenerator",
+      "alg": "ES256",
+      "storageKey": "jwks",
+      "storage": {
+        "@id": "urn:uma:default:KeyStorage",
+        "@type": "MemoryMapStorage"
+      }
     },
     {
       "@id": "urn:uma:default:JwksRoute",
@@ -20,7 +26,7 @@
       ],
       "handler": {
         "@type": "JwksRequestHandler",
-        "keyholder": { "@id": "urn:uma:default:DefaultKeyholder" }
+        "generator": { "@id": "urn:uma:default:JwkGenerator" }
       },
       "path": "/uma/keys"
     }

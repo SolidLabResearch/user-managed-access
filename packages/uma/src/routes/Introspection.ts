@@ -1,28 +1,34 @@
-import {BadRequestHttpError} from '../util/http/errors/BadRequestHttpError';
-import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
-import {HttpHandler} from '../util/http/models/HttpHandler';
-import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
-import {UnauthorizedHttpError} from '../util/http/errors/UnauthorizedHttpError';
-import {UnsupportedMediaTypeHttpError} from '../util/http/errors/UnsupportedMediaTypeHttpError';
-import {Logger} from '../util/logging/Logger';
-import {getLoggerFor} from '../util/logging/LoggerUtils';
-import {KeyValueStore} from '../util/storage/models/KeyValueStore';
-import {AccessToken} from '../tokens/AccessToken';
+import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
+import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
+import { HttpHandler } from '../util/http/models/HttpHandler';
+import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
+import { UnauthorizedHttpError } from '../util/http/errors/UnauthorizedHttpError';
+import { UnsupportedMediaTypeHttpError } from '../util/http/errors/UnsupportedMediaTypeHttpError';
+import { Logger } from '../util/logging/Logger';
+import { getLoggerFor } from '../util/logging/LoggerUtils';
+import { KeyValueStore } from '../util/storage/models/KeyValueStore';
+import { AccessToken } from '../tokens/AccessToken';
 import { JwtTokenFactory } from '../tokens/JwtTokenFactory';
 import { SerializedToken } from '../tokens/TokenFactory';
+import { JwkGenerator } from '@solid/community-server';
+import { verifyRequest } from '../util/HttpMessageSignatures';
 
 /**
- * 
+ * An HTTP handler that provides introspection into opaque access tokens.
  */
 export class IntrospectionHandler implements HttpHandler {
   protected readonly logger: Logger = getLoggerFor(this);
 
   /**
+   * Creates an introspection handler for tokens in the given token store.
    * 
+   * @param tokenStore - The store containing the tokens.
+   * @param jwtTokenFactory - The factory with which to produce JWT representations of the tokens.
    */
   constructor(
     private readonly tokenStore: KeyValueStore<string, AccessToken>,
-    private jwtTokenFactory: JwtTokenFactory,
+    private readonly jwtTokenFactory: JwtTokenFactory,
+    private readonly keyGen: JwkGenerator,
   ) {}
 
   /**
@@ -31,20 +37,7 @@ export class IntrospectionHandler implements HttpHandler {
   * @return {Observable<HttpHandlerResponse<any>>}
   */
   async handle({request}: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
-      // const request = {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${pat}`,
-      //     'Content-Type': 'application/x-www-form-urlencoded',
-      //     'Accept': 'application/json',
-      //   },
-      //   body: `token_type_hint=access_token&token=${token}`,
-      // };
-
-    // TODO: check PAT
-    if (!request.headers.authorization) {
-      throw new UnauthorizedHttpError('Missing authorization header in request.');
-    }
+    if (!await verifyRequest(request)) throw new UnauthorizedHttpError();
 
     if (request.headers['content-type'] !== 'application/x-www-form-urlencoded') {
       throw new UnsupportedMediaTypeHttpError(

@@ -122,7 +122,7 @@ export async function basicPolicy(type: UCPPolicy, baseIri?: string): Promise<Si
 
     const policyStore = await turtleStringToStore([policy, constraints].join("\n"))
 
-    return { representation: policyStore, agreementIRI: agreement, ruleIRI: rule }
+    return { representation: policyStore, policyIRI: agreement, ruleIRIs: [rule] }
 }
 
 export function createConstraints(ruleIRI: string, constraints: Constraint[]): string {
