@@ -4532,9 +4532,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solidlab/derived-resources-component@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@solidlab/derived-resources-component@npm:1.0.1"
+"@solidlab/derived-resources-component@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@solidlab/derived-resources-component@npm:1.0.2"
   dependencies:
     "@comunica/query-sparql": "npm:^2.10.2"
     "@rdfjs/types": "npm:^1.1.0"
@@ -4542,7 +4542,7 @@ __metadata:
     asynciterator: "npm:^3.8.1"
     n3: "npm:^1.17.2"
     uri-template-lite: "npm:^23.4.0"
-  checksum: 10c0/51651f136258eedc793545a61243c5bea5ea8eb8fd4e13b5a23fc6e854f47f724819b44f99420d8b092f730010a9057aa3cdee388a01c06bfccb86d327fc390a
+  checksum: 10c0/f57f57253cf9d8099ad3651eae09c7291b37911d08b28e76e8a011f0793619eaca46fa315ace36a0dc012da936ce528b130e7a55a6f31ddaa1d4e37c5cf4953f
   languageName: node
   linkType: hard
 
@@ -4569,7 +4569,7 @@ __metadata:
   resolution: "@solidlab/uma-css@workspace:packages/css"
   dependencies:
     "@solid/community-server": "npm:^7.0.2"
-    "@solidlab/derived-resources-component": "npm:^1.0.1"
+    "@solidlab/derived-resources-component": "npm:^1.0.2"
     "@solidlab/uma": "workspace:^"
     "@types/n3": "npm:^1.16.4"
     "@types/node": "npm:^18.18.11"

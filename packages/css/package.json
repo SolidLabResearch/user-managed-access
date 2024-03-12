@@ -63,11 +63,11 @@
     "start": "yarn run community-solid-server -m . -c ./config/default.json --seedConfig ./config/seed.json",
     "demo": "yarn run demo:setup && yarn run demo:start",
     "demo:setup": "yarn run -T shx rm -rf ./tmp && yarn run -T shx cp -R ../../demo/data ./tmp",
-    "demo:start": "yarn run community-solid-server -m . -c ./config/default.json ./config/derived.json -f ./tmp"
+    "demo:start": "yarn run community-solid-server -m . -c ./config/demo.json -f ./tmp"
   },
   "dependencies": {
     "@solid/community-server": "^7.0.2",
-    "@solidlab/derived-resources-component": "^1.0.1",
+    "@solidlab/derived-resources-component": "^1.0.2",
     "@solidlab/uma": "workspace:^",
     "componentsjs": "^5.4.2",
     "cross-fetch": "^4.0.0",
