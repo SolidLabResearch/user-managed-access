@@ -38,6 +38,10 @@
       "baseUrl": {
         "@id": "urn:solid-server:default:variable:baseUrl"
       },
+      "umaIdStore": {
+        "@id": "urn:solid-server:default:UmaIdStore",
+        "@type": "MemoryMapStorage"
+      },
       "keyGen": {
         "@id": "urn:solid-server:default:JwkGenerator"
       },
@@ -72,10 +76,6 @@
       "@type": "ResourceRegistrar",
       "store": {
         "@id": "urn:solid-server:default:ResourceStore"
-      },
-      "umaIdStore": {
-        "@id": "urn:solid-server:default:UmaIdStore",
-        "@type": "MemoryMapStorage"
       },
       "ownerUtil": {
         "@id": "urn:solid-server:default:OwnerUtil"
