@@ -1,10 +1,12 @@
-import { AccessMap, getLoggerFor, InternalServerError, JwkGenerator } from "@solid/community-server";
+import type { KeyValueStorage, Representation, ResourceIdentifier } from "@solid/community-server";
+import { AccessMap, getLoggerFor, InternalServerError, JwkGenerator, NotFoundHttpError } from "@solid/community-server";
 import { JWTPayload, decodeJwt, createRemoteJWKSet, jwtVerify, JWTVerifyOptions } from "jose";
 import { httpbis, type SigningKey, type Request as SignRequest } from 'http-message-signatures';
 import { isString } from '../util/StringGuard';
 import fetch from 'cross-fetch';
 import type { Fetcher } from "../util/fetch/Fetcher";
 import crypto from 'node:crypto';
+import type { ResourceDescription } from "@solidlab/uma";
 
 export interface Claims {
   [key: string]: unknown;
@@ -70,8 +72,9 @@ export class UmaClient {
    */
   constructor(
     protected baseUrl: string,
-    protected keyGen: JwkGenerator, 
     protected fetcher: Fetcher,
+    protected keyGen: JwkGenerator, 
+    protected umaIdStore: KeyValueStorage<string, string>,
     protected options: UmaVerificationOptions = {},
   ) {}
 
@@ -118,8 +121,10 @@ export class UmaClient {
 
     const body = [];
     for (const [ target, modes ] of permissions.entrySets()) {
+      // const umaId = await this.umaIdStore.get(target.path);
+      // if (!umaId) throw new NotFoundHttpError();
       body.push({
-        resource_id: target.path,
+        resource_id: target.path, // TODO: map to umaId ? (but raises problems on creation, discovery ...)
         resource_scopes: Array.from(modes).map(mode => `urn:example:css:modes:${mode}`)
       });
     }
@@ -258,5 +263,78 @@ export class UmaClient {
     );
 
     return configuration;
+  }
+
+  public async createResource(resource: ResourceIdentifier, issuer: string): Promise<void> {
+    const { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
+
+    const description: ResourceDescription = {
+      resource_scopes: [
+        'urn:example:css:modes:read',
+        'urn:example:css:modes:append',
+        'urn:example:css:modes:create',
+        'urn:example:css:modes:delete',
+        'urn:example:css:modes:write',
+      ]
+    };
+
+    this.logger.info(`Creating resource registration for <${resource.path}> at <${endpoint}>`);
+
+    const request = {
+      url: endpoint,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(description),
+    };
+
+    // do not await - registration happens in background to cope with errors etc.
+    this.signedFetch(endpoint, request).then(async resp => {
+      if (resp.status !== 201) {
+        throw new Error (`Resource registration request failed. ${await resp.text()}`);
+      }
+
+      const { _id: umaId } = await resp.json();
+      
+      if (!umaId || typeof umaId !== 'string') {
+        throw new Error ('Unexpected response from UMA server; no UMA id received.');
+      }
+      
+      this.umaIdStore.set(resource.path, umaId);
+    }).catch(error => {
+      // TODO: Do something useful on error
+      this.logger.warn(
+        `Something went wrong during UMA resource registration to create ${resource.path}: ${(error as Error).message}`
+      );
+    });
+  }
+
+  public async deleteResource(resource: ResourceIdentifier, issuer: string): Promise<void> {    
+    const { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
+
+    this.logger.info(`Deleting resource registration for <${resource.path}> at <${endpoint}>`);
+
+    const umaId = await this.umaIdStore.get(resource.path);
+    const url = `${endpoint}/${umaId}`;
+
+    const request = {
+      url,
+      method: 'DELETE',
+      headers: {}
+    };
+
+    // do not await - registration happens in background to cope with errors etc.
+    this.signedFetch(endpoint, request).then(async _resp => {
+      if (!umaId) throw new Error('Trying to delete unknown/unregistered resource; no UMA id found.');
+
+      await this.signedFetch(url, request);
+    }).catch(error => {
+      // TODO: Do something useful on error
+      this.logger.warn(
+        `Something went wrong during UMA resource registration to delete ${resource.path}: ${(error as Error).message}`
+      );
+    });
   }
 }
