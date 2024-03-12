@@ -1,7 +1,6 @@
 import { AccessMap, getLoggerFor, InternalServerError, JwkGenerator } from "@solid/community-server";
 import { JWTPayload, decodeJwt, createRemoteJWKSet, jwtVerify, JWTVerifyOptions } from "jose";
 import { httpbis, type SigningKey, type Request as SignRequest } from 'http-message-signatures';
-import { isString } from '../util/StringGuard';
 import fetch from 'cross-fetch';
 import type { Fetcher } from "../util/fetch/Fetcher";
 import crypto from 'node:crypto';
@@ -259,4 +258,8 @@ export class UmaClient {
 
     return configuration;
   }
+}
+
+function isString(value: any): value is string {
+  return typeof value === 'string' || value instanceof String;
 }
