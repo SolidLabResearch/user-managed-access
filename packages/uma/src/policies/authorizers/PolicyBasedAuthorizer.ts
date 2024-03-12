@@ -21,7 +21,6 @@ export class PolicyBasedAuthorizer implements Authorizer {
   private plugins = { "http://example.org/dataUsage": new UcpPlugin() };
   private executor = new PolicyExecutor(this.plugins);
   private enforcer: UcpPatternEnforcement;
-  private rules: UCRulesStorage;
   private n3: string;
 
   /**
@@ -33,12 +32,11 @@ export class PolicyBasedAuthorizer implements Authorizer {
   constructor(
     // protected rules: UCRulesStorage,
     // protected enforcer: UcpPatternEnforcement
-    policyDir: string,
+    rules: UCRulesStorage,
     n3Rules: string,
   ) {
-    this.rules = new DirectoryUCRulesStorage(path.join(__dirname, '../../../', policyDir));
     this.n3 = readFileSync(path.join(__dirname, '../../../', n3Rules)).toString();
-    this.enforcer = new UcpPatternEnforcement(this.rules, [this.n3], this.reasoner, this.executor)
+    this.enforcer = new UcpPatternEnforcement(rules, [this.n3], this.reasoner, this.executor)
   }
 
 
