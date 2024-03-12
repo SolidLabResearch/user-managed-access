@@ -4623,7 +4623,7 @@ __metadata:
     eslint: "npm:^8.10.0"
     jest: "npm:^29.7.0"
     koreografeye: "npm:^0.4.8"
-    shx: "npm:^0.3.3"
+    shx: "npm:^0.3.4"
     ts-jest: "npm:^29.1.1"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.2.2"
@@ -10641,7 +10641,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shx@npm:^0.3.3":
+"shx@npm:^0.3.4":
   version: 0.3.4
   resolution: "shx@npm:0.3.4"
   dependencies:

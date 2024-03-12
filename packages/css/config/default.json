@@ -17,7 +17,6 @@
     "css:config/identity/pod/static.json",
     "css:config/ldp/metadata-parser/default.json",
     "css:config/ldp/modes/default.json",
-    "css:config/storage/backend/memory.json",
     "css:config/storage/key-value/resource-store.json",
     "css:config/storage/middleware/default.json",
     "css:config/util/auxiliary/acl.json",
@@ -35,6 +34,7 @@
     "uma-css:config/ldp/metadata-writer/uma.json",
     "uma-css:config/identity/handler/default.json",
     "uma-css:config/app/init/initialize-intro.json",
+    "css:config/storage/backend/file.json",
     "css:config/storage/location/pod.json"
   ],
   "@graph": [

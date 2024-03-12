@@ -1,0 +1,7 @@
+_:b82_b79_n3-10 <urn:npm:solid:derived-resources:template> "derived/bday";
+    <urn:npm:solid:derived-resources:selector> <http://localhost:3000/demo/public/data>;
+    <urn:npm:solid:derived-resources:filter> <http://localhost:3000/demo/public/filters/bday>.
+<http://localhost:3000/demo/public/> <urn:npm:solid:derived-resources:derivedResource> _:b82_b79_n3-10, _:b82_b79_n3-11.
+_:b82_b79_n3-11 <urn:npm:solid:derived-resources:template> "derived/age";
+    <urn:npm:solid:derived-resources:selector> <http://localhost:3000/demo/public/data>;
+    <urn:npm:solid:derived-resources:filter> <http://localhost:3000/demo/public/filters/age>.

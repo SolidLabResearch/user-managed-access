@@ -1,0 +1,14 @@
+@prefix ruben: <https://ruben.verborgh.org/profile/#me>.
+@prefix con: <http://www.w3.org/2000/10/swap/pim/contact#>.
+@prefix dbo: <http://dbpedia.org/ontology/>.
+@prefix dbp: <http://dbpedia.org/resource/>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+
+ruben: a foaf:Person;
+  con:preferredURI "https://ruben.verborgh.org/profile/#me";
+  foaf:familyName "Verborgh"@en, "Verborgh"@nl ;
+  foaf:givenName "Ruben"@en, "Ruben"@nl ;
+  dbo:birthDate "1987-02-28"^^xsd:date ;
+  dbo:birthPlace dbp:Ostend ;
+  foaf:gender "male"@en .
