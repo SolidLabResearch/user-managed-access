@@ -5,7 +5,7 @@ import { Permission } from "../views/Permission";
  * A ReType constant for {@link DialogInput:type}.
  */
 export const DialogInput = ({
-  ticket: string,
+  ticket: $(string),
   claim_token: $(string),
   claim_token_format: $(string), // TODO: switch to array of claims objects with unknown structure
   pct: $(string),

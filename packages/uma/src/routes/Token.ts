@@ -37,9 +37,11 @@ export class TokenRequestHandler implements HttpHandler {
 
     const params = input.request.body;
 
-    if (params['grant_type'] !== 'urn:ietf:params:oauth:grant-type:uma-ticket') {
-      throw new BadRequestHttpError(`Expected 'grant_type' to be set to 'urn:ietf:params:oauth:grant-type:uma-ticket'`);
-    }
+    // if (params['grant_type'] !== 'urn:ietf:params:oauth:grant-type:uma-ticket') {
+    //   throw new BadRequestHttpError(
+    //     `Expected 'grant_type' to be set to 'urn:ietf:params:oauth:grant-type:uma-ticket'
+    //   `);
+    // }
 
     try {
       reType(params, DialogInput);

@@ -95,7 +95,9 @@ export class BaseNegotiator implements Negotiator {
       return stored;
     }
 
-    if (!permissions) this.error(BadRequestHttpError, 'The provided ticket is not valid.');
+    if (!permissions) {
+      this.error(BadRequestHttpError, 'A token request without existing ticket should include requested permissions.');
+    }
 
     return await this.ticketingStrategy.initializeTicket(permissions);
   }
