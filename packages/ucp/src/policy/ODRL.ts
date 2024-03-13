@@ -83,6 +83,14 @@ export function createConstraintQuads(constraint: UCPConstraint, ruleIRI?: strin
                 quads.push(quad(namedNode(ruleIRI), ODRL.terms.constraint, namedNode(constraintIRI)))
             }
             break;
+        case "purpose":
+            quads.push(quad(namedNode(constraintIRI), ODRL.terms.leftOperand, ODRL.terms.purpose));
+            quads.push(quad(namedNode(constraintIRI), ODRL.terms.operator, namedNode(constraint.operator)));
+            quads.push(quad(namedNode(constraintIRI), ODRL.terms.rightOperand, literal(constraint.value)));
+            if (ruleIRI) {
+                quads.push(quad(namedNode(ruleIRI), ODRL.terms.constraint, namedNode(constraintIRI)))
+            }
+            break;
         default:
             console.log("Can not create constraint as the type is not understood:", constraint.type);
             break;

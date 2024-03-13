@@ -122,6 +122,7 @@ export const ODRL = createVocabulary(
     'operator',
     'permission',
     'dateTime',
+    'purpose',
     'leftOperand',
     'rightOperand'
 )
