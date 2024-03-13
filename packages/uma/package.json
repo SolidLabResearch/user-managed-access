@@ -56,8 +56,8 @@
     "build:ts": "yarn run -T tsc",
     "build:components": "yarn run -T componentsjs-generator -r sai-uma -s src -c dist/components -i .componentsignore --lenient",
     "test": "yarn run -T jest --coverage",
-    "start": "node dist/main.js",
-    "demo": "node dist/main.js"
+    "start": "ts-node bin/main.ts",
+    "demo": "ts-node bin/demo.ts"
   },
   "dependencies": {
     "@httpland/authorization-parser": "^1.1.0",

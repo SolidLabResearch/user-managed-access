@@ -57,7 +57,7 @@
     "test:all": "yarn workspaces foreach --exclude . -A -pi run test",
     "start:all": "yarn workspaces foreach --exclude . -A -pi run start",
     "start:demo": "yarn workspaces foreach --exclude . -A -pi run demo",
-    "script:demo": "yarn exec ts-node ./scripts/test-demo.ts",
+    "script:demo": "yarn exec ts-node ./demo/flow.ts",
     "script:public": "yarn exec ts-node ./scripts/test-public.ts",
     "script:private": "yarn exec ts-node ./scripts/test-private.ts",
     "script:registration": "yarn exec ts-node ./scripts/test-registration.ts",
