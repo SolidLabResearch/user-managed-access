@@ -7,7 +7,7 @@ import { ClaimSet } from '../../credentials/ClaimSet';
 import { DirectoryUCRulesStorage, PolicyExecutor, UconRequest, 
   UcpPatternEnforcement, UcpPlugin, UCRulesStorage } from '@solidlab/ucp';
 import { EyeJsReasoner } from "koreografeye";
-import { readFileSync } from 'fs';
+import { lstatSync, readFileSync, readdirSync } from 'fs';
 import path from 'path';
 import { UNSOLVABLE, WEBID } from '../../credentials/Claims';
 
@@ -21,7 +21,6 @@ export class PolicyBasedAuthorizer implements Authorizer {
   private plugins = { "http://example.org/dataUsage": new UcpPlugin() };
   private executor = new PolicyExecutor(this.plugins);
   private enforcer: UcpPatternEnforcement;
-  private n3: string;
 
   /**
    * Creates a PublicNamespaceAuthorizer with the given public namespaces.
@@ -32,11 +31,16 @@ export class PolicyBasedAuthorizer implements Authorizer {
   constructor(
     // protected rules: UCRulesStorage,
     // protected enforcer: UcpPatternEnforcement
-    rules: UCRulesStorage,
-    n3Rules: string,
+    policies: UCRulesStorage,
+    rulesDir: string,
   ) {
-    this.n3 = readFileSync(path.join(__dirname, '../../../', n3Rules)).toString();
-    this.enforcer = new UcpPatternEnforcement(rules, [this.n3], this.reasoner, this.executor)
+    if (!lstatSync(rulesDir).isDirectory()) {
+      throw Error(`${rulesDir} does not resolve to a directory`)
+    }
+    const ruleSet = readdirSync(rulesDir).map(file => {
+      return readFileSync(path.join(rulesDir, file)).toString();
+    });
+    this.enforcer = new UcpPatternEnforcement(policies, ruleSet, this.reasoner, this.executor)
   }
 
 

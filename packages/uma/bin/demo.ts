@@ -21,6 +21,7 @@ export const launch: () => Promise<void> = async () => {
   variables['urn:uma:variables:baseUrl'] = baseUrl;
   
   // variables['urn:uma:variables:policyDir'] = path.join(rootDir, './config/rules/policy');
+  variables['urn:uma:variables:rulesDir'] = path.join(rootDir, './config/rules/n3');
 
   variables['urn:uma:variables:mainModulePath'] = rootDir;
   variables['urn:uma:variables:customConfigPath'] = path.join(rootDir, './config/demo.json');

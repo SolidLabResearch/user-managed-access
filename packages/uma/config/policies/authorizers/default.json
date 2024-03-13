@@ -35,8 +35,10 @@
       "fallback": {
         "@id": "urn:uma:default:PolicyBasedAuthorizer",
         "@type": "PolicyBasedAuthorizer",
-        "n3Rules": "config/rules/crud.n3",
-        "rules": {
+        "rulesDir": {
+          "@id": "urn:uma:variables:rulesDir"
+        },
+        "policies": {
           "@id": "urn:uma:default:RulesStorage",
           "@type": "DirectoryUCRulesStorage",
           "directoryPath": {
