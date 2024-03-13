@@ -6,7 +6,6 @@
 @prefix string: <http://www.w3.org/2000/10/swap/string#> .
 @prefix list: <http://www.w3.org/2000/10/swap/list#> .
 
-
 # Read ODRL rule
 { 
   	?permission a odrl:Permission;
@@ -15,9 +14,8 @@
       	# odrl:assigner ?resourceOwner ;
       	odrl:assignee ?requestedParty.
 		
-	?action list:in (odrl:use odrl:read) . # multiple options
+		?action list:in (odrl:use odrl:read) . # multiple options
 
-    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }. # No odrl:constraints may be present
 
     # context of a request
   	?context 
@@ -29,6 +27,10 @@
     :uuid5 log:uuid ?uuidStringdataUsagePolicyExecution.
     ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
     ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+
+		# Constraint checking
+		# No odrl:constraints may be present
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }.
 } =>
 {
     ?dataUsagePolicyExecution a fno:Execution;
@@ -46,8 +48,6 @@
 		
 		?action list:in (odrl:use odrl:modify). # multiple options
 
-    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }. # No odrl:constraints may be present
-
     # context of a request
   	?context 
         # :resourceOwner ?resourceOwner;
@@ -58,13 +58,16 @@
     :uuid6 log:uuid ?uuidStringdataUsagePolicyExecution.
     ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
     ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+
+		# Constraint checking
+		# No odrl:constraints may be present
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }.
 } =>
 {
     ?dataUsagePolicyExecution a fno:Execution;
         fno:executes <http://example.org/dataUsage> ; 
         :accessModesAllowed <urn:example:css:modes:append>.
 }.
-
 
 # Write ODRL Rule
 { 
@@ -74,9 +77,7 @@
       	# odrl:assigner ?resourceOwner ;
       	odrl:assignee ?requestedParty.
 		
-	?action list:in (odrl:use odrl:modify). # multiple options
-
-    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }. # No odrl:constraints may be present
+		?action list:in (odrl:use odrl:modify). # multiple options
 
     # context of a request
   	?context 
@@ -88,14 +89,16 @@
     :uuid6 log:uuid ?uuidStringdataUsagePolicyExecution.
     ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
     ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+
+		# Constraint checking
+		# No odrl:constraints may be present
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }.
 } =>
 {
     ?dataUsagePolicyExecution a fno:Execution;
         fno:executes <http://example.org/dataUsage> ; 
         :accessModesAllowed <urn:example:css:modes:write>.
 }.
-
-
 
 # Create ODRL Rule
 { 
@@ -105,9 +108,7 @@
       	# odrl:assigner ?resourceOwner ;   
       	odrl:assignee ?requestedParty .
 		
-	?action list:in (odrl:use odrl:modify). # multiple options
-
-    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }. # No odrl:constraints may be present
+		?action list:in (odrl:use odrl:modify). # multiple options
 
     # context of a request
   	?context 
@@ -119,13 +120,16 @@
     :uuid6 log:uuid ?uuidStringdataUsagePolicyExecution.
     ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
     ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+
+		# Constraint checking
+		# No odrl:constraints may be present
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }.
 } =>
 {
     ?dataUsagePolicyExecution a fno:Execution;
         fno:executes <http://example.org/dataUsage> ; 
         :accessModesAllowed <urn:example:css:modes:create>.
 }.
-
 
 # Delete ODRL Rule
 { 
@@ -135,9 +139,7 @@
       	# odrl:assigner ?resourceOwner ;
       	odrl:assignee ?requestedParty.
 		
-	?action list:in (odrl:use odrl:delete). # multiple options
-
-    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }. # No odrl:constraints may be present
+		?action list:in (odrl:use odrl:delete). # multiple options
 
     # context of a request
   	?context 
@@ -149,6 +151,10 @@
     :uuid6 log:uuid ?uuidStringdataUsagePolicyExecution.
     ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
     ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+
+		# Constraint checking
+		# No odrl:constraints may be present
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }.
 } =>
 {
     ?dataUsagePolicyExecution a fno:Execution;
