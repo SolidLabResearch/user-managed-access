@@ -99,6 +99,8 @@ async function main() {
   const purpose = 'age-verification'
   const policy = demoPolicy(terms.views.age, terms.agents.vendor, { startDate, endDate, purpose })
 
+  // create container if it does not exist yet
+  await initContainer(policyContainer)
   const policyCreationResponse = await fetch(policyContainer, {
     method: 'POST',
     headers: { 'content-type': 'text/turtle' },
@@ -146,3 +148,17 @@ function log(msg: string, obj?: any) {
     console.log(obj);
   }
 }
+
+// creates the container if it does not exist yet (only when access is there)
+async function initContainer(policyContainer: string): Promise<void> {
+  const res = await fetch(policyContainer)
+  if (res.status === 404) {
+    const res = await fetch(policyContainer, {
+      method: 'PUT'
+    })
+    if (res.status !== 201) {
+      log('Creating container at ' + policyContainer + ' not successful'); throw 0;
+    }
+  }
+}
+
