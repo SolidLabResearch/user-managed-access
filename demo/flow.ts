@@ -68,6 +68,28 @@ async function main() {
 
   log(`Now, having discovered both the location of the UMA server and of the desired data, an agent can request the former for access to the latter.`);
 
+  const accessRequest = {
+    // grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
+    // ticket,
+    claim_token: encodeURIComponent(terms.agents.vendor),
+    claim_token_format: 'urn:solidlab:uma:claims:formats:webid',
+    permissions: [{
+      resource_id: terms.views.age,
+      resource_scopes: [ terms.scopes.read ],
+    }]
+  };
+
+  const accessDeniedResponse = await fetch(tokenEndpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(accessRequest),
+  });
+
+  // if (accessDeniedResponse.status !== 403) { log('Access request succeeded without policy...'); throw 0; }
+
+  log(`Without a policy allowing the access, the access is denied.`);
+  log(`However, the UMA server enables multiple flows in which such a policy can be added, for example by notifying the resource owner. (This is out-of-scope for this demo.)`);
+  
   log(`...`);
 
   log(`Having been notified in some way of the access request, Ruben could go to his Authz Companion app, and add a policy allowing the requested access.`);
@@ -84,57 +106,27 @@ async function main() {
   });
 
   if (policyCreationResponse.status !== 201) { log('Adding a policy did not succeed...'); throw 0; }
-
+  
   log(`Now that the policy has been set, and the agent has possibly been notified in some way, the agent can try the access request again.`);
-
-  const content = {
-    // grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
-    claim_token: encodeURIComponent(terms.agents.vendor),
-    claim_token_format: 'urn:solidlab:uma:claims:formats:webid',
-    // ticket,
-    permissions: [{
-      resource_id: terms.views.age,
-      resource_scopes: [ terms.scopes.read ],
-    }]
-  };
-
-  console.log(`=== Requesting token at ${tokenEndpoint} with ticket body:\n`);
-  console.log(content);
-  console.log('');
-
-  const asRequestResponse = await fetch(tokenEndpoint, {
-      method: "POST",
-      headers: { "content-type":"application/json" },
-      body: JSON.stringify(content),
-  })
-
-  // For debugging:
-  // console.log("Authorization Server response:", await asRequestResponse.text());
-  // throw 'stop'
-
-  const asResponse = await asRequestResponse.json();
-
-  const decodedToken = parseJwt(asResponse.access_token);
-
-  console.log(`= Status: ${asRequestResponse.status}\n`);
-  console.log(`= Body (decoded):\n`);
-  console.log({ ...asResponse, access_token: asResponse.access_token.slice(0,10).concat('...') });
-  console.log('\n');
-
-  for (const permission of decodedToken.permissions) {
-    console.log(`Permissioned scopes for resource ${permission.resource_id}:`, permission.resource_scopes)
-  }
   
-  console.log(`=== Trying to create private resource <${terms.views.age}> WITH access token.\n`);
+  const accessGrantedResponse = await fetch(tokenEndpoint, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(accessRequest),
+  });
   
-  const tokenResponse = await fetch(terms.views.age, {
-    headers: { 'Authorization': `${asResponse.token_type} ${asResponse.access_token}` }
+  if (accessGrantedResponse.status !== 200) { log('Access request failed despite policy...'); throw 0; }
+
+  log(`Based on the policy, the UMA server returns the agent an access token with the requested permissions.`);
+  
+  const tokenParams = await accessGrantedResponse.json();
+  const accessWithTokenResponse = await fetch(terms.views.age, {
+    headers: { 'Authorization': `${tokenParams.token_type} ${tokenParams.access_token}` }
   });
 
-  console.log(`= Status: ${tokenResponse.status}\n`); 
-  console.log(`= Body:\n`); 
-  console.log(`= Body: ${await tokenResponse.text()}`); 
-  console.log(`\n`); 
+  if (accessWithTokenResponse.status !== 200) { log('Access with token failed...'); throw 0; }
+
+  log(`The agent can then use this access token at the Resource Server to perform the desired action.`);
 }
 
 main();
