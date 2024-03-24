@@ -69,10 +69,6 @@ async function main() {
   log(`Now, having discovered both the location of the UMA server and of the desired data, an agent can request the former for access to the latter.`);
 
   const accessRequest = {
-    // grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
-    // ticket,
-    claim_token: encodeURIComponent(terms.agents.vendor),
-    claim_token_format: 'urn:solidlab:uma:claims:formats:webid',
     permissions: [{
       resource_id: terms.views.age,
       resource_scopes: [ terms.scopes.read ],
@@ -85,7 +81,7 @@ async function main() {
       body: JSON.stringify(accessRequest),
   });
 
-  // if (accessDeniedResponse.status !== 403) { log('Access request succeeded without policy...'); throw 0; }
+  if (accessDeniedResponse.status !== 403) { log('Access request succeeded without policy...'); throw 0; }
 
   log(`Without a policy allowing the access, the access is denied.`);
   log(`However, the UMA server enables multiple flows in which such a policy can be added, for example by notifying the resource owner. (This is out-of-scope for this demo.)`);
@@ -96,7 +92,7 @@ async function main() {
 
   const startDate = new Date();
   const endDate = new Date(startDate.valueOf() + 14 * 24 * 60 * 60 * 1000);
-  const purpose = 'age-verification'
+  const purpose = 'urn:solidlab:uma:claims:purpose:age-verification'
   const policy = demoPolicy(terms.views.age, terms.agents.vendor, { startDate, endDate, purpose })
 
   const policyCreationResponse = await fetch(policyContainer, {
@@ -109,15 +105,42 @@ async function main() {
   
   log(`Now that the policy has been set, and the agent has possibly been notified in some way, the agent can try the access request again.`);
   
-  const accessGrantedResponse = await fetch(tokenEndpoint, {
+  const needInfoResponse = await fetch(tokenEndpoint, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(accessRequest),
   });
   
+  if (needInfoResponse.status !== 403) { log('Access request succeeded without claims...'); throw 0; }
+
+  const { ticket, required_claims } = await needInfoResponse.json();
+
+  log(`Based on the policy, the UMA server requests the following claims from the agent:`);
+  required_claims.claim_token_format[0].forEach((format: string) => log(`  - ${format}`))
+
+  // JWT (HS256; secret: "ceci n'est pas un secret")
+  // {
+  //   "http://www.w3.org/ns/odrl/2/purpose": "urn:solidlab:uma:claims:purpose:age-verification",
+  //   "urn:solidlab:uma:claims:types:webid": "http://localhost:3000/demo/public/vendor"
+  // }
+  const claim_token = "eyJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vd3d3LnczLm9yZy9ucy9vZHJsLzIvcHVycG9zZSI6InVybjpzb2xpZGxhYjp1bWE6Y2xhaW1zOnB1cnBvc2U6YWdlLXZlcmlmaWNhdGlvbiIsInVybjpzb2xpZGxhYjp1bWE6Y2xhaW1zOnR5cGVzOndlYmlkIjoiaHR0cDovL2xvY2FsaG9zdDozMDAwL2RlbW8vcHVibGljL3ZlbmRvciJ9.Px7G3zl1ZpTy1lk7ziRMvNv12Enb0uhup9kiVI6Ot3s"
+
+  log(`The agent gathers the necessary claims (the manner in which is out-of-scope for this demo), and sends them to the UMA server as a JWT.`)
+
+  const accessGrantedResponse = await fetch(tokenEndpoint, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      ...accessRequest,
+      ticket,
+      claim_token_format: 'urn:solidlab:uma:claims:formats:jwt',
+      claim_token,
+    })
+  });
+
   if (accessGrantedResponse.status !== 200) { log('Access request failed despite policy...'); throw 0; }
 
-  log(`Based on the policy, the UMA server returns the agent an access token with the requested permissions.`);
+  log(`The UMA server checks the claims with the relevant policy, and returns the agent an access token with the requested permissions.`);
   
   const tokenParams = await accessGrantedResponse.json();
   const accessWithTokenResponse = await fetch(terms.views.age, {
