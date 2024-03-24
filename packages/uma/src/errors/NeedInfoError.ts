@@ -4,7 +4,7 @@ export type RedirectUserInfo = {
     redirect_user: string
 }
 export type RequiredClaimsInfo = {
-    required_claims: { claim_token_format: string[] }
+    required_claims: { claim_token_format: string[][] }
 }
 
 /**

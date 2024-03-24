@@ -27,42 +27,48 @@ export class NamespacedAuthorizer implements Authorizer {
   public async permissions(claims: ClaimSet, query?: Partial<Permission>[]): Promise<Permission[]> {
     this.logger.info('Calculating permissions.', { claims, query });
 
-    const permissions: Permission[] = [];
-    for (const permission of query ?? []) {
-      const resource = permission.resource_id;
-      const ns = resource ? namespace(resource) : undefined;
-      const authorizer = ns ? this.authorizers[ns] : undefined;
+    // No permissions if no query
+    if (!query || query.length === 0) return [];
 
-      permissions.push(... await (authorizer ?? this.fallback).permissions(claims, [ permission ]));
+    // Base namespace on first resource
+    const ns = query[0].resource_id ? namespace(query[0].resource_id) : undefined;
+
+    // Check namespaces of other resources
+    for (const permission of query) {
+      if ((permission.resource_id ? namespace(permission.resource_id) : undefined) !== ns) {
+        this.logger.warn(`Cannot calculate permissions over multiple namespaces at once.`);
+        return [];
+      }
     }
 
-    return permissions;
+    // Find applicable authorizer
+    const authorizer = ns ? this.authorizers[ns] : this.fallback;
+
+    // Delegate to authorizer
+    return authorizer.permissions(claims, query);
   }
 
   /** @inheritdoc */
-  public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements> {
+  public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements[]> {
     this.logger.info('Calculating credentials.', { permissions, query });
 
-    const verifiers: NodeJS.Dict<ClaimVerifier[]> = {};
+    // No requirements if no requested permissions
+    if (!permissions || permissions.length === 0) return [];
+
+    // Base namespace on first resource
+    const ns = namespace(permissions[0].resource_id);
+
+    // Check namespaces of other resources
     for (const permission of permissions) {
-      const resource = permission.resource_id;
-      const ns = resource ? namespace(resource) : undefined;
-      const authorizer = ns ? this.authorizers[ns] : undefined;
-
-      const result = await (authorizer ?? this.fallback).credentials([ permission ], query);
-
-      for (const key of Object.keys(result)) {
-        verifiers[key] = (verifiers[key] ?? []).concat(result[key]!);
-      }; 
+      if (namespace(permission.resource_id) !== ns) {
+        this.logger.warn(`Cannot calculate credentials over multiple namespaces at once.`);
+        return [];
+      }
     }
 
-    const combined = Object.entries(verifiers).map(
-      ([claim, vs]) => [ 
-        claim, 
-        async (...args: unknown[]) => (await Promise.all((vs ?? []).map(v => v(...args)))).every(r => r)
-      ]
-    );
+    // Find applicable authorizer
+    const authorizer = this.authorizers[ns] ?? this.fallback;
 
-    return Object.fromEntries(combined);
+    return authorizer.credentials(permissions, query);
   }
 }
