@@ -27,7 +27,8 @@
         # :resourceOwner ?resourceOwner;
       	:requestingParty ?requestedParty;
       	:target ?targetResource;
-      	:requestPermission <urn:example:css:modes:read>.
+      	:requestPermission <urn:example:css:modes:read>;
+				<http://www.w3.org/ns/odrl/2/purpose> ?purposeValue.
 
     :uuid5 log:uuid ?uuidStringdataUsagePolicyExecution.
     ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
