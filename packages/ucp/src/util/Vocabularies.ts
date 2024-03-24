@@ -124,7 +124,10 @@ export const ODRL = createVocabulary(
     'dateTime',
     'purpose',
     'leftOperand',
-    'rightOperand'
+    'rightOperand',
+    'gt',
+    'lt',
+    'eq',
 )
 
 export const XSD = createVocabulary(
