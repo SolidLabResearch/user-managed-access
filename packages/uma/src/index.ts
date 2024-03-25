@@ -9,6 +9,7 @@ export * from './credentials/verify/Verifier';
 export * from './credentials/verify/TypedVerifier';
 export * from './credentials/verify/UnsecureVerifier';
 export * from './credentials/verify/SolidOidcVerifier';
+export * from './credentials/verify/JwtVerifier';
 
 // Dialog
 export * from './dialog/Input';

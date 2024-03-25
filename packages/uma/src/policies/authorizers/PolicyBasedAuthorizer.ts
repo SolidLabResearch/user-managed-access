@@ -1,15 +1,16 @@
 import { Logger } from '../../util/logging/Logger';
 import { getLoggerFor } from '../../util/logging/LoggerUtils';
-import { ANY_RESOURCE, ANY_SCOPE, Authorizer } from './Authorizer';
+import { Authorizer } from './Authorizer';
 import { Permission } from '../../views/Permission';
-import { Requirements } from '../../credentials/Requirements';
+import { Requirements, type ClaimVerifier } from '../../credentials/Requirements';
 import { ClaimSet } from '../../credentials/ClaimSet';
-import { DirectoryUCRulesStorage, PolicyExecutor, UconRequest, 
+import { ODRL, PolicyExecutor, UconRequest, 
   UcpPatternEnforcement, UcpPlugin, UCRulesStorage } from '@solidlab/ucp';
 import { EyeJsReasoner } from "koreografeye";
 import { lstatSync, readFileSync, readdirSync } from 'fs';
 import path from 'path';
-import { UNSOLVABLE, WEBID } from '../../credentials/Claims';
+import { WEBID } from '../../credentials/Claims';
+import { RDF } from '@solid/community-server';
 
 /**
  * An Authorizer granting access according to Usage Control Policies.
@@ -29,18 +30,17 @@ export class PolicyBasedAuthorizer implements Authorizer {
    * @param enforcer - The UcpPatternEnforcement engine.
    */
   constructor(
-    // protected rules: UCRulesStorage,
     // protected enforcer: UcpPatternEnforcement
-    policies: UCRulesStorage,
-    rulesDir: string,
+    private readonly policies: UCRulesStorage,
+    private readonly rulesDir: string,
   ) {
-    if (!lstatSync(rulesDir).isDirectory()) {
-      throw Error(`${rulesDir} does not resolve to a directory`)
+    if (!lstatSync(this.rulesDir).isDirectory()) {
+      throw Error(`${this.rulesDir} does not resolve to a directory`)
     }
-    const ruleSet = readdirSync(rulesDir).map(file => {
-      return readFileSync(path.join(rulesDir, file)).toString();
+    const ruleSet = readdirSync(this.rulesDir).map(file => {
+      return readFileSync(path.join(this.rulesDir, file)).toString();
     });
-    this.enforcer = new UcpPatternEnforcement(policies, ruleSet, this.reasoner, this.executor)
+    this.enforcer = new UcpPatternEnforcement(this.policies, ruleSet, this.reasoner, this.executor)
   }
 
 
@@ -65,6 +65,7 @@ export class PolicyBasedAuthorizer implements Authorizer {
         subject: typeof claims[WEBID] === 'string' ? claims[WEBID] : 'urn:solidlab:uma:id:anonymous',
         resource: resource_id,
         action: resource_scopes ?? [ "http://www.w3.org/ns/odrl/2/use" ],
+        claims
       });
     }
 
@@ -79,24 +80,59 @@ export class PolicyBasedAuthorizer implements Authorizer {
   }
 
   /** @inheritdoc */
-  public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements> {
+  public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements[]> {
     this.logger.info('Calculating credentials.', { permissions, query });
+    
+    // No permissions => empty requirements
+    if (permissions.length === 0) return [{}];
 
-    if (permissions.length === 0) return ({});
-    if (query && !Object.keys(query).includes(WEBID)) return { [UNSOLVABLE]: async () => false };
+    const policyStore = await this.policies.getStore();
+    const requirements: Requirements[] = [];
+    
+    const policyPermissions = policyStore.getSubjects(RDF.terms.type, ODRL.terms.Permission, null);
+    
+    // No policies => no solvable requirements
+    if (policyPermissions.length === 0) return [];
+    
+    for (const policyPermission of policyPermissions) {
+      const verifiers: Record<string, ClaimVerifier> = {};
+      
+      // TODO: remove this default and treat webid as any claim
+      const webids = policyStore.getObjects(policyPermission, ODRL.terms.assignee, null).map(webid => webid.value);
+      verifiers[WEBID] = async (webid: string) => webids.includes(webid);
 
-    return {
-      [WEBID]: async (webid: string) => {
-        const received = await this.permissions({ [WEBID]: webid }, permissions);
+      const constraints = policyStore.getObjects(policyPermission, ODRL.terms.constraint, null);
 
-        if (received.length !== permissions.length) return false;
-        
-        return permissions.every((permission, index) => {
-          if (permission.resource_id !== received[index].resource_id) return false;
+      for (const constraint of constraints) {
+        const leftOperand = policyStore.getObjects(constraint, ODRL.terms.leftOperand, null)[0];
+        const operator = policyStore.getObjects(constraint, ODRL.terms.operator, null)[0];
+        const rightOperand = policyStore.getObjects(constraint, ODRL.terms.rightOperand, null)[0];
 
-          return permission.resource_scopes.every(scope => received[index].resource_scopes.includes(scope));
-        })
+        if (operator.value !== ODRL.lt && operator.value !== ODRL.gt && operator.value !== ODRL.eq) {
+          this.logger.warn(`Cannot handle operator <${operator.value}>.`);
+          continue;
+        }
+
+        // Skip dateTime constraints, since this is included in the rules.
+        if (leftOperand.value === ODRL.dateTime) continue;
+
+        // TODO: Support any ODRL constraint
+        verifiers[leftOperand.value] = async (arg: any) => {
+          switch (operator.value) {
+            case ODRL.lt: return arg < rightOperand.value;
+            case ODRL.gt: return arg > rightOperand.value;
+            default: return arg === rightOperand.value;
+          }
+        };
       }
-    };
+
+      requirements.push(verifiers);
+    }
+
+    if (query && !Object.keys(requirements).every(r => Object.keys(query).includes(r))) {
+      return [];
+    }
+
+    return requirements;
   }
 }
