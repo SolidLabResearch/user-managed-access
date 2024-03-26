@@ -1,0 +1,60 @@
+.banner-wrapper { 
+    height: 80px;
+	padding: .25em;
+	background-color: lightblue;
+	color: black;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	max-width: 65rem;
+	width: 100%;
+	margin: 0 auto;
+	padding: 0 .5em;
+    height: 30px;
+}
+
+.column {
+	display: flex;
+	flex-direction: column;
+	flex-basis: 100%;
+	flex: 1;
+	padding: 0 .5em;
+}
+
+.banner-header { margin: 0 auto; }
+
+.banner-image {
+	vertical-align: middle;
+	padding-right: .5em;
+}
+
+.banner-headline { 
+	display: inline-block; 
+	padding-left: .5em;
+}
+
+.banner-headline p {
+	font-weight: 700;
+	font-size: 1.2rem;
+	vertical-align: middle;
+}
+
+.banner-text {
+	font-size: 1.15rem;
+}
+
+#ageValidation {
+    position: fixed;
+    width: 150px;
+    height: 40px;
+    bottom: 20px;
+    right: 20px;
+}
