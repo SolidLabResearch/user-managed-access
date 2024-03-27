@@ -78,6 +78,10 @@ nav {
   background-color:beige;
 }
 
+.selectedentry {
+  background-color:lightblue;
+}
+
 #PolicyDisplayScreen {
   display: flex;
   align-items: center;

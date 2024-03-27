@@ -14,6 +14,9 @@ export interface SimplePolicy {
   policyIRI: string;
   // identifier of the rule
   ruleIRIs: string[];
+
+  policyLocation?: string;
+  policyText?: string;
 }
 
 /**

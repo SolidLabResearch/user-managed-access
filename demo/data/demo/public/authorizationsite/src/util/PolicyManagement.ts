@@ -60,7 +60,7 @@ export async function readPolicyDirectory () {
 
 }
 
-async function readPolicy(policyText: string) {
+export async function readPolicy(policyText: string) {
   const parsed = await new Parser().parse(policyText)
   const store = new Store()
   store.addQuads(parsed)
@@ -69,7 +69,8 @@ async function readPolicy(policyText: string) {
   let simplePolicy: SimplePolicy = {
     representation: store,
     policyIRI,
-    ruleIRIs: [ruleIRI]
+    ruleIRIs: [ruleIRI],
+    policyText: policyText,
   }
 
   return simplePolicy
