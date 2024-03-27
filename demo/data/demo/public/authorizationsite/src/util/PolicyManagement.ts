@@ -1,12 +1,21 @@
 /* eslint-disable max-len */
 
-import { Parser, Writer, Store } from 'n3';
+import { Parser, Writer, Store, DataFactory } from 'n3';
 import { SimplePolicy, demoPolicy } from "./policyCreation";
+
+export type PolicyFormData = {
+  target: string,
+  assignee: string, 
+  startDate: Date,
+  endDate: Date,
+  purpose: string,
+  description: string,
+}
 
 const parser = new Parser();
 const writer = new Writer();
 
-const terms = {
+export const terms = {
   solid: {
     umaServer: 'http://www.w3.org/ns/solid/terms#umaServer',
     viewIndex: 'http://www.w3.org/ns/solid/terms#viewIndex',
@@ -49,57 +58,64 @@ export async function readPolicyDirectory () {
   let resourceURIs = resourceQuads.map(q => q.object.value)
 
   console.log('IRIS', responseText, resourceURIs)
-  const policyObjects = await Promise.all(resourceURIs.map(async (location) => {
+  let policyObjects = await Promise.all(resourceURIs.map(async (location) => {
     const resource = await fetch(location);
     const resourceText = await resource.text()
     const policy = await readPolicy(resourceText)
     return policy
   }))
-  
-  return policyObjects || []
+  policyObjects = policyObjects.filter(e => e !== null)
+  return (policyObjects || []) as SimplePolicy[]
 
 }
 
 export async function readPolicy(policyText: string) {
+  if (policyText === '') return null;
   const parsed = await new Parser().parse(policyText)
   const store = new Store()
   store.addQuads(parsed)
   const policyIRI = store.getQuads(null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/ns/odrl/2/Agreement', null)[0]?.subject.value
   const ruleIRI = store.getQuads(null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/ns/odrl/2/Permission', null)[0]?.subject.value
+  const description = store.getQuads(null, 'http://purl.org/dc/elements/1.1/description', null, null)[0]?.object.value
   let simplePolicy: SimplePolicy = {
     representation: store,
     policyIRI,
     ruleIRIs: [ruleIRI],
     policyText: policyText,
+    description,
   }
 
   return simplePolicy
 }
 
-export async function createPolicy(policyText: string) {
+export async function createAndSubmitPolicy(formdata: PolicyFormData) {
   console.log('Creating policy')
 
   const policyContainer = 'http://localhost:3000/ruben/settings/policies/';
 
-
-  log(`Having been notified in some way of the access request, Ruben could go to his Authz Companion app, and add a policy allowing the requested access.`);
-
-  const startDate = new Date();
-  const endDate = new Date(startDate.valueOf() + 14 * 24 * 60 * 60 * 1000);
-  const purpose = 'urn:solidlab:uma:claims:purpose:age-verification'
-  const policy = demoPolicy(terms.views.age, terms.agents.vendor, { startDate, endDate, purpose })
+  const policy = demoPolicy(formdata.target, formdata.assignee, 
+    { startDate: formdata.startDate, endDate: formdata.endDate, purpose: formdata.purpose })
+    
+  const descriptionQuad = DataFactory.quad(
+    DataFactory.namedNode(policy.policyIRI), 
+    DataFactory.namedNode('http://purl.org/dc/elements/1.1/description'),
+    DataFactory.literal(formdata.description)
+  )
+  const policyString = writer.quadsToString(policy.representation.getQuads(null, null, null, null).concat(descriptionQuad))
 
   // create container if it does not exist yet
   await initContainer(policyContainer)
   const policyCreationResponse = await fetch(policyContainer, {
     method: 'POST',
     headers: { 'content-type': 'text/turtle' },
-    body: writer.quadsToString(policy.representation.getQuads(null, null, null, null))
+    body: policyString
   });
 
   if (policyCreationResponse.status !== 201) { log('Adding a policy did not succeed...'); throw 0; }
   
   log(`Now that the policy has been set, and the agent has possibly been notified in some way, the agent can try the access request again.`);
+  policy.policyText = policyString
+  return policy
   
 }
 

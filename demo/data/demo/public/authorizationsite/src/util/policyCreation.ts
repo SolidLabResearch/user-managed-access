@@ -17,6 +17,7 @@ export interface SimplePolicy {
 
   policyLocation?: string;
   policyText?: string;
+  description?: string;
 }
 
 /**

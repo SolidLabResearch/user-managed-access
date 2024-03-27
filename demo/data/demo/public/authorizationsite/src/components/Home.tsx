@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { createPolicy, doPolicyFlowFromString, readPolicy, readPolicyDirectory } from "../util/PolicyManagement";
+import { createAndSubmitPolicy, doPolicyFlowFromString, readPolicy, readPolicyDirectory } from "../util/PolicyManagement";
 import PolicyModal from "./Modal";
+import PolicyFormModal from "./FormModal"
 import { SimplePolicy } from "../util/policyCreation";
 
 export default function Home() { 
@@ -16,18 +17,26 @@ export default function Home() {
       getPolicies()
     }, [])
 
-    async function addPolicy(policyText: string) {
+    async function addPolicyFromText(policyText: string) {
         console.log('Adding the following policy:')
         console.log(policyText)
         await doPolicyFlowFromString(policyText)
         const policyObject = await readPolicy(policyText)
-        setPolicyList(policyList.concat(policyObject))
+        if(policyObject) setPolicyList(policyList.concat(policyObject))
+    }
+
+    async function addPolicyFromFormdata(formdata: any) {
+        console.log('Adding the following policy:')
+        console.log(formdata)
+        const policyObject = await createAndSubmitPolicy(formdata)
+        if(policyObject) setPolicyList(policyList.concat(policyObject))
     }
 
     function renderPolicy(policy: SimplePolicy) {
         return (
             <div key={policy.policyLocation} className={`policyentry ${policy.policyIRI === selectedPolicy ? 'selectedentry' : ''}`} onClick={() => setSelectedPolicy(policy.policyIRI)}>
-                <p>{policy.policyIRI}</p>
+                <p>id: {policy.policyIRI}</p>
+                <p>{policy.description}</p>
             </div>
         )
     }
@@ -45,7 +54,7 @@ export default function Home() {
                             policyList.map(renderPolicy)
                         }
                     </div>
-                    <PolicyModal addPolicy={addPolicy}/>
+                    <PolicyFormModal addPolicy={addPolicyFromFormdata}/>
                 </div>
                 <div id="PolicyDisplayScreen">
                     <textarea id="policyview" value={selectedPolicyText} readOnly/>

@@ -36,22 +36,19 @@ nav {
 
 
 #policypage {
-  background-color: green;
   height: 80vh;
   margin-top: 5vh;
 }
 
 #policymanagementcontainer {
-  background-color: red;
+  background-color: #fffbe4;
   height: 200px;
   width: 80vw;
   margin: auto;
   display: flex;
   height: 100%;
-}
-
-#policyList {
-  flex: 80%;
+  overflow: hidden;
+  border: 1px solid black;
 }
 
 #addPolicy {
@@ -69,13 +66,26 @@ nav {
 #policyList {
   flex: 80%;
   overflow-y: scroll;
+  padding: 30px;
+}
+
+::-webkit-scrollbar {
+    width: 0;  /* Remove scrollbar space */
+    background: transparent;  /* Optional: just make scrollbar invisible */
+}
+/* Optional: show position indicator in red */
+::-webkit-scrollbar-thumb {
+    background: #FF0000;
 }
 
 .policyentry {
   height: 100px;
-  border: 1px solid black;
+  border: 2px solid gray;
   margin-top: 10px;
   background-color:beige;
+  text-align: left;
+  border-radius: 1em;
+  padding: .5em;
 }
 
 .selectedentry {
