@@ -1,9 +1,7 @@
 /* eslint-disable max-len */
 
-import { fetch } from 'cross-fetch';
 import { Parser, Writer, Store } from 'n3';
-import { demoPolicy } from "./policyCreation";
-import { mkdirSync } from 'fs';
+import { SimplePolicy, demoPolicy } from "./policyCreation";
 
 const parser = new Parser();
 const writer = new Writer();
@@ -34,7 +32,51 @@ const terms = {
   }
 }
 
-async function main() {
+export async function readPolicyDirectory () {
+  const policyContainer = 'http://localhost:3000/ruben/settings/policies/';
+
+  // create container if it does not exist yet
+  await initContainer(policyContainer)
+
+  const policyCreationResponse = await fetch(policyContainer);
+  const responseText = await policyCreationResponse.text()
+
+  const parsed = new Parser({baseIRI: policyContainer}).parse(responseText)
+  const store = new Store()
+  store.addQuads(parsed)
+
+  let resourceQuads = store.getQuads(policyContainer, 'http://www.w3.org/ns/ldp#contains', null, null)
+  let resourceURIs = resourceQuads.map(q => q.object.value)
+
+  console.log('IRIS', responseText, resourceURIs)
+  const policyObjects = await Promise.all(resourceURIs.map(async (location) => {
+    const resource = await fetch(location);
+    const resourceText = await resource.text()
+    const policy = await readPolicy(resourceText)
+    return policy
+  }))
+  
+  return policyObjects || []
+
+}
+
+async function readPolicy(policyText: string) {
+  const parsed = await new Parser().parse(policyText)
+  const store = new Store()
+  store.addQuads(parsed)
+  const policyIRI = store.getQuads(null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/ns/odrl/2/Agreement', null)[0]?.subject.value
+  const ruleIRI = store.getQuads(null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/ns/odrl/2/Permission', null)[0]?.subject.value
+  let simplePolicy: SimplePolicy = {
+    representation: store,
+    policyIRI,
+    ruleIRIs: [ruleIRI]
+  }
+
+  return simplePolicy
+}
+
+export async function createPolicy(policyText: string) {
+  console.log('Creating policy')
 
   const policyContainer = 'http://localhost:3000/ruben/settings/policies/';
 
@@ -60,7 +102,24 @@ async function main() {
   
 }
 
-main();
+export async function doPolicyFlowFromString(policyText: string) {
+  console.log('Creating policy')
+
+  const policyContainer = 'http://localhost:3000/ruben/settings/policies/';
+
+  // create container if it does not exist yet
+  await initContainer(policyContainer)
+  const policyCreationResponse = await fetch(policyContainer, {
+    method: 'POST',
+    headers: { 'content-type': 'text/turtle' },
+    body: policyText
+  });
+
+  if (policyCreationResponse.status !== 201) { log('Adding a policy did not succeed...'); throw 0; }
+  
+  log(`Now that the policy has been set, and the agent has possibly been notified in some way, the agent can try the access request again.`);
+  
+}
 
 
 /* Helper functions */

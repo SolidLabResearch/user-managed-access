@@ -1,0 +1,96 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  width: 100vw;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+nav {
+  background-color: lightskyblue;
+  margin: 0;
+  height: 3em;
+}
+
+.rowcontainer {
+  display: flex;
+  flex-direction: row;
+}
+
+.columncontainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.equalcolumns {
+  flex: 50%;
+}
+
+
+#policypage {
+  background-color: green;
+  height: 80vh;
+  margin-top: 5vh;
+}
+
+#policymanagementcontainer {
+  background-color: red;
+  height: 200px;
+  width: 80vw;
+  margin: auto;
+  display: flex;
+  height: 100%;
+}
+
+#policyList {
+  flex: 80%;
+}
+
+#addPolicy {
+  flex: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#addPolicyButton {
+  height: 60%;
+  width: 60%;
+}
+
+#policyList {
+  flex: 80%;
+  overflow-y: scroll;
+}
+
+.policyentry {
+  height: 100px;
+  border: 1px solid black;
+  margin-top: 10px;
+  background-color:beige;
+}
+
+#PolicyDisplayScreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 60%;
+}
+
+
+#policyview {
+  width: 90%;
+  height: 90%;
+}
+
+#PolicyListContainer {
+  flex: 40%;
+}
