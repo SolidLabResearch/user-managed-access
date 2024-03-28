@@ -22,6 +22,7 @@ function App() {
   const [items, setItems] = useState([] as Item[])
   const [verified, setVerified] = useState(false)
   const [modalError, setModalError] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
 
@@ -92,7 +93,7 @@ function App() {
             <img id='logo' src='store.jpg' alt='Store logo' />
           </div>
           <div id='searchBarContainer'>
-            <input id='searchBar' placeholder='What are you looking for?'></input>
+            <input id='searchBar' placeholder='What are you looking for?' value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}></input>
           </div>
         </div>
       </nav>
@@ -102,7 +103,12 @@ function App() {
       <h2>Dranken</h2>
       <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }} >
         {
-          items.filter(item => { return verified ? true : !item.alcoholic}).map(item => displayItem(item))
+          items.filter(item => { 
+            if (item.alcoholic && !verified) return false;
+            if (searchTerm && (!item.name || !item.name.toLowerCase().includes(searchTerm.toLowerCase()))) return false
+            return true
+            //return verified ? true : !item.alcoholic
+          }).map(item => displayItem(item))
         }
       </Grid>
       </div>

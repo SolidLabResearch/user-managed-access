@@ -31,20 +31,32 @@ export const terms = {
 }
 
 export async function retrieveData(webId: string): Promise<string> {
+  
+  let profileText, viewIndex, views;
+  let webIdData: Store;
 
-  log(`Alright, so, for the demo ...`);
+  try {
+    profileText = await (await fetch(webId)).text()
+    
+    webIdData = new Store(parser.parse(profileText));
+    viewIndex = webIdData.getObjects(webId, terms.solid.viewIndex, null)[0]?.value;
+    views = Object.fromEntries(webIdData.getObjects(viewIndex, terms.solid.entry, null).map(entry => {
+      const filter = webIdData.getObjects(entry, terms.solid.filter, null)[0]?.value;
+      const location = webIdData.getObjects(entry, terms.solid.location, null)[0]?.value;
+      return [filter, location];
+    }));
+  } catch (e: any) {
+    log(e)
+    throw new Error('Could not read WebID information')
+  }
 
-  log(`Ruben V., a.k.a. <${terms.agents.ruben}>, has some private data in <http://localhost:3000/ruben/private/data>.`);
+  if (webIdData && webIdData.getQuads(null, "http://xmlns.com/foaf/0.1/age", null, null).length) {
+    // Valid age found, we can return the profile document
+    return profileText
 
-  log(`Of course, he does not want everyone to be able to see all of his private data when they need just one aspect of it. Therefore, Ruben has installed two Views on his data, based on SPARQL filters from a public Catalog. (When and how this is done is out-of-scope for now.)`);
+  }
 
-  const webIdData = new Store(parser.parse(await (await fetch(terms.agents.ruben)).text()));
-  const viewIndex = webIdData.getObjects(terms.agents.ruben, terms.solid.viewIndex, null)[0].value;
-  const views = Object.fromEntries(webIdData.getObjects(viewIndex, terms.solid.entry, null).map(entry => {
-    const filter = webIdData.getObjects(entry, terms.solid.filter, null)[0].value;
-    const location = webIdData.getObjects(entry, terms.solid.location, null)[0].value;
-    return [filter, location];
-  }));
+  if (!views) throw new Error('Could not request access to required data for verification'); 
 
   log(`Discovery of views is currently a very crude mechanism based on a public index in the WebID document. (A cleaner mechanism using the UMA server as central hub is being devised.) Using the discovery mechanism, we find the following views on Ruben's private data.`)
 
@@ -55,7 +67,10 @@ export async function retrieveData(webId: string): Promise<string> {
 
   log(`Access to Ruben's data is based on policies he manages through his Authz Companion app, and which are stored in <${policyContainer}>. (This is, of course, not publicly known.)`);
 
-  const umaServer = webIdData.getObjects(terms.agents.ruben, terms.solid.umaServer, null)[0].value;
+  const umaServer = webIdData.getObjects(webId, terms.solid.umaServer, null)[0]?.value;
+  
+  if (!umaServer) throw new Error('Could not request access to required data for verification'); 
+
   const configUrl = new URL('.well-known/uma2-configuration', umaServer);
   const umaConfig = await (await fetch(configUrl)).json();
   const tokenEndpoint = umaConfig.token_endpoint;
@@ -87,7 +102,7 @@ export async function retrieveData(webId: string): Promise<string> {
     try {
       const { ticket, required_claims } = await tokenEndpointResponse.json();
       if (!ticket || !required_claims) { // There is no negotiation 
-        throw new Error('Could not negotiate data retrieval for verification.') 
+        throw new Error('Notification sent. Check your companion app.') 
       }
 
       log(`Based on the policy, the UMA server requests the following claims from the agent:`);
