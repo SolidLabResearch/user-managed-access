@@ -4,8 +4,6 @@ import { Authorizer } from './Authorizer';
 import { Permission } from '../../views/Permission';
 import { Requirements } from '../../credentials/Requirements';
 import { ClaimSet } from '../../credentials/ClaimSet';
-import { ForbiddenHttpError } from '../../util/http/errors/ForbiddenHttpError';
-import { UNSOLVABLE } from '../../credentials/Claims';
 
 /**
  * Mock authorizer granting no access to any client.
@@ -19,8 +17,8 @@ export class NoneAuthorizer implements Authorizer {
   }
 
   /** @inheritdoc */
-  public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements> {
+  public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements[]> {
     // throw new ForbiddenHttpError();  // TODO: indicating impossibility to RS would save roundtrip
-    return ({ [UNSOLVABLE]: async () => false });
+    return [];
   }
 }

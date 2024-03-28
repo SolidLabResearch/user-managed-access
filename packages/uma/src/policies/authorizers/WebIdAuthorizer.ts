@@ -4,7 +4,7 @@ import { ANY_RESOURCE, ANY_SCOPE, Authorizer } from './Authorizer';
 import { Permission } from '../../views/Permission';
 import { Requirements } from '../../credentials/Requirements';
 import { ClaimSet } from '../../credentials/ClaimSet';
-import { UNSOLVABLE, WEBID } from '../../credentials/Claims';
+import { WEBID } from '../../credentials/Claims';
 
 /**
  * An Authorizer granting access for WebID's to resources in given namespaces.
@@ -39,13 +39,13 @@ export class WebIdAuthorizer implements Authorizer {
   }
 
   /** @inheritdoc */
-  public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements> {
+  public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements[]> {
     this.logger.info('Calculating credentials.', { permissions, query });
     
-    if (query && !Object.keys(query).includes(WEBID)) return { [UNSOLVABLE]: async () => false };
+    if (query && !Object.keys(query).includes(WEBID)) return [];
 
-    return {
+    return [{
       [WEBID]: async (webid) => typeof webid ===  'string' && this.webids.includes(webid),
-    };
+    }];
   }
 }

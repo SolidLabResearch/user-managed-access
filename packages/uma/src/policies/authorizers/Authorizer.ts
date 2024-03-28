@@ -27,7 +27,7 @@ export abstract class Authorizer {
    * 
    * @return {Promise<Requirements>} An object containing ClaimDescriptions.
    */
-  public abstract credentials(permissions: Permission[], query?: Requirements): Promise<Requirements>;
+  public abstract credentials(permissions: Permission[], query?: Requirements): Promise<Requirements[]>;
   // TODO:
   // * @throws {ForbiddenHttpError} When no Credentials can be found (within the query limits)
   // * that would grant the requested Permissions.

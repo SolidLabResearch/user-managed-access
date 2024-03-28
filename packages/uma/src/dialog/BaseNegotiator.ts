@@ -12,6 +12,7 @@ import { reType } from '../util/ReType';
 import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { v4 } from 'uuid';
+import { ForbiddenHttpError } from '@solid/community-server';
 
 /**
  * A concrete Negotiator that verifies incoming Claims and processes Tickets
@@ -56,7 +57,7 @@ export class BaseNegotiator implements Negotiator {
 
     // ... on success, create Access Token
     if (resolved.success) {
-      const { token, tokenType } = await this.tokenFactory.serialize({ permissions: resolved.value  });
+      const { token, tokenType } = await this.tokenFactory.serialize({ permissions: resolved.value });
 
       this.logger.debug('Minted token', JSON.stringify(token));
 
@@ -66,12 +67,16 @@ export class BaseNegotiator implements Negotiator {
       });
     }
     
-    // ... on failure, require more info
+    // ... on failure, deny if no solvable requirements
+    const requiredClaims = ticket.required.map(req => Object.keys(req));
+    if (requiredClaims.length === 0) throw new ForbiddenHttpError();
+
+    // ... require more info otherwise
     const id = v4();
     this.ticketStore.set(id, ticket);
     throw new NeedInfoError('Need more info to authorize request ...', id, {
       required_claims: {
-        claim_token_format: Object.keys(ticket.required),
+        claim_token_format: requiredClaims,
       },
     });
   }

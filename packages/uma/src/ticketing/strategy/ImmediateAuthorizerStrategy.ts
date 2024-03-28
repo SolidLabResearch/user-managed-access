@@ -6,7 +6,7 @@ import { TicketingStrategy } from "./TicketingStrategy";
 import { Authorizer } from "../../policies/authorizers/Authorizer";
 import { getLoggerFor } from "../../util/logging/LoggerUtils";
 import { Logger } from "../../util/logging/Logger";
-import { UNSOLVABLE } from "../../credentials/Claims";
+import type { Requirements } from "../../credentials/Requirements";
 
 /**
  * A TicketingStrategy that simply stores provided Claims, and calculates all
@@ -25,7 +25,7 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
 
     return ({
       permissions,
-      required: {},
+      required: [{}],
       provided: {}
     });
   }
@@ -42,12 +42,12 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
   }
 
   /** @inheritdoc */
-  async resolveTicket(ticket: Ticket): Promise<Result<Permission[], NodeJS.Dict<unknown>>> {
+  async resolveTicket(ticket: Ticket): Promise<Result<Permission[], Requirements[]>> {
     this.logger.info('Resolving ticket.', ticket);
 
     const permissions = await this.calculatePermissions(ticket);
 
-    if (permissions.length === 0) return Failure({ [UNSOLVABLE]: async () => false });
+    if (permissions.length === 0) return Failure([]);
 
     return Success(await this.calculatePermissions(ticket));
   }

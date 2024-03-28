@@ -1,6 +1,7 @@
 {
   "@context": [
-    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/ucp/^0.0.0/components/context.jsonld"
   ],
   "@graph": [
     {
@@ -34,8 +35,16 @@
       "fallback": {
         "@id": "urn:uma:default:PolicyBasedAuthorizer",
         "@type": "PolicyBasedAuthorizer",
-        "policyDir": "config/rules/policy/",
-        "n3Rules": "config/rules/crud.n3"
+        "rulesDir": {
+          "@id": "urn:uma:variables:rulesDir"
+        },
+        "policies": {
+          "@id": "urn:uma:default:RulesStorage",
+          "@type": "DirectoryUCRulesStorage",
+          "directoryPath": {
+            "@id": "urn:uma:variables:policyDir"
+          }
+        }
       }
     }
   ]

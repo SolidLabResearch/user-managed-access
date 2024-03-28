@@ -2,6 +2,7 @@
   "AccessToken",
   "AccessToken",
   "Authorization",
+  "Authorizer",
   "Error",
   "EventEmitter",
   "Map",

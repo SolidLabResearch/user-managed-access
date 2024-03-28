@@ -1,0 +1,54 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/ucp/^0.0.0/components/context.jsonld"
+  ],
+  "import": [
+    "sai-uma:config/default.json"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:demo:Authorizer",
+      "@type": "Override",
+      "overrideInstance": { "@id": "urn:uma:default:Authorizer" },
+      "overrideParameters": {
+        "@type": "NamespacedAuthorizer",
+        "authorizers": [
+          {
+            "NamespacedAuthorizer:_authorizers_key": "profile",
+            "NamespacedAuthorizer:_authorizers_value": {
+              "@id": "urn:uma:default:AllAuthorizer",
+              "@type": "AllAuthorizer"
+            }
+          },
+          {
+            "NamespacedAuthorizer:_authorizers_key": "public",
+            "NamespacedAuthorizer:_authorizers_value": {
+              "@id": "urn:uma:default:AllAuthorizer"
+            }
+          },
+          {
+            "NamespacedAuthorizer:_authorizers_key": "settings",
+            "NamespacedAuthorizer:_authorizers_value": {
+              "@id": "urn:uma:default:AllAuthorizer"
+            }
+          }
+        ],
+        "fallback": {
+          "@id": "urn:uma:default:PolicyBasedAuthorizer"
+        }
+      }
+    },
+    {
+      "@id": "urn:uma:demo:RulesStorage",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:uma:default:RulesStorage"
+      },
+      "overrideParameters": {
+        "@type": "ContainerUCRulesStorage",
+        "containerURL": "http://localhost:3000/ruben/settings/policies/"
+      }
+    }
+  ]
+}

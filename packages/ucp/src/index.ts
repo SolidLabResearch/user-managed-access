@@ -16,6 +16,8 @@ export * from './policy/UsageControlPolicy'
 export * from './util/Conversion'
 export * from './util/Constants'
 export * from './util/Util'
+export * from './util/Vocabularies'
+
 // explanation
 export * from './Explanation'
 

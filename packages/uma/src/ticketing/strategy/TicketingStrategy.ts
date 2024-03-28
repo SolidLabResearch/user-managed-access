@@ -2,6 +2,7 @@ import { ClaimSet } from "../../credentials/ClaimSet";
 import { Ticket } from "../Ticket";
 import { Permission } from "../../views/Permission";
 import { Result } from "../../util/Result";
+import type { Requirements } from "../../credentials/Requirements";
 
 /**
  * A strategy interface for different actions on Tickets.
@@ -45,5 +46,5 @@ export interface TicketingStrategy {
    * @returns A Result with an Array of Permissions as Success value, or an
    * Dict of Claim descriptions as Failure value.
    */
-  resolveTicket(ticket: Ticket): Promise<Result<Permission[], NodeJS.Dict<unknown>>>;
+  resolveTicket(ticket: Ticket): Promise<Result<Permission[], Requirements[]>>;
 }

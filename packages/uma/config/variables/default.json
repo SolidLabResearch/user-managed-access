@@ -16,6 +16,16 @@
         "comment": "Hostname of the server.",
         "@id": "urn:uma:variables:host",
         "@type": "Variable"
+      },
+      {
+        "comment": "Path to the directory containing the policy rules.",
+        "@id": "urn:uma:variables:policyDir",
+        "@type": "Variable"
+      },
+      {
+        "comment": "Path to the directory containing the N3 rules.",
+        "@id": "urn:uma:variables:rulesDir",
+        "@type": "Variable"
       }
     ]
   }

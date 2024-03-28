@@ -56,3 +56,7 @@ pids
 .env
 .env.local
 .env.*.local
+
+# Temporary folders & files
+tmp
+*.tmp

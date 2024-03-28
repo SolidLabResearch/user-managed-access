@@ -32,7 +32,7 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
     });
   }
 
-  private async calculateRequiredClaims(permissions: Permission[]): Promise<Requirements> {
+  private async calculateRequiredClaims(permissions: Permission[]): Promise<Requirements[]> {
     return this.authorizer.credentials(permissions);
   }
 
@@ -43,10 +43,12 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
     for (const key of Object.keys(claims)) {
       ticket.provided[key] = claims[key];
 
-      const requirement = ticket.required[key];
+      for (const requirements of ticket.required) {
+        const requirement = requirements[key];
 
-      if (requirement && await requirement(claims[key])) {
-        delete ticket.required[key]; 
+        if (requirement && await requirement(claims[key])) {
+          delete requirements[key]; 
+        }
       }
     }
 
@@ -54,9 +56,11 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
   }
 
   /** @inheritdoc {@link TicketingStrategy.resolveTicket} */
-  async resolveTicket(ticket: Ticket): Promise<Result<Permission[], NodeJS.Dict<unknown>>> {
+  async resolveTicket(ticket: Ticket): Promise<Result<Permission[], Requirements[]>> {
     this.logger.info('Resolving ticket.', ticket);
-
-    return Object.keys(ticket.required).length === 0 ? Success(ticket.permissions) : Failure(ticket.required);
+    
+    return ticket.required.some(req => Object.keys(req).length === 0) 
+      ? Success(ticket.permissions) 
+      : Failure(ticket.required);
   }
 }

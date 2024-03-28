@@ -1,0 +1,163 @@
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix : <http://example.org/> .
+@prefix acl: <http://www.w3.org/ns/auth/acl#>.
+@prefix fno:  <https://w3id.org/function/ontology#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix string: <http://www.w3.org/2000/10/swap/string#> .
+@prefix list: <http://www.w3.org/2000/10/swap/list#> .
+
+# Read ODRL rule
+{ 
+  	?permission a odrl:Permission;
+      	odrl:action ?action ;
+      	odrl:target ?targetResource ;
+      	# odrl:assigner ?resourceOwner ;
+      	odrl:assignee ?requestedParty.
+		
+		?action list:in (odrl:use odrl:read) . # multiple options
+
+
+    # context of a request
+  	?context 
+        # :resourceOwner ?resourceOwner;
+      	:requestingParty ?requestedParty;
+      	:target ?targetResource;
+      	:requestPermission <urn:example:css:modes:read>.
+
+    :uuid5 log:uuid ?uuidStringdataUsagePolicyExecution.
+    ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
+    ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+
+		# Constraint checking
+		# No odrl:constraints may be present
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }.
+} =>
+{
+    ?dataUsagePolicyExecution a fno:Execution;
+        fno:executes <http://example.org/dataUsage> ; 
+        :accessModesAllowed <urn:example:css:modes:read>.
+}.
+
+# Append ODRL Rule
+{ 
+  	?permission a odrl:Permission;
+      	odrl:action ?action ;
+      	odrl:target ?targetResource ;
+      	# odrl:assigner ?resourceOwner ;
+      	odrl:assignee ?requestedParty.
+		
+		?action list:in (odrl:use odrl:modify). # multiple options
+
+    # context of a request
+  	?context 
+        # :resourceOwner ?resourceOwner;
+      	:requestingParty ?requestedParty;
+      	:target ?targetResource;
+      	:requestPermission <urn:example:css:modes:append>.
+
+    :uuid6 log:uuid ?uuidStringdataUsagePolicyExecution.
+    ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
+    ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+
+		# Constraint checking
+		# No odrl:constraints may be present
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }.
+} =>
+{
+    ?dataUsagePolicyExecution a fno:Execution;
+        fno:executes <http://example.org/dataUsage> ; 
+        :accessModesAllowed <urn:example:css:modes:append>.
+}.
+
+# Write ODRL Rule
+{ 
+  	?permission a odrl:Permission;
+      	odrl:action ?action ;
+      	odrl:target ?targetResource ;
+      	# odrl:assigner ?resourceOwner ;
+      	odrl:assignee ?requestedParty.
+		
+		?action list:in (odrl:use odrl:modify). # multiple options
+
+    # context of a request
+  	?context 
+        # :resourceOwner ?resourceOwner;
+      	:requestingParty ?requestedParty;
+      	:target ?targetResource;
+      	:requestPermission <urn:example:css:modes:write>.
+
+    :uuid6 log:uuid ?uuidStringdataUsagePolicyExecution.
+    ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
+    ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+
+		# Constraint checking
+		# No odrl:constraints may be present
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }.
+} =>
+{
+    ?dataUsagePolicyExecution a fno:Execution;
+        fno:executes <http://example.org/dataUsage> ; 
+        :accessModesAllowed <urn:example:css:modes:write>.
+}.
+
+# Create ODRL Rule
+{ 
+  	?permission a odrl:Permission;
+      	odrl:action ?action ;
+      	odrl:target ?targetResource ;
+      	# odrl:assigner ?resourceOwner ;   
+      	odrl:assignee ?requestedParty .
+		
+		?action list:in (odrl:use odrl:modify). # multiple options
+
+    # context of a request
+  	?context 
+        # :resourceOwner ?resourceOwner;
+      	:requestingParty ?requestedParty;
+      	:target ?targetResource;
+      	:requestPermission <urn:example:css:modes:create>.
+
+    :uuid6 log:uuid ?uuidStringdataUsagePolicyExecution.
+    ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
+    ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+
+		# Constraint checking
+		# No odrl:constraints may be present
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }.
+} =>
+{
+    ?dataUsagePolicyExecution a fno:Execution;
+        fno:executes <http://example.org/dataUsage> ; 
+        :accessModesAllowed <urn:example:css:modes:create>.
+}.
+
+# Delete ODRL Rule
+{ 
+  	?permission a odrl:Permission;
+      	odrl:action ?action ;
+      	odrl:target ?targetResource ;
+      	# odrl:assigner ?resourceOwner ;
+      	odrl:assignee ?requestedParty.
+		
+		?action list:in (odrl:use odrl:delete). # multiple options
+
+    # context of a request
+  	?context 
+        # :resourceOwner ?resourceOwner;
+      	:requestingParty ?requestedParty;
+      	:target ?targetResource;
+      	:requestPermission <urn:example:css:modes:delete>.
+
+    :uuid6 log:uuid ?uuidStringdataUsagePolicyExecution.
+    ( "urn:uuid:" ?uuidStringdataUsagePolicyExecution) string:concatenation ?urnUuidStringdataUsagePolicyExecution.
+    ?dataUsagePolicyExecution log:uri ?urnUuidStringdataUsagePolicyExecution .
+
+		# Constraint checking
+		# No odrl:constraints may be present
+    ?SCOPE log:notIncludes { ?permission odrl:constraint ?anything }.
+} =>
+{
+    ?dataUsagePolicyExecution a fno:Execution;
+        fno:executes <http://example.org/dataUsage> ; 
+        :accessModesAllowed <urn:example:css:modes:delete>.
+}.
