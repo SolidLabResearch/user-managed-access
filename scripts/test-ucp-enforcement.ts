@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 const crud = `
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix : <http://example.org/> .

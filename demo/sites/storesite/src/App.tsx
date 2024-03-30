@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import './App.css';
-import { Parser, Store } from 'n3';
-import { Grid, Modal } from '@mui/material';
-import { readFileSync } from 'fs';
+import { Grid } from '@mui/material';
 import Banner from './Banner';
-import AuthModal from './Modal'
 import { processAgeResult, retrieveData } from './flow';
 
 type Item = {
@@ -93,7 +90,9 @@ function App() {
             <img id='logo' src='store.jpg' alt='Store logo' />
           </div>
           <div id='searchBarContainer'>
-            <input id='searchBar' placeholder='What are you looking for?' value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}></input>
+            <input id='searchBar' placeholder='What are you looking for?' value={searchTerm} onChange={
+              (e) => setSearchTerm(e.target.value)
+            }></input>
           </div>
         </div>
       </nav>

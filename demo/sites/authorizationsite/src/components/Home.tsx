@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { createAndSubmitPolicy, doPolicyFlowFromString, readPolicy, readPolicyDirectory } from "../util/PolicyManagement";
-import PolicyModal from "./Modal";
+import { useEffect, useState } from "react";
+import { createAndSubmitPolicy, doPolicyFlowFromString, 
+    readPolicy, readPolicyDirectory } from "../util/PolicyManagement";
 import PolicyFormModal from "./FormModal"
 import { SimplePolicy } from "../util/policyCreation";
 
@@ -34,7 +34,9 @@ export default function Home() {
 
     function renderPolicy(policy: SimplePolicy) {
         return (
-            <div key={policy.policyLocation} className={`policyentry ${policy.policyIRI === selectedPolicy ? 'selectedentry' : ''}`} onClick={() => setSelectedPolicy(policy.policyIRI)}>
+            <div key={policy.policyLocation} className={
+                `policyentry ${policy.policyIRI === selectedPolicy ? 'selectedentry' : ''}`
+            } onClick={() => setSelectedPolicy(policy.policyIRI)}>
                 <p>id: {policy.policyIRI}</p>
                 <p>{policy.description}</p>
             </div>

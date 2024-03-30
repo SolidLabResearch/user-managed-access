@@ -55,7 +55,9 @@ const AuthModal = (props: any) => {
               showInput
 
               ? <div >
-                  <input placeholder='webid' value={inputValue} onChange={(evt) => setInputValue(evt.target.value)} style={{width: "70%", marginRight: "10px"}}></input>
+                  <input placeholder='webid' value={inputValue} onChange={
+                    (evt) => setInputValue(evt.target.value)
+                  } style={{width: "70%", marginRight: "10px"}}></input>
                   <button onClick={() => props.verify(inputValue)}>Verify</button>
               </div>
 

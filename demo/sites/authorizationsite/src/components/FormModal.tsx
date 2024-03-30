@@ -1,11 +1,8 @@
-import React, { useState, useEffect }from 'react';
+import { useState }from 'react';
 import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import { TextField } from '@mui/material';
 import DatePicker from './DatePicker';
 import { PolicyFormData, terms } from '../util/PolicyManagement';
 
@@ -77,9 +74,13 @@ const PolicyFormModal = (props: any) => {
               <br />
               <label key='assignee'>assignee: <input value={assignee} readOnly/></label>
               <br />
-              <label key='startdate'>start date:  <DatePicker value={startDate} onChange={(date: Date) => setStartDate(date)} /></label>
+              <label key='startdate'>start date:  <DatePicker value={startDate} onChange={
+                (date: Date) => setStartDate(date)
+              } /></label>
               <br />
-              <label key='enddate'>end date:  <DatePicker value={endDate} onChange={(date: Date) => setEndDate(date) } /></label>
+              <label key='enddate'>end date:  <DatePicker value={endDate} onChange={
+                (date: Date) => setEndDate(date)
+              } /></label>
               <br />
               <label key='purpose'>purpose: 
                 <select name='purpose' onChange={(e: any) => setPurpose(e.target.value)}>
@@ -91,7 +92,9 @@ const PolicyFormModal = (props: any) => {
                 </select>
               </label>
               <br />
-              <label key='description'>description: <input value={description} onChange={(e:any) => setDescription(e.target.value)}/></label>
+              <label key='description'>description: <input value={description} onChange={
+                (e:any) => setDescription(e.target.value)
+              }/></label>
               
               <br />
               <br />

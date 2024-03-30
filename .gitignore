@@ -18,6 +18,7 @@ npm-debug.log*
 .yarn/build-state.yml
 .yarn/install-state.gz
 .yarn-integrity
+.pnp/
 .pnp.*
 .pnpm-debug.log*
 yarn-debug.log*
@@ -44,7 +45,10 @@ componentsjs-error-state.json
 
 # Logs
 logs
-*.log
+*.log*
+
+# Build data
+build/
 
 # Runtime data
 pids
@@ -60,3 +64,6 @@ pids
 # Temporary folders & files
 tmp
 *.tmp
+
+# Misc
+.DS_Store
