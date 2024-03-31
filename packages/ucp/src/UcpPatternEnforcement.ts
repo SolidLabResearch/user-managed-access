@@ -43,11 +43,11 @@ export class UcpPatternEnforcement implements UconEnforcementDecision {
     reasoningInputStore.addQuads(contextStore.getQuads(null, null, null, null))
 
     // TODO: remove in production
-    console.log("rules:");
-    console.log(this.koreografeyeOdrlRules[0]);
-
-    console.log("input:");
-    console.log(await rdfTransformStore(reasoningInputStore, 'text/turtle'));
+    // console.log("rules:");
+    // console.log(this.koreografeyeOdrlRules[0]);
+    // 
+    // console.log("input:");
+    // console.log(await rdfTransformStore(reasoningInputStore, 'text/turtle'));
 
     // Reason using ODRL Rules and N3 Rules
     const reasoningResult = await this.reasoner.reason(reasoningInputStore, this.koreografeyeOdrlRules);
