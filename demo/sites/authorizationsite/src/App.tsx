@@ -8,7 +8,6 @@ import './App.css';
 import Home from './components/Home';
 import Navigate from './components/Navigate';
 import SolidAuth from './components/SolidAuth'
-import Query from './components/Query';
 
 const rubenWebID = 'http://localhost:3000/ruben/profile/card#me'
 
@@ -78,7 +77,6 @@ export default function App() {
                 <Navigate />
                 <Routes>
                   <Route path='/' element={<Home />} />
-                  <Route path='/query' element={<Query />} />
                 </Routes>
               </BrowserRouter>
     </div>
