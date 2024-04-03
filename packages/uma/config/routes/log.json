@@ -14,7 +14,8 @@
         }
       ],
       "handler": {
-        "@type": "LogRequestHandler"
+        "@type": "LogRequestHandler",
+        "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
       },
       "path":  "/uma/log"
     }

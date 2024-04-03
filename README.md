@@ -69,7 +69,7 @@ Have a look at the [milestones](https://github.com/SolidLabResearch/user-managed
 - [ ] Protocol message modelling
   - [ ] claim request messages
   - [ ] claim provision messages
-- [ ] Create Log Endpoint
+- [X] Create Log Endpoint
   - [ ] Log Instantiated Policies
   - [ ] Log Access Grants
   - [ ] Log Operations

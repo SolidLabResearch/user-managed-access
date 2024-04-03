@@ -13,6 +13,8 @@ import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { v4 } from 'uuid';
 import { ForbiddenHttpError } from '@solid/community-server';
+import { getOperationLogger } from '../logging/OperationLogger';
+import { serializePolicyInstantiation } from '../logging/OperationSerializer';
 
 /**
  * A concrete Negotiator that verifies incoming Claims and processes Tickets
@@ -20,6 +22,7 @@ import { ForbiddenHttpError } from '@solid/community-server';
  */
 export class BaseNegotiator implements Negotiator {
   protected readonly logger: Logger = getLoggerFor(this);
+  operationLogger = getOperationLogger();
 
   /**
    * Construct a new Negotiator
@@ -57,10 +60,16 @@ export class BaseNegotiator implements Negotiator {
 
     // ... on success, create Access Token
     if (resolved.success) {
+      this.logger.debug('resolved result', JSON.stringify(resolved, null, 2))
       const { token, tokenType } = await this.tokenFactory.serialize({ permissions: resolved.value });
 
       this.logger.debug('Minted token', JSON.stringify(token));
 
+      // TODO:: test logging
+      this.operationLogger.addLogEntry(serializePolicyInstantiation())
+
+      // TODO:: dynamic contract link to stored signed contract. 
+      // If needed we can always embed here directly into the return JSON
       return ({
         access_token: token,
         token_type: tokenType,

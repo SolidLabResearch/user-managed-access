@@ -33,6 +33,7 @@ export * from './routes/Ticket';
 export * from './routes/ResourceRegistration';
 export * from './routes/Token';
 export * from './routes/Config';
+export * from './routes/Log';
 
 // Tickets
 export * from './ticketing/Ticket';

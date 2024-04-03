@@ -5,6 +5,9 @@ import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
 import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
 import { Logger } from '../util/logging/Logger';
 import { getLoggerFor } from '../util/logging/LoggerUtils';
+import { getOperationLogger } from '../logging/OperationLogger';
+import { Quad } from 'n3';
+import { serializeQuads } from '@solid/community-server';
 
 
 export type LogMessage = {
@@ -19,6 +22,17 @@ export type LogMessage = {
 export class LogRequestHandler extends HttpHandler {
   protected readonly logger: Logger = getLoggerFor(this);
 
+  operationLogger = getOperationLogger()
+
+  /**
+  * An HttpHandler used for returning the configuration
+  * of the UMA Authorization Service.
+    * @param {string} baseUrl - Base URL of the AS
+    */
+  constructor(protected readonly baseUrl: string) {
+    super();
+  }
+
   /**
    * Returns the endpoint's UMA configuration
    *
@@ -29,8 +43,8 @@ export class LogRequestHandler extends HttpHandler {
     this.logger.info(`Received log access request at '${context.request.url}'`);
     
     return {
-      body: JSON.stringify(this.getLogMessages()),
-      headers: {'content-type': 'application/json'},
+      body: JSON.stringify(await this.getLogMessages()),
+      headers: {'content-type': 'application/trig'},
       status: 200,
     };
   }
@@ -39,12 +53,19 @@ export class LogRequestHandler extends HttpHandler {
    * Returns UMA Configuration for the AS
    * @return {UmaConfiguration} - AS Configuration
    */
-  public getLogMessages(): LogMessage[] {
-    return [
-      {
-        id: 'urn:example:log:message1',
-        message: 'This is a logged message'
-      }
-    ]
+  async getLogMessages(): Promise<string> {
+    let messages = this.operationLogger.getLogEntries(null);
+    let serializedStream = serializeQuads(messages, 'application/trig')
+    return await streamToString(serializedStream) as string
   }
+}
+
+
+function streamToString (stream: any) {
+  const chunks: any[] = [];
+  return new Promise((resolve, reject) => {
+    stream.on('data', (chunk: any) => chunks.push(Buffer.from(chunk)));
+    stream.on('error', (err: any) => reject(err));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+  })
 }
