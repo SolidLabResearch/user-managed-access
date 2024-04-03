@@ -13,6 +13,7 @@
     "sai-uma:config/routes/resources.json",
     "sai-uma:config/routes/tickets.json",
     "sai-uma:config/routes/tokens.json",
+    "sai-uma:config/routes/log.json",
     "sai-uma:config/tickets/storage/default.json",
     "sai-uma:config/tickets/strategy/claim-elimination.json",
     "sai-uma:config/tokens/factory/default.json",
@@ -50,7 +51,8 @@
                   { "@id": "urn:uma:default:PermissionRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
-                  { "@id": "urn:uma:default:IntrospectionRoute" }
+                  { "@id": "urn:uma:default:IntrospectionRoute" },
+                  { "@id": "urn:uma:default:LogRoute" }
                 ]
               }
             ],
