@@ -58,3 +58,32 @@ Then a read request is performed using the engine, which results in a list of gr
 ## Next steps
 
 Have a look at the [milestones](https://github.com/SolidLabResearch/user-managed-access/milestones) we set for ourselves, and other [issues](https://github.com/SolidLabResearch/user-managed-access/issues) we would like to solve.
+
+
+
+
+
+# TODOs for Vienna Prototype V2:
+
+
+- [ ] Protocol message modelling
+  - [ ] claim request messages
+  - [ ] claim provision messages
+- [ ] Create Log Endpoint
+  - [ ] Log Instantiated Policies
+  - [ ] Log Access Grants
+  - [ ] Log Operations
+- [ ] Update Authorization system
+  - [ ] Include authorization endpoint operations
+  - [ ] Include log access operations (others are internal)
+- [ ] Mock Policy instantiation
+  - [ ] Write out policy model that works for demo
+  - [ ] Discover existing policies to instantly grant some access
+  - [ ] Link generic - instantiated - grant - operation
+- [ ] Negotiation implementations
+  - [ ] Return instantiated policy requirements from ticket resolving function to create a signed instantiated policy to return
+- [ ] Signatures
+  - [ ] Sign and return agreement (either separately or together with grant)
+- [ ] Client
+  - [ ] Make some mock-up of how storage could be handled in a way that allows for auditing
+  - [ ] Recurring requests make use of the same grant?
