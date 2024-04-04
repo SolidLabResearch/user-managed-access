@@ -152,5 +152,10 @@
         ]
       ]
     }
+  },
+  "dependencies": {
+    "@digitalcredentials/vc-data-model": "^1.1.1",
+    "@inrupt/solid-client": "^2.0.1",
+    "@inrupt/solid-client-authn-core": "^2.1.0"
   }
 }

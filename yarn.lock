@@ -3624,6 +3624,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@digitalcredentials/vc-data-model@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@digitalcredentials/vc-data-model@npm:1.1.1"
+  checksum: 10c0/74b76f04897f31421dc3379fac0ff407ae616b780ac43ab275792e3bc0a20e452e03fe4b405218316cf9b441f579580044be4f7abaa3348f3050759c10a4f1dc
+  languageName: node
+  linkType: hard
+
 "@eslint-community/eslint-utils@npm:^4.2.0":
   version: 4.4.0
   resolution: "@eslint-community/eslint-utils@npm:4.4.0"
@@ -3717,6 +3724,36 @@ __metadata:
   version: 2.0.1
   resolution: "@humanwhocodes/object-schema@npm:2.0.1"
   checksum: 10c0/9dba24e59fdb4041829d92b693aacb778add3b6f612aaa9c0774f3b650c11a378cc64f042a59da85c11dae33df456580a3c36837b953541aed6ff94294f97fac
+  languageName: node
+  linkType: hard
+
+"@inrupt/solid-client-authn-core@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@inrupt/solid-client-authn-core@npm:2.1.0"
+  dependencies:
+    events: "npm:^3.3.0"
+    jose: "npm:^5.1.3"
+    uuid: "npm:^9.0.1"
+  checksum: 10c0/44290be694cdc076d39bd232d3d6a3d06cd9d3f963fb582f6e5a919befa4030597f1335f372d402a5a073ff788c1db08346bbd44af877d172f0d614eb41de2dc
+  languageName: node
+  linkType: hard
+
+"@inrupt/solid-client@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@inrupt/solid-client@npm:2.0.1"
+  dependencies:
+    "@rdfjs/dataset": "npm:^1.1.1"
+    buffer: "npm:^6.0.3"
+    fsevents: "npm:^2.3.3"
+    http-link-header: "npm:^1.1.1"
+    jsonld-context-parser: "npm:^2.4.0"
+    jsonld-streaming-parser: "npm:^3.3.0"
+    n3: "npm:^1.17.2"
+    uuid: "npm:^9.0.1"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  checksum: 10c0/53ff9eaa1eae126dcef52562dbbcbf8d15db23b23d86575d203deaa071da89d2799507036a13f3e624e39a15e07f16c8415832042cc8a3136d31afbde6a247c0
   languageName: node
   linkType: hard
 
@@ -4622,6 +4659,9 @@ __metadata:
   dependencies:
     "@commitlint/cli": "npm:^16.1.0"
     "@commitlint/config-conventional": "npm:^16.0.0"
+    "@digitalcredentials/vc-data-model": "npm:^1.1.1"
+    "@inrupt/solid-client": "npm:^2.0.1"
+    "@inrupt/solid-client-authn-core": "npm:^2.1.0"
     "@solidlab/ucp": "workspace:^"
     "@types/jest": "npm:^29.5.6"
     "@types/node": "npm:^20.9.4"
@@ -7284,7 +7324,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fsevents@npm:^2.3.2":
+"fsevents@npm:^2.3.2, fsevents@npm:^2.3.3":
   version: 2.3.3
   resolution: "fsevents@npm:2.3.3"
   dependencies:
@@ -7294,7 +7334,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fsevents@patch:fsevents@npm%3A^2.3.2#optional!builtin<compat/fsevents>":
+"fsevents@patch:fsevents@npm%3A^2.3.2#optional!builtin<compat/fsevents>, fsevents@patch:fsevents@npm%3A^2.3.3#optional!builtin<compat/fsevents>":
   version: 2.3.3
   resolution: "fsevents@patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"
   dependencies:
@@ -7685,6 +7725,13 @@ __metadata:
   version: 1.1.1
   resolution: "http-link-header@npm:1.1.1"
   checksum: 10c0/a97b679e01e9f0860c823917c2c6637e3f0c06aa6cc0de4da98e1a433690e19b21323595889aa9347618134600bc7e2b0ff3cbeea7e4cea2f8cdae65dd9cc7f1
+  languageName: node
+  linkType: hard
+
+"http-link-header@npm:^1.1.1":
+  version: 1.1.3
+  resolution: "http-link-header@npm:1.1.3"
+  checksum: 10c0/56698a9d3aee4d5319d1cdfe62ef5d7179f179ec1e6432d23c9e6a0c896be642ba47a4985a45419cff91008032aef920aca9df94ff9e763e646c83bf54b7243d
   languageName: node
   linkType: hard
 
@@ -8713,6 +8760,24 @@ __metadata:
     rdf-data-factory: "npm:^1.1.0"
     readable-stream: "npm:^4.0.0"
   checksum: 10c0/da92dae7a25dff8622e9c42f071c145b55771ea47f53b6d0221f0051edca3948c4cb6f74ffe7c1d161c7ea471d14c384784f1925735e8c31232d8244f9e4f8d0
+  languageName: node
+  linkType: hard
+
+"jsonld-streaming-parser@npm:^3.3.0":
+  version: 3.4.0
+  resolution: "jsonld-streaming-parser@npm:3.4.0"
+  dependencies:
+    "@bergos/jsonparse": "npm:^1.4.0"
+    "@rdfjs/types": "npm:*"
+    "@types/http-link-header": "npm:^1.0.1"
+    "@types/readable-stream": "npm:^2.3.13"
+    buffer: "npm:^6.0.3"
+    canonicalize: "npm:^1.0.1"
+    http-link-header: "npm:^1.0.2"
+    jsonld-context-parser: "npm:^2.4.0"
+    rdf-data-factory: "npm:^1.1.0"
+    readable-stream: "npm:^4.0.0"
+  checksum: 10c0/6f36ee9a26f343ea8202ca1acc74b0d8a61b322669fbc5970a0e0a4d47108a2aa40ffa4470fc8db1f9426ff113bbcd3b760da5decce67a2fd110bc6d9eeb444b
   languageName: node
   linkType: hard
 

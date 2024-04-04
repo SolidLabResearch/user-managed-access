@@ -9,15 +9,14 @@
         "operations": [
           {
             "@type": "HttpHandlerOperation",
-            "method": "GET",
+            "method": "POST",
             "publish": true
           }
         ],
         "handler": {
-          "@type": "VCRequestHandler",
-          "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
+          "@type": "VCRequestVerificationHandler"
         },
-        "path":  "/uma/vc"
+        "path":  "/uma/vc/verify"
       }
     ]
   }
