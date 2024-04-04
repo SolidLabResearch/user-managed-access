@@ -34,6 +34,8 @@ export * from './routes/ResourceRegistration';
 export * from './routes/Token';
 export * from './routes/Config';
 export * from './routes/Log';
+export * from './routes/VC';
+export * from './routes/Contract';
 
 // Tickets
 export * from './ticketing/Ticket';
