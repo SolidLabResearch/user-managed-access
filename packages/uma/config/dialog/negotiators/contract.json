@@ -4,7 +4,7 @@
   ],
   "@graph": [
     {
-      "@id": "urn:uma:default:Negotiator",
+      "@id": "urn:uma:default:DemoNegotiator",
       "@type": "ContractNegotiator",
       "verifier": { "@id": "urn:uma:default:Verifier" },
       "ticketStore": { "@id": "urn:uma:default:TicketStore" },

@@ -54,7 +54,7 @@ async function main() {
   log(`(1) <${views[terms.filters.bday]}> filters out his birth date, according to the <${terms.filters.bday}> filter`);
   log(`(2) <${views[terms.filters.age]}> derives his age, according to the <${terms.filters.bday}> filter`);
 
-  const policyContainer = 'http://localhost:3000/ruben/settings/policies/';
+  const policyContainer = 'http://localhost:3000/ruben/settings/policies/generic/';
 
   log(`Access to Ruben's data is based on policies he manages through his Authz Companion app, and which are stored in <${policyContainer}>. (This is, of course, not publicly known.)`);
 

@@ -91,7 +91,7 @@ export async function readPolicy(policyText: string) {
 export async function createAndSubmitPolicy(formdata: PolicyFormData) {
   console.log('Creating policy')
 
-  const policyContainer = 'http://localhost:3000/ruben/settings/policies/generic/';
+  const policyContainer = 'http://localhost:3000/ruben/settings/policies/';
 
   const policy = demoPolicy(formdata.target, formdata.assignee, 
     { startDate: formdata.startDate, endDate: formdata.endDate, purpose: formdata.purpose })
@@ -122,7 +122,7 @@ export async function createAndSubmitPolicy(formdata: PolicyFormData) {
 export async function doPolicyFlowFromString(policyText: string) {
   console.log('Creating policy')
 
-  const policyContainer = 'http://localhost:3000/ruben/settings/policies/generic/';
+  const policyContainer = 'http://localhost:3000/ruben/settings/policies/';
 
   // create container if it does not exist yet
   await initContainer(policyContainer)
