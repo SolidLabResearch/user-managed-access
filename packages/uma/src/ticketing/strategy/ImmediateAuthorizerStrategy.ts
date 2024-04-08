@@ -49,7 +49,7 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
 
     if (permissions.length === 0) return Failure([]);
 
-    return Success(await this.calculatePermissions(ticket));
+    return Success(permissions);
   }
 
   private async calculatePermissions(ticket: Ticket): Promise<Permission[]> {
