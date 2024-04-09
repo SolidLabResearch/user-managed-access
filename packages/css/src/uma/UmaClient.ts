@@ -1,11 +1,6 @@
-import crypto from 'node:crypto';
-import {
-  type KeyValueStorage, type ResourceIdentifier,
-  AccessMap, getLoggerFor, InternalServerError, JwkGenerator,
-} from "@solid/community-server";
+import { type KeyValueStorage, type ResourceIdentifier, AccessMap, getLoggerFor } from "@solid/community-server";
 import type { Fetcher } from "../util/fetch/Fetcher";
 import type { ResourceDescription } from '@solidlab/uma';
-import { httpbis, type SigningKey, type Request as SignRequest } from 'http-message-signatures';
 import { JWTPayload, decodeJwt, createRemoteJWKSet, jwtVerify, JWTVerifyOptions } from "jose";
 
 export interface Claims {
@@ -67,40 +62,13 @@ export class UmaClient {
   protected readonly logger = getLoggerFor(this);
 
   /**
-   * @param {JwkGenerator} keyGen - the generator providing the signing key
    * @param {UmaVerificationOptions} options - options for JWT verification
    */
   constructor(
-    protected baseUrl: string,
     protected umaIdStore: KeyValueStorage<string, string>,
     protected fetcher: Fetcher,
-    protected keyGen: JwkGenerator, 
     protected options: UmaVerificationOptions = {},
   ) {}
-
-  public async signedFetch(url: string, request: RequestInit & Omit<SignRequest, 'url'>): Promise<Response> {
-    const jwk = await this.keyGen.getPrivateKey();
-
-    const { alg, kid } = jwk;
-    if (alg === 'EdDSA') throw new InternalServerError('EdDSA signing is not supported');
-    if (alg === 'ES256K') throw new InternalServerError('ES256K signing is not supported');
-
-    const key: SigningKey = {
-      id: kid,
-      alg: alg,
-      async sign(data: BufferSource) {
-        const params = algMap[alg];
-        const key = await crypto.subtle.importKey('jwk', jwk, params, false, ['sign']);
-        return Buffer.from(await crypto.subtle.sign(params, key, data));
-      },
-    };
-
-    request.headers['Authorization'] = `HttpSig cred="${this.baseUrl}"`;
-
-    const signed = await httpbis.signMessage({ key, paramValues: { keyid: 'TODO' } }, { ...request, url });
-
-    return await this.fetcher.fetch(url, signed);
-  }
 
   /**
    * Method to fetch a ticket from the Permission Registration endpoint of the UMA Authorization Service.
@@ -129,7 +97,7 @@ export class UmaClient {
       });
     }
 
-    const response = await this.signedFetch(endpoint, {
+    const response = await this.fetcher.fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -218,7 +186,7 @@ export class UmaClient {
       throw new Error(message);
     }
 
-    const res = await this.signedFetch(config.introspection_endpoint, {
+    const res = await this.fetcher.fetch(config.introspection_endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -244,7 +212,7 @@ export class UmaClient {
    */
   public async fetchUmaConfig(issuer: string): Promise<UmaConfig> {
     const configUrl = issuer + UMA_DISCOVERY;
-    const res = await fetch(configUrl);
+    const res = await this.fetcher.fetch(configUrl);
 
     if (res.status >= 400) {
       throw new Error(`Unable to retrieve UMA Configuration for Authorization Server '${issuer}' from '${configUrl}'`);
@@ -291,7 +259,7 @@ export class UmaClient {
     };
 
     // do not await - registration happens in background to cope with errors etc.
-    this.signedFetch(endpoint, request).then(async resp => {
+    this.fetcher.fetch(endpoint, request).then(async resp => {
       if (resp.status !== 201) {
         throw new Error (`Resource registration request failed. ${await resp.text()}`);
       }
@@ -326,10 +294,10 @@ export class UmaClient {
     };
 
     // do not await - registration happens in background to cope with errors etc.
-    this.signedFetch(endpoint, request).then(async _resp => {
+    this.fetcher.fetch(endpoint, request).then(async _resp => {
       if (!umaId) throw new Error('Trying to delete unknown/unregistered resource; no UMA id found.');
 
-      await this.signedFetch(url, request);
+      await this.fetcher.fetch(url, request);
     }).catch(error => {
       // TODO: Do something useful on error
       this.logger.warn(

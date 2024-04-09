@@ -35,6 +35,11 @@ You can then execute the following flows:
 `yarn script:flow` runs all flows in sequence.
 
 
+## Demonstration
+
+A more extensive example of a real life use case has been implemented as described in [./demo/README.md](./demo/README.md).
+
+
 ## Implemented features
 
 The packages in this project currently only support a fixed UMA AS per CSS RS, and contain only the trivial [AllAuthorizer](packages/uma/src/models/AllAuthorizer.ts) that allows all access. More useful features are coming soon ...
