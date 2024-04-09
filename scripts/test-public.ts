@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 import { fetch } from 'cross-fetch'
 
 const publicResource = "http://localhost:3000/alice/profile/card"

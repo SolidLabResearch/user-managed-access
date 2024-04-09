@@ -12,7 +12,7 @@
           "@id": "urn:solid-server:default:StatusDependantServerConfigurator",
           "@type": "StatusDependantServerConfigurator",
           "dependants": [
-            { "@id": "urn:solid-server:default:Fetcher" }
+            { "@id": "urn:solid-server:default:UmaFetcher" }
           ],
           "statusMap": [
             {
@@ -35,21 +35,26 @@
       "comment": "Returns the UMA ticket in case of an unauthorized request.",
       "@id": "urn:solid-server:default:UmaClient",
       "@type": "UmaClient",
-      "baseUrl": {
-        "@id": "urn:solid-server:default:variable:baseUrl"
-      },
       "umaIdStore": {
         "@id": "urn:solid-server:default:UmaIdStore",
         "@type": "MemoryMapStorage"
       },
-      "keyGen": {
-        "@id": "urn:solid-server:default:JwkGenerator"
-      },
       "fetcher": {
-        "@id": "urn:solid-server:default:Fetcher",
+        "@id": "urn:solid-server:default:UmaFetcher",
         "@type": "PausableFetcher",
         "fetcher": {
-          "@type": "BaseFetcher"
+          "@type": "RetryingFetcher",
+          "fetcher": {
+            "@type": "SignedFetcher",
+            "fetcher": {
+              "@type": "BaseFetcher"
+            },
+            "baseUrl": { "@id": "urn:solid-server:default:variable:baseUrl" },
+            "keyGen": { "@id": "urn:solid-server:default:JwkGenerator" }
+          },
+          "retries": 150,
+          "exponent": 3,
+          "retryOn": [401, 500]
         }
       }
     },

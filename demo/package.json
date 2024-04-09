@@ -1,0 +1,23 @@
+{
+  "name": "@solidlab/uma-demos",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.15.14",
+    "@types/react-dom": "^18.2.18",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.10.0",
+    "react-scripts": "5.0.1",
+    "serve": "^14.2.1"
+  },
+  "workspaces": [
+    "sites/*"
+  ],
+  "scripts": {
+    "build:demo": "yarn workspaces foreach --include 'sites/*' -A -pi run build",
+    "start:demo": "yarn workspaces foreach --include 'sites/*' -A -pi run start"
+  }
+}

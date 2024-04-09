@@ -4,6 +4,6 @@ import { Permission } from '../views/Permission';
 
 export interface Ticket {
   permissions: Permission[],
-  required: Requirements,
+  required: Requirements[],
   provided: ClaimSet,
 };

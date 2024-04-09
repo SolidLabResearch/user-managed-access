@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 import { fetch } from 'cross-fetch'
 
 // Resource and WebID as set in config/rules/policy/policy0.ttl

@@ -32,7 +32,7 @@ export class AllAuthorizer implements Authorizer {
   }
 
   /** @inheritdoc */
-  public async credentials(permissions: Permission[]): Promise<Requirements> {
-    return ({});
+  public async credentials(permissions: Permission[]): Promise<Requirements[]> {
+    return [{}];
   }
 }

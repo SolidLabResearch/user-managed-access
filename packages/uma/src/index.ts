@@ -9,6 +9,7 @@ export * from './credentials/verify/Verifier';
 export * from './credentials/verify/TypedVerifier';
 export * from './credentials/verify/UnsecureVerifier';
 export * from './credentials/verify/SolidOidcVerifier';
+export * from './credentials/verify/JwtVerifier';
 
 // Dialog
 export * from './dialog/Input';
@@ -82,6 +83,7 @@ export * from './util/http/models/HttpHandlerResponse';
 export * from './util/http/models/HttpHandlerRoute';
 export * from './util/http/models/HttpMethod';
 export * from './util/http/server/ErrorHandler';
+export * from './util/http/server/CorsRequestHandler';
 export * from './util/http/server/NodeHttpRequestResponseHandler';
 export * from './util/http/server/NodeHttpServer';
 export * from './util/http/server/NodeHttpStreamsHandler';

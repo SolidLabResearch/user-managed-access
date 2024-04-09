@@ -1,0 +1,19 @@
+@prefix odrl: <http://www.w3.org/ns/odrl/2/>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+
+<urn:ucp:policy:1> a odrl:Agreement;
+    odrl:permission <urn:ucp:rule:1>.
+<urn:ucp:rule:1> a odrl:Permission;
+    odrl:action odrl:read;
+    odrl:target <http://localhost:3000/ruben/private/derived/age>;
+    odrl:assignee <http://localhost:3000/demo/public/vendor>;
+    odrl:constraint <urn:ucp:constraint:1a>, <urn:ucp:constraint:1b>, <urn:ucp:constraint:1c>.
+<urn:ucp:constraint:1a> odrl:leftOperand odrl:dateTime;
+    odrl:operator odrl:gt;
+    odrl:rightOperand "2024-03-15T14:52:09.755Z"^^xsd:dateTime.
+<urn:ucp:constraint:1b> odrl:leftOperand odrl:dateTime;
+    odrl:operator odrl:lt;
+    odrl:rightOperand "2024-03-29T14:52:09.755Z"^^xsd:dateTime.
+<urn:ucp:constraint:1c> odrl:leftOperand odrl:purpose;
+    odrl:operator odrl:eq;
+    odrl:rightOperand "age-verification".
