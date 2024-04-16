@@ -49,7 +49,6 @@
                 "routes": [
                   { "@id": "urn:uma:default:UmaConfigRoute" },
                   { "@id": "urn:uma:default:JwksRoute" },
-                  { "@id": "urn:uma:default:TokenRoute" },
                   { "@id": "urn:uma:default:DemoTokenRoute" },
                   { "@id": "urn:uma:default:PermissionRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationRoute" },
