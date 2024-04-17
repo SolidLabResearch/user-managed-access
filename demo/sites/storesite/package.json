@@ -6,6 +6,7 @@
     "n3": "^1.17.3"
   },
   "scripts": {
+    "dev": "yarn run -T react-scripts start",
     "start": "yarn run -T serve -s build -l 5002",
     "build": "yarn run -T react-scripts build"
   },

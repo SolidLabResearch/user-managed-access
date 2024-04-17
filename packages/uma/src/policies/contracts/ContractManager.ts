@@ -60,6 +60,8 @@ export class ContractManager {
             constraint: constraints
         }
 
+        // todo:: fix instantiated from
+        // todo:: un-mock?
         
         let contract: Contract = {
             instantiatedFrom: ['a', 'b'],

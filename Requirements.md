@@ -9,7 +9,7 @@
 - [ ] Signing policy 
 - [X] Create access grant
 - [ ] *Log Policy Instantiation and Access Grant
-- [ ] Store data storage (graph store?)
+- [ ] client agreement storage (graph store?)
 - [X] Retrieve age
 - [ ] *Log data retrieval
 
