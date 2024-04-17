@@ -1,0 +1,41 @@
+{
+    "@context": "http://www.w3.org/ns/odrl.jsonld",
+    "@type": "Agreement",
+    "uid": "urn:ucp:policy:120312314134",
+    "assigner": "http://localhost:3000/ruben/profile/card#me",
+    "assignee": "http://localhost:3000/store/#me",
+    "target": "http://localhost:3000/ruben/private/derived/age",
+    "permission": [
+      {
+        "action": [
+          "read",
+          "use"
+        ],
+        "constraint": [
+          {
+            "leftOperand": "dateTime",
+            "operator": "gt",
+            "rightOperand": {
+              "@value": "2024-04-17T12:52:37.060Z",
+              "@type": "xsd:date"
+            }
+          },
+          {
+            "leftOperand": "dateTime",
+            "operator": "lt",
+            "rightOperand": {
+              "@value": "2024-04-24T12:52:37.060Z",
+              "@type": "xsd:date"
+            }
+          },
+          {
+            "leftOperand": "purpose",
+            "operator": "eq",
+            "rightOperand": {
+              "@id": "urn:udp:policy:constraints:age-verification"
+            }
+          }
+        ]
+      }
+    ]
+  }
