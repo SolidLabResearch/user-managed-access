@@ -1,4 +1,4 @@
-import { Type, array, string } from "../util/ReType";
+import { Type, array, string, optional } from "../util/ReType";
 
 
 export const ODRLConstraint = {
@@ -13,7 +13,7 @@ export const ODRLPermission = {
 }
 
 export const Contract = {
-    instantiatedFrom: array(string),
+    instantiatedFrom: optional(array(string)),
     "@context": string,
     "@type": string,
     target: string, // resourceURL

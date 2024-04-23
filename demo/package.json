@@ -14,10 +14,11 @@
     "serve": "^14.2.1"
   },
   "workspaces": [
-    "sites/*"
+    "sites/*",
+    "backend/*"
   ],
   "scripts": {
-    "build:demo": "yarn workspaces foreach --include 'sites/*' -A -pi run build",
-    "start:demo": "yarn workspaces foreach --include 'sites/*' -A -pi run start"
+    "build:demo": "yarn workspaces foreach --include 'sites/*' --include 'backend/*' -A -pi run build",
+    "start:demo": "yarn workspaces foreach --include 'sites/*' --include 'backend/*' -A -pi run start"
   }
 }

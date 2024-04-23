@@ -64,7 +64,7 @@ export class ContractManager {
         // todo:: un-mock?
         
         let contract: Contract = {
-            instantiatedFrom: ['a', 'b'],
+            // instantiatedFrom: ['a', 'b'],
             "@context": "http://www.w3.org/ns/odrl.jsonld",
             "@type": "Agreement",
             target: target,

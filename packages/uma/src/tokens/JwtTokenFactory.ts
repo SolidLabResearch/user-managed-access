@@ -45,7 +45,7 @@ export class JwtTokenFactory extends TokenFactory {
   public async serialize(token: AccessToken): Promise<SerializedToken> {
     const key = await this.keyGen.getPrivateKey();
     const jwk = await importJWK(key, key.alg);
-    const jwt = await new SignJWT({ permissions: token.permissions })
+    const jwt = await new SignJWT({ permissions: token.permissions, contract: token.contract })
       .setProtectedHeader({alg: key.alg, kid: key.kid})
       .setIssuedAt()
       .setIssuer(this.issuer)
