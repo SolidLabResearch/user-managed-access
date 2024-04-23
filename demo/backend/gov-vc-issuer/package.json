@@ -1,0 +1,47 @@
+{
+  "name": "solid-vc-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "Gertjan De Mulder (gertjan.demulder@ugent.be), Ruben Dedecker",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/jsonld": "^1.5.13",
+    "@types/node": "^20.11.30",
+    "@types/streamify-string": "^1.0.4",
+    "nodemon": "^3.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.3"
+  },
+  "dependencies": {
+    "@digitalbazaar/data-integrity": "^2.1.0",
+    "@digitalbazaar/data-integrity-context": "^2.0.0",
+    "@digitalbazaar/ed25519-multikey": "^1.1.0",
+    "@digitalbazaar/ed25519-signature-2020": "^5.2.0",
+    "@digitalbazaar/eddsa-2022-cryptosuite": "^1.0.0",
+    "@digitalcredentials/vc-data-model": "^1.1.1",
+    "@inrupt/solid-client": "^2.0.1",
+    "@inrupt/solid-client-authn-core": "^2.1.0",
+    "@solid/community-server": "^7.0.4",
+    "cors": "^2.8.5",
+    "credentials-context": "^2.0.0",
+    "express": "^4.19.1",
+    "jsonld": "^8.3.2",
+    "jsonld-document-loader": "^2.0.0",
+    "jsonld-signatures": "^11.2.1",
+    "mime-types": "^2.1.35",
+    "n3": "^1.17.3",
+    "rdf-parse": "^2.3.3",
+    "rdf-serialize": "^2.2.3",
+    "stream-to-string": "^1.2.1",
+    "streamify-string": "^1.0.1",
+    "url-join": "^5.0.0"
+  }
+}
