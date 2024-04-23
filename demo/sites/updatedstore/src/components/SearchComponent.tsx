@@ -11,6 +11,7 @@ function SearchComponent({
     badgeCounter,
     ageValidated,
     verify,
+    handlePayment
 }: {
     searchCourse: any, 
     courseSearchUserFunction: any,
@@ -20,6 +21,7 @@ function SearchComponent({
     badgeCounter: number,
     ageValidated: boolean,
     verify: Function,
+    handlePayment: Function
 }) {
     return (
         <header className="App-header">
@@ -40,6 +42,7 @@ function SearchComponent({
                 badgeCounter={badgeCounter}
                 ageValidated={ageValidated}
                 verify={verify}
+                handlePayment={handlePayment}
             />
         </header>
     );

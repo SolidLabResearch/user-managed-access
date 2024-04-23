@@ -11,12 +11,14 @@ function UserCartComponent({
     setCartCourses,
     ageValidated,
     verify,
+    handlePayment
 }: {
     cartCourses: CartItem[], 
     deleteCartCourses: any, 
     setCartCourses: any,
     ageValidated: boolean
     verify: Function,
+    handlePayment: Function,
 }) {
 
 const totalAmountCalculationFunction = () => {
@@ -120,10 +122,7 @@ return (
 
                         <button id="checkout-button"
                             className="checkout-button"
-                            disabled={
-                                cartCourses.length === 0 || 
-                                totalAmountCalculationFunction() === 0
-                            }
+                            onClick={() => handlePayment()}
                         >
                             Proceed to Payment
                         </button>

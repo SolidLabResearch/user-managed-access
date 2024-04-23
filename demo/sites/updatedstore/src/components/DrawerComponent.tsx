@@ -12,7 +12,8 @@ export default function TemporaryDrawer({
   setCartCourses, 
   badgeCounter,
   ageValidated,
-  verify
+  verify,
+  handlePayment
 }: {
   cartCourses: any, 
   deleteCartCourses: any, 
@@ -20,6 +21,7 @@ export default function TemporaryDrawer({
   badgeCounter: number,
   ageValidated: boolean,
   verify: Function
+  handlePayment: Function,
 }) {
   const [open, setOpen] = React.useState(false);
   console.log(cartCourses)
@@ -38,6 +40,7 @@ export default function TemporaryDrawer({
         setCartCourses={setCartCourses}
         ageValidated={ageValidated}
         verify={verify}
+        handlePayment={handlePayment}
       />
     </Box>
   );

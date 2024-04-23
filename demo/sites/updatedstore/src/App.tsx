@@ -10,6 +10,9 @@ import ShowCourseComponent from './components/ShowCourseComponent';
 import { performAgeVerification } from './util';
 import PaymentComponent from './components/PaymentComponent';
 
+export const storeBackendUrl = 'http://localhost:5123/'
+export const verificationBackendUrl = storeBackendUrl + 'verify/'
+
 
 export type Item = {
     id: number,
@@ -31,7 +34,7 @@ function App() {
     const [cartCourses, setCartCourses] = useState<CartItem[]>([]);
     const [searchCourse, setSearchCourse] = useState('');
     const [ageValidated, setAgeValidated] = useState(false);
-    const [showPayment, setShowPayment] = useState(true);
+    const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
 
@@ -61,16 +64,21 @@ function App() {
 
   // Age verification
   const verify = async (webId: string) => {
+
+    let res;
     try {
-      let verified = await performAgeVerification(webId)
-      if(verified) { 
-        setAgeValidated(true) 
-      } 
+      res = await fetch(verificationBackendUrl, {
+        method: 'POST',
+        body: JSON.stringify({ webId })
+      })
     } catch (e) {
-      alert(
-`Could not negotiate age verification.
-A notification has been sent to your companion app`)
+      alert('Store backend is not running!')
+      return
     }
+
+    let response = await res.json()
+    if (!response.verification_result) { alert(response.message) }
+    else { setAgeValidated(true)}
   }
  
   const addCourseToCartFunction = (GFGcourse: Item) => {
@@ -103,6 +111,11 @@ A notification has been sent to your companion app`)
         course.name.toLowerCase().includes(searchCourse.toLowerCase())
     );
 
+    const handlePayment = () => {
+      console.log('setting payment')
+      setShowPayment(true)
+    }
+
     const calculateBadgeCounter = () => cartCourses.map(e => e.quantity).reduce(add, 0);
     const add = (a: number, b: number) => a + b
 
@@ -112,7 +125,7 @@ A notification has been sent to your companion app`)
         {
           showPayment
           ? <div> 
-            <PaymentComponent />
+            <PaymentComponent cartCourses={cartCourses} />
           </div>
           : <div> 
               <SearchComponent searchCourse={searchCourse} 
@@ -124,6 +137,7 @@ A notification has been sent to your companion app`)
                               badgeCounter={calculateBadgeCounter()}
                               ageValidated={ageValidated}
                               verify={verify}
+                              handlePayment={handlePayment}
                               />
               <main className="App-main">
                 <ShowCourseComponent

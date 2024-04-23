@@ -31,7 +31,7 @@ const PolicyFormModal = (props: any) => {
   let end = new Date()
   end.setDate(end.getDate() + 7)
   
-  const [target, setTarget] = useState<string>(terms.views.age);
+  const [target, setTarget] = useState<string>(terms.views['age-credential']);
   const [assignee, setAssignee] = useState<string>(terms.agents.vendor);
   const [startDate, setStartDate] = useState<Date>(now);
   const [endDate, setEndDate] = useState<Date>(end);

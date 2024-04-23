@@ -24,6 +24,9 @@
   },
   "dependencies": {
     "@mui/icons-material": "^5.15.15",
+    "@types/jwt-encode": "^1.0.3",
+    "jwt-decode": "^4.0.0",
+    "jwt-encode": "^1.0.1",
     "mdb-react-ui-kit": "^8.0.0"
   }
 }
