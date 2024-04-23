@@ -1,8 +1,6 @@
 import express, { Request, Response, response } from 'express';
-import { performAgeVerification } from './util'
+import { processAgeResult, retrieveData, terms } from './util'
 import BackendStore, { Contract, Retrieval } from './storage';
-import { randomUUID } from 'crypto';
-import { timeStamp } from 'console';
 
 const app = express()
 const port = 5123
@@ -15,24 +13,33 @@ const storage = new BackendStore();
 // Verification Interface
 
 app.get('/verify', async (req: Request, res: Response) => {
-    const { webId } = req.body
+    // const { webId } = req.body
+    const webId = 'http://localhost:3000/ruben/profile/card#me'
 
-    try {
-        let verified = await performAgeVerification(webId)
-        if(verified) { 
-            res.statusCode = 200;
-            res.send({
-                "verified": true,
-            })
-          
-        } 
-      } catch (e) {
+    // todo: make this take the correct webid and make the age credential to be found from the WebID?
 
+    const credentialURL = terms.views['age-credential'] // todo: fix this
+
+    // 1 negotiate access to age credential
+    const ageData = await retrieveData(credentialURL, webId);
+
+    // 2 store signed token for age credential location
+
+    // 3 verify age credential signature
+    const decision = await processAgeResult(ageData, webId)
+    
+    // 4 return decision
+    if (decision) {
+        res.statusCode = 200;
         res.send({
-            "verified": false,
-            "error": e,
+            "verified": true,
         })
-      }
+    } else {
+        res.statusCode = 200;
+        res.send({
+            "verified": false, // todo: more info & credential verification result
+        })
+    }
 })
 
 
@@ -73,7 +80,7 @@ app.get('/audit', (req: Request, res: Response) => {
 
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`[store-backend] Store backend listening on port ${port}`)
 })
 
 

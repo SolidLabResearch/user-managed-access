@@ -1,4 +1,4 @@
-import { Contract } from "../src/storage";
+import { Contract } from "./storage";
 
 var firstDay = new Date();
 var nextWeek = new Date(firstDay.getTime() + 7 * 24 * 60 * 60 * 1000);

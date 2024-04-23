@@ -1,5 +1,10 @@
 /* eslint-disable max-len */
-import { Parser, Writer, Store } from 'n3'
+import { Parser, Writer, Store, Quad } from 'n3'
+import sign from 'jwt-encode'
+
+import rdfParser from 'rdf-parse'
+import rdfSerializer from 'rdf-serialize'
+import Streamify from 'streamify-string'
 
 const parser = new Parser();
 const writer = new Writer();
@@ -19,6 +24,7 @@ export const terms = {
   views: {
     bday: 'http://localhost:3000/ruben/private/derived/bday',
     age: 'http://localhost:3000/ruben/private/derived/age',
+    "age-credential": 'http://localhost:3000/ruben/private/age-credential',
   },
   agents: {
     ruben: 'http://localhost:3000/ruben/profile/card#me',
@@ -31,30 +37,15 @@ export const terms = {
 }
 
 
-export const performAgeVerification = async (webId: string) => {
-    console.log('running verification for', webId)
 
-    const ageData = await retrieveData(webId);
-    const result = await processAgeResult(ageData, webId)
-    return result
-
-}
-
-export async function retrieveData(webId: string): Promise<string> {
+export async function retrieveData(documentURI: string, webId: string): Promise<string> {
   
   let profileText, viewIndex, views;
   let webIdData: Store;
 
   try {
-    profileText = await (await fetch(webId)).text()
-    
+    profileText = await (await fetch(webId, {headers: { "accept": 'text-turtle'}})).text()
     webIdData = new Store(parser.parse(profileText));
-    viewIndex = webIdData.getObjects(webId, terms.solid.viewIndex, null)[0]?.value;
-    views = Object.fromEntries(webIdData.getObjects(viewIndex, terms.solid.entry, null).map(entry => {
-      const filter = webIdData.getObjects(entry, terms.solid.filter, null)[0]?.value;
-      const location = webIdData.getObjects(entry, terms.solid.location, null)[0]?.value;
-      return [filter, location];
-    }));
   } catch (e: any) {
     log(e)
     throw new Error('Could not read WebID information')
@@ -65,13 +56,6 @@ export async function retrieveData(webId: string): Promise<string> {
     return profileText
 
   }
-
-  if (!views) throw new Error('Could not request access to required data for verification'); 
-
-  log(`Discovery of views is currently a very crude mechanism based on a public index in the WebID document. (A cleaner mechanism using the UMA server as central hub is being devised.) Using the discovery mechanism, we find the following views on Ruben's private data.`)
-
-  log(`(1) <${views[terms.filters.bday]}> filters out his birth date, according to the <${terms.filters.bday}> filter`);
-  log(`(2) <${views[terms.filters.age]}> derives his age, according to the <${terms.filters.bday}> filter`);
 
   const policyContainer = 'http://localhost:3000/ruben/settings/policies/generic/';
 
@@ -92,7 +76,7 @@ export async function retrieveData(webId: string): Promise<string> {
 
   const accessRequest = {
     permissions: [{
-      resource_id: terms.views.age,
+      resource_id: documentURI,
       resource_scopes: [ terms.scopes.read ],
     }]
   };
@@ -118,12 +102,14 @@ export async function retrieveData(webId: string): Promise<string> {
       log(`Based on the policy, the UMA server requests the following claims from the agent:`);
       required_claims.claim_token_format[0].forEach((format: string) => log(`  - ${format}`))
 
-      // JWT (HS256; secret: "ceci n'est pas un secret")
-      // {
-      //   "http://www.w3.org/ns/odrl/2/purpose": "urn:solidlab:uma:claims:purpose:age-verification",
-      //   "urn:solidlab:uma:claims:types:webid": "http://localhost:3000/demo/public/vendor"
-      // }
-      const claim_token = "eyJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vd3d3LnczLm9yZy9ucy9vZHJsLzIvcHVycG9zZSI6InVybjpzb2xpZGxhYjp1bWE6Y2xhaW1zOnB1cnBvc2U6YWdlLXZlcmlmaWNhdGlvbiIsInVybjpzb2xpZGxhYjp1bWE6Y2xhaW1zOnR5cGVzOndlYmlkIjoiaHR0cDovL2xvY2FsaG9zdDozMDAwL2RlbW8vcHVibGljL3ZlbmRvciJ9.Px7G3zl1ZpTy1lk7ziRMvNv12Enb0uhup9kiVI6Ot3s"
+      const data = {
+        "http://www.w3.org/ns/odrl/2/purpose": "urn:solidlab:uma:claims:purpose:age-verification",
+        "urn:solidlab:uma:claims:types:webid": "http://localhost:3000/demo/public/vendor"
+      }
+      // todo: Have a store public key and use this to sign (though it's https is it really necessary?)
+      const secret = ('store public key') // todo: this should be the public key
+      
+      const claim_token = sign(data, secret)
 
       log(`The agent gathers the necessary claims (the manner in which is out-of-scope for this demo), and sends them to the UMA server as a JWT.`)
 
@@ -150,7 +136,7 @@ export async function retrieveData(webId: string): Promise<string> {
   log(`The UMA server checks the claims with the relevant policy, and returns the agent an access token with the requested permissions.`);
   
   const tokenParams: any = await tokenEndpointResponse.json();
-  const accessWithTokenResponse = await fetch(terms.views.age, {
+  const accessWithTokenResponse = await fetch(documentURI, {
     headers: { 'Authorization': `${tokenParams.token_type} ${tokenParams.access_token}` }
   });
 
@@ -166,8 +152,27 @@ export async function retrieveData(webId: string): Promise<string> {
 }
 
 export async function processAgeResult(data: string, webId: string): Promise<boolean> {
-  const store = new Store( new Parser().parse(await (data)) )
-  let age = store.getQuads(null, "http://xmlns.com/foaf/0.1/age", null, null)[0]?.object.value
+  console.log('processing age result', data, webId)
+
+
+
+  // .default because of some typing errors 
+  const parsedQuads: Quad[] = await new Promise((resolve, reject) => {
+    let quads: Quad[] = []
+    const textStream = Streamify(data);
+    console.log('rdfParser', rdfParser)
+    let quadStream = rdfParser.parse(textStream, { contentType: 'application/ld+json' }); // todo: dynamic checking
+    quadStream
+      .on('data', (quad: any) => quads.push(quad))
+      .on('error', (error: any) => console.error(error))
+      .on('end', () => resolve(quads));
+
+  })
+
+  console.log('quads', JSON.stringify(parsedQuads, null, 2))
+
+  const store = new Store(parsedQuads)
+  let age = store.getQuads(null, "http://www.w3.org/2006/vcard/ns#bday", null, null)[0]?.object.value // todo: non-mocked checking
   if (age && parseInt(age) >= 18) {
     console.log(`Discovered age value of ${parseInt(age)}, enabling all restricted content`)
     return true

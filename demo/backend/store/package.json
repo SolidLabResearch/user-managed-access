@@ -4,15 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/streamify-string": "^1.0.4",
     "typescript": "^5.4.5"
   },
   "dependencies": {
     "express": "^4.19.2",
-    "n3": "^1.17.3"
+    "jwt-encode": "^1.0.1",
+    "n3": "^1.17.3",
+    "rdf-parse": "^2.3.3",
+    "streamify-string": "^1.0.1"
   }
 }
