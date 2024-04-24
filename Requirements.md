@@ -1,11 +1,11 @@
 # TODOs for end-to-end requirements:
 
-## List-based requirements
+## Assignment minimum requirements
 - [X] The system needs to facilitate the exchange of the data (date of birth).
   - [X] A date of birth must be available at some location in the dataspace
-- [ ] The system needs to provide the store with the trust that the data is correct.
-  - [ ] The stored DOB must be a verifiable credential
-  - [ ] A verification endpoint must be present that allows to verify this credential
+- [X] The system needs to provide the store with the trust that the data is correct.
+  - [X] The stored DOB must be a verifiable credential
+  - [X] The stored credential must be verifiable on the store backend
 - [X] The system needs to provide the person with the trust that their data will only be used for age checking.
   - [X] The policy system must be able to handle a purpose
 - [ ] The system allows the person to specify in advance the generic policy that “all Belgian stores are allowed to read my date of birth”.
