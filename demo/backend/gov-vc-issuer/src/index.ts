@@ -147,8 +147,6 @@ app.post('/verify', async (req,res)=>{
         documentLoader
     })
 
-    console.log(verificationResult)
-
     res.send({validationResult, verificationResult})
 })
 

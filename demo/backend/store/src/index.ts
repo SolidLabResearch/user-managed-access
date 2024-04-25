@@ -1,6 +1,6 @@
 import express, { Request, Response, response } from 'express';
-import { processAgeResult, retrieveData, terms, verifyJwtToken } from './util'
-import BackendStore, { Contract, Embedded, Retrieval } from './storage';
+import { processAgeResult, retrieveData, terms, verifyVCsignature, verifyJwtToken } from './util'
+import BackendStore, { Contract, Embedded } from './storage';
 import cors from "cors"
 
 const app = express()
@@ -56,9 +56,26 @@ app.get('/verify', async (req: Request, res: Response) => {
     }
     storage.storeEmbedded(embedded)
 
+    // todo:: check purpose checking etc double check
+
     // 4 verify age credential signature
-    // todo: signature verification!!!!!!!!!!!!!!!!!!!!!!
-    
+    // todo: signature verification currently done on VC service through API.
+    // this should be moved to the backend itself in due time?
+    let result = await verifyVCsignature('http://localhost:4444/verify', data)
+    if (!result.validationResult.valid) {
+        res.statusCode = 200;
+        res.send({
+            "verified": false, // todo: more info & credential verification result
+            "message": "Age Credential data validation failed"
+        })
+    }
+    if (!result.verificationResult.verified) {
+        res.statusCode = 200;
+        res.send({
+            "verified": false, // todo: more info & credential verification result
+            "message": "Age Credential signature verification failed"
+        })
+    }    
 
     // 5 check age
     const decision = await processAgeResult(data, webId)

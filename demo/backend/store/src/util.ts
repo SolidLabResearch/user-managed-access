@@ -290,9 +290,28 @@ export async function extractContractFromToken(token: string, webId: string) {
 }
 
 
-export async function verifiyVCsignature(data: string) {
+type VCVerificationResult = {
+  validationResult: {
+    valid: boolean
+  }
+  verificationResult: {
+    verified: boolean
+  }
+}
 
-  // 1 -> get data as JSON-LD
-  // 2 -> validate using Gertjan's stuff (did I make something like this already?)
+export async function verifyVCsignature(verificationUrl: string, data: string): Promise<VCVerificationResult> {
+  
+  const res = await fetch(verificationUrl, {
+    method: "POST",
+    body: data,
+    headers: { "Content-Type": "application/json" }
+  })
+  
+  const {validationResult, verificationResult} = (await res.json()) as VCVerificationResult
+
+  console.log('[store-backend] validationResult', validationResult)
+  console.log('[store-backend] verificationResult', verificationResult)
+
+  return {validationResult, verificationResult}
 
 }

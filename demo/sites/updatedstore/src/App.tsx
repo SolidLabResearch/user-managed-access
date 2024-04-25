@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import SearchComponent from './components/SearchComponent';
 import ShowCourseComponent from './components/ShowCourseComponent';
-import { performAgeVerification } from './util';
 import PaymentComponent from './components/PaymentComponent';
 
 export const storeBackendUrl = 'http://localhost:5123/'

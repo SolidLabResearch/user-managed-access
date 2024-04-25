@@ -5610,6 +5610,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solidlab/uma-demo-auditing@workspace:sites/auditingsite":
+  version: 0.0.0-use.local
+  resolution: "@solidlab/uma-demo-auditing@workspace:sites/auditingsite"
+  dependencies:
+    "@comunica/query-sparql": "npm:^2.6.9"
+    "@inrupt/solid-client-authn-browser": "npm:^1.14.0"
+    n3: "npm:^1.17.3"
+    uuid: "npm:^9.0.1"
+  languageName: unknown
+  linkType: soft
+
 "@solidlab/uma-demo-authz@workspace:sites/authorizationsite":
   version: 0.0.0-use.local
   resolution: "@solidlab/uma-demo-authz@workspace:sites/authorizationsite"
