@@ -18,7 +18,7 @@
   - [X] The interaction is automatic after a WebID button is clicked to show what is happening.
 - [ ] The system allows the store to prove that they were allowed to perform the age verification.
   - [X] A backend storage must be in place for the store
-  - [ ] The store website must forward data storage and checks to the backend
+  - [X] The store website must forward data storage and checks to the backend
 - [ ] The system allows the person to check that their data was used correctly.
   - [X] An auditing routine must be built in the store backend
   - [ ] An auditing routine must be built as a frontend interface
@@ -26,8 +26,13 @@
   - [X] Must be able to create a VC 
   - [X] VC must be transfered to demo pod storage -> Not required for Demo because of fixed keypair seed
   - [ ] VCs can be validated on the backend of the store
+- [ ] The Auditing use-case
+  - [X] The store backend provides the option to retrieve all required data to audit
+  - [ ] This can be represented in an auditing browser app that shows colors when verified (token + VC)
 
 
+Small note with using the UMA server token signature as the contract signature.
+We can only trace this back to the UMA Server, and cannot reliably check the connection between the WebID and the UMA Server
 
 
 ## Demonstrator requirements

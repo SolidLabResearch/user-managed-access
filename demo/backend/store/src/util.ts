@@ -6,6 +6,18 @@ import rdfParser from 'rdf-parse'
 import rdfSerializer from 'rdf-serialize'
 import Streamify from 'streamify-string'
 
+import { decodeJwt, createRemoteJWKSet, jwtVerify } from "jose";
+
+const UMA_DISCOVERY = '/.well-known/uma2-configuration';
+
+const REQUIRED_METADATA = [
+  'issuer', 
+  'jwks_uri', 
+  'permission_endpoint', 
+  'introspection_endpoint', 
+  'resource_registration_endpoint'
+];
+
 const parser = new Parser();
 const writer = new Writer();
 
@@ -36,13 +48,9 @@ export const terms = {
   }
 }
 
-
-
-export async function retrieveData(documentURI: string, webId: string): Promise<string> {
-  
-  let profileText, viewIndex, views;
+async function getUmaServerForWebID(webId: string) {
+  let profileText;
   let webIdData: Store;
-
   try {
     profileText = await (await fetch(webId, {headers: { "accept": 'text-turtle'}})).text()
     webIdData = new Store(parser.parse(profileText));
@@ -50,18 +58,17 @@ export async function retrieveData(documentURI: string, webId: string): Promise<
     log(e)
     throw new Error('Could not read WebID information')
   }
+  return webIdData.getObjects(webId, terms.solid.umaServer, null)[0]?.value;
+}
 
-  if (webIdData && webIdData.getQuads(null, "http://xmlns.com/foaf/0.1/age", null, null).length) {
-    // Valid age found, we can return the profile document
-    return profileText
 
-  }
+export async function retrieveData(documentURI: string, webId: string): Promise<{ data: string, token?: any }> {
 
   const policyContainer = 'http://localhost:3000/ruben/settings/policies/generic/';
 
   log(`Access to Ruben's data is based on policies he manages through his Authz Companion app, and which are stored in <${policyContainer}>. (This is, of course, not publicly known.)`);
 
-  const umaServer = webIdData.getObjects(webId, terms.solid.umaServer, null)[0]?.value;
+  const umaServer = await getUmaServerForWebID(webId)
   
   if (!umaServer) throw new Error('Could not request access to required data for verification'); 
 
@@ -136,6 +143,9 @@ export async function retrieveData(documentURI: string, webId: string): Promise<
   log(`The UMA server checks the claims with the relevant policy, and returns the agent an access token with the requested permissions.`);
   
   const tokenParams: any = await tokenEndpointResponse.json();
+
+  // Retrieving document with access token
+
   const accessWithTokenResponse = await fetch(documentURI, {
     headers: { 'Authorization': `${tokenParams.token_type} ${tokenParams.access_token}` }
   });
@@ -145,22 +155,16 @@ export async function retrieveData(documentURI: string, webId: string): Promise<
   log(`The agent can then use this access token at the Resource Server to perform the desired action.`);
 
   let result = await accessWithTokenResponse.text()
-
-  console.log(`retrieved data\n${result}`)
   
-  return result
+  return { data: result, token: tokenParams.access_token }
 }
 
 export async function processAgeResult(data: string, webId: string): Promise<boolean> {
-  console.log('processing age result', data, webId)
-
-
 
   // .default because of some typing errors 
   const parsedQuads: Quad[] = await new Promise((resolve, reject) => {
     let quads: Quad[] = []
     const textStream = Streamify(data);
-    console.log('rdfParser', rdfParser)
     let quadStream = rdfParser.parse(textStream, { contentType: 'application/ld+json' }); // todo: dynamic checking
     quadStream
       .on('data', (quad: any) => quads.push(quad))
@@ -168,8 +172,6 @@ export async function processAgeResult(data: string, webId: string): Promise<boo
       .on('end', () => resolve(quads));
 
   })
-
-  console.log('quads', JSON.stringify(parsedQuads, null, 2))
 
   const store = new Store(parsedQuads)
   let age = store.getQuads(null, "http://www.w3.org/2006/vcard/ns#bday", null, null)[0]?.object.value // todo: non-mocked checking
@@ -182,11 +184,10 @@ export async function processAgeResult(data: string, webId: string): Promise<boo
   }
 }
 
-
 /* Helper functions */
 
-function parseJwt (token:string) {
-  return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+function isString(value: any): value is string {
+  return typeof value === 'string' || value instanceof String;
 }
 
 function log(msg: string, obj?: any) {
@@ -198,16 +199,100 @@ function log(msg: string, obj?: any) {
   }
 }
 
-// creates the container if it does not exist yet (only when access is there)
-async function initContainer(policyContainer: string): Promise<void> {
-  const res = await fetch(policyContainer)
-  if (res.status === 404) {
-    const res = await fetch(policyContainer, {
-      method: 'PUT'
-    })
-    if (res.status !== 201) {
-      log('Creating container at ' + policyContainer + ' not successful'); throw 0;
-    }
+
+/**
+ * Token verification and contract extraction
+ */
+
+ /**
+   * Fetch UMA Configuration of AS
+   * @param {string} issuer - Base URL of the UMA AS
+   * @return {Promise<UmaConfig>} - UMA Configuration
+   */
+ async function fetchUmaConfig(issuer: string): Promise<any> {
+  const configUrl = issuer + UMA_DISCOVERY;
+  const res = await fetch(configUrl);
+
+  if (res.status >= 400) {
+    throw new Error(`Unable to retrieve UMA Configuration for Authorization Server '${issuer}' from '${configUrl}'`);
+  }
+
+  const configuration = await res.json();
+
+  const missing = REQUIRED_METADATA.filter((value) => !(value in configuration));
+  if (missing.length !== 0) {
+    throw new Error(`The Authorization Server Metadata of '${issuer}' is missing attributes ${missing.join(', ')}`);
+  }
+
+  const noString = REQUIRED_METADATA.filter((value) => !isString(configuration[value]));
+  if (noString.length !== 0) throw new Error(
+    `The Authorization Server Metadata of '${issuer}' should have string attributes ${noString.join(', ')}`
+  );
+
+  return configuration;
+}
+
+
+async function verifyTokenData(token: string, issuer: string, jwks: string): Promise<any> {
+  const jwkSet = await createRemoteJWKSet(new URL(jwks));
+
+  const { payload } = await jwtVerify(token, jwkSet, {
+    issuer: issuer,
+    audience: 'solid',
+  });
+
+  return payload
+}
+
+/**
+ * Validates & parses JWT access token
+ * @param {string} token - the JWT access token
+ * @return {UmaToken}
+ */
+export async function verifyJwtToken(token: string, webId: string) {
+  let config;
+  let decoded;
+  try {
+    decoded = decodeJwt(token)
+    const issuer = decoded.iss;
+    if (!issuer) 
+      throw new Error('The JWT does not contain an "iss" parameter.');
+
+    let umaServer = await getUmaServerForWebID(webId)
+    const umaServerToCheck = umaServer.endsWith('/') ? umaServer : umaServer + '/'
+    const issuerToCheck = issuer.endsWith('/') ? issuer : issuer + '/'
+    // todo: Make sure that the uma server URL is consistent everywhere in ending with a '/' or not! 
+    if ( umaServerToCheck !== issuerToCheck ) 
+      throw new Error(`The JWT wasn't issued by one of the target owners' issuers.`);
+
+    config = await fetchUmaConfig(issuer);
+  } catch (error: unknown) {
+    const message = `Error verifying UMA access token: ${(error as Error).message}`;
+    console.warn(message);
+    throw new Error(message);
+  }
+
+  return ( await verifyTokenData(token, config.issuer, config.jwks_uri) ) ;
+}
+
+// MOVE THIS SHIT TO AN AUDITING INTERFACE
+
+export async function extractContractFromToken(token: string, webId: string) {
+  try {
+    const payload = await verifyJwtToken(token, webId)
+    const contract = payload.contract;
+    return { contract, verified: true}
+  } catch (_ignored) {
+    const payload = decodeJwt(token)
+    const contract = payload.contract;
+    return { contract, verified: false}
   }
 }
 
+
+export async function verifiyVCsignature(data: string) {
+
+  // 1 -> get data as JSON-LD
+  // 2 -> validate using Gertjan's stuff (did I make something like this already?)
+
+}

@@ -1,5 +1,3 @@
-import { randomUUID } from "crypto";
-
 
 export type  ODRLConstraint = {
     leftOperand: any,
@@ -10,6 +8,15 @@ export type  ODRLConstraint = {
 export type ODRLPermission = {
     action: string[],
     constraint: ODRLConstraint[]
+}
+
+export type Embedded = {
+    contract: Contract,
+    token: string,
+    webId: string // todo:: this should not be required
+    data: Data,
+    timestamp: Date, 
+    resourceId: ResourceId,
 }
 
 export type Contract = {
@@ -31,47 +38,22 @@ export type Permission = {
     resource_scopes: string[],
 };
 
-
 export type AccessToken = {
     permissions: Permission[],
     contractId?: string,
 }
 
-export type Retrieval = {
-    timestamp: Date, 
-    resourceId: ResourceId,
-    data: Data,
-}
-
-
 export default class BackendStore {
-    // Map<id, Contract>
-    private contracts = new Array<Contract>();
-    private retrievals = new Array<Retrieval>();
-    // Maps retrieval Id on Contract Id
-    private mapping = new Map<string, string>();
+    
+    private retrievals = new Array<Embedded>();
 
 
-    storeContract(contract: Contract) {
-        this.contracts.push(contract);
-    }
-
-    storeRetrieval(retrieval: Retrieval) {
-        this.retrievals.push(retrieval)
-
-        let relevantContract = this.contracts.find(contract => contract.target === retrieval.resourceId)
-        if(relevantContract) this.mapping.set(retrieval.resourceId, relevantContract.uid)
+    storeEmbedded(embedded: Embedded) {
+        this.retrievals.push(embedded)
     }
 
     getLogs() {
-        let results: {retrieval: Retrieval, contract: Contract}[] = []
-        for (let retrieval of this.retrievals) {
-            results.push({
-                retrieval,
-                contract: this.contracts.filter(c => c.uid === this.mapping.get(retrieval.resourceId as string))[0]
-            })
-        }
-        return results
+        return this.retrievals
     }
 }
 

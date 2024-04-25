@@ -17540,7 +17540,9 @@ __metadata:
   resolution: "store-backend@workspace:backend/store"
   dependencies:
     "@types/streamify-string": "npm:^1.0.4"
+    cors: "npm:^2.8.5"
     express: "npm:^4.19.2"
+    jose: "npm:^5.2.4"
     jwt-encode: "npm:^1.0.1"
     n3: "npm:^1.17.3"
     rdf-parse: "npm:^2.3.3"

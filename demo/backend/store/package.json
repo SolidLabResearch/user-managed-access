@@ -14,7 +14,9 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.19.2",
+    "jose": "^5.2.4",
     "jwt-encode": "^1.0.1",
     "n3": "^1.17.3",
     "rdf-parse": "^2.3.3",

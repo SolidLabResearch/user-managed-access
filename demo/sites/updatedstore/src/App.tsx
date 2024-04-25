@@ -11,7 +11,7 @@ import { performAgeVerification } from './util';
 import PaymentComponent from './components/PaymentComponent';
 
 export const storeBackendUrl = 'http://localhost:5123/'
-export const verificationBackendUrl = storeBackendUrl + 'verify/'
+export const verificationBackendUrl = storeBackendUrl + 'verify'
 
 
 export type Item = {
@@ -67,17 +67,14 @@ function App() {
 
     let res;
     try {
-      res = await fetch(verificationBackendUrl, {
-        method: 'POST',
-        body: JSON.stringify({ webId })
-      })
+      res = await fetch(verificationBackendUrl+`?webid=${encodeURIComponent(webId)}`)
     } catch (e) {
       alert('Store backend is not running!')
       return
     }
 
     let response = await res.json()
-    if (!response.verification_result) { alert(response.message) }
+    if (!response.verified) { alert(response.message) }
     else { setAgeValidated(true)}
   }
  
@@ -112,7 +109,6 @@ function App() {
     );
 
     const handlePayment = () => {
-      console.log('setting payment')
       setShowPayment(true)
     }
 

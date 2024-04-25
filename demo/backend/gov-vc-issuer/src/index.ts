@@ -43,7 +43,7 @@ app.use(cors(config.cors))
 app.use(bodyParser.json())
 app.use((req, res, next) => {
     const {method, url} = req
-    console.log(`${method}\t${url}`)
+    console.log(`[${config.name}] ${method}\t${url}`)
     next()
 })
 
