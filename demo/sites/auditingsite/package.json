@@ -1,0 +1,29 @@
+{
+  "name": "@solidlab/uma-demo-auditing",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@comunica/query-sparql": "^2.6.9",
+    "@inrupt/solid-client-authn-browser": "^1.14.0",
+    "@mui/material": "^5.15.15",
+    "n3": "^1.17.3",
+    "uuid": "^9.0.1"
+  },
+  "scripts": {
+    "dev": "yarn run -T react-scripts start",
+    "start": "yarn run -T serve -s build -l 5003",
+    "build": "yarn run -T react-scripts build"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
