@@ -51,24 +51,26 @@
 }
 
 .retrieval-resource-card {
+  /* height: 8.5em; */
   padding: 5px;
   margin: 5px;
   width: 100%;
   word-wrap: break-word;
-  height: 5em;
   text-align: left;
 }
 
 #audit-page {
   height: 70vh; 
+  padding-left: 2em;
 }
 
 .text-display {
-  margin: 2em;
-  overflow-y: scroll;
+  margin: 2em 2em 2em 0em ;
+  /* overflow-y: scroll; */
   text-align: left;
   white-space: pre-wrap;
   height: 80%;
+  overflow: hidden;
   /* todo: fix height problem here other way. */
 }
 
@@ -82,4 +84,12 @@
 #store-page {
   background-color: #f6f6f6;
   padding: 2em;
+}
+
+.content-paragraph {
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  word-break: break-all;
+  margin: 0;
 }

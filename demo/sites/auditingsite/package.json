@@ -6,7 +6,12 @@
     "@comunica/query-sparql": "^2.6.9",
     "@inrupt/solid-client-authn-browser": "^1.14.0",
     "@mui/material": "^5.15.15",
+    "jose": "^5.2.4",
     "n3": "^1.17.3",
+    "rdf-parse": "^2.3.3",
+    "stream": "^0.0.2",
+    "streamify-string": "^1.0.1",
+    "util": "^0.12.5",
     "uuid": "^9.0.1"
   },
   "scripts": {
