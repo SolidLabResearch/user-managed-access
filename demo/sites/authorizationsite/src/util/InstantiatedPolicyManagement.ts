@@ -33,7 +33,7 @@ export const terms = {
   },
   agents: {
     ruben: 'http://localhost:3000/ruben/profile/card#me',
-    vendor: 'http://localhost:3000/demo/public/vendor',
+    vendor: 'http://localhost:5123/id',
     present: 'http://localhost:3000/demo/public/bday-app',
   },
   scopes: {

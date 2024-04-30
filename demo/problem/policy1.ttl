@@ -6,7 +6,7 @@
 <urn:ucp:rule:1> a odrl:Permission;
     odrl:action odrl:read;
     odrl:target <http://localhost:3000/ruben/private/derived/age>;
-    odrl:assignee <http://localhost:3000/demo/public/vendor>;
+    odrl:assignee <http://localhost:4444/id>;
     odrl:constraint <urn:ucp:constraint:1a>, <urn:ucp:constraint:1b>, <urn:ucp:constraint:1c>.
 <urn:ucp:constraint:1a> odrl:leftOperand odrl:dateTime;
     odrl:operator odrl:gt;

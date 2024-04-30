@@ -57,6 +57,7 @@ app.get('/id', async (req,res)=>{
     foaf:maker <${webId}>;
     foaf:primaryTopic <${webId}>.
 <${webId}> a foaf:Organization;
+    foaf:name "Flemish Government VC Registry";
     <https://w3id.org/security#assertionMethod> <${keyUrl}>;
     <https://w3id.org/security#verificationMethod> <${keyUrl}>.`
 

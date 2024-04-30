@@ -32,7 +32,7 @@ export class ContractManager {
         const endDate = nextweek().toISOString()
         const purpose = 'urn:solidlab:uma:claims:purpose:age-verification'
         const assigner = 'http://localhost:3000/ruben/profile/card#me'
-        const assignee = 'http://localhost:3000/demo/public/vendor'
+        const assignee = 'http://localhost:5123/id'
 
         let constraints: ODRLConstraint[] = [
             {

@@ -25,7 +25,7 @@ const terms = {
   },
   agents: {
     ruben: 'http://localhost:3000/ruben/profile/card#me',
-    vendor: 'http://localhost:3000/demo/public/vendor',
+    vendor: 'http://localhost:5123/id',
     present: 'http://localhost:3000/demo/public/bday-app',
   },
   scopes: {
@@ -123,7 +123,7 @@ async function main() {
   // JWT (HS256; secret: "ceci n'est pas un secret")
   // {
   //   "http://www.w3.org/ns/odrl/2/purpose": "urn:solidlab:uma:claims:purpose:age-verification",
-  //   "urn:solidlab:uma:claims:types:webid": "http://localhost:3000/demo/public/vendor"
+  //   "urn:solidlab:uma:claims:types:webid": "http://localhost:5123/id"
   // }
   const claim_token = "eyJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vd3d3LnczLm9yZy9ucy9vZHJsLzIvcHVycG9zZSI6InVybjpzb2xpZGxhYjp1bWE6Y2xhaW1zOnB1cnBvc2U6YWdlLXZlcmlmaWNhdGlvbiIsInVybjpzb2xpZGxhYjp1bWE6Y2xhaW1zOnR5cGVzOndlYmlkIjoiaHR0cDovL2xvY2FsaG9zdDozMDAwL2RlbW8vcHVibGljL3ZlbmRvciJ9.Px7G3zl1ZpTy1lk7ziRMvNv12Enb0uhup9kiVI6Ot3s"
 

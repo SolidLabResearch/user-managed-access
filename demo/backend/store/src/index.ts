@@ -5,6 +5,12 @@ import cors from "cors"
 
 const app = express()
 const port = 5123
+
+const serviceUrl = `http://localhost:${port}/`
+const webIdDocument = serviceUrl + 'id'
+const webId = webIdDocument + '#me'
+
+
 app.use(cors());
 app.use(express.json())
 app.use((req, res, next) => {
@@ -13,9 +19,29 @@ app.use((req, res, next) => {
     next()
 })
 
+const VC_VERIFICATION_URL = "http://localhost:4444/verify"
+
 const storage = new BackendStore();
 
 // Verification Interface
+
+app.get('/id', async (req,res)=>{
+
+    const ttlDocument = 
+`@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix solid: <http://www.w3.org/ns/solid/terms#>.
+
+<${webIdDocument}> a foaf:PersonalProfileDocument;
+    foaf:maker <${webId}>;
+    foaf:primaryTopic <${webId}>.
+<${webId}> a foaf:Organization;
+    foaf:name "De Buurtwinkel".`
+
+  res.status(200)
+  res.contentType('text/turtle')
+  res.send(ttlDocument)
+})
+
 
 app.get('/verify', async (req: Request, res: Response) => {
     
@@ -61,7 +87,7 @@ app.get('/verify', async (req: Request, res: Response) => {
     // 4 verify age credential signature
     // todo: signature verification currently done on VC service through API.
     // this should be moved to the backend itself in due time?
-    let result = await verifyVCsignature('http://localhost:4444/verify', data)
+    let result = await verifyVCsignature(VC_VERIFICATION_URL, data)
     if (!result.validationResult.valid) {
         res.statusCode = 200;
         res.send({

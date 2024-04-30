@@ -29,7 +29,7 @@ The context "story" of the demonstration is the following. This "story" can be e
     ```
     {
       "http://www.w3.org/ns/odrl/2/purpose": "urn:solidlab:uma:claims:purpose:age-verification",
-      "urn:solidlab:uma:claims:types:webid": "http://localhost:3000/demo/public/vendor"
+      "urn:solidlab:uma:claims:types:webid": "http://localhost:5123/id"
     }
     ```
 

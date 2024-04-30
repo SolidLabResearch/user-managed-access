@@ -106,6 +106,7 @@ export async function verify(params: VerifyParameters) {
         credential,
         verifyParams
     )
+
     return {
         validationResult,
         verificationResult

@@ -40,7 +40,7 @@ export const terms = {
   },
   agents: {
     ruben: 'http://localhost:3000/ruben/profile/card#me',
-    vendor: 'http://localhost:3000/demo/public/vendor',
+    vendor: 'http://localhost:5123/id',
     present: 'http://localhost:3000/demo/public/bday-app',
   },
   scopes: {
@@ -111,7 +111,7 @@ export async function retrieveData(documentURI: string, webId: string): Promise<
 
       const data = {
         "http://www.w3.org/ns/odrl/2/purpose": "urn:solidlab:uma:claims:purpose:age-verification",
-        "urn:solidlab:uma:claims:types:webid": "http://localhost:3000/demo/public/vendor"
+        "urn:solidlab:uma:claims:types:webid": "http://localhost:5123/id"
       }
       // todo: Have a store public key and use this to sign (though it's https is it really necessary?)
       const secret = ('store public key') // todo: this should be the public key
