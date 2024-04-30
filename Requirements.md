@@ -1,5 +1,23 @@
 # TODOs for end-to-end requirements:
 
+## Final sprint
+
+### HAS TO HAPPEN
+- [X] VC and token validation on the auditing frontend
+  - [X] Represent this with green checkmarks in the frontend
+- [ ] Check policy models
+
+### If there is time
+- [ ] Check policy evaluation system
+  - [ ] Do time related policies work?
+  - [ ] Can we include wrong purposes that fail?
+  - [ ] Can we do a check on store registration
+- [ ] Store decision to give purchase access or not in the audit entry?
+
+### If there is a lot of time
+- [ ] Pod-based logging (not super necessary atm?)
+- [ ] Can we model accesses by 2 different people?
+
 ## Assignment minimum requirements
 - [X] The system needs to facilitate the exchange of the data (date of birth).
   - [X] A date of birth must be available at some location in the dataspace
@@ -19,9 +37,9 @@
 - [ ] The system allows the store to prove that they were allowed to perform the age verification.
   - [X] A backend storage must be in place for the store
   - [X] The store website must forward data storage and checks to the backend
-- [ ] The system allows the person to check that their data was used correctly.
+- [X] The system allows the person to check that their data was used correctly.
   - [X] An auditing routine must be built in the store backend
-  - [ ] An auditing routine must be built as a frontend interface
+  - [X] An auditing routine must be built as a frontend interface
 - [ ] The Government VC Service
   - [X] Must be able to create a VC 
   - [X] VC must be transfered to demo pod storage -> Not required for Demo because of fixed keypair seed
@@ -33,6 +51,13 @@
 
 Small note with using the UMA server token signature as the contract signature.
 We can only trace this back to the UMA Server, and cannot reliably check the connection between the WebID and the UMA Server
+
+Another idea: preemptive auditing:
+- The store has to advertise who is auditing them
+- The contract has to be signed both ways
+- upon agreement, the data is sent to the store AND to the auditing service.
+- on auditing, the service can check if the store is withholding information
+  
 
 
 ## Demonstrator requirements
