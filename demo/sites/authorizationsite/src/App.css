@@ -1,5 +1,7 @@
 .App {
   text-align: center;
+  height: 100vh;
+  top: 0
 }
 
 .App-logo {
@@ -37,3 +39,19 @@
   }
 }
 
+.header-title {
+  margin: 0;
+  padding: 1em;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.header-greeting {
+  margin: 0;
+  padding: 1em;
+  position: absolute;
+  right: 0;
+  top: 0;
+
+}

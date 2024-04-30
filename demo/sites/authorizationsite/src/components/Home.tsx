@@ -11,7 +11,11 @@ export default function Home() {
 
     useEffect(() => {
       async function getPolicies() {
-        let policies = await readPolicyDirectory();
+        let policies: SimplePolicy[] = []
+        try {
+            policies = await readPolicyDirectory();
+        } catch (_ignored) {}
+        
         setPolicyList(policies)
       }
       getPolicies()
@@ -28,8 +32,11 @@ export default function Home() {
     async function addPolicyFromFormdata(formdata: any) {
         console.log('Adding the following policy:')
         console.log(formdata)
+    
         const policyObject = await createAndSubmitPolicy(formdata)
         if(policyObject) setPolicyList(policyList.concat(policyObject))
+        
+        
     }
 
     function renderPolicy(policy: SimplePolicy) {

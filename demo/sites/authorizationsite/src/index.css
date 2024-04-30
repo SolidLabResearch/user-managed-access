@@ -7,6 +7,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
   width: 100vw;
+  height: 100vh;
+  margin: 0px
 }
 
 code {
@@ -15,9 +17,10 @@ code {
 }
 
 nav {
-  background-color: lightskyblue;
+  background-color: #ececec;
   margin: 0;
-  height: 3em;
+  height: 3.5em;
+  margin-bottom: 4em;
 }
 
 .rowcontainer {
@@ -41,14 +44,17 @@ nav {
 }
 
 #policymanagementcontainer {
-  background-color: #fffbe4;
+  background-color: #ececec;
   height: 200px;
   width: 80vw;
   margin: auto;
   display: flex;
   height: 100%;
   overflow: hidden;
-  border: 1px solid black;
+  border-radius: 1em;
+  -moz-box-shadow: 0 0 3px #ccc;
+  -webkit-box-shadow: 0 0 3px #ccc;
+  box-shadow: 0 0 3px #ccc;
 }
 
 #addPolicy {
@@ -103,6 +109,8 @@ nav {
 #policyview {
   width: 90%;
   height: 90%;
+  border: 0;
+  border-radius: 1em;
 }
 
 #PolicyListContainer {

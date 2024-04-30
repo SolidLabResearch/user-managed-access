@@ -4,7 +4,8 @@ export default function Navigate() {
     return (
         <div>
             <nav>
-                <p>Welcome Ruben Verborgh</p>
+                <h3 className="header-title">Policy Authorization Companion</h3>
+                <p className="header-greeting">Welcome Ruben Verborgh</p>
             </nav>
         </div>
     )

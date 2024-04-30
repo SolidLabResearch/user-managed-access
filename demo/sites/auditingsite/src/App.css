@@ -57,6 +57,7 @@
   width: 100%;
   word-wrap: break-word;
   text-align: left;
+  margin-right: 1em;
 }
 
 #audit-page {
