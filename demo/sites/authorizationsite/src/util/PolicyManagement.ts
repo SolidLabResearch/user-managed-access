@@ -1,7 +1,9 @@
 /* eslint-disable max-len */
 
 import { Parser, Writer, Store, DataFactory } from 'n3';
-import { SimplePolicy, demoPolicy } from "./policyCreation";
+import { demoPolicy } from "./policyCreation";
+import { initContainer, log } from '../util/util';
+import { SimplePolicy } from './Types';
 
 export type PolicyFormData = {
   target: string,
@@ -30,7 +32,7 @@ export const terms = {
   views: {
     bday: 'http://localhost:3000/ruben/private/derived/bday',
     age: 'http://localhost:3000/ruben/private/derived/age',
-    "age-credential": 'http://localhost:3000/ruben/private/age-credential',
+    "age-credential": 'http://localhost:3000/ruben/credentials/age-credential',
   },
   agents: {
     ruben: 'http://localhost:3000/ruben/profile/card#me',
@@ -138,29 +140,3 @@ export async function doPolicyFlowFromString(policyText: string) {
   log(`Now that the policy has been set, and the agent has possibly been notified in some way, the agent can try the access request again.`);
   
 }
-
-
-/* Helper functions */
-
-function log(msg: string, obj?: any) {
-  console.log('');
-  console.log(msg);
-  if (obj) {
-    console.log('\n');
-    console.log(obj);
-  }
-}
-
-// creates the container if it does not exist yet (only when access is there)
-async function initContainer(policyContainer: string): Promise<void> {
-  const res = await fetch(policyContainer)
-  if (res.status === 404) {
-    const res = await fetch(policyContainer, {
-      method: 'PUT'
-    })
-    if (res.status !== 201) {
-      log('Creating container at ' + policyContainer + ' not successful'); throw 0;
-    }
-  }
-}
-

@@ -1,9 +1,9 @@
-import { getDefaultSession } from "@inrupt/solid-client-authn-browser"
+import { getDefaultSession, Session } from "@inrupt/solid-client-authn-browser"
 
-export default function SolidAuth(props: { loggedIn: boolean }) {  
+export default function SolidAuth(){  
   
   // Verkrijg login status van App component.
-  const { loggedIn } = props
+  const loggedIn = false
 
   // Haal het Solid session object op
   const session = getDefaultSession();

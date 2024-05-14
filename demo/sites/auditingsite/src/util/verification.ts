@@ -32,7 +32,7 @@ export const terms = {
     views: {
       bday: 'http://localhost:3000/ruben/private/derived/bday',
       age: 'http://localhost:3000/ruben/private/derived/age',
-      "age-credential": 'http://localhost:3000/ruben/private/age-credential',
+      "age-credential": 'http://localhost:3000/ruben/credentials/age-credential',
     },
     agents: {
       ruben: 'http://localhost:3000/ruben/profile/card#me',

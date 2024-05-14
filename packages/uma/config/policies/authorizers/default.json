@@ -22,12 +22,22 @@
           }
         },
         {
-          "NamespacedAuthorizer:_authorizers_key": "private",
+          "NamespacedAuthorizer:_authorizers_key": "credentials",
           "NamespacedAuthorizer:_authorizers_value": {
             "@id": "urn:uma:default:WebIdAuthorizer",
             "@type": "WebIdAuthorizer",
             "webids": [
-              "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me"
+              "https://pod.rubendedecker.be/profile/card#me"
+            ]
+          }
+        },
+        {
+          "NamespacedAuthorizer:_authorizers_key": "settings",
+          "NamespacedAuthorizer:_authorizers_value": {
+            "@id": "urn:uma:default:WebIdAuthorizer",
+            "@type": "WebIdAuthorizer",
+            "webids": [
+              "https://pod.rubendedecker.be/profile/card#me"
             ]
           }
         }

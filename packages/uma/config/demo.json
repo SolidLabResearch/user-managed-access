@@ -32,6 +32,16 @@
             "NamespacedAuthorizer:_authorizers_value": {
               "@id": "urn:uma:default:AllAuthorizer"
             }
+          },
+          {
+            "NamespacedAuthorizer:_authorizers_key": "*",
+            "NamespacedAuthorizer:_authorizers_value": {
+              "@id": "urn:uma:default:WebIdAuthorizer",
+              "@type": "WebIdAuthorizer",
+              "webids": [
+                "http://localhost:3000/ruben/profile/card#me"
+              ]
+            }
           }
         ],
         "fallback": {

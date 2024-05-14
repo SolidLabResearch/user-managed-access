@@ -135,3 +135,9 @@ nav {
 .tabpanel {
   height: calc(100% - 50px)
 }
+
+#credentials-list {
+  flex: 80%;
+  overflow-y: scroll;
+  padding: 30px;
+}

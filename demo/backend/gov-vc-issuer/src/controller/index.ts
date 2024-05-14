@@ -17,6 +17,7 @@ import * as Ed25519Multikey from '@digitalbazaar/ed25519-multikey';
 import dataIntegrityContext from '@digitalbazaar/data-integrity-context';
 import jsonld from "jsonld";
 import {AccessModes, getResourceInfo, overwriteFile, universalAccess, UrlString} from "@inrupt/solid-client";
+import { randomUUID } from "node:crypto";
 
 const {contexts: credentialsContexts, constants: {CREDENTIALS_CONTEXT_V1_URL}} =
     cred;
@@ -116,10 +117,11 @@ export async function verify(params: VerifyParameters) {
 export function createCredential(k: K, credentialSubject: CredentialSubject): VCDIVerifiableCredential {
     return {
         '@context': [CREDENTIALS_CONTEXT_V1_URL],
+        id: `urn:gov.flanders.be:credentials:${randomUUID()}`,
         type: ['VerifiableCredential'],
         issuer: k.controller!,
         issuanceDate: getCurrentDateTime(),
-        credentialSubject: credentialSubject
+        credentialSubject: credentialSubject,
     }
 }
 

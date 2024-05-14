@@ -8,7 +8,7 @@ import './App.css';
 import Home from './components/Home';
 import Navigate from './components/Navigate';
 import SolidAuth from './components/SolidAuth'
-import DataPage from "./components/DataPage";
+import DataPage from "./components/CredentialsPage";
 import PolicyPage from "./components/PolicyPage";
 
 const rubenWebID = 'http://localhost:3000/ruben/profile/card#me'
@@ -24,7 +24,7 @@ export default function App() {
 
   // De checkingLogin variabele houdt bij of onze initiële 
   // check voor login informatie is afgerond.
-  const [checkingLogin, setCheckingLogin] = useState<boolean>(true)
+  const [checkingLogin, setCheckingLogin] = useState<boolean>(false)
 
   // Deze functie voert uit bij het updaten van de component.
   useEffect(() => {
@@ -48,9 +48,19 @@ export default function App() {
       .catch(console.error)
   })  
 
-  return (
-    <div className="App">
-      <Home />
-    </div>
-  )
+  if (loggedIn)
+    return (
+      <div className="App">
+        <Navigate session={session} />
+        <Home session={session}/>
+      </div>
+    )
+  else {
+    return (
+      <div className="App">
+        <SolidAuth />
+        {/* <Home /> */}
+      </div>
+    )
+  }
 }

@@ -2,9 +2,14 @@ import { useEffect, useState } from "react";
 import { createAndSubmitPolicy, doPolicyFlowFromString, 
     readPolicy, readPolicyDirectory } from "../util/PolicyManagement";
 import PolicyFormModal from "./FormModal"
-import { SimplePolicy } from "../util/policyCreation";
+import { SimplePolicy } from "../util/Types";
+import { Session } from "@inrupt/solid-client-authn-browser";
 
-export default function PolicyPage() {
+export default function PolicyPage({
+    session
+}: {
+    session: Session
+}) { 
 
     const [policyList, setPolicyList] = useState<SimplePolicy[]>([])
     const [selectedPolicy, setSelectedPolicy] = useState<null|string>(null)
@@ -21,13 +26,13 @@ export default function PolicyPage() {
       getPolicies()
     }, [])
 
-    async function addPolicyFromText(policyText: string) {
-        console.log('Adding the following policy:')
-        console.log(policyText)
-        await doPolicyFlowFromString(policyText)
-        const policyObject = await readPolicy(policyText)
-        if(policyObject) setPolicyList(policyList.concat(policyObject))
-    }
+    // async function addPolicyFromText(policyText: string) {
+    //     console.log('Adding the following policy:')
+    //     console.log(policyText)
+    //     await doPolicyFlowFromString(policyText)
+    //     const policyObject = await readPolicy(policyText)
+    //     if(policyObject) setPolicyList(policyList.concat(policyObject))
+    // }
 
     async function addPolicyFromFormdata(formdata: any) {
         console.log('Adding the following policy:')

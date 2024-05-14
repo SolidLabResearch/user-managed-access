@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
 
 import { Parser, Writer, Store, DataFactory } from 'n3';
-import { SimplePolicy, demoPolicy } from "./policyCreation";
+import { demoPolicy } from "./policyCreation";
+import { SimplePolicy } from './Types';
 
 export type PolicyFormData = {
   target: string,
@@ -15,31 +16,6 @@ export type PolicyFormData = {
 const parser = new Parser();
 const writer = new Writer();
 
-export const terms = {
-  solid: {
-    umaServer: 'http://www.w3.org/ns/solid/terms#umaServer',
-    viewIndex: 'http://www.w3.org/ns/solid/terms#viewIndex',
-    entry: 'http://www.w3.org/ns/solid/terms#entry',
-    filter: 'http://www.w3.org/ns/solid/terms#filter',
-    location: 'http://www.w3.org/ns/solid/terms#location',
-  },
-  filters: {
-    bday: 'http://localhost:3000/catalog/public/filters/bday',
-    age: 'http://localhost:3000/catalog/public/filters/age',
-  },
-  views: {
-    bday: 'http://localhost:3000/ruben/private/derived/bday',
-    age: 'http://localhost:3000/ruben/private/derived/age',
-  },
-  agents: {
-    ruben: 'http://localhost:3000/ruben/profile/card#me',
-    vendor: 'http://localhost:5123/id',
-    present: 'http://localhost:3000/demo/public/bday-app',
-  },
-  scopes: {
-    read: 'urn:example:css:modes:read',
-  }
-}
 
 export async function readPolicyDirectory () {
   const policyContainer = 'http://localhost:3000/ruben/settings/policies/generic/';
@@ -57,7 +33,6 @@ export async function readPolicyDirectory () {
   let resourceQuads = store.getQuads(policyContainer, 'http://www.w3.org/ns/ldp#contains', null, null)
   let resourceURIs = resourceQuads.map(q => q.object.value)
 
-  console.log('IRIS', responseText, resourceURIs)
   let policyObjects = await Promise.all(resourceURIs.map(async (location) => {
     const resource = await fetch(location);
     const resourceText = await resource.text()
@@ -66,7 +41,6 @@ export async function readPolicyDirectory () {
   }))
   policyObjects = policyObjects.filter(e => e !== null)
   return (policyObjects || []) as SimplePolicy[]
-
 }
 
 export async function readPolicy(policyText: string) {

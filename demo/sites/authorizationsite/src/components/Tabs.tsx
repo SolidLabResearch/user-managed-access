@@ -3,8 +3,9 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import DataPage from './DataPage';
+import DataPage from './CredentialsPage';
 import PolicyPage from './PolicyPage';
+import { Session } from '@inrupt/solid-client-authn-browser';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -36,7 +37,11 @@ function a11yProps(index: number) {
   };
 }
 
-export default function BasicTabs() {
+export default function BasicTabs({
+  session
+}: {
+  session: Session
+}) { 
   const [value, setValue] = React.useState(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -53,10 +58,10 @@ export default function BasicTabs() {
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
-        <DataPage />
+        <DataPage session={session} />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
-        <PolicyPage />
+        <PolicyPage session={session} />
       </CustomTabPanel>
     </Box>
   );

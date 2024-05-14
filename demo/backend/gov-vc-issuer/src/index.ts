@@ -143,10 +143,12 @@ app.post('/verify', async (req,res)=>{
     const verifiableCredential = req.body
     const documentLoader = createDocumentLoader(jdl)
 
-    const {validationResult, verificationResult} =  await verify({
+    const {validationResult, verificationResult} = await verify({
         credential: verifiableCredential,
         documentLoader
     })
+
+    console.log('result', JSON.stringify(validationResult, null, 2), JSON.stringify(verificationResult, null, 2))
 
     res.send({validationResult, verificationResult})
 })
