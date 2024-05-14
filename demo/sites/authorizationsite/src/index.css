@@ -17,9 +17,9 @@ code {
 }
 
 nav {
-  background-color: #ececec;
+  background-color: var(--main-theme-color);
   margin: 0;
-  height: 3.5em;
+  min-height: 64px;
   margin-bottom: 4em;
 }
 
@@ -33,17 +33,12 @@ nav {
   flex-direction: column;
 }
 
-.equalcolumns {
-  flex: 50%;
-}
-
-
-#policypage {
+#page-wrapper {
   height: 80vh;
   margin-top: 5vh;
 }
 
-#policymanagementcontainer {
+#page-container {
   background-color: #ececec;
   height: 200px;
   width: 80vw;
@@ -65,6 +60,7 @@ nav {
 }
 
 #addPolicyButton {
+  background-color: skyblue;
   height: 60%;
   width: 60%;
 }
@@ -88,21 +84,20 @@ nav {
   height: 100px;
   border: 2px solid gray;
   margin-top: 10px;
-  background-color:beige;
+  background-color:skyblue;
   text-align: left;
   border-radius: 1em;
   padding: .5em;
 }
 
 .selectedentry {
-  background-color:lightblue;
+  background-color:skyblue;
 }
 
 #PolicyDisplayScreen {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 60%;
 }
 
 
@@ -113,6 +108,30 @@ nav {
   border-radius: 1em;
 }
 
-#PolicyListContainer {
+.page-view {
+  height: 200px;
+  width: 80vw;
+  margin: auto;
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+  -moz-box-shadow: 0 0 3px #ccc;
+  -webkit-box-shadow: 0 0 3px #ccc;
+  box-shadow: 0 0 3px #ccc;
+}
+
+.flex-60 {
+  flex: 60%;
+}
+
+.flex-50 {
+  flex: 50%;
+}
+
+.flex-40 {
   flex: 40%;
+}
+
+.tabpanel {
+  height: calc(100% - 50px)
 }

@@ -4,8 +4,12 @@ export default function Navigate() {
     return (
         <div>
             <nav>
-                <h3 className="header-title">Policy Authorization Companion</h3>
-                <p className="header-greeting">Welcome Ruben Verborgh</p>
+                <h3 className="header-title">My Datastore Companion</h3>
+                <div className="header-greeting">
+                    <p>Logged in as:</p> 
+                    <p className="user-name">Ruben Verborgh</p> 
+                    <img src="./profile.png"/>
+                </div>
             </nav>
         </div>
     )

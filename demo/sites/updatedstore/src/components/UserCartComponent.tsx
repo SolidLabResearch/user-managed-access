@@ -66,23 +66,9 @@ return (
                                     Remove Product
                                 </button>
                                 <div className="quantity">
-                                    <button style={{ margin: "1%" }} 
-                                        onClick={(e) => {
-                                        setCartCourses((prevCartCourses: any) => {
-                                            const updatedCart = prevCartCourses.map(
-                                            (prevItem: any) =>
-                                            prevItem.product.id === item.product.id
-                                                    ? { ...prevItem, quantity: 
-                                                    item.quantity + 1 }
-                                                    : prevItem
-                                            );
-                                            return updatedCart;
-                                        })
-                                    }}>+</button>
-                                    <p className='quant'>{item.quantity} </p>
                                     <button 
                                         onClick={(e) => {
-                                        setCartCourses((prevCartCourses: any) => {
+                                        setCartCourses((prevCartCourses: CartItem[]) => {
                                             const updatedCart = prevCartCourses.map(
                                             (prevItem: any) =>
                                             prevItem.product.id === item.product.id
@@ -90,9 +76,23 @@ return (
                                                     Math.max(item.quantity - 1, 0) }
                                                     : prevItem
                                             );
-                                            return updatedCart;
+                                            return updatedCart.filter(ci => ci.quantity !== 0);
                                         })
                                     }}>-</button>
+                                    <p className='quant'>{item.quantity} </p>
+                                    <button style={{ margin: "1%" }} 
+                                        onClick={(e) => {
+                                        setCartCourses((prevCartCourses: CartItem[]) => {
+                                            const updatedCart = prevCartCourses.map(
+                                            (prevItem: any) =>
+                                            prevItem.product.id === item.product.id
+                                                    ? { ...prevItem, quantity: 
+                                                    item.quantity + 1 }
+                                                    : prevItem
+                                            );
+                                            return updatedCart.filter(ci => ci.quantity !== 0);
+                                        })
+                                    }}>+</button>
                                 </div>
                             </div>
                         </div>

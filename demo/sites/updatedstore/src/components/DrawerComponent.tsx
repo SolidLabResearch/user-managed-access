@@ -47,9 +47,9 @@ export default function TemporaryDrawer({
 
   return (
     <div>
-      <div id="shopping-cart-wrapper" className='icon-wrap'>
+      <div id="shopping-cart-wrapper" className='icon-wrap' onClick={toggleDrawer(true)}>
         <Badge id='shopping-cart-badge' badgeContent={badgeCounter} color="primary">
-          <ShoppingCartIcon id='shopping-cart-icon' color="action" onClick={toggleDrawer(true)} />
+          <ShoppingCartIcon id='shopping-cart-icon' color="action" />
         </Badge>
       </div>
       <Drawer anchor='right' open={open} onClose={toggleDrawer(false)}>

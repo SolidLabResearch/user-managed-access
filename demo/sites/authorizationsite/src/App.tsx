@@ -8,6 +8,8 @@ import './App.css';
 import Home from './components/Home';
 import Navigate from './components/Navigate';
 import SolidAuth from './components/SolidAuth'
+import DataPage from "./components/DataPage";
+import PolicyPage from "./components/PolicyPage";
 
 const rubenWebID = 'http://localhost:3000/ruben/profile/card#me'
 
@@ -46,39 +48,9 @@ export default function App() {
       .catch(console.error)
   })  
 
-  // return (
-  //   <div className="App">
-  //     {
-  //       checkingLogin
-  //       ? 
-  //         <p>Loading Session information ...</p>
-  //         : (
-  //         <div>
-  //           <SolidAuth loggedIn={loggedIn} />
-  //           {loggedIn &&
-  //             <BrowserRouter>
-  //               <Navigate />
-  //               <Routes>
-  //                 <Route path='/' element={<Home />} />
-  //                 <Route path='/query' element={<Query />} />
-  //               </Routes>
-  //             </BrowserRouter>
-  //           }
-  //         </div>
-  //       )
-  //     }
-  //   </div>
-  // )
-
   return (
     <div className="App">
-      
-              <BrowserRouter>
-                <Navigate />
-                <Routes>
-                  <Route path='/' element={<Home />} />
-                </Routes>
-              </BrowserRouter>
+      <Home />
     </div>
   )
 }

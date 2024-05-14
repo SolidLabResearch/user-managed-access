@@ -6,6 +6,7 @@ import Fade from '@mui/material/Fade';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button'
+import { Card } from '@mui/material';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -50,9 +51,16 @@ const AuthModal = (props: any) => {
       >
         <Fade in={open}>
           <Box sx={style}>
+            <Typography id="transition-modal-title" variant="h6" component="h2">
+                Select WebID
+            </Typography>
+            <Typography id="transition-modal-title" variant="subtitle2" component="h2">
+                The provided identity is used to negotiate age data for verification purposes.
+            </Typography>
+            <br />
             { props.error 
             ? <Typography id="transition-modal-title" variant="h6" component="h2" style={{color: "red"}}>
-                  { `Could not verify age: ${props.error}` }
+                { `Could not verify age: ${props.error}` }
               </Typography>
             : 
               showInput
@@ -60,7 +68,17 @@ const AuthModal = (props: any) => {
               ? <div className='webid-options-container'>
                 <Button className='webid-option' variant='outlined' onClick={
                     () => props.verify(rubenprofileurl)}>Continue as Ruben</Button>
-                <TextField className='webid-option' id="outlined-basic" label="Verify with new WebID" 
+                {/* <Card onClick={() => props.verify(rubenprofileurl)} style={{width: "90%", padding: "1em"}}>
+                  <img src='./profile.png' style={{
+                      height: "3em",
+                      width: "3em",
+                      borderRadius: "50%"
+                    }} />
+                    <Typography>
+                      Ruben Verborgh
+                    </Typography>
+                </Card>     */}
+                <TextField className='webid-option' id="outlined-basic" label="New WebID" 
                     variant="outlined" placeholder='WebID' value={inputValue} onChange={
                     (evt) => setInputValue(evt.target.value)
                   } onKeyUp={(e) => {
@@ -70,12 +88,12 @@ const AuthModal = (props: any) => {
               </div>
 
               :<div className='verification-option-container'>
-                <div className='verification-option' onClick={() => alert('Not implemented!')}>
+                {/* <div className='verification-option' onClick={() => alert('Not implemented!')}>
                     <img className='auth-logo' src='itsme.png' />
                     <Typography id="transition-modal-title" variant="h6" component="h2">
                         ItsMe
                     </Typography>
-                </div>
+                </div> */}
                 <div className='verification-option' onClick={() => setShowInput(true)}>
                     <img className='auth-logo' src='solid.png' />
                     <Typography id="transition-modal-title" variant="h6" component="h2">

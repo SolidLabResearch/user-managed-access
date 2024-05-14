@@ -1,3 +1,11 @@
+
+@property --main-theme-color {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #6cc24a;
+  /* old value: rgb(108, 194, 74); */
+}
+
 .App {
   text-align: center;
   height: 100vh;
@@ -48,10 +56,28 @@
 }
 
 .header-greeting {
+  font-size: 1.2em;
   margin: 0;
-  padding: 1em;
+  padding: 0;
+  padding-right: 1em;
   position: absolute;
   right: 0;
   top: 0;
+  display: flex;
+  justify-content: center;
+}
 
+.header-greeting .user-name {
+  font-weight: bold;
+}
+
+.header-greeting > p { 
+  margin-right: 1em;
+}
+
+.header-greeting > img {
+  height: 2em;
+  width: 2em;
+  margin: auto;
+  border-radius: 1em;
 }

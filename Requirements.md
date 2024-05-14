@@ -2,6 +2,29 @@
 
 ## Final sprint
 
+### To Fix By Demo
+
+- [ ] Add Policy Screen update
+- [ ] Final fixes generic policy
+- [ ] Change trust display on auditing screen
+  - [ ] Change contract to "Instantiated Policy"
+  - [ ] Instantiated Policy -> Trusted instead of verified, age  keep verified
+- [ ] Auth app -> My pod app
+  - [ ] My Data
+  - [ ] My Policies
+  - [ ] Relevant linking?
+- [X] Login information on every App: 
+  - [X] Green -> You are logged in\
+  - [X] Red -> You are not logged in
+  - [X] Blue -> Auditer 3 is logged in
+- [ ] Store login buttons:
+  - [ ] Remove its'me option
+  - [ ] Continue as Ruben -> Share WebID link (with profile avatar) (This is not a Login!)
+
+
+
+
+
 ### HAS TO HAPPEN
 - [X] VC and token validation on the auditing frontend
   - [X] Represent this with green checkmarks in the frontend

@@ -116,6 +116,10 @@ function App() {
 
     return (        
       <div className="App"> 
+        <div className="header-greeting">
+          <p>Logged in as:</p> 
+          <p className="user-name">Unknown</p> 
+        </div>
 
         {
           showPayment
@@ -136,9 +140,12 @@ function App() {
                               />
               <main className="App-main">
                 <ShowCourseComponent
-                    courses={courses}
+                    courses={courses}        
+                    cartCourses={cartCourses} 
                     filterCourseFunction={filterCourseFunction}
                     addCourseToCartFunction={addCourseToCartFunction}
+                    setCartCourses={setCartCourses} 
+                    deleteCartCourses={deleteCartCourses} 
                 />       
             </main>
           </div>
