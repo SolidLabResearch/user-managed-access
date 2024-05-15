@@ -12,6 +12,7 @@
 ruben: a foaf:Person ;
     foaf:name  "Ruben Verborgh"@en, "Ruben Verborgh"@nl;
     rdfs:label "Ruben Verborgh"@en, "Ruben Verborgh"@nl;
+    foaf:img <https://ruben.verborgh.org/images/ruben.jpg>;
     solid:umaServer "http://localhost:4000/uma/" ;
     solid:oidcIssuer <http://localhost:3000/> ;
     solid:viewIndex <#index> .
