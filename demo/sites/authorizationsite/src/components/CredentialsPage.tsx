@@ -16,21 +16,13 @@ export default function CredentialsPage({
       async function getCredentials() {
         let credentials: VerifiableCredential[] = []
         try {
-            credentials = await readCredentialsDirectory(session.fetch);
-        } catch (_ignored) {}
+            credentials = await readCredentialsDirectory(session);
+        } catch (e) { console.warn(e) }
         
         setCredentialsList(credentials)
       }
       getCredentials()
     }, [])
-
-    // async function addPolicyFromText(policyText: string) {
-    //     console.log('Adding the following policy:')
-    //     console.log(policyText)
-    //     await doPolicyFlowFromString(policyText)
-    //     const policyObject = await readPolicy(policyText)
-    //     if(policyObject) setPolicyList(policyList.concat(policyObject))
-    // }
 
     function renderCredential(entity: VerifiableCredential) {
         return (
@@ -38,7 +30,7 @@ export default function CredentialsPage({
                 `policyentry ${entity.id === selectedCredential?.id ? 'selectedentry' : ''}`
             } onClick={() => setSelectedCredential(entity)}>
                 <p>id: {entity.id}</p>
-                <p>{entity.description}</p>
+                <p>{entity['dc:description']}</p>
             </div>
         )
     }

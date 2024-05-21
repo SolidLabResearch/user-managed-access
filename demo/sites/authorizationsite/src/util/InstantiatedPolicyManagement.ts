@@ -3,6 +3,7 @@
 import { Parser, Writer, Store, DataFactory } from 'n3';
 import { demoPolicy } from "./policyCreation";
 import { SimplePolicy } from './Types';
+import { initContainer, log } from './util';
 
 export type PolicyFormData = {
   target: string,
@@ -50,7 +51,7 @@ export async function readPolicy(policyText: string) {
   store.addQuads(parsed)
   const policyIRI = store.getQuads(null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/ns/odrl/2/Agreement', null)[0]?.subject.value
   const ruleIRI = store.getQuads(null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/ns/odrl/2/Permission', null)[0]?.subject.value
-  const description = store.getQuads(null, 'http://purl.org/dc/elements/1.1/description', null, null)[0]?.object.value
+  const description = store.getQuads(null, 'http://purl.org/dc/terms/description', null, null)[0]?.object.value
   let simplePolicy: SimplePolicy = {
     representation: store,
     policyIRI,
@@ -72,7 +73,7 @@ export async function createAndSubmitPolicy(formdata: PolicyFormData) {
     
   const descriptionQuad = DataFactory.quad(
     DataFactory.namedNode(policy.policyIRI), 
-    DataFactory.namedNode('http://purl.org/dc/elements/1.1/description'),
+    DataFactory.namedNode('http://purl.org/dc/terms/description'),
     DataFactory.literal(formdata.description)
   )
   const policyString = writer.quadsToString(policy.representation.getQuads(null, null, null, null).concat(descriptionQuad))
@@ -94,8 +95,6 @@ export async function createAndSubmitPolicy(formdata: PolicyFormData) {
 }
 
 export async function doPolicyFlowFromString(policyText: string) {
-  console.log('Creating policy')
-
   const policyContainer = 'http://localhost:3000/ruben/settings/policies/';
 
   // create container if it does not exist yet
@@ -111,29 +110,3 @@ export async function doPolicyFlowFromString(policyText: string) {
   log(`Now that the policy has been set, and the agent has possibly been notified in some way, the agent can try the access request again.`);
   
 }
-
-
-/* Helper functions */
-
-function log(msg: string, obj?: any) {
-  console.log('');
-  console.log(msg);
-  if (obj) {
-    console.log('\n');
-    console.log(obj);
-  }
-}
-
-// creates the container if it does not exist yet (only when access is there)
-async function initContainer(policyContainer: string): Promise<void> {
-  const res = await fetch(policyContainer)
-  if (res.status === 404) {
-    const res = await fetch(policyContainer, {
-      method: 'PUT'
-    })
-    if (res.status !== 201) {
-      log('Creating container at ' + policyContainer + ' not successful'); throw 0;
-    }
-  }
-}
-

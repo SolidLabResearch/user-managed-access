@@ -114,15 +114,21 @@ export async function verify(params: VerifyParameters) {
     }
 }
 
-export function createCredential(k: K, credentialSubject: CredentialSubject): VCDIVerifiableCredential {
-    return {
-        '@context': [CREDENTIALS_CONTEXT_V1_URL],
+export function createCredential(
+        k: K, 
+        credentialSubject: CredentialSubject, 
+        description?: string
+    ): VCDIVerifiableCredential {
+    const c: VCDIVerifiableCredential = {
+        '@context': [CREDENTIALS_CONTEXT_V1_URL, { "dc": "http://purl.org/dc/terms/" }],
         id: `urn:gov.flanders.be:credentials:${randomUUID()}`,
         type: ['VerifiableCredential'],
         issuer: k.controller!,
         issuanceDate: getCurrentDateTime(),
         credentialSubject: credentialSubject,
     }
+    if(description) c['dc:description'] = description;
+    return c
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

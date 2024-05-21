@@ -22,7 +22,7 @@ export default function SolidAuth(){
     session.login({
       oidcIssuer: idp,
       redirectUrl: window.location.href,
-      clientName: "Webdevelopment Practicum 3 React Template"
+      clientName: "My Credential Companion"
     })
   }
 
@@ -44,7 +44,7 @@ export default function SolidAuth(){
         }}>
           <input type="text" placeholder="identity provider" style={{
               marginBottom: "1em"
-          }}/>
+          }} value={'http://localhost:3000/'}/>
           <input type="submit" value="Login"/>
         </form>
       </div>

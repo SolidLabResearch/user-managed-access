@@ -13,7 +13,7 @@ export interface VerifiableCredential{
     "issuer": string,
     "issuanceDate": Date,
     "credentialSubject": Object,
-    "description": string,
+    "dc:description": string,
     "proof": {
       "type": string,
       "created": Date,
@@ -38,6 +38,7 @@ export interface SimplePolicy {
   policyLocation?: string;
   policyText?: string;
   description?: string;
+  isSystemPolicy?: boolean;
 }
 
 /**
@@ -70,3 +71,20 @@ export interface UCPConstraint {
 }
 
 
+
+/**
+ * Interface for a Simple Usage Control Policy
+ */
+export interface InstantiatedPolicy {
+  // representation of the ucon rule + policy (which could be an offer or agreement)
+  representation: Store;
+  // identifier of the policy
+  policyIRI: string;
+  // identifier of the rule
+  ruleIRIs: string[];
+
+  policyLocation?: string;
+  policyText?: string;
+  description?: string;
+  "prov:wasDerivedFrom"?: string[];
+}

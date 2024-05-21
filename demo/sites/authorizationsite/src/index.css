@@ -88,10 +88,11 @@ nav {
   text-align: left;
   border-radius: 1em;
   padding: .5em;
+  /* display: flex; */
 }
 
 .selectedentry {
-  background-color:skyblue;
+  background-color:var(--main-theme-color);
 }
 
 #PolicyDisplayScreen {
@@ -140,4 +141,12 @@ nav {
   flex: 80%;
   overflow-y: scroll;
   padding: 30px;
+}
+/* 
+.system-policy {
+  opacity: 60%;
+} */
+
+.policyentry > p {
+  margin-top: 0px;
 }

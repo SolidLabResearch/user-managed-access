@@ -422,7 +422,7 @@ body {
 .verification-option-container {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .verification-option {

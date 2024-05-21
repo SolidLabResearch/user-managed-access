@@ -30,7 +30,9 @@ const totalAmountCalculationFunction = () => {
         <div className='payment-card-due'>
           Amount due: {totalAmountCalculationFunction().toFixed(2)}
         </div>
-        <Button variant='outlined'>Pay Now</Button>
+        <Button variant='outlined' onClick={
+          () => { alert('Purchase succesful!'); window.location.reload() }
+          }>Pay Now</Button>
       </div>
     </div>
     

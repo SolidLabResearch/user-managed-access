@@ -2,6 +2,13 @@
 
 ## Final sprint
 
+- [ ] load generic and instantiated policies in auth frontend
+- [ ] update continuation screens in the shop frontend
+- [ ] MAKE THE VIDEO
+  - [ ] show credential, policies -> buy item -> show instantiation that has been added for the user -> show auditing trail
+- [ ] Write setup requirements
+- [ ] Create new SolidLabResearch repository that links to the e2e/setup branch
+
 ### To Fix By Demo
 
 - [ ] Add Policy Screen update

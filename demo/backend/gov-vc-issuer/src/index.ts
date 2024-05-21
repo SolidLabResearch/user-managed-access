@@ -120,7 +120,8 @@ app.get('/credential', async (req,res)=>{
 
     const credential = createCredential(
         key,
-        credentialSubject
+        credentialSubject,
+        "Age credential issued by Flemish Government"
     )
 
     console.log('credential', credential)

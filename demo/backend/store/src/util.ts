@@ -3,7 +3,6 @@ import { Parser, Writer, Store, Quad } from 'n3'
 import sign from 'jwt-encode'
 
 import rdfParser from 'rdf-parse'
-import rdfSerializer from 'rdf-serialize'
 import Streamify from 'streamify-string'
 
 import { decodeJwt, createRemoteJWKSet, jwtVerify } from "jose";
@@ -101,7 +100,9 @@ export async function retrieveData(documentURI: string, webId: string): Promise<
 
   if (tokenEndpointResponse.status === 403) { 
     try {
+      console.log('TEST1111', await tokenEndpointResponse.clone().text())
       const { ticket, required_claims }: any = await tokenEndpointResponse.json();
+      console.log('TEST', ticket, required_claims)
       if (!ticket || !required_claims) { // There is no negotiation 
         throw new Error('Notification sent. Check your companion app.') 
       }

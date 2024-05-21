@@ -36,17 +36,17 @@ export class ContractManager {
 
         let constraints: ODRLConstraint[] = [
             {
-                left: 'dateTime',
-                op: 'gt',
-                right: startDate
+                leftOperand: 'dateTime',
+                operator: 'gt',
+                rightOperand: startDate
             }, {
-                left: 'dateTime',
-                op: 'lt',
-                right: endDate
+                leftOperand: 'dateTime',
+                operator: 'lt',
+                rightOperand: endDate
             }, {
-                left: 'purpose',
-                op: 'eq',
-                right: purpose
+                leftOperand: 'purpose',
+                operator: 'eq',
+                rightOperand: purpose
             }
         ]
 
@@ -64,8 +64,11 @@ export class ContractManager {
         // todo:: un-mock?
         
         let contract: Contract = {
-            // instantiatedFrom: ['a', 'b'],
-            "@context": "http://www.w3.org/ns/odrl.jsonld",
+            "@context": [
+                "http://www.w3.org/ns/odrl.jsonld", {
+                    "prov": "http://www.w3.org/ns/prov#"
+                }
+            ],
             "@type": "Agreement",
             target: target,
             uid: `urn:solidlab:uma:contract:${randomUUID()}`,

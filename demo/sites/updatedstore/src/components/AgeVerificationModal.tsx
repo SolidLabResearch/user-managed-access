@@ -55,7 +55,7 @@ const AuthModal = (props: any) => {
                 Select WebID
             </Typography>
             <Typography id="transition-modal-title" variant="subtitle2" component="h2">
-                The provided identity is used to negotiate age data for verification purposes.
+                The store will negotiate your age data with your data space for the purpose of age verification.
             </Typography>
             <br />
             { props.error 
@@ -67,7 +67,12 @@ const AuthModal = (props: any) => {
 
               ? <div className='webid-options-container'>
                 <Button className='webid-option' variant='outlined' onClick={
-                    () => props.verify(rubenprofileurl)}>Continue as Ruben</Button>
+                    () => props.verify(rubenprofileurl)}>Continue as Ruben <img src='./profile.png' style={{
+                      height: "3em",
+                      width: "3em",
+                      borderRadius: "1.5em",
+                      marginLeft: "1em",
+                    }} /></Button>
                 {/* <Card onClick={() => props.verify(rubenprofileurl)} style={{width: "90%", padding: "1em"}}>
                   <img src='./profile.png' style={{
                       height: "3em",

@@ -5701,7 +5701,13 @@ __metadata:
   dependencies:
     "@comunica/query-sparql": "npm:^2.6.9"
     "@inrupt/solid-client-authn-browser": "npm:^1.14.0"
+    "@smessie/readable-web-to-node-stream": "npm:^3.0.3"
+    jwt-encode: "npm:^1.0.1"
     n3: "npm:^1.17.3"
+    rdf-parse: "npm:^2.3.3"
+    rdf-store-stream: "npm:^2.0.1"
+    saxes: "npm:^6.0.0"
+    streamify-string: "npm:^1.0.1"
     uuid: "npm:^9.0.1"
   languageName: unknown
   linkType: soft
@@ -16051,7 +16057,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rdf-store-stream@npm:^2.0.0":
+"rdf-store-stream@npm:^2.0.0, rdf-store-stream@npm:^2.0.1":
   version: 2.0.1
   resolution: "rdf-store-stream@npm:2.0.1"
   dependencies:
@@ -16941,6 +16947,15 @@ __metadata:
   dependencies:
     xmlchars: "npm:^2.2.0"
   checksum: 10c0/b7476c41dbe1c3a89907d2546fecfba234de5e66743ef914cde2603f47b19bed09732ab51b528ad0f98b958369d8be72b6f5af5c9cfad69972a73d061f0b3952
+  languageName: node
+  linkType: hard
+
+"saxes@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "saxes@npm:6.0.0"
+  dependencies:
+    xmlchars: "npm:^2.2.0"
+  checksum: 10c0/3847b839f060ef3476eb8623d099aa502ad658f5c40fd60c105ebce86d244389b0d76fcae30f4d0c728d7705ceb2f7e9b34bb54717b6a7dbedaf5dad2d9a4b74
   languageName: node
   linkType: hard
 

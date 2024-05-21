@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import PolicyPage from "./PolicyPage";
 import BasicTabs from "./Tabs";
 import { Session } from "@inrupt/solid-client-authn-browser";
 

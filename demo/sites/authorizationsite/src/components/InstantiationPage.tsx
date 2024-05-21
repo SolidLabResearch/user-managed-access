@@ -1,45 +1,44 @@
 import { useEffect, useState } from "react";
-import { createAndSubmitPolicy, doPolicyFlowFromString, 
-    readPolicy, readPolicyDirectory } from "../util/PolicyManagement";
-import PolicyFormModal from "./FormModal"
-import { SimplePolicy } from "../util/Types";
+import { readInstantiationDirectory} from "../util/PolicyManagement";
+import { InstantiatedPolicy } from "../util/Types";
 import { Session } from "@inrupt/solid-client-authn-browser";
 
-export default function PolicyPage({
+export default function InstantiationPage({
     session,
-    selected
+    navigate
 }: {
     session: Session,
-    selected: string | undefined
+    navigate: Function
 }) { 
 
-    const [policyList, setPolicyList] = useState<SimplePolicy[]>([])
-    const [selectedPolicy, setSelectedPolicy] = useState<null|string>(selected || null)
+    const [policyList, setPolicyList] = useState<InstantiatedPolicy[]>([])
+    const [selectedPolicy, setSelectedPolicy] = useState<null|string>(null)
+
     useEffect(() => {
       async function getPolicies() {
-        let policies: SimplePolicy[] = []
+        let policies: InstantiatedPolicy[] = []
         try {
-            policies = await readPolicyDirectory();
+            policies = await readInstantiationDirectory();
         } catch (e) { console.warn(e) }
-        
         setPolicyList(policies)
       }
       getPolicies()
     }, [])
 
-    async function addPolicyFromFormdata(formdata: any) {    
-        const policyObject = await createAndSubmitPolicy(formdata)
-        if(policyObject) setPolicyList(policyList.concat(policyObject))       
+    const goto = (policyId: string) => {
+        navigate(policyId.trim())
     }
 
-    function renderPolicy(policy: SimplePolicy) {
+    function renderPolicy(policy: InstantiatedPolicy) {
         return (
             <div key={policy.policyLocation} className={
-                `policyentry ${policy.policyIRI === selectedPolicy ? 'selectedentry' : ''} \
-${policy.isSystemPolicy === true ? 'system-policy' : ''}`
+                `policyentry ${policy.policyIRI === selectedPolicy ? 'selectedentry' : ''}`
             } onClick={() => setSelectedPolicy(policy.policyIRI)}>
                 <p>id: {policy.policyIRI}</p>
                 <p>{policy.description}</p>
+                <button onClick={() => { 
+                    if (policy["prov:wasDerivedFrom"]) goto(policy["prov:wasDerivedFrom"][0]); 
+                }}>derived from policy</button>
             </div>
         )
     }
@@ -47,7 +46,6 @@ ${policy.isSystemPolicy === true ? 'system-policy' : ''}`
     const selectedPolicyText = selectedPolicy 
         ? policyList.filter(p => p.policyIRI === selectedPolicy)[0]?.policyText || ''
         : ''
-    console.log('SELECTED', selectedPolicy)
 
     return (
         <div id="policy-page" className="page-view">
@@ -57,7 +55,6 @@ ${policy.isSystemPolicy === true ? 'system-policy' : ''}`
                         policyList.map(renderPolicy)
                     }
                 </div>
-                {/* <PolicyFormModal addPolicy={addPolicyFromFormdata}/> */}
             </div>
             <div id="PolicyDisplayScreen" className="flex-60">
                 <textarea id="policyview" value={selectedPolicyText} readOnly/>

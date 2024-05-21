@@ -1,7 +1,0 @@
-<urn:ucp:policy:418921dc-0d94-4ea7-9c8e-0dd6458ea440> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Agreement> .
-<urn:ucp:policy:418921dc-0d94-4ea7-9c8e-0dd6458ea440> <http://www.w3.org/ns/odrl/2/permission> <urn:ucp:rule:0006d599-d841-448f-a062-7fbb4b60adb2> .
-<urn:ucp:rule:0006d599-d841-448f-a062-7fbb4b60adb2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Permission> .
-<urn:ucp:rule:0006d599-d841-448f-a062-7fbb4b60adb2> <http://www.w3.org/ns/odrl/2/action> <http://www.w3.org/ns/odrl/2/read>, <http://www.w3.org/ns/odrl/2/write> .
-<urn:ucp:rule:0006d599-d841-448f-a062-7fbb4b60adb2> <http://www.w3.org/ns/odrl/2/target> <http://localhost:3000/ruben/**/*> .
-<urn:ucp:rule:0006d599-d841-448f-a062-7fbb4b60adb2> <http://www.w3.org/ns/odrl/2/assignee> <http://localhost:3000/ruben/profile/card#me> .
-<urn:ucp:policy:418921dc-0d94-4ea7-9c8e-0dd6458ea440> <http://purl.org/dc/elements/1.1/description> "Owner can read all resources on their data space" .

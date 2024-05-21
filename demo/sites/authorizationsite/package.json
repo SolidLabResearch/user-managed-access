@@ -5,11 +5,17 @@
   "dependencies": {
     "@comunica/query-sparql": "^2.6.9",
     "@inrupt/solid-client-authn-browser": "^1.14.0",
+    "@smessie/readable-web-to-node-stream": "^3.0.3",
+    "jwt-encode": "^1.0.1",
     "n3": "^1.17.3",
+    "rdf-parse": "^2.3.3",
+    "rdf-store-stream": "^2.0.1",
+    "saxes": "^6.0.0",
+    "streamify-string": "^1.0.1",
     "uuid": "^9.0.1"
   },
   "scripts": {
-    "dev": "yarn run -T react-scripts start",
+    "dev": "GENERATE_SOURCEMAP=false yarn run -T react-scripts start",
     "start": "yarn run -T serve -s build -l 5001",
     "build": "yarn run -T react-scripts build"
   },

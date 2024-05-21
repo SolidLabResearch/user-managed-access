@@ -34,7 +34,7 @@ export default function App() {
     
     // Deze functie gaat na of we teruggestuurd zijn 
     // naar de huidige pagina door de Solid login pagina.
-    handleIncomingRedirect({ restorePreviousSession: true })
+    handleIncomingRedirect({ restorePreviousSession: false })
       .then((info) => { 
         // Update de status van de component voor 
         // de login status en de login check status

@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import DataPage from './CredentialsPage';
 import PolicyPage from './PolicyPage';
 import { Session } from '@inrupt/solid-client-authn-browser';
+import InstantiationPage from './InstantiationPage';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -43,10 +44,16 @@ export default function BasicTabs({
   session: Session
 }) { 
   const [value, setValue] = React.useState(0);
+  const [selected, setSelected] = React.useState<string | undefined>(undefined);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
+
+  const navigate = (selected?: string) => {
+    setValue(1) // policy page
+    setSelected(selected)
+  }
 
   return (
     <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -61,7 +68,10 @@ export default function BasicTabs({
         <DataPage session={session} />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
-        <PolicyPage session={session} />
+        <PolicyPage session={session} selected={selected} />
+      </CustomTabPanel>
+      <CustomTabPanel value={value} index={2}>
+        <InstantiationPage session={session} navigate={navigate} />
       </CustomTabPanel>
     </Box>
   );

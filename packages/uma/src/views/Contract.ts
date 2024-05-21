@@ -1,10 +1,10 @@
-import { Type, array, string, optional } from "../util/ReType";
+import { Type, array, string, optional, any } from "../util/ReType";
 
 
 export const ODRLConstraint = {
-    left: string,
-    op: string,
-    right: string,
+    leftOperand: string,
+    operator: string,
+    rightOperand: string,
 }
 
 export const ODRLPermission = {
@@ -13,14 +13,14 @@ export const ODRLPermission = {
 }
 
 export const Contract = {
-    instantiatedFrom: optional(array(string)),
-    "@context": string,
+    "@context": any,
     "@type": string,
     target: string, // resourceURL
     uid: string, // instantiated policy UID
     assigner: string, // user WebID
     assignee: string, // target WebID
     permission: array(ODRLPermission),
+    "prov:wasDerivedFrom": optional(array(string)),
 };
 
 

@@ -80,7 +80,7 @@ export class ContractNegotiator implements Negotiator {
       result = Success(contract)
       this.logger.debug('Existing contract discovered', contract)
     } else {
-      this.logger.debug('No existing contract discovered. Attempting to resolve ticket.')
+      this.logger.debug(`No existing contract discovered. Attempting to resolve ticket. ${updatedTicket}`)
       const resolved = await this.ticketingStrategy.resolveTicket(updatedTicket);
 
       if (resolved.success) {
@@ -92,7 +92,10 @@ export class ContractNegotiator implements Negotiator {
 
         this.logger.debug('New contract created', contract)
       }
-      else result = resolved
+      else {
+        this.logger.debug('Ticket not resolved.', resolved)
+        result = resolved
+      }
     }
 
     if (result.success) {
@@ -116,6 +119,19 @@ export class ContractNegotiator implements Negotiator {
       // TODO:: test logging
       this.operationLogger.addLogEntry(serializePolicyInstantiation())
 
+      // Store created instantiated policy (above contract variable) in the pod storage as an instantiated policy
+      // todo: dynamic URL
+      // todo: fix instantiated from url
+      contract["prov:wasDerivedFrom"] = [ 'urn:ucp:be-gov:policy:d81b8118-af99-4ab3-b2a7-63f8477b6386 '] 
+      const instantiatedPolicyContainer = 'http://localhost:3000/ruben/settings/policies/instantiated/'; 
+      const policyCreationResponse = await fetch(instantiatedPolicyContainer, {
+        method: 'POST',
+        headers: { 'content-type': 'application/ld+json' },
+        body: JSON.stringify(contract, null, 2)
+      });
+
+      if (policyCreationResponse.status !== 201) { this.logger.warn('Adding a policy did not succeed...') }
+     
       // TODO:: dynamic contract link to stored signed contract. 
       // If needed we can always embed here directly into the return JSON
       return ({
@@ -182,6 +198,7 @@ export class ContractNegotiator implements Negotiator {
 
       const claims = await this.verifier.verify({ token, format });
 
+      console.log(`claims - ${JSON.stringify(claims, null, 2)} - ${JSON.stringify(ticket, null, 2)}`)
       return await this.ticketingStrategy.validateClaims(ticket, claims);
     }
 
