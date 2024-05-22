@@ -35,7 +35,7 @@ app.get('/id', async (req,res)=>{
     foaf:maker <${webId}>;
     foaf:primaryTopic <${webId}>.
 <${webId}> a foaf:Organization;
-    foaf:name "De Buurtwinkel".`
+    foaf:name "The Drinks Center".`
 
   res.status(200)
   res.contentType('text/turtle')

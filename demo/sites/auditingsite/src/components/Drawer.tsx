@@ -24,7 +24,7 @@ export interface StoreInfo {
 }
 
 const stores: StoreInfo[] = [{
-  name: "De Buurtwinkel",
+  name: "The Drinks Center",
   site: "http://localhost:5002/",
   audit: "http://localhost:5123/audit",
   logo: "store.jpg"

@@ -55,7 +55,8 @@ const AuthModal = (props: any) => {
                 Select WebID
             </Typography>
             <Typography id="transition-modal-title" variant="subtitle2" component="h2">
-                The store will negotiate your age data with your data space for the purpose of age verification.
+                The WebID will be used to negotiate access to your age<br />
+                for the purpose of age verification.
             </Typography>
             <br />
             { props.error 

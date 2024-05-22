@@ -54,7 +54,7 @@ export class JwtTokenFactory extends TokenFactory {
       .setJti(v4())
       .sign(jwk);
 
-    this.logger.debug('Issued new JWT Token', token);
+    this.logger.debug('Issued new JWT Token', JSON.stringify(token, null, 2));
     return {token: jwt, tokenType: 'Bearer'};
   }
 
