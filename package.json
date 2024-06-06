@@ -51,9 +51,10 @@
   "exports": {},
   "files": [],
   "scripts": {
-    "prepare": "yarn build:all",
+    "prepare": "yarn install:demo ; yarn build ; yarn build:demo",
     "clean": "shx rm -rf ./**/node_modules",
-    "build:all": "yarn workspaces foreach --include 'packages/*' -A -pi -t run build",
+    "install:demo": "yarn install && cd demo && yarn install",
+    "build": "yarn workspaces foreach --include 'packages/*' -A -pi -t run build",
     "build:demo": "cd demo && yarn build:demo",
     "test:all": "yarn workspaces foreach --include 'packages/*' -A -pi run test",
     "start:all": "yarn workspaces foreach --include 'packages/*' -A -pi run start",
