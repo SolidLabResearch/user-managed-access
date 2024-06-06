@@ -144,9 +144,14 @@ Here, the auditing process can make use of the usage agreement that was obtained
 
 
 ## Implemented features
+The demonstrator contains a demonstration that partially or fully includes the following features.
 
-The packages in this project currently only support a fixed UMA AS per CSS RS, and contain only the trivial [AllAuthorizer](packages/uma/src/models/AllAuthorizer.ts) that allows all access. More useful features are coming soon ...
+### The Solid Server
+The demonstrator uses the [Community Solid Server](https://github.com/CommunitySolidServer/CommunitySolidServer) to represent a user data storage location and to host the user WebID.
 
+### UMA Redirects for Solid
+
+This codebase makes use of a Solid Server that can redirect to an Authorization server based on an adaptation of the [UMA protocol](https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html).
 
 ### Usage control policy enforcement
 
@@ -160,12 +165,21 @@ For more information, you can check out its [own repository](https://github.com/
 
 A test script is provided for a CRUD ODRL engine: `yarn script:ucp-enforcement`.
 In the [script](./scripts/test-ucp-enforcement.ts) a read Usage Control Rule (in ODRL) is present together with N3 interpretation rules. 
-Then a read request is performed using the engine, which results in a list of grants. This list is then printed to the console.
+Then a read request is performed using the engine, which results in a list of grants.
+These are then used as the basis of an agreement that is exchanged with the access token, that represents the usage agreement for the data exchange.
 
+### Verifiable Credential issuing and verification
+
+The demonstrator provides a mock government service that can issue a credential (currently manually copied in place), and allows the verification of this credential using their WebID.
+
+### Auditing
+
+The demonstrator presents an auditing platform, that can read and automatically partially verify the grounds of data exchanges happening in the network.
 
 ## Next steps
 
-Have a look at the [milestones](https://github.com/SolidLabResearch/user-managed-access/milestones) we set for ourselves, and other [issues](https://github.com/SolidLabResearch/user-managed-access/issues) we would like to solve.
+The next step for the demonstrator is going in the direction of [Europe's Digital Identity Wallets](https://ec.europa.eu/digital-building-blocks/sites/display/EUDIGITALIDENTITYWALLET/EU+Digital+Identity+Wallet+Home)
+where we will try to demonstrate how decentralized storage such as Solid can form a strong basis for the storage and sharing of digital crendentials.
 
 
 
