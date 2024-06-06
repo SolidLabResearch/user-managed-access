@@ -6,27 +6,19 @@
     "permission": {
         "@id": "urn:ucp:rule:9524c3a0-909d-4849-86f4-7db51231a066",
         "@type": "Permission",
-        "action": "read",
+        "action": [ "read", "use" ],
         "target": "http://localhost:3000/ruben/credentials/age-credential",
         "constraint": [{
             "@id": "urn:ucp:constraint:40a1e210-fb5b-4536-9c94-802e5bfb78a2", 
-            "leftOperand": "http://www.w3.org/ns/odrl/2/dateTime",
-            "operator": "http://www.w3.org/ns/odrl/2/gt",
+            "leftOperand": "http://www.w3.org/ns/odrl/2/duration",
+            "operator": "http://www.w3.org/ns/odrl/2/eq",
             "rightOperand": {
-                "@value": "2024-05-21T11:35:40.729Z",
-                "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
-            }
-        }, {
-            "@id": "urn:ucp:constraint:d6e92f8b-41ac-4d78-b128-d3132db61f2a", 
-            "leftOperand": "http://www.w3.org/ns/odrl/2/dateTime",
-            "operator": "http://www.w3.org/ns/odrl/2/lt",
-            "rightOperand": {
-                "@value": "2024-06-21T11:35:40.729Z",
-                "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+                "@value": "P1M",
+                "@type": "http://www.w3.org/2001/XMLSchema#duration"
             }
         }, {
             "@id": "urn:ucp:constraint:801dd12f-28ae-46a6-9936-15a3b4675882",
-            "leftOperand": "http://www.w3.org/ns/odrl/2/dateTime",
+            "leftOperand": "http://www.w3.org/ns/odrl/2/purpose",
             "operator": "http://www.w3.org/ns/odrl/2/eq",
             "rightOperand": { "@id": "urn:solidlab:uma:claims:purpose:age-verification" } 
         }]
