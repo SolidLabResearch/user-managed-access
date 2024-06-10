@@ -1,17 +1,16 @@
 
 # SolidLab's User Managed Access 
 
-This repository contains SolidLab research artefacts on use of UMA in the Solid ecosystem.
+This repository contains a demonstrator for 
 
+## Cloning the repository
 
-## Packages
+To run the demonstrator, you will have to clone the repository.
+```
+git clone -b e2e/setup git@github.com:SolidLabResearch/user-managed-access.git
 
-- [`@solidlab/uma`](packages/uma): Experimental and opinionated implementation of [UMA Grants](https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-grant-2.0.html) and [UMA Federation](https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-federated-authz-2.0.html). 
-
-- [`@solidlab/uma-css`](packages/css): UMA modules for the [Community Solid Server](https://github.com/CommunitySolidServer/CommunitySolidServer/). 
-
-- [`@solidlab/ucp`](packages/ucp): Usage Control Policy decision/enforcement component.
-
+cd user-managed-access/
+```
 
 ## Getting started
 
