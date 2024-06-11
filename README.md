@@ -1,7 +1,8 @@
 
 # SolidLab's User Managed Access 
 
-This repository contains a demonstrator for 
+This repository contains a demonstrator for the [SolidLab project](https://solidlab.be/) on managing trust-flows in decentralized data storage systems such as Solid.
+
 
 ## Cloning the repository
 
@@ -25,6 +26,24 @@ In order to run the demonstrator you need to perform the following steps.
 7. Run `yarn start:demo` to start both the Solid server and all demonstrator sites and services.
 
 This will boot up a UMA server and compatible Community Solid Server instance, as well as all sites and services for the demonstrator. 
+
+There is also a `docker` setup available, for which you need to have docker installed:
+```
+# Setup docker
+bash dockerize.sh
+
+# Run created docker container
+docker run -p 3000:3000 -p 4000:4000 -p 4444:4444 -p 5123:5123 -p 5001:5001 -p 5002:5002 -p 5003:5003 --net=host solidtrustflows:latest
+```
+
+This will start up the same services as the above system installation.
+
+
+## Screencast
+
+A screencast of the demonstrator can be found here: https://pod.rubendedecker.be/scholar/screencasts/trust-flows-demo.mp4 
+or the video file can be found in the [github repository](https://github.com/SolidLabResearch/user-managed-access/tree/e2e/setup/screencast)
+
 
 
 # Demonstrator
@@ -179,7 +198,3 @@ The demonstrator presents an auditing platform, that can read and automatically 
 
 The next step for the demonstrator is going in the direction of [Europe's Digital Identity Wallets](https://ec.europa.eu/digital-building-blocks/sites/display/EUDIGITALIDENTITYWALLET/EU+Digital+Identity+Wallet+Home)
 where we will try to demonstrate how decentralized storage such as Solid can form a strong basis for the storage and sharing of digital crendentials.
-
-
-
-
