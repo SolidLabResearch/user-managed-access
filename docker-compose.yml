@@ -1,0 +1,18 @@
+version: '3.4'
+
+services:
+  solidtrustflows:
+    image: solidtrustflows
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000:3000
+      - 4000:4000
+      - 4444:4444
+      - 5123:5123
+      - 5001:5001
+      - 5002:5002
+      - 5003:5003
