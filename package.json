@@ -53,7 +53,7 @@
   "scripts": {
     "prepare": "yarn install:demo ; yarn build ; yarn build:demo",
     "clean": "shx rm -rf ./**/node_modules",
-    "install:demo": "yarn install && cd demo && yarn install",
+    "install:demo": "cd demo && yarn install",
     "build": "yarn workspaces foreach --include 'packages/*' -A -pi -t run build",
     "build:demo": "cd demo && yarn build:demo",
     "test:all": "yarn workspaces foreach --include 'packages/*' -A -pi run test",
