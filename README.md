@@ -15,6 +15,9 @@ cd user-managed-access/
 
 ## Getting started
 
+**Before starting, make sure you are on the correct branch (e2e/setup).**
+**See the above command to clone only the relevant branch for the demonstrator.**
+
 In order to run the demonstrator you need to perform the following steps. 
 
 1. Ensure that you are using Node.js 20 or higher, e.g. by running `nvm use`. (see [.nvmrc](./.nvmrc))
