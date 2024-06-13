@@ -15,6 +15,8 @@ cd user-managed-access/
 
 ## Getting started
 
+### Setting up the project yourself
+
 **Before starting, make sure you are on the correct branch (e2e/setup).**
 **See the above command to clone only the relevant branch for the demonstrator.**
 
@@ -30,6 +32,8 @@ In order to run the demonstrator you need to perform the following steps.
 
 This will boot up a UMA server and compatible Community Solid Server instance, as well as all sites and services for the demonstrator. 
 
+
+### Using docker
 There is also a `docker` setup available, for which you need to have docker installed:
 ```
 docker pull raddecke/solidlab-trust-flows-demo
