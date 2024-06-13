@@ -17,8 +17,8 @@ cd user-managed-access/
 
 ### Setting up the project yourself
 
-**Before starting, make sure you are on the correct branch (e2e/setup).**
-**See the above command to clone only the relevant branch for the demonstrator.**
+Before starting, make sure you are on the correct branch (e2e/setup).
+See the above command to clone only the relevant branch for the demonstrator.
 
 In order to run the demonstrator you need to perform the following steps. 
 
