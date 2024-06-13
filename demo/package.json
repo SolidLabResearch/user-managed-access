@@ -18,7 +18,7 @@
     "backend/*"
   ],
   "scripts": {
-    "build:demo": "yarn workspaces foreach --include 'sites/*' --include 'backend/*' -A -pi run build",
-    "start:demo": "yarn workspaces foreach --include 'sites/*' --include 'backend/*' -A -pi run start"
+    "build:demo": "yarn workspaces foreach --include 'sites/*' --include 'backend/*' -A -pi -j unlimited run build",
+    "start:demo": "yarn workspaces foreach --include 'sites/*' --include 'backend/*' -A -pi -j unlimited run start"
   }
 }

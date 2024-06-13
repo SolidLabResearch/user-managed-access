@@ -16,7 +16,7 @@
   },
   "scripts": {
     "dev": "yarn run -T react-scripts start",
-    "start": "yarn run -T serve -s build -l 5003",
+    "start": "yarn run -T serve -s build -l 8203",
     "build": "yarn run -T react-scripts build"
   },
   "browserslist": {

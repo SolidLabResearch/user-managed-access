@@ -16,7 +16,7 @@
   },
   "scripts": {
     "dev": "GENERATE_SOURCEMAP=false yarn run -T react-scripts start",
-    "start": "yarn run -T serve -s build -l 5001",
+    "start": "yarn run -T serve -s build -l 8201",
     "build": "yarn run -T react-scripts build"
   },
   "browserslist": {

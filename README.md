@@ -32,11 +32,8 @@ This will boot up a UMA server and compatible Community Solid Server instance, a
 
 There is also a `docker` setup available, for which you need to have docker installed:
 ```
-# Setup docker
-bash dockerize.sh
-
-# Run created docker container
-docker run -p 3000:3000 -p 4000:4000 -p 4444:4444 -p 5123:5123 -p 5001:5001 -p 5002:5002 -p 5003:5003 --net=host solidtrustflows:latest
+docker pull raddecke/solidlab-trust-flows-demo
+docker run -p 3000:3000 -p 4000:4000 -p 4444:4444 -p 5123:5123 -p 8201:8201 -p 8202:8202 -p 8203:8203 --net=host raddecke/solidlab-trust-flows-demo
 ```
 
 This will start up the same services as the above system installation.
@@ -55,7 +52,7 @@ or the video file can be found in the [github repository](https://github.com/Sol
 
 - Ruben V., a.k.a. `<http://localhost:3000/ruben/profile/card#me>`, has retrieved a credential containing their birth date from a government service at `<http://localhost:4444/credential?webid=http://localhost:3000/ruben/profile/card#me>`, and this credential has been stored at `<http://localhost:3000/ruben/credentials/age-credential>` as a private resource.
 - Additionally, an accompanying policy was also retrieved and stored in the policy directory at `<http://localhost:3000/ruben/settings/policies/generic/age-policy>`. This ODRL policy governs the access and usage requirements for the age credential resource.
-- This can be checked on the companion app at `<http://localhost:5001/>`.
+- This can be checked on the companion app at `<http://localhost:8201/>`.
 - Using the login email `ruben@example.org` with the password `abc123`, the companion app shows an overview of the available credentials (the birth date credential) en policies in the data space (one policy managing read access for the user, and another one providing access to the age credential for the purpose of age-verification).
 
 - Access to Ruben's data is based on policies, which he manages through his Authz Companion app, and which are stored in `<http://localhost:3000/ruben/settings/policies/>`. (This is, of course, not publicly known.) To request access to Ruben's data, an agent will need to negotiate with Ruben's UMA Authorization Server, which his WebID document identifies as `<http://localhost:4000/>`. Via the Well-Known endpoint `<http://localhost:4000/.well-known/uma2-configuration>`, we can discover the Token Endpoint `<http://localhost:4000/token>`.
@@ -81,7 +78,7 @@ or the video file can be found in the [github repository](https://github.com/Sol
 
 ## The web store 
 
-- The store use-case starts out with the user navigating to a webshop 'The Drinks Center' located at `http://localhost:5002`.
+- The store use-case starts out with the user navigating to a webshop 'The Drinks Center' located at `http://localhost:8202`.
 - In here, the user decides to buy a mix of alcoholic and non-alcoholic drinks.
 - Before checkout, the user has to first verify their age when alcoholic drinks were added to the cart.
 - The list of options here is currently limited to only WebID.
@@ -154,7 +151,7 @@ or the video file can be found in the [github repository](https://github.com/Sol
 To complete our trust interaction, we now need a way to check how the web store uses our data in their back-end.
 Here, the auditing process can make use of the usage agreement that was obtained by the store backend during the negotiation for the age credential resource.
 
-- The auditor navigates to the auditing platform located at `<http://localhost:5003>`
+- The auditor navigates to the auditing platform located at `<http://localhost:8203>`
 - Here, 'The Drinks Central' is registered as a store audited by the platform.
 - The platform retrieves all auditing information from the store from the store backend via `<http://localhost:5123/audit>`.
 - For each entry, the auditing platform can automatically verify:
