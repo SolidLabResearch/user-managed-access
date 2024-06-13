@@ -25,7 +25,7 @@ export interface StoreInfo {
 
 const stores: StoreInfo[] = [{
   name: "The Drinks Center",
-  site: "http://localhost:5002/",
+  site: "http://localhost:8202/",
   audit: "http://localhost:5123/audit",
   logo: "store.jpg"
 }]
