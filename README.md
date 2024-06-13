@@ -37,7 +37,7 @@ This will boot up a UMA server and compatible Community Solid Server instance, a
 There is also a `docker` setup available, for which you need to have docker installed:
 ```
 docker pull raddecke/solidlab-trust-flows-demo
-docker run -p 3000:3000 -p 4000:4000 -p 4444:4444 -p 5123:5123 -p 8201:8201 -p 8202:8202 -p 8203:8203 --net=host raddecke/solidlab-trust-flows-demo
+docker run -p 3000:3000 -p 4000:4000 -p 4444:4444 -p 5123:5123 -p 8201:8201 -p 8202:8202 -p 8203:8203 --net=host raddecke/solidlab-trust-flows-demo:latest
 ```
 
 This will start up the same services as the above system installation.
