@@ -1,0 +1,15 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:default:DemoNegotiator",
+      "@type": "ContractNegotiator",
+      "verifier": { "@id": "urn:uma:default:Verifier" },
+      "ticketStore": { "@id": "urn:uma:default:TicketStore" },
+      "ticketingStrategy": { "@id": "urn:uma:default:TicketingStrategy" },
+      "tokenFactory": { "@id": "urn:uma:default:TokenFactory" }
+    }
+  ]
+}

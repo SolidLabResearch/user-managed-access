@@ -8,6 +8,8 @@ import './App.css';
 import Home from './components/Home';
 import Navigate from './components/Navigate';
 import SolidAuth from './components/SolidAuth'
+import DataPage from "./components/CredentialsPage";
+import PolicyPage from "./components/PolicyPage";
 
 const rubenWebID = 'http://localhost:3000/ruben/profile/card#me'
 
@@ -22,7 +24,7 @@ export default function App() {
 
   // De checkingLogin variabele houdt bij of onze initiële 
   // check voor login informatie is afgerond.
-  const [checkingLogin, setCheckingLogin] = useState<boolean>(true)
+  const [checkingLogin, setCheckingLogin] = useState<boolean>(false)
 
   // Deze functie voert uit bij het updaten van de component.
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function App() {
     
     // Deze functie gaat na of we teruggestuurd zijn 
     // naar de huidige pagina door de Solid login pagina.
-    handleIncomingRedirect({ restorePreviousSession: true })
+    handleIncomingRedirect({ restorePreviousSession: false })
       .then((info) => { 
         // Update de status van de component voor 
         // de login status en de login check status
@@ -46,39 +48,19 @@ export default function App() {
       .catch(console.error)
   })  
 
-  // return (
-  //   <div className="App">
-  //     {
-  //       checkingLogin
-  //       ? 
-  //         <p>Loading Session information ...</p>
-  //         : (
-  //         <div>
-  //           <SolidAuth loggedIn={loggedIn} />
-  //           {loggedIn &&
-  //             <BrowserRouter>
-  //               <Navigate />
-  //               <Routes>
-  //                 <Route path='/' element={<Home />} />
-  //                 <Route path='/query' element={<Query />} />
-  //               </Routes>
-  //             </BrowserRouter>
-  //           }
-  //         </div>
-  //       )
-  //     }
-  //   </div>
-  // )
-
-  return (
-    <div className="App">
-      
-              <BrowserRouter>
-                <Navigate />
-                <Routes>
-                  <Route path='/' element={<Home />} />
-                </Routes>
-              </BrowserRouter>
-    </div>
-  )
+  if (loggedIn)
+    return (
+      <div className="App">
+        <Navigate session={session} />
+        <Home session={session}/>
+      </div>
+    )
+  else {
+    return (
+      <div className="App">
+        <SolidAuth />
+        {/* <Home /> */}
+      </div>
+    )
+  }
 }

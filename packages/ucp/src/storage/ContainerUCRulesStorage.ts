@@ -1,6 +1,6 @@
 import { Store } from "n3";
 import { UCRulesStorage } from "./UCRulesStorage";
-import { storeToString, turtleStringToStore } from "../util/Conversion";
+import { isRDFContentType, rdfToStore, storeToString, turtleStringToStore } from "../util/Conversion";
 import { extractQuadsRecursive } from "../util/Util";
 
 export type RequestInfo = string | Request;
@@ -67,9 +67,26 @@ export async function readLdpRDFResource(fetch: (input: RequestInfo, init?: Requ
     if (containerResponse.status !== 200) {
         throw new Error(`Resource not found: ${resourceURL}`);
     }
+    
     if (containerResponse.headers.get('content-type') !== 'text/turtle') { // note: should be all kinds of RDF, not only turtle
         throw new Error('Works only on rdf data');
     }
     const text = await containerResponse.text();
     return await turtleStringToStore(text, resourceURL);
 }
+
+
+// export async function readLdpRDFResource(fetch: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>, resourceURL: string): Promise<Store> {
+//     const response = await fetch(resourceURL);
+
+//     if (response.status !== 200) {
+//         throw new Error(`Resource not found: ${resourceURL}`);
+//     }
+    
+//     const contentType = response.headers.get('content-type')
+//     if (!contentType || !await isRDFContentType(contentType)) { // note: should be all kinds of RDF, not only turtle
+//         throw new Error('Works only on rdf data');
+//     }
+    
+//     return await rdfToStore(response, resourceURL);
+// }

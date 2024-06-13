@@ -1,9 +1,9 @@
-import { getDefaultSession } from "@inrupt/solid-client-authn-browser"
+import { getDefaultSession, Session } from "@inrupt/solid-client-authn-browser"
 
-export default function SolidAuth(props: { loggedIn: boolean }) {  
+export default function SolidAuth(){  
   
   // Verkrijg login status van App component.
-  const { loggedIn } = props
+  const loggedIn = false
 
   // Haal het Solid session object op
   const session = getDefaultSession();
@@ -22,7 +22,7 @@ export default function SolidAuth(props: { loggedIn: boolean }) {
     session.login({
       oidcIssuer: idp,
       redirectUrl: window.location.href,
-      clientName: "Webdevelopment Practicum 3 React Template"
+      clientName: "My Credential Companion"
     })
   }
 
@@ -44,7 +44,7 @@ export default function SolidAuth(props: { loggedIn: boolean }) {
         }}>
           <input type="text" placeholder="identity provider" style={{
               marginBottom: "1em"
-          }}/>
+          }} value={'http://localhost:3000/'}/>
           <input type="submit" value="Login"/>
         </form>
       </div>

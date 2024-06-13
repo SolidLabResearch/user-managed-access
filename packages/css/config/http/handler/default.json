@@ -31,9 +31,6 @@
               "@id": "urn:solid-server:default:StaticAssetHandler"
             },
             {
-              "@id": "urn:solid-server:default:StaticAssetHandler"
-            },
-            {
               "@id": "urn:solid-server:default:OidcHandler"
             },
             {
