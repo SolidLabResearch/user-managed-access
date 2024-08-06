@@ -1,4 +1,0 @@
-
-<http://example.org/context> <http://example.org/requestingParty> <http://localhost:5123/id>;
-    <http://example.org/target> <http://localhost:3000/ruben/private/derived/age>;
-    <http://example.org/requestPermission> <urn:example:css:modes:read>.

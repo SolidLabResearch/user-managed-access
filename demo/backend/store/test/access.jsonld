@@ -1,5 +1,0 @@
-
-{ 
-    "resourceId": "http://localhost:3000/ruben/private/derived/age",
-    "data": "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix foaf: <http://xmlns.com/foaf/0.1/>.\n@prefix solid: <http://www.w3.org/ns/solid/terms#>.\n@prefix filters: <http://localhost:3000/catalog/public/filters/> .\n@prefix views: <http://localhost:3000/ruben/private/derived/> .\n@prefix ruben: <http://localhost:3000/ruben/profile/card#me> .\n\n<> a foaf:PersonalProfileDocument;\n    foaf:maker ruben:;\n    foaf:primaryTopic ruben:.\n\nruben: a foaf:Person ;\n    foaf:name  \"Ruben Verborgh\"@en, \"Ruben Verborgh\"@nl;\n    rdfs:label \"Ruben Verborgh\"@en, \"Ruben Verborgh\"@nl;\n    solid:umaServer \"http://localhost:4000/uma/\" ;\n    solid:oidcIssuer <http://localhost:3000/> ;\n    solid:viewIndex <#index> .\n    \n<#index> a solid:ViewIndex ;\n    solid:entry [\n        solid:filter filters:bday ;\n        solid:location views:bday\n    ] ;\n    solid:entry [\n        solid:filter filters:age ;\n        solid:location views:age\n    ] ."
-}

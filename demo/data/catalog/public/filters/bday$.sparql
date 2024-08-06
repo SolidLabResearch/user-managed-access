@@ -1,7 +1,0 @@
-PREFIX dbo: <http://dbpedia.org/ontology/>
-
-CONSTRUCT {
-  ?s dbo:birthDate ?bday .
-} WHERE {
-  ?s dbo:birthDate ?bday .
-}
