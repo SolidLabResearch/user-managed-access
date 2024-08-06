@@ -51,22 +51,10 @@
   "exports": {},
   "files": [],
   "scripts": {
-    "prepare": "yarn install:demo ; yarn build ; yarn build:demo",
+    "prepare": "yarn build",
     "clean": "shx rm -rf ./**/node_modules",
-    "install:demo": "cd demo && yarn install",
     "build": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited -t run build",
-    "build:demo": "cd demo && yarn build:demo",
     "test:all": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run test",
-    "start:all": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run start",
-    "start:demo": "concurrently 'yarn start:demo:sites' 'yarn start:demo:servers'",
-    "start:demo:servers": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run demo",
-    "start:demo:sites": "cd demo && yarn start:demo",
-    "script:demo": "yarn exec ts-node ./demo/flow.ts",
-    "script:public": "yarn exec ts-node ./scripts/test-public.ts",
-    "script:private": "yarn exec ts-node ./scripts/test-private.ts",
-    "script:registration": "yarn exec ts-node ./scripts/test-registration.ts",
-    "script:ucp-enforcement": "yarn exec ts-node ./scripts/test-ucp-enforcement.ts",
-    "script:uma-ucp": "yarn exec ts-node ./scripts/test-uma-ucp.ts",
     "script:flow": "yarn run script:public && yarn run script:private && yarn run script:uma-ucp && yarn run script:registration && yarn run script:ucp-enforcement"
   },
   "devDependencies": {
