@@ -19,6 +19,7 @@ export class OwnerUtil {
     protected accountStore: AccountStore,
     protected storageStrategy: StorageLocationStrategy,
     protected umaPatStore: KeyValueStorage<string, { issuer: string, pat: string }>,
+    protected umaServerURL: string,
   ) {}
 
   /**
@@ -74,7 +75,15 @@ export class OwnerUtil {
   }
 
   public async findIssuer(webid: string): Promise<string | undefined> {
-    return 'http://localhost:4000/uma';
+    if (!this.umaServerURL) {
+      this.logger.warn(`No UMA Authorization Server variable set. Falling back on http://localhost:4000/`)
+      return 'http://localhost:4000/uma';
+    }
+    this.logger.verbose(`Using UMA Authorization Server at ${this.umaServerURL} for WebID ${webid}.`)
+    return this.umaServerURL.endsWith('/') ? this.umaServerURL + 'uma' : this.umaServerURL + '/uma'
+
+    // Dunno if it makes sense to code this as retrieving it from the WebID at this point? 
+    // I think we are far off from dynamically attaching multiple auth servers to a single solid server.
 
     // TODO: softcode
 
