@@ -108,12 +108,13 @@ export const RDF = createVocabulary(
     'type',
   );
 
-  
+
 export const ODRL = createVocabulary(
     'http://www.w3.org/ns/odrl/2/',
     'Agreement',
     'Offer',
     'Permission',
+    'Request',
     'action',
     'target',
     'assignee',

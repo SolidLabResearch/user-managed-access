@@ -57,6 +57,7 @@
     "build:components": "yarn run -T componentsjs-generator -r sai-uma -s src -c dist/components -i .componentsignore --lenient",
     "test": "yarn run -T jest --coverage",
     "start": "yarn run -T ts-node bin/main.ts",
+    "start:odrl": "yarn run -T ts-node bin/odrl.ts",
     "demo": "yarn run -T ts-node bin/demo.ts"
   },
   "dependencies": {
@@ -72,6 +73,7 @@
     "koreografeye": "^0.4.8",
     "logform": "^2.6.0",
     "n3": "^1.17.2",
+    "odrl-evaluator": "^0.1.0",
     "ts-node": "^10.9.2",
     "uri-template-lite": "^23.4.0",
     "winston": "^3.11.0"
