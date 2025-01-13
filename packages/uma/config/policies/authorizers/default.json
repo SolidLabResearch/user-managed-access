@@ -49,11 +49,8 @@
         }
       ],
       "fallback": {
-        "@id": "urn:uma:default:PolicyBasedAuthorizer",
-        "@type": "PolicyBasedAuthorizer",
-        "rulesDir": {
-          "@id": "urn:uma:variables:rulesDir"
-        },
+        "@id": "urn:uma:default:OdrlAuthorizer",
+        "@type": "OdrlAuthorizer",
         "policies": {
           "@id": "urn:uma:default:RulesStorage",
           "@type": "DirectoryUCRulesStorage",
