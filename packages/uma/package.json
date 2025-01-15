@@ -73,7 +73,7 @@
     "koreografeye": "^0.4.8",
     "logform": "^2.6.0",
     "n3": "^1.17.2",
-    "odrl-evaluator": "^0.1.0",
+    "odrl-evaluator": "^0.1.1",
     "ts-node": "^10.9.2",
     "uri-template-lite": "^23.4.0",
     "winston": "^3.11.0"
