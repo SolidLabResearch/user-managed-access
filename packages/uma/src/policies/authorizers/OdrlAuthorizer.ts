@@ -24,8 +24,8 @@ export class OdrlAuthorizer implements Authorizer {
     constructor(
         private readonly policies: UCRulesStorage,
     ) {
-        const engine = new ODRLEngineMultipleSteps(new EyeReasoner('/usr/local/bin/eye', ["--quiet", "--nope", "--pass-only-new"]));
-        // const engine = new ODRLEngineMultipleSteps();
+        // const engine = new ODRLEngineMultipleSteps(new EyeReasoner('/usr/local/bin/eye', ["--quiet", "--nope", "--pass-only-new"]));
+        const engine = new ODRLEngineMultipleSteps();
         this.odrlEvaluator = new ODRLEvaluator(engine);
     }
 
