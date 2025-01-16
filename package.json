@@ -56,6 +56,7 @@
     "build": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited -t run build",
     "test": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run test",
     "start": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run start",
+    "start:odrl": "yarn workspace @solidlab/uma run start:odrl & yarn workspace @solidlab/uma-css run start",
     "start:demo": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run demo",
     "script:demo": "yarn exec tsx ./demo/flow.ts",
     "script:demo-test": "yarn exec tsx ./demo/flow-test.ts",
@@ -64,6 +65,7 @@
     "script:registration": "yarn exec ts-node ./scripts/test-registration.ts",
     "script:ucp-enforcement": "yarn exec ts-node ./scripts/test-ucp-enforcement.ts",
     "script:uma-ucp": "yarn exec ts-node ./scripts/test-uma-ucp.ts",
+    "script:uma-odrl": "yarn exec ts-node ./scripts/test-uma-ODRL.ts",
     "script:flow": "yarn run script:public && yarn run script:private && yarn run script:uma-ucp && yarn run script:registration && yarn run script:ucp-enforcement",
     "sync:list": "syncpack list-mismatches",
     "sync:fix": "syncpack fix-mismatches"
