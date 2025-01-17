@@ -23,8 +23,12 @@ const terms = {
     bday: 'http://localhost:3000/ruben/private/derived/bday',
     age: 'http://localhost:3000/ruben/private/derived/age',
   },
+  resources: {
+    smartwatch: 'http://localhost:3000/ruben/medicaldata/smartwatch.ttl'
+  },
   agents: {
     ruben: 'http://localhost:3000/ruben/profile/card#me',
+    alice: 'http://localhost:3000/alice/profile/card#me',
     vendor: 'http://localhost:3000/demo/public/vendor',
     present: 'http://localhost:3000/demo/public/bday-app',
   },
@@ -94,13 +98,16 @@ async function main() {
   const endDate = new Date(startDate.valueOf() + 14 * 24 * 60 * 60 * 1000);
   const purpose = 'urn:solidlab:uma:claims:purpose:age-verification'
   const policy = demoPolicy(terms.views.age, terms.agents.vendor, { startDate, endDate, purpose })
+  const body = writer.quadsToString(policy.representation.getQuads(null, null, null, null))
+
+  log (`Setting policy: ${body}`)
 
   // create container if it does not exist yet
   await initContainer(policyContainer)
   const policyCreationResponse = await fetch(policyContainer, {
     method: 'POST',
     headers: { 'content-type': 'text/turtle' },
-    body: writer.quadsToString(policy.representation.getQuads(null, null, null, null))
+    body
   });
 
   if (policyCreationResponse.status !== 201) { log('Adding a policy did not succeed...'); throw 0; }
@@ -152,6 +159,73 @@ async function main() {
   if (accessWithTokenResponse.status !== 200) { log('Access with token failed...'); throw 0; }
 
   log(`The agent can then use this access token at the Resource Server to perform the desired action.`);
+
+
+
+  log('')
+  log('=================== UMA prototype flow ======================')
+
+  log('Ruben V syncs his smartwatch data with his pod at /medicaldata/smartwatch.ttl');
+
+  log('To protect this data, a policy is added restricting access to a specific healthcare employee for the purpose of bariatric care');
+  
+  const healthcare_patient_policy = `
+
+<http://example.org/HCPX-request> a odrl:Request ;
+    odrl:uid ex:HCPX-request ;
+    odrl:profile oac: ;
+    dcterms:description "HCP X requests to read Alice's health data for bariatric care.";
+    odrl:permission <http://example.org/HCPX-request-permission> .
+
+<http://example.org/HCPX-request-permission> a odrl:Permission ;
+    odrl:action odrl:read ;
+    odrl:target <${terms.resources.smartwatch}> ;
+    odrl:assigner <${terms.agents.ruben}> ;
+    odrl:assignee <${terms.agents.alice}> ;
+    odrl:constraint <http://example.org/HCPX-request-permission-purpose>,
+        <http://example.org/HCPX-request-permission-lb> .
+
+<http://example.org/HCPX-request-permission-purpose> a odrl:Constraint ;
+    odrl:leftOperand odrl:purpose ; # can also be oac:Purpose, to conform with OAC profile
+    odrl:operator odrl:eq ;
+    odrl:rightOperand ex:bariatric-care .
+
+<http://example.org/HCPX-request-permission-lb> a odrl:Constraint ;
+    odrl:leftOperand oac:LegalBasis ;
+    odrl:operator odrl:eq ;
+    odrl:rightOperand eu-gdpr:A9-2-a .`
+
+  const medicalPolicyCreationResponse = await fetch(policyContainer, {
+    method: 'POST',
+    headers: { 'content-type': 'text/turtle' },
+    body: healthcare_patient_policy,
+  });
+
+  if (medicalPolicyCreationResponse.status !== 201) { log('Adding a policy did not succeed...'); throw 0; }
+
+  log("The house doctor assigned access to this data for the purpose of bariatric care, now tries to access this data.")
+
+
+  const smartWatchAccessRequest = {
+    permissions: [{
+      resource_id: terms.resources.smartwatch,
+      resource_scopes: [ terms.scopes.read ],
+    }]
+  };
+
+
+  const doctor_needInfoResponse = await fetch(tokenEndpoint, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(smartWatchAccessRequest),
+  });
+  
+  if (needInfoResponse.status !== 403) { log('Access request succeeded without claims...'); throw 0; }
+
+
+  const { ticket: doctor_ticket, required_claims: doctor_claims } = await doctor_needInfoResponse.json();
+
+  log(`THe doctor receives the UMA ticket ${doctor_ticket}, and a set of required claims: ${JSON.stringify(doctor_claims, null, 2)}`)
 }
 
 main();
