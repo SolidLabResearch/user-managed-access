@@ -1,0 +1,22 @@
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+PREFIX ex: <http://example.org/>
+
+<http://example.org/alice-HCPX> a odrl:Set ;
+    odrl:uid ex:alice-HCPX ;
+    dcterms:description "Alice allows her health data to be read by HCP X for bariatric care.";
+    odrl:permission <http://example.org/alice-HCPX-permission> .
+
+<http://example.org/alice-HCPX-permission> a odrl:Permission ;
+    odrl:action odrl:read ;
+    odrl:target ex:health-data ;
+    odrl:assigner ex:alice ;
+    odrl:assignee ex:HCPx ;
+    odrl:constraint <http://example.org/alice-HCPX-permission-purpose> .
+
+<http://example.org/alice-HCPX-permission-purpose> a odrl:Constraint ;
+    odrl:leftOperand odrl:purpose ;
+    odrl:operator odrl:eq ;
+    odrl:rightOperand ex:bariatric-care .

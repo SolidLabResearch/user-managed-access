@@ -51,9 +51,11 @@ export class BaseNegotiator implements Negotiator {
 
     // Process pushed credentials
     const updatedTicket = await this.processCredentials(input, ticket);
+    this.logger.debug(`Updated ticket with credentials.`, ticket);
 
     // Try to resolve ticket ...
     const resolved = await this.ticketingStrategy.resolveTicket(updatedTicket);
+    this.logger.debug(`Resolved ticket.`, ticket);
 
     // ... on success, create Access Token
     if (resolved.success) {

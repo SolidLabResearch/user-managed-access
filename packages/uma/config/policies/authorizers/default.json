@@ -27,6 +27,7 @@
             "@id": "urn:uma:default:WebIdAuthorizer",
             "@type": "WebIdAuthorizer",
             "webids": [
+              "http://localhost:3000/alice/profile/card#me",
               "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me"
             ]
           }
