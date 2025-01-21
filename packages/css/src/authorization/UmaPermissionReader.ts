@@ -40,13 +40,11 @@ export class UmaPermissionReader extends PermissionReader {
           this.logger.warn(`Invalid UMA permission: ${error instanceof Error ? error.message : ''}`);
           return [scope, false];
         }
-
         return [scope.replace('urn:example:css:modes:', ''), true];
       }));
 
       result.set({ path: resource_id }, permissionSet);
     }
-
     return result;
   }
 

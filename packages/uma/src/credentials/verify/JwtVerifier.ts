@@ -59,7 +59,7 @@ export class JwtVerifier implements Verifier {
       delete claims[claim];
     }    
 
-    this.logger.warn(`Returning new claims: ${JSON.stringify(claims)}`)
+    this.logger.debug(`Returning discovered claims: ${JSON.stringify(claims)}`)
     return claims;
   }
 }
