@@ -2,7 +2,7 @@
 
 import { fetch } from 'cross-fetch';
 import { Parser, Writer, Store } from 'n3';
-import { demoPolicy } from "./policyCreation";
+// import { demoPolicy } from "./policyCreation";
 import { randomUUID } from 'crypto';
 
 const parser = new Parser();
