@@ -1,4 +1,4 @@
-import { Type, array, string } from "../util/ReType";
+import { Type, array, optional, string, union,  } from "../util/ReType";
 
 export const Permission = {
     resource_id: string,
@@ -8,26 +8,37 @@ export const Permission = {
 export type Permission = Type<typeof Permission>;
 
 
-export const ODRLAction = {
+export const JsonLdIdentifier = {
     '@id': string
 }
 
-export type ODRLAction = Type<typeof ODRLAction>;
+export type JsonLdIdentifier = Type<typeof JsonLdIdentifier>;
 
 
-export const ODRLConstraint = {
-    '@id': string
+export const RequestODRLConstraint = {
+    '@type': optional('Constraint'),
+    '@id': optional(string),
+    'leftOperand': union(string, JsonLdIdentifier),
+    'operator': union(string, JsonLdIdentifier),
+    'rightOperand': union(string, JsonLdIdentifier)
 }
 
-export type ODRLConstraint = Type<typeof ODRLConstraint>;
+export type RequestODRLConstraint = Type<typeof RequestODRLConstraint>;
 
 
-export const ODRLPermission = {
-    '@type': 'Permission',
-    '@id': string,
+export const RequestODRLPermission = {
+    '@type': optional('Permission'),
+    '@id': optional(string),
     target: string,
-    action: ODRLAction,
+    action: JsonLdIdentifier,
+    constraint: optional(array(RequestODRLConstraint))
 }
 
-export type ODRLPermission = Type<typeof ODRLPermission>;
+export type RequestODRLPermission = Type<typeof RequestODRLPermission>;
 
+//         "@type": "Constraint",
+//         "@id": `http://example.org/HCPX-request-permission-purpose/${randomUUID()}`,
+//         leftOperand: "purpose",
+//         operator: "eq",
+//         rightOperand: { "@id": "http://example.org/bariatric-care" },
+//       },

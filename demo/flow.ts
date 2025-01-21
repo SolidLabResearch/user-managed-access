@@ -53,14 +53,15 @@ async function main() {
   log('')
   log('=================== UMA prototype flow ======================')
 
-  log("Doctor Alice will try to Read patient data from Ruben's pod")
+  log("This flow defines the retrieval by a doctor of this resource.")
 
-  log('Ruben V syncs his smartwatch data with his pod at /medical/smartwatch.ttl');
+  log('The patient has synced some data with his pod at http://localhost:3000/ruben/medical/smartwatch.ttl');
 
   log('To protect this data, a policy is added restricting access to a specific healthcare employee for the purpose of bariatric care');
+  log('Note: policy management is out of scope for POC1')
   
   const healthcare_patient_policy = `
-  PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#>
 PREFIX oac: <https://w3id.org/oac#>
 PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
@@ -98,11 +99,18 @@ PREFIX ex: <http://example.org/>
     body: healthcare_patient_policy,
   });
 
+  log("Set the following policy:", healthcare_patient_policy)
+  log("----------------------------------------------------")
+
   if (medicalPolicyCreationResponse.status !== 201) { log('Adding a policy did not succeed...'); throw 0; }
 
-  log("The house doctor assigned access to this data for the purpose of bariatric care, now tries to access this data.")
+  log(`This policy assigns access to the person's house doctor ${terms.agents.alice} for the smartwatch resource, 
+requiring the purpose of the request to equal "http://example.org/bariatric-care"
+and the legal basis to equal "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"`)
 
-  log("First the doctor sends a resource request to get a ticket")
+  log("The house doctor in question now wants to access the private user resource.")
+
+  // todo: this should be a resource request. Maybe something broke but I couldn't get a ticket via a direct resource request.
 
   const smartWatchAccessRequestNoClaimsODRL = {
     "@context": "http://www.w3.org/ns/odrl.jsonld",
@@ -116,11 +124,9 @@ PREFIX ex: <http://example.org/>
       target: terms.resources.smartwatch,
       action: { "@id": "https://w3id.org/oac#read" },
     },
-    permissions: [{
-      resource_id: terms.resources.smartwatch,
-      resource_scopes: [ terms.scopes.read ],
-    }]
   }
+  
+  log("First the doctor sends a ticket request to the authorization server (shortcut routine)", smartWatchAccessRequestNoClaimsODRL)
 
   const doctor_needInfoResponse = await fetch(tokenEndpoint, {
     method: "POST",
@@ -128,23 +134,13 @@ PREFIX ex: <http://example.org/>
     body: JSON.stringify(smartWatchAccessRequestNoClaimsODRL),
   });
   
-  if (doctor_needInfoResponse.status !== 403) { log('Access request succeeded without claims...'); throw 0; }
+  if (doctor_needInfoResponse.status !== 403) { log('Access request succeeded without claims...', await doctor_needInfoResponse.text()); throw 0; }
 
-  const { ticket: doctor_ticket, required_claims: doctor_claims } = await doctor_needInfoResponse.json();
+  const { ticket, required_claims: doctor_claims } = await doctor_needInfoResponse.json();
   
-  log(`The doctor receives the UMA ticket ${doctor_ticket}, and a set of required claims: ${JSON.stringify(doctor_claims, null, 2)}`)
-
   log(`Based on the policy, the UMA server requests the following claims from the agent:`);
   doctor_claims.claim_token_format[0].forEach((format: string) => log(`  - ${format}`))
-
-  // Example false claims
-  // {
-  //   "http://www.w3.org/ns/odrl/2/purpose": "http://example.org/advertisement",
-  //   "urn:solidlab:uma:claims:types:webid": "http://localhost:3000/alice/profile/card#me",
-  //   "https://w3id.org/oac#LegalBasis":  "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"
-  // }
-  // const claim_token = "eyJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vd3d3LnczLm9yZy9ucy9vZHJsLzIvcHVycG9zZSI6Imh0dHA6Ly9leGFtcGxlLm9yZy9hZHZlcnRpc2VtZW50IiwidXJuOnNvbGlkbGFiOnVtYTpjbGFpbXM6dHlwZXM6d2ViaWQiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAvYWxpY2UvcHJvZmlsZS9jYXJkI21lIiwiaHR0cHM6Ly93M2lkLm9yZy9vYWMjTGVnYWxCYXNpcyI6Imh0dHBzOi8vdzNpZC5vcmcvZHB2L2xlZ2FsL2V1L2dkcHIjQTktMi1hIn0.AYM5t4gTayckxDXwvnhxybZ0rWPz4qNQD5WBUqrY2Z0"
-
+  log(`accompanied by a ticket for the interaction: ${ticket}.`)
 
   // JWT (HS256; secret: "ceci n'est pas un secret")
   // {
@@ -154,8 +150,18 @@ PREFIX ex: <http://example.org/>
   // }
   const claim_token = "eyJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vd3d3LnczLm9yZy9ucy9vZHJsLzIvcHVycG9zZSI6Imh0dHA6Ly9leGFtcGxlLm9yZy9iYXJpYXRyaWMtY2FyZSIsInVybjpzb2xpZGxhYjp1bWE6Y2xhaW1zOnR5cGVzOndlYmlkIjoiaHR0cDovL2xvY2FsaG9zdDozMDAwL2FsaWNlL3Byb2ZpbGUvY2FyZCNtZSIsImh0dHBzOi8vdzNpZC5vcmcvb2FjI0xlZ2FsQmFzaXMiOiJodHRwczovL3czaWQub3JnL2Rwdi9sZWdhbC9ldS9nZHByI0E5LTItYSJ9.nT55jaXNDsHgAo_zcRMsbJqcNj4FVdW_-xjcwNam-1M"
 
-  log(`The agent gathers the necessary claims (the manner in which is out-of-scope for this demo), and sends them to the UMA server as a JWT.`)
+  const claims: any = {
+    "http://www.w3.org/ns/odrl/2/purpose": "http://example.org/bariatric-care",
+    "urn:solidlab:uma:claims:types:webid": "http://localhost:3000/alice/profile/card#me",
+    "https://w3id.org/oac#LegalBasis": "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"
+  }
 
+  log(`The agent gathers the necessary claims (the manner in which is out-of-scope for this demo)`, claims)
+
+  log(`and bundles them as an UMA-compliant JWT.`, {
+    claim_token: claim_token,
+    claim_token_format: "urn:solidlab:uma:claims:formats:jwt"
+  })
 
   const smartWatchAccessRequestODRL = {
     "@context": "http://www.w3.org/ns/odrl.jsonld",
@@ -185,19 +191,17 @@ PREFIX ex: <http://example.org/>
       ],
     },
     // claims: [{
-      claim_token: claim_token, // encodeURIComponent(terms.agents.alice),
-      claim_token_format: "urn:solidlab:uma:claims:formats:jwt", // 'urn:solidlab:uma:claims:formats:webid',
+      claim_token: claim_token, 
+      claim_token_format: "urn:solidlab:uma:claims:formats:jwt",
     // }],
     // UMA specific fields
-    permissions: [{
-      resource_id: terms.resources.smartwatch,
-      resource_scopes: [ terms.scopes.read ],
-    }],
     grant_type: "urn:ietf:params:oauth:grant-type:uma-ticket",
-    ticket: doctor_ticket,
+    ticket,
   }
 
-  console.log("COPY", JSON.stringify(smartWatchAccessRequestODRL, null, 2))
+  log('Together with the UMA grant_type and ticket requirements, these are bundled as an ODRL Request and sent back to the Authorization Server', smartWatchAccessRequestODRL)
+  
+  log('Note that the ODRL constraints are not yet processed as claims, only the ODRL claim_token(_format) flow.')
 
   const accessGrantedResponse = await fetch(tokenEndpoint, {
     method: "POST",
@@ -209,19 +213,22 @@ PREFIX ex: <http://example.org/>
     log('Access request failed despite policy...', JSON.stringify(await accessGrantedResponse.json(), null, 2)); throw 0; 
   }
 
-  log(`The UMA server checks the claims with the relevant policy, and returns the agent an access token with the requested permissions.`);
-  
   const tokenParams = await accessGrantedResponse.json();
 
-  log ("tokenParams", tokenParams)
+  log(`The UMA server checks the claims with the relevant policy, and returns the agent an access token with the requested permissions.`, 
+    JSON.stringify(parseJwt(tokenParams.access_token).permissions, null, 2));
+  
+  log(`and the accompanying agreement:`, 
+    JSON.stringify(parseJwt(tokenParams.access_token).contract, null, 2));
+    
+  
   const accessWithTokenResponse = await fetch(terms.resources.smartwatch, {
     headers: { 'Authorization': `${tokenParams.token_type} ${tokenParams.access_token}` }
   });
-  console.log(await accessWithTokenResponse.text())
+
+  log(`Now the doctor can retrieve the resource:`, await accessWithTokenResponse.text());
 
   if (accessWithTokenResponse.status !== 200) { log(`Access with token failed...`); throw 0; }
-
-  log(`The agent can then use this access token at the Resource Server to perform the desired action.`);
   
 }
 

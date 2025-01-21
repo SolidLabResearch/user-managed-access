@@ -19,6 +19,7 @@ import { ContractManager } from '../policies/contracts/ContractManager';
 import { Result, Success } from '../util/Result';
 import { AccessToken, Permission, Requirements } from '..';
 import { Contract } from '../views/Contract';
+import { PermissionMapping, processRequestPermission } from '../util/rdf/RequestProcessing';
 
 
 /**
@@ -55,6 +56,7 @@ export class ContractNegotiator implements Negotiator {
    */
   public async negotiate(input: DialogInput): Promise<DialogOutput> {
     reType(input, DialogInput);
+    if (!input.permissions && input.permission) input.permissions = [ processRequestPermission(input.permission) ]
     this.logger.debug(`Input.`, input);
     // Create or retrieve ticket
     const ticket = await this.getTicket(input);
@@ -100,14 +102,14 @@ export class ContractNegotiator implements Negotiator {
       }
     }
 
-    if (result.success) {
-      
-      
+    if (result.success) {      
       let contract = result.value
       let permissions: Permission[] = [{
-        resource_id: contract.target,
-        resource_scopes: contract.permission.map(p => p.action)
+        resource_id: contract.permission.target,
+        // todo:: remove change underneath -- Some small POC mocking -- (requires fixing of internal ODRL JSONLD format)
+        resource_scopes: [ "urn:example:css:modes:read" ] // contract.permission.map(p => p.action) 
       }]
+      this.logger.debug('granting permissions:', permissions)
 
       // Create response
       const tokenContents: AccessToken = { permissions, contract }
@@ -165,7 +167,7 @@ export class ContractNegotiator implements Negotiator {
    * @returns The Ticket describing the dialog at hand.
    */
   private async getTicket(input: DialogInput): Promise<Ticket> {
-    const { ticket, permissions, permissions } = input;
+    const { ticket, permission, permissions } = input;
 
     if (ticket) {
       const stored = await this.ticketStore.get(ticket);
@@ -193,8 +195,6 @@ export class ContractNegotiator implements Negotiator {
    */
   private async processCredentials(input: DialogInput, ticket: Ticket): Promise<Ticket> {
     const { claim_token: token, claim_token_format: format } = input;
-    this.logger.debug("processing credentials input", input)
-    this.logger.debug("processing credentials ticket", ticket)
 
     if (token || format) {
       if (!token) this.error(BadRequestHttpError, 'Request with a "claim_token_format" must contain a "claim_token".');
@@ -202,7 +202,6 @@ export class ContractNegotiator implements Negotiator {
 
       const claims = await this.verifier.verify({ token, format });
 
-      this.logger.debug(`claims - ${JSON.stringify(claims, null, 2)} - ${JSON.stringify(ticket, null, 2)}`)
       return await this.ticketingStrategy.validateClaims(ticket, claims);
     }
 

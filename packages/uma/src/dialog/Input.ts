@@ -1,5 +1,5 @@
 import { Type, string, array, optional as $, unknown } from "../util/ReType";
-import { Permission } from "../views/Permission";
+import { Permission, RequestODRLPermission } from "../views/Permission";
 
 /**
  * A ReType constant for {@link DialogInput:type}.
@@ -11,7 +11,7 @@ export const DialogInput = ({
   pct: $(string),
   rpt: $(string),
   permissions: $(array(Permission)), // this deviates from UMA, which only has a 'scope' string-array
-  permission: $(array(Permission)), // this deviates from UMA, which only has a 'scope' string-array
+  permission: $(RequestODRLPermission), // this deviates from UMA, which only has a 'scope' string-array
 });
 
 /**
