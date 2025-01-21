@@ -62,12 +62,12 @@ export class ContractNegotiator implements Negotiator {
 
     // Process pushed credentials
     const updatedTicket = await this.processCredentials(input, ticket);
-    this.logger.debug('Processed credentials', updatedTicket)
+    this.logger.debug('Processed credentials', JSON.parse(JSON.stringify(updatedTicket)))
 
     let result : Result<Contract, Requirements[]>
     let contract: Contract | undefined;
 
-    // Check contract avialability
+    // Check contract availability
     try {
       contract = this.contractManager.findContract(updatedTicket)
     } catch (e) {
@@ -80,8 +80,10 @@ export class ContractNegotiator implements Negotiator {
       result = Success(contract)
       this.logger.debug('Existing contract discovered', contract)
     } else {
-      this.logger.debug(`No existing contract discovered. Attempting to resolve ticket. ${updatedTicket}`)
+      this.logger.debug(`No existing contract discovered. Attempting to resolve ticket.`)
+      
       const resolved = await this.ticketingStrategy.resolveTicket(updatedTicket);
+      this.logger.debug('Resolved ticket.', resolved);
 
       if (resolved.success) {
         this.logger.debug('Ticket resolved succesfully.', resolved)
@@ -163,7 +165,7 @@ export class ContractNegotiator implements Negotiator {
    * @returns The Ticket describing the dialog at hand.
    */
   private async getTicket(input: DialogInput): Promise<Ticket> {
-    const { ticket, permissions } = input;
+    const { ticket, permissions, permissions } = input;
 
     if (ticket) {
       const stored = await this.ticketStore.get(ticket);
@@ -191,6 +193,8 @@ export class ContractNegotiator implements Negotiator {
    */
   private async processCredentials(input: DialogInput, ticket: Ticket): Promise<Ticket> {
     const { claim_token: token, claim_token_format: format } = input;
+    this.logger.debug("processing credentials input", input)
+    this.logger.debug("processing credentials ticket", ticket)
 
     if (token || format) {
       if (!token) this.error(BadRequestHttpError, 'Request with a "claim_token_format" must contain a "claim_token".');
@@ -198,7 +202,7 @@ export class ContractNegotiator implements Negotiator {
 
       const claims = await this.verifier.verify({ token, format });
 
-      console.log(`claims - ${JSON.stringify(claims, null, 2)} - ${JSON.stringify(ticket, null, 2)}`)
+      this.logger.debug(`claims - ${JSON.stringify(claims, null, 2)} - ${JSON.stringify(ticket, null, 2)}`)
       return await this.ticketingStrategy.validateClaims(ticket, claims);
     }
 

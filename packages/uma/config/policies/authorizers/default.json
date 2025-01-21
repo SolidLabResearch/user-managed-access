@@ -27,7 +27,10 @@
             "@id": "urn:uma:default:WebIdAuthorizer",
             "@type": "WebIdAuthorizer",
             "webids": [
-              "https://pod.rubendedecker.be/profile/card#me"
+              "https://pod.rubendedecker.be/profile/card#me",
+              "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me",
+              "http://localhost:3000/ruben/profile/card#me",
+              "http://localhost:3000/alice/profile/card#me"
             ]
           }
         },
@@ -37,7 +40,10 @@
             "@id": "urn:uma:default:WebIdAuthorizer",
             "@type": "WebIdAuthorizer",
             "webids": [
-              "https://pod.rubendedecker.be/profile/card#me"
+              "https://pod.rubendedecker.be/profile/card#me",
+              "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me",
+              "http://localhost:3000/ruben/profile/card#me",
+              "http://localhost:3000/alice/profile/card#me"
             ]
           }
         }

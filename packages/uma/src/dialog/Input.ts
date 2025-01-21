@@ -11,6 +11,7 @@ export const DialogInput = ({
   pct: $(string),
   rpt: $(string),
   permissions: $(array(Permission)), // this deviates from UMA, which only has a 'scope' string-array
+  permission: $(array(Permission)), // this deviates from UMA, which only has a 'scope' string-array
 });
 
 /**

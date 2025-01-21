@@ -50,29 +50,21 @@ export class BaseNegotiator implements Negotiator {
 
     // Create or retrieve ticket
     const ticket = await this.getTicket(input);
-    this.logger.debug(`Processing ticket.`, ticket);
-
-    // Try to discover existing instantiated policy (running contract)  
+    this.logger.debug(`Processing ticket.`, ticket);  
 
     // Process pushed credentials
     const updatedTicket = await this.processCredentials(input, ticket);
-
     this.logger.debug('resolved result', JSON.stringify(updatedTicket, null, 2))
 
     // Try to resolve ticket ...
     const resolved = await this.ticketingStrategy.resolveTicket(updatedTicket);
-
     this.logger.debug('Resolved ticket.', JSON.stringify(resolved, null, 2));
 
     // ... on success, create Access Token
     if (resolved.success) {
 
-
       // Retrieve / create instantiated policy
-
-      this.logger.debug('resolved result', JSON.stringify(resolved, null, 2))
       const { token, tokenType } = await this.tokenFactory.serialize({ permissions: resolved.value });
-
       this.logger.debug('Minted token', JSON.stringify(token));
 
       // TODO:: test logging

@@ -19,6 +19,7 @@ export class UnsecureVerifier implements Verifier {
 
   /** @inheritdoc */
   public async verify(credential: Credential): Promise<ClaimSet> {
+    this.logger.debug("Verifying credential", credential)
     if (credential.format !== UNSECURE) {
       throw new Error(`Token format ${credential.format} does not match this processor's format.`);
     }

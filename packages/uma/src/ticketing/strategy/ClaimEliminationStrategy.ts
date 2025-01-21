@@ -38,7 +38,7 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
 
   /** @inheritdoc */
   async validateClaims(ticket: Ticket, claims: ClaimSet): Promise<Ticket> {
-    this.logger.info('Validating claims.', { ticket, claims });
+    this.logger.debug('Validating claims.', { ticket, claims });
 
     for (const key of Object.keys(claims)) {
       ticket.provided[key] = claims[key];
@@ -57,7 +57,7 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
 
   /** @inheritdoc {@link TicketingStrategy.resolveTicket} */
   async resolveTicket(ticket: Ticket): Promise<Result<Permission[], Requirements[]>> {
-    this.logger.info('Resolving ticket.', ticket);
+    this.logger.debug('Resolving ticket.', ticket);
     
     return ticket.required.some(req => Object.keys(req).length === 0) 
       ? Success(ticket.permissions) 

@@ -12,6 +12,7 @@ export class TypedVerifier implements Verifier {
 
   public async verify(credential: Credential): Promise<ClaimSet> {
     const verifier = this.verifiers[credential.format];
+    this.logger.debug("Verifying credential with typed verifier", credential)
     
     if (!verifier) {
       this.logger.warn('The provided "claim_token_format" is not supported.');

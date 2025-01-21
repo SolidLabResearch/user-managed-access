@@ -18,6 +18,7 @@ export class NoneAuthorizer implements Authorizer {
 
   /** @inheritdoc */
   public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements[]> {
+    this.logger.info('Skipping credentials.', { permissions, query });
     // throw new ForbiddenHttpError();  // TODO: indicating impossibility to RS would save roundtrip
     return [];
   }
