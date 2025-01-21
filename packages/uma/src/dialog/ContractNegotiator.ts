@@ -56,6 +56,7 @@ export class ContractNegotiator implements Negotiator {
   public async negotiate(input: DialogInput): Promise<DialogOutput> {
     reType(input, DialogInput);
     this.logger.debug(`Input.`, input);
+    
     // Create or retrieve ticket
     const ticket = await this.getTicket(input);
     this.logger.debug(`Processing ticket.`, ticket);

@@ -240,6 +240,15 @@ PREFIX ex: <http://example.org/>
   log(`Based on the policy, the UMA server requests the following claims from the agent:`);
   doctor_claims.claim_token_format[0].forEach((format: string) => log(`  - ${format}`))
 
+  // Example false claims
+  // {
+  //   "http://www.w3.org/ns/odrl/2/purpose": "http://example.org/advertisement",
+  //   "urn:solidlab:uma:claims:types:webid": "http://localhost:3000/alice/profile/card#me",
+  //   "https://w3id.org/oac#LegalBasis":  "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"
+  // }
+  // const claim_token = "eyJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vd3d3LnczLm9yZy9ucy9vZHJsLzIvcHVycG9zZSI6Imh0dHA6Ly9leGFtcGxlLm9yZy9hZHZlcnRpc2VtZW50IiwidXJuOnNvbGlkbGFiOnVtYTpjbGFpbXM6dHlwZXM6d2ViaWQiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAvYWxpY2UvcHJvZmlsZS9jYXJkI21lIiwiaHR0cHM6Ly93M2lkLm9yZy9vYWMjTGVnYWxCYXNpcyI6Imh0dHBzOi8vdzNpZC5vcmcvZHB2L2xlZ2FsL2V1L2dkcHIjQTktMi1hIn0.AYM5t4gTayckxDXwvnhxybZ0rWPz4qNQD5WBUqrY2Z0"
+
+
   // JWT (HS256; secret: "ceci n'est pas un secret")
   // {
   //   "http://www.w3.org/ns/odrl/2/purpose": "http://example.org/bariatric-care",
@@ -261,7 +270,9 @@ PREFIX ex: <http://example.org/>
     })
   });
 
-  if (accessGrantedResponse.status !== 200) { log('Access request failed despite policy...'); throw 0; }
+  if (accessGrantedResponse.status !== 200) { 
+    log('Access request failed despite policy...', JSON.stringify(await accessGrantedResponse.json(), null, 2)); throw 0; 
+  }
 
   log(`The UMA server checks the claims with the relevant policy, and returns the agent an access token with the requested permissions.`);
   
