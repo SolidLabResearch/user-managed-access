@@ -51,16 +51,12 @@
   "exports": {},
   "files": [],
   "scripts": {
-    "prepare": "yarn build:all",
+    "prepare": "yarn build",
     "clean": "shx rm -rf ./**/node_modules",
-    "build:all": "yarn workspaces foreach --include 'packages/*' -A -pi -t run build",
-    "build:demo": "cd demo && yarn build:demo",
-    "test:all": "yarn workspaces foreach --include 'packages/*' -A -pi run test",
-    "start:all": "yarn workspaces foreach --include 'packages/*' -A -pi run start",
-    "start:demo": "concurrently 'yarn start:demo:sites' 'yarn start:demo:servers'",
-    "start:demo:servers": "yarn workspaces foreach --include 'packages/*' -A -pi run demo",
-    "start:demo:sites": "cd demo && yarn start:demo",
-    "script:demo": "yarn exec ts-node ./demo/flow.ts",
+    "build": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited -t run build",
+    "test": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run test",
+    "start": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run start",
+    "start:demo": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run demo",
     "script:public": "yarn exec ts-node ./scripts/test-public.ts",
     "script:private": "yarn exec ts-node ./scripts/test-private.ts",
     "script:registration": "yarn exec ts-node ./scripts/test-registration.ts",
@@ -152,5 +148,10 @@
         ]
       ]
     }
+  },
+  "dependencies": {
+    "@digitalcredentials/vc-data-model": "^1.1.1",
+    "@inrupt/solid-client": "^2.0.1",
+    "@inrupt/solid-client-authn-core": "^2.1.0"
   }
 }

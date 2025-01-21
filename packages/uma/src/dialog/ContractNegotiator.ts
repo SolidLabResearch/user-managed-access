@@ -13,7 +13,11 @@ import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { v4 } from 'uuid';
 import { ForbiddenHttpError } from '@solid/community-server';
+<<<<<<< HEAD
 // import { getOperationLogger } from '../logging/OperationLogger';
+=======
+import { getOperationLogger } from '../logging/OperationLogger';
+>>>>>>> develop
 import { serializePolicyInstantiation } from '../logging/OperationSerializer';
 import { ContractManager } from '../policies/contracts/ContractManager';
 import { Result, Success } from '../util/Result';
@@ -27,7 +31,11 @@ import { Contract } from '../views/Contract';
 export class ContractNegotiator implements Negotiator {
   protected readonly logger: Logger = getLoggerFor(this);
 
+<<<<<<< HEAD
   // protected readonly operationLogger = getOperationLogger();
+=======
+  protected readonly operationLogger = getOperationLogger();
+>>>>>>> develop
   protected readonly contractManager = new ContractManager();
 
   /**
@@ -56,7 +64,10 @@ export class ContractNegotiator implements Negotiator {
   public async negotiate(input: DialogInput): Promise<DialogOutput> {
     reType(input, DialogInput);
     this.logger.debug(`Input.`, input);
+<<<<<<< HEAD
     
+=======
+>>>>>>> develop
     // Create or retrieve ticket
     const ticket = await this.getTicket(input);
     this.logger.debug(`Processing ticket.`, ticket);
@@ -118,7 +129,11 @@ export class ContractNegotiator implements Negotiator {
       this.logger.debug('Minted token', token);
 
       // TODO:: test logging
+<<<<<<< HEAD
       // this.operationLogger.addLogEntry(serializePolicyInstantiation())
+=======
+      this.operationLogger.addLogEntry(serializePolicyInstantiation())
+>>>>>>> develop
 
       // Store created instantiated policy (above contract variable) in the pod storage as an instantiated policy
       // todo: dynamic URL
@@ -221,4 +236,8 @@ export class ContractNegotiator implements Negotiator {
   }
 }
 
+<<<<<<< HEAD
 type ErrorConstructor = { new(msg: string): Error };
+=======
+type ErrorConstructor = { new(msg: string): Error };
+>>>>>>> develop

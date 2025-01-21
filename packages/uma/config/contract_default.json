@@ -1,0 +1,74 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "import": [
+    "sai-uma:config/credentials/verifiers/default.json",
+    "sai-uma:config/dialog/negotiators/contract.json",
+    "sai-uma:config/policies/authorizers/default.json",
+    "sai-uma:config/resources/storage/default.json",
+    "sai-uma:config/routes/discovery.json",
+    "sai-uma:config/routes/introspection.json",
+    "sai-uma:config/routes/keys.json",
+    "sai-uma:config/routes/resources.json",
+    "sai-uma:config/routes/tickets.json",
+    "sai-uma:config/routes/tokens_contract.json",
+    "sai-uma:config/routes/log.json",
+    "sai-uma:config/routes/vc.json",
+    "sai-uma:config/routes/contract.json",
+    "sai-uma:config/tickets/storage/default.json",
+    "sai-uma:config/tickets/strategy/claim-elimination.json",
+    "sai-uma:config/tokens/factory/default.json",
+    "sai-uma:config/tokens/storage/default.json",
+    "sai-uma:config/variables/default.json"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:default:NodeHttpServer",
+      "@type": "NodeHttpServer",
+      "port": {
+        "@id": "urn:uma:variables:port"
+      },
+      "host": {
+        "@id": "urn:uma:variables:host"
+      },
+      "nodeHttpStreamsHandler": {
+        "@id": "urn:uma:default:NodeHttpRequestResponseHandler",
+        "@type": "NodeHttpRequestResponseHandler",
+        "httpHandler": {
+          "@id": "urn:uma:default:CorsRequestHandler",
+          "@type": "CorsRequestHandler",
+          "handler": {
+            "@id": "urn:uma:default:RoutedHttpRequestHandler",
+            "@type": "RoutedHttpRequestHandler",
+            "handlerControllerList": [
+              {
+                "@id": "urn:uma:default:HttpHandlerController",
+                "@type": "HttpHandlerController",
+                "label": "ControllerList",
+                "routes": [
+                  { "@id": "urn:uma:default:UmaConfigRoute" },
+                  { "@id": "urn:uma:default:JwksRoute" },
+                  { "@id": "urn:uma:default:DemoTokenRoute" },
+                  { "@id": "urn:uma:default:PermissionRegistrationRoute" },
+                  { "@id": "urn:uma:default:ResourceRegistrationRoute" },
+                  { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
+                  { "@id": "urn:uma:default:IntrospectionRoute" },
+                  { "@id": "urn:uma:default:LogRoute" },
+                  { "@id": "urn:uma:default:VCRoute" },
+                  { "@id": "urn:uma:default:ContractRoute" }
+                ]
+              }
+            ],
+            "defaultHandler": {
+              "@type": "DefaultRequestHandler"
+            }
+          }
+        }
+      }
+    },
+    {
+      "comment": "Configuration for the UMA AS."
+    }
+  ]
+}

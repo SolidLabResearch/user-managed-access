@@ -73,6 +73,9 @@
       "umaPatStore": {
         "@id": "urn:solid-server:default:UmaPatStore",
         "@type": "MemoryMapStorage"
+      }, 
+      "umaServerURL": {
+        "@id": "urn:solid-server:uma:variable:AuthorizationServer"
       }
     },
     {
@@ -98,6 +101,41 @@
           "@id": "urn:solid-server:default:ResourceRegistrar"
         }
       ]
+    },
+    {
+      "@id": "urn:solid-server-app-setup:default:CliExtractor",
+      "@type": "YargsCliExtractor",
+      "parameters": [
+        {
+          "@type": "YargsParameter",
+          "name": "authServer",
+          "options": {
+            "alias": "a",
+            "requiresArg": true,
+            "type": "string",
+            "describe": "The URL of the UMA Authorization Server."
+          }
+        }
+      ]
+    }, {
+      "comment": "Converts an input key/value object into an object mapping values to Components.js variables",
+      "@id": "urn:solid-server-app-setup:default:ShorthandResolver",
+      "@type": "CombinedShorthandResolver",
+      "resolvers": [
+        {
+          "CombinedShorthandResolver:_resolvers_key": "urn:solid-server:uma:variable:AuthorizationServer",
+          "CombinedShorthandResolver:_resolvers_value": {
+            "@type": "KeyExtractor",
+            "key": "authServer",
+            "defaultValue": "http://localhost:4000"
+          }
+        }
+      ]
+    },
+    {
+      "comment": "URL of the UMA Authorization Server.",
+      "@id": "urn:solid-server:uma:variable:AuthorizationServer",
+      "@type": "Variable"
     }
   ]
 }

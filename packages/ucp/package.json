@@ -63,9 +63,12 @@
     "test:crud-temporal-engine": "yarn exec ts-node test/integration/CrudEngineTemporal.ts"
   },
   "dependencies": {
+    "@smessie/readable-web-to-node-stream": "^3.0.3",
     "@types/n3": "^1.16.3",
     "koreografeye": "^0.4.8",
-    "n3": "^1.17.1"
+    "n3": "^1.17.1",
+    "rdf-parse": "^2.3.3",
+    "rdf-store-stream": "^2.0.1"
   },
   "devDependencies": {
     "@solid/community-server": "7.0.3",

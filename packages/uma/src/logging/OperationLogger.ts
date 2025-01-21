@@ -14,7 +14,6 @@ class OperationLogger {
         let graphTerm: Quad_Graph = graphName 
             ? DataFactory.namedNode(graphName)
             : DataFactory.blankNode()
-
         this.store.addQuads(
             triples.map(triple => DataFactory.quad(triple.subject, triple.predicate, triple.object, graphTerm))
         )

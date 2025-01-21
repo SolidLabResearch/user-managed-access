@@ -1,0 +1,23 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:default:LogRoute",
+      "@type": "HttpHandlerRoute",
+      "operations": [
+        {
+          "@type": "HttpHandlerOperation",
+          "method": "GET",
+          "publish": true
+        }
+      ],
+      "handler": {
+        "@type": "LogRequestHandler",
+        "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
+      },
+      "path":  "/uma/log"
+    }
+  ]
+}

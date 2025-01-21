@@ -16,6 +16,7 @@ export * from './dialog/Input';
 export * from './dialog/Output';
 export * from './dialog/Negotiator';
 export * from './dialog/BaseNegotiator';
+export * from './dialog/ContractNegotiator';
 
 // Authorizers
 export * from './policies/authorizers/Authorizer';
@@ -25,6 +26,10 @@ export * from './policies/authorizers/NoneAuthorizer';
 export * from './policies/authorizers/PolicyBasedAuthorizer';
 export * from './policies/authorizers/WebIdAuthorizer';
 
+// Contracts
+export * from './policies/contracts/ContractManager';
+export * from './policies/contracts/ContractStorage';
+
 // Routes
 export * from './routes/Default';
 export * from './routes/Introspection';
@@ -33,6 +38,9 @@ export * from './routes/Ticket';
 export * from './routes/ResourceRegistration';
 export * from './routes/Token';
 export * from './routes/Config';
+export * from './routes/Log';
+export * from './routes/VC';
+export * from './routes/Contract';
 
 // Tickets
 export * from './ticketing/Ticket';
@@ -47,6 +55,7 @@ export * from './tokens/TokenFactory';
 
 // Views
 export * from './views/Permission';
+export * from './views/Contract';
 export * from './views/ResourceDescription';
 export * from './views/ScopeDescription';
 
