@@ -4,6 +4,7 @@ import { fetch } from 'cross-fetch';
 import { Parser, Writer, Store } from 'n3';
 // import { demoPolicy } from "./policyCreation";
 import { randomUUID } from 'crypto';
+import chalk from 'chalk'
 
 const parser = new Parser();
 const writer = new Writer();
@@ -53,15 +54,18 @@ async function main() {
   log('')
   log('=================== UMA prototype flow ======================')
 
-  log("This flow defines the retrieval by a doctor of this resource.")
+  log("This flow defines the retrieval by a doctor of a patient resource.")
+  log(
+`Doctor WebID:     ${terms.agents.alice}
+Patient WebID:    ${terms.agents.ruben}
+Target Resource:  ${terms.resources.smartwatch}`)
 
-  log('The patient has synced some data with his pod at http://localhost:3000/ruben/medical/smartwatch.ttl');
-
-  log('To protect this data, a policy is added restricting access to a specific healthcare employee for the purpose of bariatric care');
-  log('Note: policy management is out of scope for POC1')
+  log('To protect this data, a policy is added restricting access to a specific healthcare employee for the purpose of bariatric care.');
+  log(chalk.italic(`Note: Policy management is out of scope for POC1, right now they are just served from a public container on the pod.
+additionally, selecting relevant policies is not implemented at the moment, all policies are evaluated, but this is a minor fix in the AS.`))
   
-  const healthcare_patient_policy = `
-PREFIX dcterms: <http://purl.org/dc/terms/>
+  const healthcare_patient_policy = 
+  `PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#>
 PREFIX oac: <https://w3id.org/oac#>
 PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
@@ -99,16 +103,29 @@ PREFIX ex: <http://example.org/>
     body: healthcare_patient_policy,
   });
 
-  log("Set the following policy:", healthcare_patient_policy)
+  log("The following policy is set for the AS:")
+  log("----------------------------------------------------")
+  log(healthcare_patient_policy)
   log("----------------------------------------------------")
 
   if (medicalPolicyCreationResponse.status !== 201) { log('Adding a policy did not succeed...'); throw 0; }
 
-  log(`This policy assigns access to the person's house doctor ${terms.agents.alice} for the smartwatch resource, 
-requiring the purpose of the request to equal "http://example.org/bariatric-care"
-and the legal basis to equal "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"`)
+  log(`The policy assigns read permissions for the personal doctor ${terms.agents.alice} of the patient for the smartwatch resource 
+on the condition of the purpose of the request being "http://example.org/bariatric-care" and the legal basis being "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a".`)
 
-  log("The house doctor in question now wants to access the private user resource.")
+  log(chalk.bold("The doctor now tries to access the private smartwatch resource."))
+
+  const res = await fetch(terms.resources.smartwatch, {
+    method: "GET",
+    headers: { "content-type": "application/json" },
+  });
+  
+  const umaHeader = await res.headers.get('WWW-Authenticate')
+
+  log(`First, a resource request is done without authorization that results in a 403 response and accompanying UMA ticket in the WWW-Authenticate header according to the UMA specification:
+${umaHeader}`)
+
+  let ticket = umaHeader?.split('ticket=')[1].replace(/"/g, '')
 
   // todo: this should be a resource request. Maybe something broke but I couldn't get a ticket via a direct resource request.
 
@@ -124,9 +141,11 @@ and the legal basis to equal "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"`)
       target: terms.resources.smartwatch,
       action: { "@id": "https://w3id.org/oac#read" },
     },
+    grant_type: "urn:ietf:params:oauth:grant-type:uma-ticket",
+    ticket,
   }
-  
-  log("First the doctor sends a ticket request to the authorization server (shortcut routine)", smartWatchAccessRequestNoClaimsODRL)
+
+  log(`To the discovered AS, we now send a request for read permission to the target resource`, smartWatchAccessRequestNoClaimsODRL)
 
   const doctor_needInfoResponse = await fetch(tokenEndpoint, {
     method: "POST",
@@ -136,11 +155,12 @@ and the legal basis to equal "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"`)
   
   if (doctor_needInfoResponse.status !== 403) { log('Access request succeeded without claims...', await doctor_needInfoResponse.text()); throw 0; }
 
-  const { ticket, required_claims: doctor_claims } = await doctor_needInfoResponse.json();
+  const { ticket: ticket2, required_claims: doctor_claims } = await doctor_needInfoResponse.json();
+  ticket = ticket2
   
-  log(`Based on the policy, the UMA server requests the following claims from the agent:`);
+  log(`Based on the policy set above, the Authorization Server requests the following claims from the doctor:`);
   doctor_claims.claim_token_format[0].forEach((format: string) => log(`  - ${format}`))
-  log(`accompanied by a ticket for the interaction: ${ticket}.`)
+  log(`accompanied by an updated ticket: ${ticket}.`)
 
   // JWT (HS256; secret: "ceci n'est pas un secret")
   // {
@@ -156,7 +176,7 @@ and the legal basis to equal "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"`)
     "https://w3id.org/oac#LegalBasis": "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"
   }
 
-  log(`The agent gathers the necessary claims (the manner in which is out-of-scope for this demo)`, claims)
+  log(`The doctor's client now gathers the necessary claims (how is out-of-scope for this demo)`, claims)
 
   log(`and bundles them as an UMA-compliant JWT.`, {
     claim_token: claim_token,
@@ -199,9 +219,12 @@ and the legal basis to equal "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"`)
     ticket,
   }
 
-  log('Together with the UMA grant_type and ticket requirements, these are bundled as an ODRL Request and sent back to the Authorization Server', smartWatchAccessRequestODRL)
+  log('Together with the UMA grant_type and ticket requirements, these are bundled as an ODRL Request and sent back to the Authorization Server')
+  log(JSON.stringify(smartWatchAccessRequestODRL, null, 2))
   
-  log('Note that the ODRL constraints are not yet processed as claims, only the ODRL claim_token(_format) flow.')
+  log(chalk.italic(`Note: the ODRL Request constraints are not yet evaluated as claims, only the passed claim token is.
+There are two main points of work here: right now the claim token gathers all claims internally, as only a single token can be passed.
+This is problematic when claims and OIDC tokens have to be passed. It might be worth looking deeper into ODRL requests to carry these claims instead of an UMA token.`))
 
   const accessGrantedResponse = await fetch(tokenEndpoint, {
     method: "POST",
