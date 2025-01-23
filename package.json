@@ -151,9 +151,13 @@
     }
   },
   "dependencies": {
+    "@digitalbazaar/ed25519-signature-2020": "^5.4.0",
+    "@digitalbazaar/ed25519-verification-key-2020": "^4.2.0",
+    "@digitalbazaar/vc": "^7.1.0",
     "@digitalcredentials/vc-data-model": "^1.1.1",
     "@inrupt/solid-client": "^2.0.1",
     "@inrupt/solid-client-authn-core": "^2.1.0",
-    "chalk": "^5.4.1"
+    "chalk": "^5.4.1",
+    "jsonld": "^8.3.3"
   }
 }

@@ -3613,6 +3613,49 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@digitalbazaar/credentials-context@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@digitalbazaar/credentials-context@npm:3.1.0"
+  checksum: 10c0/0fa22d00542450b3e0567511779dafcd943bcba75a2be83fa80b95c1f255f1b2f701ea64a0ab3959c8503a9f1682f724de0ffe8f5eea18b065d5074d61e52cb7
+  languageName: node
+  linkType: hard
+
+"@digitalbazaar/ed25519-multikey@npm:^1.1.0":
+  version: 1.3.0
+  resolution: "@digitalbazaar/ed25519-multikey@npm:1.3.0"
+  dependencies:
+    "@noble/ed25519": "npm:^1.6.0"
+    base58-universal: "npm:^2.0.0"
+    base64url-universal: "npm:^2.0.0"
+  checksum: 10c0/07cf6ea5591a269fca5b9709481e249b20cf83145ab56c25c8b75f668739163af95eae6742b50b8575522075e0933242343564d14d661f5bcae70fade13726b5
+  languageName: node
+  linkType: hard
+
+"@digitalbazaar/ed25519-signature-2020@npm:^5.4.0":
+  version: 5.4.0
+  resolution: "@digitalbazaar/ed25519-signature-2020@npm:5.4.0"
+  dependencies:
+    "@digitalbazaar/ed25519-multikey": "npm:^1.1.0"
+    "@digitalbazaar/ed25519-verification-key-2020": "npm:^4.1.0"
+    base58-universal: "npm:^2.0.0"
+    ed25519-signature-2020-context: "npm:^1.1.0"
+    jsonld-signatures: "npm:^11.3.0"
+  checksum: 10c0/7fcdd54c18d85dbbf937464ff8f330876de336d2607c944981fa8e69bcc2df59a5181441d364c27e269d1a6d2028217ed3f662028634c57ab55e739c3af42c16
+  languageName: node
+  linkType: hard
+
+"@digitalbazaar/ed25519-verification-key-2020@npm:^4.1.0, @digitalbazaar/ed25519-verification-key-2020@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "@digitalbazaar/ed25519-verification-key-2020@npm:4.2.0"
+  dependencies:
+    "@noble/ed25519": "npm:^1.6.0"
+    base58-universal: "npm:^2.0.0"
+    base64url-universal: "npm:^2.0.0"
+    crypto-ld: "npm:^7.0.0"
+  checksum: 10c0/386b4be965e10b0253c5fd620c4e386c2f57587937c9215ed0127c3f42016d32e99844cc5eabbddc41642ade31760539e67e97d69cfdb0df6b3beb58737b9a01
+  languageName: node
+  linkType: hard
+
 "@digitalbazaar/http-client@npm:^3.4.1":
   version: 3.4.1
   resolution: "@digitalbazaar/http-client@npm:3.4.1"
@@ -3621,6 +3664,25 @@ __metadata:
     ky-universal: "npm:^0.11.0"
     undici: "npm:^5.21.2"
   checksum: 10c0/218240da52e7303a63e822448fb6dc2eb3a42d0418f51fd9240b267703ffad2e45c17df01d5d8f6886ea8d0cdcf65ee929ae5377703c0e9d2db4f68313f8246c
+  languageName: node
+  linkType: hard
+
+"@digitalbazaar/security-context@npm:^1.0.0":
+  version: 1.0.1
+  resolution: "@digitalbazaar/security-context@npm:1.0.1"
+  checksum: 10c0/6d1444002958454be5dd70cc6ba4d0df952f90162756d6320d88501ff44fc7d48dcb2aa3452b77e8941a9da4e4c7d050d3510827db93637ff469b92391c63324
+  languageName: node
+  linkType: hard
+
+"@digitalbazaar/vc@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "@digitalbazaar/vc@npm:7.1.0"
+  dependencies:
+    "@digitalbazaar/credentials-context": "npm:^3.1.0"
+    ed25519-signature-2018-context: "npm:^1.1.0"
+    jsonld: "npm:^8.3.1"
+    jsonld-signatures: "npm:^11.2.1"
+  checksum: 10c0/4914cd7bfc2556512b7b1b78b7032180fcd8a966d365ecd62f0534da2347fa43b9023f2460f15fd9c8029088af8ecc81481603fe9cf953e40393a956338356bb
   languageName: node
   linkType: hard
 
@@ -4148,6 +4210,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@noble/ed25519@npm:^1.6.0":
+  version: 1.7.3
+  resolution: "@noble/ed25519@npm:1.7.3"
+  checksum: 10c0/dc162c3be5ae5a3cc0e6aff8209c8d175f24bba22f2b473aa849e102471193c83664b06f0ba2b5e01e9aa1a67a44daf313f478adb9f38768408a8bcad6145a48
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -4663,6 +4732,9 @@ __metadata:
   dependencies:
     "@commitlint/cli": "npm:^16.1.0"
     "@commitlint/config-conventional": "npm:^16.0.0"
+    "@digitalbazaar/ed25519-signature-2020": "npm:^5.4.0"
+    "@digitalbazaar/ed25519-verification-key-2020": "npm:^4.2.0"
+    "@digitalbazaar/vc": "npm:^7.1.0"
     "@digitalcredentials/vc-data-model": "npm:^1.1.1"
     "@inrupt/solid-client": "npm:^2.0.1"
     "@inrupt/solid-client-authn-core": "npm:^2.1.0"
@@ -4677,6 +4749,7 @@ __metadata:
     cross-fetch: "npm:^4.0.0"
     eslint: "npm:^8.10.0"
     jest: "npm:^29.7.0"
+    jsonld: "npm:^8.3.3"
     koreografeye: "npm:^0.4.8"
     shx: "npm:^0.3.4"
     ts-jest: "npm:^29.1.1"
@@ -5805,10 +5878,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"base58-universal@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "base58-universal@npm:2.0.0"
+  checksum: 10c0/f21fd50904e1f2d083832e39269058ffbd95592ad27fc2acc53ad3d9d7eacfa82c4e655181e0fd8a817619f4c925a42baca877276dd73e755d30f52def748ab6
+  languageName: node
+  linkType: hard
+
 "base64-js@npm:^1.3.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
   checksum: 10c0/f23823513b63173a001030fae4f2dabe283b99a9d324ade3ad3d148e218134676f1ee8568c877cd79ec1c53158dcf2d2ba527a97c606618928ba99dd930102bf
+  languageName: node
+  linkType: hard
+
+"base64url-universal@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "base64url-universal@npm:2.0.0"
+  dependencies:
+    base64url: "npm:^3.0.1"
+  checksum: 10c0/6143326c1b5011d987d410a7451fcacad33af9282f9e7d06a21e1d4d7ed9d884e6c09a8f0d178f6c9ef3b11f8cda10ece4c84768e43dc9cb4dc47d1b5056de40
+  languageName: node
+  linkType: hard
+
+"base64url@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "base64url@npm:3.0.1"
+  checksum: 10c0/5ca9d6064e9440a2a45749558dddd2549ca439a305793d4f14a900b7256b5f4438ef1b7a494e1addc66ced5d20f5c010716d353ed267e4b769e6c78074991241
   languageName: node
   linkType: hard
 
@@ -6465,6 +6561,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"crypto-ld@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "crypto-ld@npm:7.0.0"
+  checksum: 10c0/67fac3bf5c52d71e02ae436a305f223376746cb43d2aa6550764d2885e15e8802267c8fd6a451c4255b90b58eeab1c036b6ee6e88f21425620a3d5ecc8b36d92
+  languageName: node
+  linkType: hard
+
 "dargs@npm:^7.0.0":
   version: 7.0.0
   resolution: "dargs@npm:7.0.0"
@@ -6698,6 +6801,20 @@ __metadata:
   version: 0.2.0
   resolution: "eastasianwidth@npm:0.2.0"
   checksum: 10c0/26f364ebcdb6395f95124fda411f63137a4bfb5d3a06453f7f23dfe52502905bd84e0488172e0f9ec295fdc45f05c23d5d91baf16bd26f0fe9acd777a188dc39
+  languageName: node
+  linkType: hard
+
+"ed25519-signature-2018-context@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "ed25519-signature-2018-context@npm:1.1.0"
+  checksum: 10c0/c0fb62dd448de59f9cb45ac55f026b793b8da9c0dbe83014d0ddf73d50ea78e37e6bf88b9445f2301a6ead3a42031ef5839f625e3186169d07897e19a056de7c
+  languageName: node
+  linkType: hard
+
+"ed25519-signature-2020-context@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "ed25519-signature-2020-context@npm:1.1.0"
+  checksum: 10c0/7e5fba0ad8c1979412c45439654c0e1ac05372305760ad7c53e6b8d9a8106ed2f109e57ef19a7f0b23ea0efd69fee9c045d38280d18be11ef3dd68a433e55c46
   languageName: node
   linkType: hard
 
@@ -8764,6 +8881,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jsonld-signatures@npm:^11.2.1, jsonld-signatures@npm:^11.3.0":
+  version: 11.5.0
+  resolution: "jsonld-signatures@npm:11.5.0"
+  dependencies:
+    "@digitalbazaar/security-context": "npm:^1.0.0"
+    jsonld: "npm:^8.0.0"
+    rdf-canonize: "npm:^4.0.1"
+    serialize-error: "npm:^8.1.0"
+  checksum: 10c0/a624ef4706c91064ba19dd3f1bb2a43f40cabd68f38e1c3e57fb0cea830b5ff4763364a00197313ccf704f571295803220d5c20d40df371562d84de98c5df9a0
+  languageName: node
+  linkType: hard
+
 "jsonld-streaming-parser@npm:^3.0.1":
   version: 3.3.0
   resolution: "jsonld-streaming-parser@npm:3.3.0"
@@ -8810,6 +8939,18 @@ __metadata:
     jsonld-context-parser: "npm:^2.0.0"
     readable-stream: "npm:^4.0.0"
   checksum: 10c0/fa45692a578cbfe9a564b1afb0eac32f142ee50b93b1c842983afdbbd3b7d4917b8a6555f5945b04b8c09f975bb07047336715cc0ebde6d756106338574171bc
+  languageName: node
+  linkType: hard
+
+"jsonld@npm:^8.0.0, jsonld@npm:^8.3.1, jsonld@npm:^8.3.3":
+  version: 8.3.3
+  resolution: "jsonld@npm:8.3.3"
+  dependencies:
+    "@digitalbazaar/http-client": "npm:^3.4.1"
+    canonicalize: "npm:^1.0.1"
+    lru-cache: "npm:^6.0.0"
+    rdf-canonize: "npm:^3.4.0"
+  checksum: 10c0/ca8c18f65a50c61deec2951533bf05b709fd8e937e2f0cb549683d7e9934df7649b6e2f6f99f0dafe7bf8dd6ae95a257306cdb37fb705ef5ee0a7439d85581c2
   languageName: node
   linkType: hard
 
@@ -10096,6 +10237,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rdf-canonize@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "rdf-canonize@npm:4.0.1"
+  dependencies:
+    setimmediate: "npm:^1.0.5"
+  checksum: 10c0/8f6040847c5731817cc5ad95ca16caa588fba76c94ee3b24f282c9a3054f36226560bcb33bed8a173903960af1b9937e21db6e0dc2e90caa749682fff8228250
+  languageName: node
+  linkType: hard
+
 "rdf-data-factory@npm:^1.0.1, rdf-data-factory@npm:^1.1.0, rdf-data-factory@npm:^1.1.1, rdf-data-factory@npm:^1.1.2":
   version: 1.1.2
   resolution: "rdf-data-factory@npm:1.1.2"
@@ -10755,6 +10905,15 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 10c0/5160b06975a38b11c1ab55950cb5b8a23db78df88275d3d8a42ccf1f29e55112ac995b3a26a522c36e3b5f76b0445f1eef70d696b8c7862a2b4303d7b0e7609e
+  languageName: node
+  linkType: hard
+
+"serialize-error@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "serialize-error@npm:8.1.0"
+  dependencies:
+    type-fest: "npm:^0.20.2"
+  checksum: 10c0/8cfd89f43ca93e283c5f1d16178a536bdfac9bc6029f4a9df988610cc399bc4f2478d1f10ce40b9dff66b863a5158a19b438fbec929045c96d92174f6bca1e88
   languageName: node
   linkType: hard
 

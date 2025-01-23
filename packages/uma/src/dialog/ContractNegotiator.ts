@@ -18,8 +18,8 @@ import { ForbiddenHttpError } from '@solid/community-server';
 import { ContractManager } from '../policies/contracts/ContractManager';
 import { Result, Success } from '../util/Result';
 import { AccessToken, Permission, Requirements } from '..';
-import { Contract } from '../views/Contract';
-import { PermissionMapping, processRequestPermission } from '../util/rdf/RequestProcessing';
+import { convertStringOrJsonLdIdentifierToString, ODRLContract, ODRLPermission } from '../views/Contract';
+import { PermissionMapping, processRequestPermission, ReversePermissionMapping } from '../util/rdf/RequestProcessing';
 
 
 /**
@@ -56,7 +56,8 @@ export class ContractNegotiator implements Negotiator {
    */
   public async negotiate(input: DialogInput): Promise<DialogOutput> {
     reType(input, DialogInput);
-    if (!input.permissions && input.permission) input.permissions = [ processRequestPermission(input.permission) ]
+    if (!input.permissions && input.permission?.length) 
+      input.permissions = input.permission.map(p => processRequestPermission(p))
     this.logger.debug(`Input.`, input);
     // Create or retrieve ticket
     const ticket = await this.getTicket(input);
@@ -66,8 +67,8 @@ export class ContractNegotiator implements Negotiator {
     const updatedTicket = await this.processCredentials(input, ticket);
     this.logger.debug('Processed credentials', JSON.parse(JSON.stringify(updatedTicket)))
 
-    let result : Result<Contract, Requirements[]>
-    let contract: Contract | undefined;
+    let result : Result<ODRLContract, Requirements[]>
+    let contract: ODRLContract | undefined;
 
     // Check contract availability
     try {
@@ -94,7 +95,8 @@ export class ContractNegotiator implements Negotiator {
         if (contract) result = Success(contract)
         else throw new Error('It should not be possible to get an incorrect contract with a resolved policy evaluation')
 
-        this.logger.debug('New contract created', contract)
+        this.logger.debug('New contract created')
+        this.logger.debug(JSON.stringify(contract, null, 2))
       }
       else {
         this.logger.debug('Ticket not resolved.', resolved)
@@ -103,12 +105,21 @@ export class ContractNegotiator implements Negotiator {
     }
 
     if (result.success) {      
-      let contract = result.value
-      let permissions: Permission[] = [{
-        resource_id: contract.permission.target,
-        // todo:: remove change underneath -- Some small POC mocking -- (requires fixing of internal ODRL JSONLD format)
-        resource_scopes: [ "urn:example:css:modes:read" ] // contract.permission.map(p => p.action) 
-      }]
+      let contract : ODRLContract = result.value
+
+      this.logger.debug(JSON.stringify(contract, null, 2))
+
+      // todo: set resource scopes according to contract!
+      let permissions: Permission[] = contract.permission.map( (p: ODRLPermission) => {
+        const perm : Permission = {
+          resource_id: convertStringOrJsonLdIdentifierToString(p.target),
+          resource_scopes: [ // mapping from ODRL to internal CSS read permission
+            // ReversePermissionMapping[convertStringOrJsonLdIdentifierToString(p.action)]
+            "urn:example:css:modes:read"
+          ] 
+        }
+        return(perm)
+      })
       this.logger.debug('granting permissions:', permissions)
 
       // Create response
@@ -126,7 +137,7 @@ export class ContractNegotiator implements Negotiator {
       // Store created instantiated policy (above contract variable) in the pod storage as an instantiated policy
       // todo: dynamic URL
       // todo: fix instantiated from url
-      contract["prov:wasDerivedFrom"] = [ 'urn:ucp:be-gov:policy:d81b8118-af99-4ab3-b2a7-63f8477b6386 '] 
+      // contract['http://www.w3.org/ns/prov#wasDerivedFrom'] = [ 'urn:ucp:be-gov:policy:d81b8118-af99-4ab3-b2a7-63f8477b6386 '] 
       const instantiatedPolicyContainer = 'http://localhost:3000/ruben/settings/policies/instantiated/'; 
       const policyCreationResponse = await fetch(instantiatedPolicyContainer, {
         method: 'POST',
