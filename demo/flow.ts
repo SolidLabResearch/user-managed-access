@@ -5,16 +5,15 @@ import { Parser, Writer, Store } from 'n3';
 import { randomUUID } from 'crypto';
 import chalk from 'chalk'
 
-import { DialogInput } from '../packages/uma'
+import * as jsonld from 'jsonld';
 
-import jsonld from 'jsonld'
-
-// Verifiable credentials
-// import * as vc from '@digitalbazaar/vc';
+import vc from '@digitalcredentials/vc';
 
 // Required to set up a suite instance with private key
-// import {Ed25519VerificationKey2020} from '@digitalbazaar/ed25519-verification-key-2020';
-// import {Ed25519Signature2020} from '@digitalbazaar/ed25519-signature-2020';
+import {Ed25519VerificationKey2020} from
+  '@digitalcredentials/ed25519-verification-key-2020';
+import {Ed25519Signature2020} from '@digitalcredentials/ed25519-signature-2020';
+
 
 
 const parser = new Parser();
@@ -158,16 +157,6 @@ ${umaHeader}`)
     ticket,
   }
 
-//   "@type": optional(string),
-//   "@id": optional(string),
-//   uid: optional(string),
-//   action: StringOrJsonLdIdentifier,
-//   target: StringOrJsonLdIdentifier, // resourceURL
-//   assigner: StringOrJsonLdIdentifier, // user WebID
-//   assignee: StringOrJsonLdIdentifier, // target WebID
-//   constraint: array(ODRLConstraint)
-// }
-
   log(`To the discovered AS, we now send a request for read permission to the target resource`, smartWatchAccessRequestNoClaimsODRL)
 
   const doctor_needInfoResponse = await fetch(tokenEndpoint, {
@@ -269,31 +258,9 @@ This is problematic when claims and OIDC tokens have to be passed. It might be w
   
   log(`and the accompanying agreement:`, 
     JSON.stringify(access_token.contract, null, 2));
-
-  // // Sign the contract
-  // const keyPair = await Ed25519VerificationKey2020.generate();
-
-  // const suite = new Ed25519Signature2020({key: keyPair});
-
-  // const expandedContract = await jsonld.expand(access_token.contract);
-
-  // // Sample unsigned credential
-  // const credential = {
-  //   "@context": [
-  //     "https://www.w3.org/2018/credentials/v1",
-  //     "https://www.w3.org/2018/credentials/examples/v1"
-  //   ],
-  //   "id": `https://example.com/credentials/${randomUUID()}`,
-  //   "type": ["VerifiableCredential", "DataExchangeAgreement"],
-  //   "issuer": terms.agents.alice,
-  //   "issuanceDate": new Date().toISOString,
-  //   "credentialSubject": expandedContract
-  // };
-  // const signedVC = await vc.issue({credential, suite});
-  // console.log(JSON.stringify(signedVC, null, 2));
-
-    
   
+  log(chalk.italic(`Future work: at a later stage, this agreements will be signed by both parties to form a binding contract.`))
+
   const accessWithTokenResponse = await fetch(terms.resources.smartwatch, {
     headers: { 'Authorization': `${tokenParams.token_type} ${tokenParams.access_token}` }
   });
