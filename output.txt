@@ -58,7 +58,7 @@ on the condition of the purpose of the request being "http://example.org/bariatr
 The doctor now tries to access the private smartwatch resource.
 
 First, a resource request is done without authorization that results in a 403 response and accompanying UMA ticket in the WWW-Authenticate header according to the UMA specification:
-UMA realm="solid", as_uri="http://localhost:4000/uma", ticket="c3f62f9a-1919-4f23-b34d-ffab386c63b9"
+UMA realm="solid", as_uri="http://localhost:4000/uma", ticket="d7d26537-7dc4-4bd4-befb-80e4fa30fa15"
 
 To the discovered AS, we now send a request for read permission to the target resource
 
@@ -67,16 +67,20 @@ To the discovered AS, we now send a request for read permission to the target re
   '@context': 'http://www.w3.org/ns/odrl.jsonld',
   '@type': 'Request',
   profile: { '@id': 'https://w3id.org/oac#' },
-  uid: 'http://example.org/HCPX-request/5b3d5567-5fd2-4fab-b86d-eebe0752a025',
+  uid: 'http://example.org/HCPX-request/5d4dd7d0-6127-4aef-b2bc-d8ca5edbf431',
   description: "HCP X requests to read Alice's health data for bariatric care.",
-  permission: {
-    '@type': 'Permission',
-    '@id': 'http://example.org/HCPX-request-permission/1535fc91-55fe-4f29-920f-973042c68c34',
-    target: 'http://localhost:3000/ruben/medical/smartwatch.ttl',
-    action: { '@id': 'https://w3id.org/oac#read' }
-  },
+  permission: [
+    {
+      '@type': 'Permission',
+      uid: 'http://example.org/HCPX-request-permission/b6b3f04d-e924-4597-b146-43bde021a0a0',
+      assigner: 'http://localhost:3000/ruben/profile/card#me',
+      assignee: 'http://localhost:3000/alice/profile/card#me',
+      action: [Object],
+      target: 'http://localhost:3000/ruben/medical/smartwatch.ttl'
+    }
+  ],
   grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
-  ticket: 'c3f62f9a-1919-4f23-b34d-ffab386c63b9'
+  ticket: 'd7d26537-7dc4-4bd4-befb-80e4fa30fa15'
 }
 
 Based on the policy set above, the Authorization Server requests the following claims from the doctor:
@@ -87,7 +91,7 @@ Based on the policy set above, the Authorization Server requests the following c
 
   - https://w3id.org/oac#LegalBasis
 
-accompanied by an updated ticket: 9b01425b-56c0-48eb-89c0-d55edab13d00.
+accompanied by an updated ticket: 89f508e3-2d5d-49c5-807a-4526479a09b1.
 
 The doctor's client now gathers the necessary claims (how is out-of-scope for this demo)
 
@@ -114,42 +118,46 @@ Together with the UMA grant_type and ticket requirements, these are bundled as a
   "profile": {
     "@id": "https://w3id.org/oac#"
   },
-  "uid": "http://example.org/HCPX-request/5ac9263a-2488-4277-9b68-e287dcbd61dc",
+  "uid": "http://example.org/HCPX-request/de7cf6e2-192c-4f75-8d81-1d82b119c19c",
   "description": "HCP X requests to read Alice's health data for bariatric care.",
-  "permission": {
-    "@type": "Permission",
-    "@id": "http://example.org/HCPX-request-permission/904b8a5f-29a2-4f7c-91ad-4bf509dfe67a",
-    "target": "http://localhost:3000/ruben/medical/smartwatch.ttl",
-    "action": {
-      "@id": "https://w3id.org/oac#read"
-    },
-    "constraint": [
-      {
-        "@type": "Constraint",
-        "@id": "http://example.org/HCPX-request-permission-purpose/8242ed33-3ddf-4bcf-883c-e06267cc038c",
-        "leftOperand": "purpose",
-        "operator": "eq",
-        "rightOperand": {
-          "@id": "http://example.org/bariatric-care"
-        }
+  "permission": [
+    {
+      "@type": "Permission",
+      "@id": "http://example.org/HCPX-request-permission/b537acb7-1e8b-4017-8d30-3143a1d4ec8b",
+      "target": "http://localhost:3000/ruben/medical/smartwatch.ttl",
+      "action": {
+        "@id": "https://w3id.org/oac#read"
       },
-      {
-        "@type": "Constraint",
-        "@id": "http://example.org/HCPX-request-permission-purpose/b5ae825a-bfff-41a4-8863-3261c296a209",
-        "leftOperand": {
-          "@id": "https://w3id.org/oac#LegalBasis"
+      "assigner": "http://localhost:3000/ruben/profile/card#me",
+      "assignee": "http://localhost:3000/alice/profile/card#me",
+      "constraint": [
+        {
+          "@type": "Constraint",
+          "@id": "http://example.org/HCPX-request-permission-purpose/74e44ed2-b425-486a-ab16-4f899131e315",
+          "leftOperand": "purpose",
+          "operator": "eq",
+          "rightOperand": {
+            "@id": "http://example.org/bariatric-care"
+          }
         },
-        "operator": "eq",
-        "rightOperand": {
-          "@id": "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"
+        {
+          "@type": "Constraint",
+          "@id": "http://example.org/HCPX-request-permission-purpose/ea563c10-d554-4a24-9ab9-e9e2406b981f",
+          "leftOperand": {
+            "@id": "https://w3id.org/oac#LegalBasis"
+          },
+          "operator": "eq",
+          "rightOperand": {
+            "@id": "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"
+          }
         }
-      }
-    ]
-  },
+      ]
+    }
+  ],
   "claim_token": "eyJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vd3d3LnczLm9yZy9ucy9vZHJsLzIvcHVycG9zZSI6Imh0dHA6Ly9leGFtcGxlLm9yZy9iYXJpYXRyaWMtY2FyZSIsInVybjpzb2xpZGxhYjp1bWE6Y2xhaW1zOnR5cGVzOndlYmlkIjoiaHR0cDovL2xvY2FsaG9zdDozMDAwL2FsaWNlL3Byb2ZpbGUvY2FyZCNtZSIsImh0dHBzOi8vdzNpZC5vcmcvb2FjI0xlZ2FsQmFzaXMiOiJodHRwczovL3czaWQub3JnL2Rwdi9sZWdhbC9ldS9nZHByI0E5LTItYSJ9.nT55jaXNDsHgAo_zcRMsbJqcNj4FVdW_-xjcwNam-1M",
   "claim_token_format": "urn:solidlab:uma:claims:formats:jwt",
   "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
-  "ticket": "9b01425b-56c0-48eb-89c0-d55edab13d00"
+  "ticket": "89f508e3-2d5d-49c5-807a-4526479a09b1"
 }
 
 Note: the ODRL Request constraints are not yet evaluated as claims, only the passed claim token is.
@@ -174,27 +182,33 @@ and the accompanying agreement:
 {
   "@context": "http://www.w3.org/ns/odrl.jsonld",
   "@type": "Agreement",
-  "uid": "urn:uma:pacsoi:agreement:818cfd7f-2815-4a3b-a4b2-8e527b6d1ba6",
+  "uid": "urn:uma:pacsoi:agreement:848bd5bc-9b88-4a44-a356-47f6b9130548",
   "http://purl.org/dc/terms/description": "Agreement for HCP X to read Alice's health data for bariatric care.",
   "https://w3id.org/dpv#hasLegalBasis": {
     "@id": "https://w3id.org/dpv/legal/eu/gdpr#eu-gdpr:A9-2-a"
   },
-  "permission": {
-    "@type": "Permission",
-    "action": "https://w3id.org/oac#read",
-    "target": "http://localhost:3000/ruben/medical/smartwatch.ttl",
-    "assigner": "http://localhost:3000/ruben/profile/card#me",
-    "assignee": "http://localhost:3000/alice/profile/card#me",
-    "constraint": {
-      "@type": "Constraint",
-      "leftOperand": "purpose",
-      "operator": "eq",
-      "rightOperand": {
-        "@id": "http://example.org/bariatric-care"
-      }
+  "permission": [
+    {
+      "@type": "Permission",
+      "action": "https://w3id.org/oac#read",
+      "target": "http://localhost:3000/ruben/medical/smartwatch.ttl",
+      "assigner": "http://localhost:3000/ruben/profile/card#me",
+      "assignee": "http://localhost:3000/alice/profile/card#me",
+      "constraint": [
+        {
+          "@type": "Constraint",
+          "leftOperand": "purpose",
+          "operator": "eq",
+          "rightOperand": {
+            "@id": "http://example.org/bariatric-care"
+          }
+        }
+      ]
     }
-  }
+  ]
 }
+
+Future work: at a later stage, this agreements will be signed by both parties to form a binding contract.
 
 Now the doctor can retrieve the resource:
 
