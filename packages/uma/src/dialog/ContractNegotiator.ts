@@ -18,8 +18,8 @@ import { ForbiddenHttpError } from '@solid/community-server';
 import { ContractManager } from '../policies/contracts/ContractManager';
 import { Result, Success } from '../util/Result';
 import { AccessToken, Permission, Requirements } from '..';
-import { convertStringOrJsonLdIdentifierToString, ODRLContract, ODRLPermission } from '../views/Contract';
-import { PermissionMapping, processRequestPermission, ReversePermissionMapping } from '../util/rdf/RequestProcessing';
+import { convertStringOrJsonLdIdentifierToString, JsonLdIdentifier, ODRLContract, ODRLPermission, StringOrJsonLdIdentifier } from '../views/Contract';
+import { processRequestPermission, switchODRLandCSSPermission } from '../util/rdf/RequestProcessing';
 
 
 /**
@@ -112,10 +112,10 @@ export class ContractNegotiator implements Negotiator {
       // todo: set resource scopes according to contract!
       let permissions: Permission[] = contract.permission.map( (p: ODRLPermission) => {
         const perm : Permission = {
-          resource_id: convertStringOrJsonLdIdentifierToString(p.target),
+          // We do not accept AssetCollections as targets of an UMA access request formatted as an ODRL request!
+          resource_id: convertStringOrJsonLdIdentifierToString(p.target as StringOrJsonLdIdentifier),
           resource_scopes: [ // mapping from ODRL to internal CSS read permission
-            // ReversePermissionMapping[convertStringOrJsonLdIdentifierToString(p.action)]
-            "urn:example:css:modes:read"
+            switchODRLandCSSPermission(convertStringOrJsonLdIdentifierToString(p.action))
           ] 
         }
         return(perm)

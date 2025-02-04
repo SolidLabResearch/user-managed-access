@@ -57,7 +57,7 @@
     "test": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run test",
     "start": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run start",
     "start:demo": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run demo",
-    "script:demo": "yarn exec ts-node ./demo/flow.ts",
+    "script:demo": "yarn exec tsx ./demo/flow.ts",
     "script:public": "yarn exec ts-node ./scripts/test-public.ts",
     "script:private": "yarn exec ts-node ./scripts/test-private.ts",
     "script:registration": "yarn exec ts-node ./scripts/test-registration.ts",
@@ -154,10 +154,14 @@
     "@digitalbazaar/ed25519-signature-2020": "^5.4.0",
     "@digitalbazaar/ed25519-verification-key-2020": "^4.2.0",
     "@digitalbazaar/vc": "^7.1.0",
-    "@digitalcredentials/vc-data-model": "^1.1.1",
+    "@digitalcredentials/ed25519-signature-2020": "^6.0.0",
+    "@digitalcredentials/ed25519-verification-key-2020": "^4.0.0",
+    "@digitalcredentials/vc": "^9.0.1",
+    "@digitalcredentials/vc-data-model": "^2.0.0",
     "@inrupt/solid-client": "^2.0.1",
     "@inrupt/solid-client-authn-core": "^2.1.0",
     "chalk": "^5.4.1",
-    "jsonld": "^8.3.3"
+    "jsonld": "^8.3.3",
+    "tsx": "^4.19.2"
   }
 }

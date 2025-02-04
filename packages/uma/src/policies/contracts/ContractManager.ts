@@ -3,7 +3,7 @@ import { DialogInput, Permission, Ticket } from "../.."
 import { ContractStorage } from "./ContractStorage";
 import { ODRLContract, ODRLConstraint, ODRLPermission } from "../../views/Contract";
 import { randomUUID } from "crypto";
-import { ReversePermissionMapping } from "../../util/rdf/RequestProcessing";
+import { switchODRLandCSSPermission } from "../../util/rdf/RequestProcessing";
 
 
 export class ContractManager {
@@ -38,7 +38,7 @@ export class ContractManager {
             "https://w3id.org/dpv#hasLegalBasis": { "@id": "https://w3id.org/dpv/legal/eu/gdpr#eu-gdpr:A9-2-a" },
             permission: [ { 
                 "@type": "Permission",
-                action: ReversePermissionMapping[permission.resource_scopes[0]],
+                action: switchODRLandCSSPermission(permission.resource_scopes[0]),
                 target: permission.resource_id,
                 assigner: 'http://localhost:3000/ruben/profile/card#me', // user WebID
                 assignee: 'http://localhost:3000/alice/profile/card#me', // target WebID

@@ -1,3 +1,4 @@
+import { ODRL } from "@solidlab/ucp";
 import { Type, array, string, optional, any, union } from "../util/ReType";
 
 export const JsonLdIdentifier = {
@@ -5,6 +6,13 @@ export const JsonLdIdentifier = {
 }
 
 export const StringOrJsonLdIdentifier = union(string, JsonLdIdentifier)
+export const IdentifierSet = union(StringOrJsonLdIdentifier, array(StringOrJsonLdIdentifier))
+export const ODRLAssetCollection = {
+    "@type": string,
+    "source": string,
+}
+export const ODRLTargetOrAssetCollection = union(StringOrJsonLdIdentifier, ODRLAssetCollection)
+
 
 export const ODRLConstraint = {
     "@type": optional(string),
@@ -20,7 +28,7 @@ export const ODRLPermission = {
     "@id": optional(string),
     uid: optional(string),
     action: StringOrJsonLdIdentifier,
-    target: StringOrJsonLdIdentifier, // resourceURL
+    target: ODRLTargetOrAssetCollection, // resourceURL
     assigner: StringOrJsonLdIdentifier, // user WebID
     assignee: StringOrJsonLdIdentifier, // target WebID
     constraint: optional(array(ODRLConstraint))
@@ -41,9 +49,49 @@ export type ODRLPermission = Type<typeof ODRLPermission>;
 export type ODRLContract = Type<typeof ODRLContract>;
 export type JsonLdIdentifier = Type<typeof JsonLdIdentifier>;
 export type StringOrJsonLdIdentifier = Type<typeof StringOrJsonLdIdentifier>;
+export type IdentifierSet = Type<typeof IdentifierSet>;
+export type ODRLAssetCollection = Type<typeof ODRLAssetCollection>;
+export type ODRLTargetOrAssetCollection = Type<typeof ODRLTargetOrAssetCollection>;
 
 
 export function convertStringOrJsonLdIdentifierToString(x : StringOrJsonLdIdentifier) : string {
     const id = (x as JsonLdIdentifier)["@id"]
     return id ? id : x as string
+}
+
+/**
+ * Note: This check makes the assumption of slash-semantics based resource ordering!
+ * @param url 
+ * @param policyTarget 
+ * @returns 
+ */
+export function isPolicyTarget(url: string, policyTarget: ODRLTargetOrAssetCollection) {
+    // AssetCollection
+    const assetCollectionType  = (policyTarget as ODRLAssetCollection)["@type"]
+    if (assetCollectionType && assetCollectionType === ODRL.namespace + "AssetCollection") {
+        return url.startsWith((policyTarget as ODRLAssetCollection).source)
+    }
+    
+    // @id identfier
+    const id = (policyTarget as JsonLdIdentifier)["@id"]
+    if (id && url === id) return true
+
+    // string
+    return (policyTarget as string) === url
+
+}
+
+export function getPolicyTargets(policyTarget: ODRLTargetOrAssetCollection): string {
+    // AssetCollection
+    const assetCollectionType  = (policyTarget as ODRLAssetCollection)["@type"]
+    if (assetCollectionType && assetCollectionType === ODRL.namespace + "AssetCollection") {
+        return (policyTarget as ODRLAssetCollection).source
+    }
+    
+    // @id identfier
+    const id = (policyTarget as JsonLdIdentifier)["@id"]
+    if (id) return id
+
+    // string
+    return policyTarget as string  
 }
