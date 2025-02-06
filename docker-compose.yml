@@ -1,8 +1,8 @@
 version: '3.4'
 
 services:
-  solidtrustflows:
-    image: solidtrustflows
+  pacsoi-poc-1:
+    image: pacsoi-poc1
     build:
       context: .
       dockerfile: ./Dockerfile

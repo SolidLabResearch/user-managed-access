@@ -14,8 +14,6 @@ RUN yarn install
 # COPY . .
 
 RUN yarn build
-RUN yarn install:demo
-RUN yarn build:demo
 
 EXPOSE 3000
 EXPOSE 4000
