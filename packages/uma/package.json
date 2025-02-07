@@ -65,11 +65,11 @@
     "@solid/community-server": "^7.0.4",
     "@solidlab/ucp": "workspace:^",
     "clone": "^2.1.2",
-    "componentsjs": "5.4.2",
+    "componentsjs": "^5.4.2",
     "cross-fetch": "^4.0.0",
     "get-jwks": "^9.0.1",
     "http-message-signatures": "^1.0.4",
-    "jose": "^4.5.1",
+    "jose": "^5.2.2",
     "koreografeye": "^0.4.8",
     "logform": "^2.6.0",
     "n3": "^1.17.2",
@@ -80,7 +80,7 @@
   "devDependencies": {
     "@types/clone": "^2.1.4",
     "@types/n3": "^1.16.4",
-    "@types/node": "^18.18.11",
+    "@types/node": "^20.11.25",
     "@types/uuid": "^8.3.4"
   },
   "jest": {

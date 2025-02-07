@@ -1,0 +1,10 @@
+{
+  "versionGroups": [
+    {
+      "label": "Use workspace protocol when developing local packages",
+      "dependencies": ["@solidlab/uma-css", "@solidlab/ucp", "@solidlab/uma"],
+      "dependencyTypes": ["prod", "dev"],
+      "pinVersion": "workspace:^"
+    }
+  ]
+}
