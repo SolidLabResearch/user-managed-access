@@ -72,14 +72,10 @@
     "@solidlab/uma": "workspace:^",
     "componentsjs": "^5.4.2",
     "cross-fetch": "^4.0.0",
+    "fetch-retry": "^6.0.0",
     "http-message-signatures": "^1.0.4",
     "jose": "^5.2.2",
     "n3": "^1.17.2"
-  },
-  "devDependencies": {
-    "@types/n3": "^1.16.4",
-    "@types/node": "^20.11.25",
-    "fetch-retry": "^6.0.0"
   },
   "jest": {
     "preset": "ts-jest",

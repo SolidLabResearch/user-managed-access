@@ -77,12 +77,6 @@
     "uuid": "^9.0.1",
     "winston": "^3.11.0"
   },
-  "devDependencies": {
-    "@types/clone": "^2.1.4",
-    "@types/n3": "^1.16.4",
-    "@types/node": "^20.11.25",
-    "@types/uuid": "^8.3.4"
-  },
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
