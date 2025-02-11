@@ -2,7 +2,7 @@ import { v4 } from 'uuid';
 import { getLogger, makeErrorLoggable } from '../../logging/LoggerUtils';
 import { BadRequestHttpError } from '../errors/BadRequestHttpError';
 import { HttpHandler } from '../models/HttpHandler';
-import { HttpHandler as NodeHttpStreamsHandler, HttpHandlerInput } from '@solid/community-server';
+import { HttpHandler as NodeHttpStreamsHandler, HttpHandlerInput, TargetExtractor } from '@solid/community-server';
 import { HttpHandlerContext } from '../models/HttpHandlerContext';
 import { HttpHandlerRequest } from '../models/HttpHandlerRequest';
 import { HttpMethods } from '../models/HttpMethod';
@@ -27,6 +27,7 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
    */
   constructor(
     private httpHandler: HttpHandler,
+    protected readonly targetExtractor: TargetExtractor,
     private poweredBy = 'handlers.js',
     private hsts?: { maxAge: number; includeSubDomains: boolean },
   ) {
@@ -144,17 +145,6 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
     }
 
-    const url = requestStream.url;
-
-    if (!url) {
-
-      // No request url was received, this path is technically impossible to reach
-      this.logger.warn('No url received', { requestStream });
-
-      throw new Error('url of the request cannot be null or undefined.');
-
-    }
-
     // Check if the request method is an HTTP method + this ensures typing throughout the file
     const method = Object.values(HttpMethods).find((m) => m === requestStream.method);
 
@@ -199,7 +189,7 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
     const message = buffer.toString();
 
     // Make sure first param doesn't start with multiple slashes
-    const urlObject: URL = new URL(url.replace(/^\/+/, '/'), `http://${headers.host}`);
+    const urlObject: URL = new URL((await this.targetExtractor.handleSafe({ request: requestStream })).path);
 
     // Add host, path and method to the logger variables
     this.logger.setVariable('host', urlObject.host);

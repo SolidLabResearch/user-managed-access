@@ -46,6 +46,10 @@
     {
       "@id": "urn:uma:default:NodeHttpRequestResponseHandler",
       "@type": "NodeHttpRequestResponseHandler",
+      "targetExtractor": {
+        "@type": "BaseTargetExtractor",
+        "includeQueryString": true
+      },
       "httpHandler": {
         "@id": "urn:uma:default:CorsRequestHandler",
         "@type": "CorsRequestHandler",
