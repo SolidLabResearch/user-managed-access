@@ -2,19 +2,18 @@ import { v4 } from 'uuid';
 import { getLogger, makeErrorLoggable } from '../../logging/LoggerUtils';
 import { BadRequestHttpError } from '../errors/BadRequestHttpError';
 import { HttpHandler } from '../models/HttpHandler';
+import { HttpHandler as NodeHttpStreamsHandler, HttpHandlerInput } from '@solid/community-server';
 import { HttpHandlerContext } from '../models/HttpHandlerContext';
 import { HttpHandlerRequest } from '../models/HttpHandlerRequest';
 import { HttpMethods } from '../models/HttpMethod';
 import { statusCodes } from './ErrorHandler';
-import { NodeHttpStreamsHandler } from './NodeHttpStreamsHandler';
-import { NodeHttpStreams } from './NodeHttpStreams';
 
 
 /**
  * A { NodeHttpStreamsHandler } reading the request stream into a { HttpHandlerRequest },
  * passing it through a { HttpHandler } and writing the resulting { HttpHandlerResponse } to the response stream.
  */
-export class NodeHttpRequestResponseHandler implements NodeHttpStreamsHandler {
+export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
   public logger = getLogger();
 
@@ -31,7 +30,7 @@ export class NodeHttpRequestResponseHandler implements NodeHttpStreamsHandler {
     private poweredBy = 'handlers.js',
     private hsts?: { maxAge: number; includeSubDomains: boolean },
   ) {
-
+    super();
     if (!httpHandler) {
 
       throw new Error('A HttpHandler must be provided');
@@ -85,14 +84,14 @@ export class NodeHttpRequestResponseHandler implements NodeHttpStreamsHandler {
   }
 
   /**
-   * Reads the requestStream of its NodeHttpStreams pair into a HttpHandlerRequest,
+   * Reads the requestStream of its HttpHandlerInput pair into a HttpHandlerRequest,
    * creates a HttpHandlerContext from it, passes it through the { HttpHandler },
    * and writes the result to the responseStream.
    *
-   * @param { NodeHttpStreams } noteHttpStreams - the incoming set of Node.js HTTP read and write streams
+   * @param { HttpHandlerInput } nodeHttpStreams - the incoming set of Node.js HTTP read and write streams
    * @returns an { Promise<void> } for completion detection
    */
-  async handle(nodeHttpStreams: NodeHttpStreams): Promise<void> {
+  async handle(nodeHttpStreams: HttpHandlerInput): Promise<void> {
 
     if (!nodeHttpStreams) {
 
@@ -102,7 +101,7 @@ export class NodeHttpRequestResponseHandler implements NodeHttpStreamsHandler {
 
     }
 
-    const { requestStream, responseStream } = nodeHttpStreams;
+    const { request: requestStream, response: responseStream } = nodeHttpStreams;
 
     if (!requestStream) {
 
@@ -226,11 +225,11 @@ export class NodeHttpRequestResponseHandler implements NodeHttpStreamsHandler {
 
       this.logger.warn(`Unhandled error is handled by Handlersjs :`, { error: makeErrorLoggable(error) });
 
-      return { 
-        headers: {}, 
-        ... error, 
-        body: message ?? 'Internal Server Error', 
-        status: statusCodes[status] ? status : 500 
+      return {
+        headers: {},
+        ... error,
+        body: message ?? 'Internal Server Error',
+        status: statusCodes[status] ? status : 500
       };
 
     });
@@ -264,27 +263,27 @@ export class NodeHttpRequestResponseHandler implements NodeHttpStreamsHandler {
     // If the body is not a string or a buffer, for example an object, stringify it. This is needed
     // to use Buffer.byteLength and to eventually write the body to the response.
     // Functions will result in 'undefined' which is desired behavior
-    const body: string | Buffer = response.body !== undefined && response.body !== null 
-      ? typeof response.body === 'string' || response.body instanceof Buffer 
-        ? response.body 
-        : JSON.stringify(response.body) 
+    const body: string | Buffer = response.body !== undefined && response.body !== null
+      ? typeof response.body === 'string' || response.body instanceof Buffer
+        ? response.body
+        : JSON.stringify(response.body)
       : undefined;
 
     const extraHeaders = {
       ... (
-        body !== undefined && body !== null && 
-        !response.headers['content-type'] && 
-        !response.headers['Content-Type'] && 
-        typeof response.body !== 'string' && !(response.body instanceof Buffer)) && { 
+        body !== undefined && body !== null &&
+        !response.headers['content-type'] &&
+        !response.headers['Content-Type'] &&
+        typeof response.body !== 'string' && !(response.body instanceof Buffer)) && {
           'content-type': 'application/json' },
-          ... (body !== undefined && body !== null) && { 
-            'content-length': Buffer.byteLength(body, charsetString).toString() 
+          ... (body !== undefined && body !== null) && {
+            'content-length': Buffer.byteLength(body, charsetString).toString()
           },
-          ... (this.hsts?.maxAge) && { 
+          ... (this.hsts?.maxAge) && {
             'strict-transport-security': `max-age=${this.hsts.maxAge}${this.hsts.includeSubDomains 
               ? '; includeSubDomains' 
               : ''
-          }` 
+          }`
       },
       'x-powered-by': this.poweredBy,
       'x-request-id': this.requestId,
