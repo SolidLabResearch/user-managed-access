@@ -8,7 +8,6 @@ import {Logger} from '../util/logging/Logger';
 import {getLoggerFor} from '../util/logging/LoggerUtils';
 import {KeyValueStore} from '../util/storage/models/KeyValueStore';
 import {v4} from 'uuid';
-import { HttpMethods } from '../util/http/models/HttpMethod';
 import { MethodNotAllowedHttpError } from '../util/http/errors/MethodNotAllowedHttpError';
 import { HttpHandlerRequest } from '../util/http/models/HttpHandlerRequest';
 import { ResourceDescription } from '../views/ResourceDescription';
@@ -48,8 +47,8 @@ export class ResourceRegistrationRequestHandler implements HttpHandler {
     }
 
     switch (request.method) {
-      case HttpMethods.POST: return this.handlePost(request);
-      case HttpMethods.DELETE: return this.handleDelete(request);
+      case 'POST': return this.handlePost(request);
+      case 'DELETE': return this.handleDelete(request);
       default: throw new MethodNotAllowedHttpError();
     }
   }
@@ -93,7 +92,7 @@ export class ResourceRegistrationRequestHandler implements HttpHandler {
     }
 
     this.logger.info(`Deleted resource ${parameters.id}.`);
-    
+
     return ({
       status: 204,
       headers: {},

@@ -5,7 +5,6 @@ import { HttpHandler } from '../models/HttpHandler';
 import { HttpHandler as NodeHttpStreamsHandler, HttpHandlerInput, TargetExtractor } from '@solid/community-server';
 import { HttpHandlerContext } from '../models/HttpHandlerContext';
 import { HttpHandlerRequest } from '../models/HttpHandlerRequest';
-import { HttpMethods } from '../models/HttpMethod';
 import { statusCodes } from './ErrorHandler';
 
 
@@ -108,36 +107,10 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
     // Set the logger label to the last 5 characters of the request id
     this.logger.debug('Set initial Logger variables', { variables: this.logger.getVariables() });
 
-    // Check if the request method is an HTTP method + this ensures typing throughout the file
-    const method = Object.values(HttpMethods).find((m) => m === requestStream.method);
-
-    if (!method) {
-
-      if (requestStream.method) {
-
-        // An unsupported method was received
-        this.logger.debug('Invalid method received', { method: requestStream.method });
-        this.logger.clearVariables();
-        responseStream.writeHead(501, { 'Content-Type': 'application/json' });
-
-        responseStream.write(JSON.stringify({
-          error: 'http_request_method_not_valid',
-          error_description: 'This is not a known HTTP verb',
-        }));
-
-        responseStream.end();
-
-        return Promise.resolve();
-
-      } else {
-
-        // No request method was received, this path is technically impossible to reach
-        this.logger.warn('No method received', { requestStream });
-
-        throw new Error('method of the request cannot be null or undefined.');
-
-      }
-
+    if (!requestStream.method) {
+      // No request method was received, this path is technically impossible to reach
+      this.logger.warn('No method received', { requestStream });
+      throw new Error('method of the request cannot be null or undefined.');
     }
 
     const chunks = [];
@@ -157,11 +130,11 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
     // Add host, path and method to the logger variables
     this.logger.setVariable('host', urlObject.host);
     this.logger.setVariable('path', urlObject.pathname + urlObject.search + urlObject.hash);
-    this.logger.setVariable('method', method);
+    this.logger.setVariable('method', requestStream.method);
 
     const httpHandlerRequest: HttpHandlerRequest = {
       url: urlObject,
-      method,
+      method: requestStream.method,
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       headers: headers as { [key: string]: string },
       ... (message && message !== '') && { body: this.parseBody(message, headers['content-type']) },
