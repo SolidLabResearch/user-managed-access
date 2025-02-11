@@ -1,6 +1,7 @@
 {
   "@context": [
-    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld"
   ],
   "import": [
     "sai-uma:config/credentials/verifiers/default.json",
@@ -25,44 +26,53 @@
   "@graph": [
     {
       "@id": "urn:uma:default:NodeHttpServer",
-      "@type": "NodeHttpServer",
+      "@type": "ServerInitializer",
       "port": {
         "@id": "urn:uma:variables:port"
       },
-      "host": {
-        "@id": "urn:uma:variables:host"
-      },
-      "nodeHttpStreamsHandler": {
-        "@id": "urn:uma:default:NodeHttpRequestResponseHandler",
-        "@type": "NodeHttpRequestResponseHandler",
-        "httpHandler": {
-          "@id": "urn:uma:default:CorsRequestHandler",
-          "@type": "CorsRequestHandler",
+      "serverFactory": {
+        "@id": "urn:uma:default:ServerFactory",
+        "@type": "BaseServerFactory",
+        "configurator": {
+          "comment": "Handles all request events from the server.",
+          "@id": "urn:uma:default:HandlerServerConfigurator",
+          "@type": "HandlerServerConfigurator",
           "handler": {
-            "@id": "urn:uma:default:RoutedHttpRequestHandler",
-            "@type": "RoutedHttpRequestHandler",
-            "handlerControllerList": [
-              {
-                "@id": "urn:uma:default:HttpHandlerController",
-                "@type": "HttpHandlerController",
-                "label": "ControllerList",
-                "routes": [
-                  { "@id": "urn:uma:default:UmaConfigRoute" },
-                  { "@id": "urn:uma:default:JwksRoute" },
-                  { "@id": "urn:uma:default:DemoTokenRoute" },
-                  { "@id": "urn:uma:default:PermissionRegistrationRoute" },
-                  { "@id": "urn:uma:default:ResourceRegistrationRoute" },
-                  { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
-                  { "@id": "urn:uma:default:IntrospectionRoute" },
+            "@id": "urn:uma:default:NodeHttpRequestResponseHandler"
+          }
+        }
+      }
+    },
+    {
+      "@id": "urn:uma:default:NodeHttpRequestResponseHandler",
+      "@type": "NodeHttpRequestResponseHandler",
+      "httpHandler": {
+        "@id": "urn:uma:default:CorsRequestHandler",
+        "@type": "CorsRequestHandler",
+        "handler": {
+          "@id": "urn:uma:default:RoutedHttpRequestHandler",
+          "@type": "RoutedHttpRequestHandler",
+          "handlerControllerList": [
+            {
+              "@id": "urn:uma:default:HttpHandlerController",
+              "@type": "HttpHandlerController",
+              "label": "ControllerList",
+              "routes": [
+                { "@id": "urn:uma:default:UmaConfigRoute" },
+                { "@id": "urn:uma:default:JwksRoute" },
+                { "@id": "urn:uma:default:DemoTokenRoute" },
+                { "@id": "urn:uma:default:PermissionRegistrationRoute" },
+                { "@id": "urn:uma:default:ResourceRegistrationRoute" },
+                { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
+                { "@id": "urn:uma:default:IntrospectionRoute" },
                   { "@id": "urn:uma:default:LogRoute" },
                   { "@id": "urn:uma:default:VCRoute" },
                   { "@id": "urn:uma:default:ContractRoute" }
-                ]
-              }
-            ],
-            "defaultHandler": {
-              "@type": "DefaultRequestHandler"
+              ]
             }
+          ],
+          "defaultHandler": {
+            "@type": "DefaultRequestHandler"
           }
         }
       }
