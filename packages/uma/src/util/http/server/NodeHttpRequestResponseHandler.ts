@@ -93,36 +93,8 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
    * @returns an { Promise<void> } for completion detection
    */
   async handle(nodeHttpStreams: HttpHandlerInput): Promise<void> {
-
-    if (!nodeHttpStreams) {
-
-      this.logger.error('No node http streams received');
-
-      throw new Error('node http streams object cannot be null or undefined.');
-
-    }
-
     const { request: requestStream, response: responseStream } = nodeHttpStreams;
-
-    if (!requestStream) {
-
-      // No request was received, this path is technically impossible to reach
-      this.logger.error('No request stream received', { nodeHttpStreams });
-
-      throw new Error('request stream cannot be null or undefined.');
-
-    }
-
     const { headers } = requestStream;
-
-    if (!headers) {
-
-      // No request headers were received, this path is technically impossible to reach
-      this.logger.error('No request headers received', { requestStream });
-
-      throw new Error('headers of the request cannot be null or undefined.');
-
-    }
 
     // Add a request id to to be logged with every log from here on
     const requestIdHeader = headers['x-request-id'];
@@ -135,15 +107,6 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
     // Set the logger label to the last 5 characters of the request id
     this.logger.debug('Set initial Logger variables', { variables: this.logger.getVariables() });
-
-    if (!responseStream) {
-
-      // No response was received, this path is technically impossible to reach
-      this.logger.error('No response stream received', { nodeHttpStreams });
-
-      throw new Error('response stream cannot be null or undefined.');
-
-    }
 
     // Check if the request method is an HTTP method + this ensures typing throughout the file
     const method = Object.values(HttpMethods).find((m) => m === requestStream.method);
