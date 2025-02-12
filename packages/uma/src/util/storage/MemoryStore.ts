@@ -1,15 +1,15 @@
 import clone from 'clone';
-import { TimedValue } from './models/TimedKeyValueStore';
-import { TimedTypedKeyValueStore } from './models/TimedTypedKeyValueStore';
+import { KeyValueStore } from './models/KeyValueStore';
+import { TypedKeyValueStore } from './models/TypedKeyValueStore';
 
 /**
  * A {@link KeyValueStore} which uses a JavaScript Map for internal storage.
  *
  * @inheritdoc
  */
-export class MemoryStore<M> implements TimedTypedKeyValueStore<M> {
+export class MemoryStore<M> implements TypedKeyValueStore<M> {
 
-  private readonly data: Map<keyof M, TimedValue<M[keyof M]>>;
+  private readonly data: Map<keyof M, M[keyof M]>;
 
   /**
    *
@@ -17,60 +17,31 @@ export class MemoryStore<M> implements TimedTypedKeyValueStore<M> {
    */
   constructor(initialData?: [keyof M, M[keyof M]][]) {
 
-    this.data = new Map(initialData?.map(([ key, value ]) => [ key, { value: clone(value), timestamp: Date.now() } ]));
+    this.data = new Map(initialData?.map(([ key, value ]) => [ key, clone(value) ]));
 
   }
 
-  get<T extends keyof M>(key: T): Promise<M[T] | undefined> {
-
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return Promise.resolve(this.data.has(key) ? clone(this.data.get(key)?.value as M[T]) : undefined);
-
+  public async get<T extends keyof M>(key: T): Promise<M[T] | undefined> {
+    return this.data.has(key) ? clone(this.data.get(key) as M[T]) : undefined;
   }
 
-  has<T extends keyof M>(key: T): Promise<boolean> {
-
+  public async has<T extends keyof M>(key: T): Promise<boolean> {
     return Promise.resolve(this.data.has(key));
-
   }
 
-  set<T extends keyof M>(key: T, value: M[T]): Promise<this> {
-
-    this.data.set(key, { value: clone(value), timestamp: Date.now() });
-
+  public async set<T extends keyof M>(key: T, value: M[T]): Promise<this> {
+    this.data.set(key, clone(value));
     return Promise.resolve(this);
-
   }
 
-  delete<T extends keyof M>(key: T): Promise<boolean> {
-
+  public async delete<T extends keyof M>(key: T): Promise<boolean> {
     return Promise.resolve(this.data.delete(key));
-
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  async* entries(): AsyncIterableIterator<[keyof M, M[keyof M]]> {
-
+  public async* entries(): AsyncIterableIterator<[keyof M, M[keyof M]]> {
     for (const [ key, value ] of this.data.entries()) {
-
-      yield [ key, clone(value.value) ];
-
+      yield [ key, clone(value) ];
     }
-
   }
-
-  latestUpdate<T extends keyof M>(key: T): Promise<number | undefined> {
-
-    return Promise.resolve(this.data.get(key)?.timestamp);
-
-  }
-
-  hasUpdate <T extends keyof M>(key: T, time: number): Promise<boolean | undefined> {
-
-    const timedValue = this.data.get(key);
-
-    return Promise.resolve(timedValue ? timedValue.timestamp > time : undefined);
-
-  }
-
 }
