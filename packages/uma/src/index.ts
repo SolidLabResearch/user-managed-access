@@ -61,11 +61,6 @@ export * from './views/ScopeDescription';
 
 /* Replace the following with CSS types */
 
-// Storage
-export * from './util/storage/MemoryStore';
-export * from './util/storage/models/KeyValueStore';
-export * from './util/storage/models/TypedKeyValueStore';
-
 // HTTP
 export * from './util/http/identifier/BaseTargetExtractor';
 export * from './util/http/models/Handler';

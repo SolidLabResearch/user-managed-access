@@ -3,7 +3,8 @@ import {
   createErrorMessage,
   ForbiddenHttpError,
   getLoggerFor,
-  HttpErrorClass
+  HttpErrorClass,
+  KeyValueStorage
 } from '@solid/community-server';
 import { v4 } from 'uuid';
 import { AccessToken, Permission, Requirements } from '..';
@@ -16,7 +17,6 @@ import { TokenFactory } from '../tokens/TokenFactory';
 import { processRequestPermission, switchODRLandCSSPermission } from '../util/rdf/RequestProcessing';
 import { Result, Success } from '../util/Result';
 import { reType } from '../util/ReType';
-import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { convertStringOrJsonLdIdentifierToString, ODRLContract, StringOrJsonLdIdentifier } from '../views/Contract';
 import { DialogInput } from './Input';
 import { Negotiator } from './Negotiator';
@@ -41,7 +41,7 @@ export class ContractNegotiator implements Negotiator {
    */
   public constructor(
     protected verifier: Verifier,
-    protected ticketStore: KeyValueStore<string, Ticket>,
+    protected ticketStore: KeyValueStorage<string, Ticket>,
     protected ticketingStrategy: TicketingStrategy,
     protected tokenFactory: TokenFactory,
   ) {
