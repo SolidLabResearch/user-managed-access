@@ -1,4 +1,3 @@
-import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
 import { Ticket } from '../ticketing/Ticket';
 import { Verifier } from '../credentials/verify/Verifier';
 import { TokenFactory } from '../tokens/TokenFactory';
@@ -10,7 +9,7 @@ import { reType } from '../util/ReType';
 import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { v4 } from 'uuid';
-import { ForbiddenHttpError, getLoggerFor } from '@solid/community-server';
+import { BadRequestHttpError, ForbiddenHttpError, getLoggerFor, HttpErrorClass } from '@solid/community-server';
 import { getOperationLogger } from '../logging/OperationLogger';
 import { serializePolicyInstantiation } from '../logging/OperationSerializer';
 
@@ -143,16 +142,14 @@ export class BaseNegotiator implements Negotiator {
   /**
    * Logs and throws an error
    *
-   * @param {ErrorConstructor} constructor - The error constructor.
+   * @param {HttpErrorClass} constructor - The error constructor.
    * @param {string} message - The error message.
    *
    * @throws An Error constructed with the provided constructor with the
    * provided message
    */
-  private error(constructor: ErrorConstructor, message: string): never {
+  private error(constructor: HttpErrorClass, message: string): never {
     this.logger.warn(message);
     throw new constructor(message);
   }
 }
-
-type ErrorConstructor = { new(msg: string): Error };

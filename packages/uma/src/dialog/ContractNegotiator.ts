@@ -1,4 +1,10 @@
-import { createErrorMessage, ForbiddenHttpError, getLoggerFor } from '@solid/community-server';
+import {
+  BadRequestHttpError,
+  createErrorMessage,
+  ForbiddenHttpError,
+  getLoggerFor,
+  HttpErrorClass
+} from '@solid/community-server';
 import { v4 } from 'uuid';
 import { AccessToken, Permission, Requirements } from '..';
 import { Verifier } from '../credentials/verify/Verifier';
@@ -7,7 +13,6 @@ import { ContractManager } from '../policies/contracts/ContractManager';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../ticketing/Ticket';
 import { TokenFactory } from '../tokens/TokenFactory';
-import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
 import { processRequestPermission, switchODRLandCSSPermission } from '../util/rdf/RequestProcessing';
 import { Result, Success } from '../util/Result';
 import { reType } from '../util/ReType';
@@ -228,16 +233,14 @@ export class ContractNegotiator implements Negotiator {
   /**
    * Logs and throws an error
    *
-   * @param {ErrorConstructor} constructor - The error constructor.
+   * @param {HttpErrorClass} constructor - The error constructor.
    * @param {string} message - The error message.
    *
    * @throws An Error constructed with the provided constructor with the
    * provided message
    */
-  private error(constructor: ErrorConstructor, message: string): never {
+  private error(constructor: HttpErrorClass, message: string): never {
     this.logger.warn(message);
     throw new constructor(message);
   }
 }
-
-type ErrorConstructor = { new(msg: string): Error };

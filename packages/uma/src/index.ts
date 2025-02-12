@@ -70,12 +70,6 @@ export * from './util/storage/models/TimedTypedKeyValueStore';
 export * from './util/storage/models/TypedKeyValueStore';
 
 // HTTP
-export * from './util/http/errors/BadRequestHttpError';
-export * from './util/http/errors/ForbiddenHttpError';
-export * from './util/http/errors/HttpError';
-export * from './util/http/errors/InternalServerError';
-export * from './util/http/errors/UnauthorizedHttpError';
-export * from './util/http/errors/UnsupportedMediaTypeHttpError';
 export * from './util/http/identifier/BaseTargetExtractor';
 export * from './util/http/models/Handler';
 export * from './util/http/models/HttpHandler';

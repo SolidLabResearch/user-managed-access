@@ -1,6 +1,9 @@
-import { getLoggerFor } from '@solid/community-server';
-import { UnsupportedMediaTypeHttpError } from '../util/http/errors/UnsupportedMediaTypeHttpError';
-import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
+import {
+  BadRequestHttpError,
+  ForbiddenHttpError,
+  getLoggerFor,
+  UnsupportedMediaTypeHttpError
+} from '@solid/community-server';
 import { HttpHandler } from '../util/http/models/HttpHandler';
 import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
 import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
@@ -8,7 +11,6 @@ import { Negotiator } from '../dialog/Negotiator';
 import { DialogInput } from '../dialog/Input';
 import { reType } from '../util/ReType';
 import { NeedInfoError } from '../errors/NeedInfoError';
-import { ForbiddenHttpError } from '../util/http/errors/ForbiddenHttpError';
 
 /**
  * The TokenRequestHandler implements the interface of the UMA Token Endpoint.

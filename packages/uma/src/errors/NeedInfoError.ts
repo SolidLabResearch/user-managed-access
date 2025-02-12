@@ -1,4 +1,4 @@
-import {ForbiddenHttpError} from '../util/http/errors/ForbiddenHttpError';
+import { ForbiddenHttpError } from '@solid/community-server';
 
 export type RedirectUserInfo = {
     redirect_user: string
