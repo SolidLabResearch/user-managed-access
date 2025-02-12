@@ -1,14 +1,13 @@
 import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
 import { HttpHandler } from '../util/http/models/HttpHandler';
 import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
-import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { AccessToken } from '../tokens/AccessToken';
 import { JwtTokenFactory } from '../tokens/JwtTokenFactory';
 import { SerializedToken } from '../tokens/TokenFactory';
 import {
   BadRequestHttpError,
   getLoggerFor,
-  JwkGenerator,
+  JwkGenerator, KeyValueStorage,
   UnauthorizedHttpError,
   UnsupportedMediaTypeHttpError
 } from '@solid/community-server';
@@ -41,7 +40,7 @@ export class IntrospectionHandler implements HttpHandler {
    * @param jwtTokenFactory - The factory with which to produce JWT representations of the tokens.
    */
   constructor(
-    private readonly tokenStore: KeyValueStore<string, AccessToken>,
+    private readonly tokenStore: KeyValueStorage<string, AccessToken>,
     private readonly jwtTokenFactory: JwtTokenFactory,
     private readonly keyGen: JwkGenerator,
   ) {}
@@ -116,7 +115,7 @@ export class IntrospectionHandler implements HttpHandler {
     const token = await this.tokenStore.get(opaque);
     if (!token) throw new Error('Token not found.');
 
-    return this.jwtTokenFactory.serialize(Object.assign(token, { active: true }));
+    return this.jwtTokenFactory.serialize({ ...token, active: true } as AccessToken);
   }
 
 }

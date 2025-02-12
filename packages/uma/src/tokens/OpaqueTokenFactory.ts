@@ -1,6 +1,6 @@
+import { KeyValueStorage } from '@solid/community-server';
 import {AccessToken} from './AccessToken';
 import {SerializedToken, TokenFactory} from './TokenFactory';
-import {KeyValueStore} from '../util/storage/models/KeyValueStore';
 import {v4} from 'uuid';
 
 /**
@@ -9,9 +9,9 @@ import {v4} from 'uuid';
 export class OpaqueTokenFactory extends TokenFactory {
   /**
    *
-   * @param {KeyValueStore<string, AccessToken>} tokenStore
+   * @param {KeyValueStorage<string, AccessToken>} tokenStore
    */
-  constructor(private tokenStore: KeyValueStore<string, AccessToken>) {
+  constructor(private tokenStore: KeyValueStorage<string, AccessToken>) {
     super();
   }
 

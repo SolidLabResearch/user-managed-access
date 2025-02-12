@@ -2,13 +2,14 @@ import {
   BadRequestHttpError,
   createErrorMessage,
   getLoggerFor,
+  KeyValueStorage,
   MethodNotAllowedHttpError,
-  UnauthorizedHttpError, UnsupportedMediaTypeHttpError
+  UnauthorizedHttpError,
+  UnsupportedMediaTypeHttpError
 } from '@solid/community-server';
 import {HttpHandler} from '../util/http/models/HttpHandler';
 import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
-import {KeyValueStore} from '../util/storage/models/KeyValueStore';
 import {v4} from 'uuid';
 import { HttpHandlerRequest } from '../util/http/models/HttpHandlerRequest';
 import { ResourceDescription } from '../views/ResourceDescription';
@@ -28,7 +29,7 @@ export class ResourceRegistrationRequestHandler implements HttpHandler {
    * @param {RequestingPartyRegistration[]} resourceServers - Pod Servers to be registered with the UMA AS
    */
   constructor(
-    private readonly resourceStore: KeyValueStore<string, ResourceDescription>,
+    private readonly resourceStore: KeyValueStorage<string, ResourceDescription>,
   ) {}
 
   /**

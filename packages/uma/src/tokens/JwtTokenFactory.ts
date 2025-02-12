@@ -1,11 +1,16 @@
 import { importJWK, jwtVerify, SignJWT } from 'jose';
 import { v4 } from 'uuid';
-import { BadRequestHttpError, getLoggerFor, HttpErrorClass, JwkGenerator } from '@solid/community-server';
+import {
+  BadRequestHttpError,
+  getLoggerFor,
+  HttpErrorClass,
+  JwkGenerator,
+  KeyValueStorage
+} from '@solid/community-server';
 import { SerializedToken , TokenFactory} from './TokenFactory';
 import { AccessToken } from './AccessToken';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
-import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 
 const AUD = 'solid';
 
@@ -29,7 +34,7 @@ export class JwtTokenFactory extends TokenFactory {
     private readonly keyGen: JwkGenerator,
     private readonly issuer: string,
     private readonly params: JwtTokenParams = {expirationTime: '30m', aud: 'solid'},
-    private readonly tokenStore: KeyValueStore<string, AccessToken>
+    private readonly tokenStore: KeyValueStorage<string, AccessToken>
   ) {
     super();
   }

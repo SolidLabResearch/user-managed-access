@@ -1,11 +1,11 @@
 {
   "@context": [
-    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld"
   ],
   "@graph": [
     {
       "@id": "urn:uma:default:TokenStore",
-      "@type": "MemoryStore"
+      "@type": "MemoryMapStorage"
     }
   ]
 }
