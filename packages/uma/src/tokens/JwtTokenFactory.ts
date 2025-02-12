@@ -1,7 +1,6 @@
 import { importJWK, jwtVerify, SignJWT } from 'jose';
 import { v4 } from 'uuid';
 import { BadRequestHttpError, getLoggerFor, HttpErrorClass, JwkGenerator } from '@solid/community-server';
-import { isString } from '../util/StringGuard';
 import { SerializedToken , TokenFactory} from './TokenFactory';
 import { AccessToken } from './AccessToken';
 import { array, reType } from '../util/ReType';
@@ -75,8 +74,8 @@ export class JwtTokenFactory extends TokenFactory {
         throw new Error('Missing JWT parameter(s): {sub, aud, permissions, webid, azp} are required.');
       }
 
-      if (!isString(payload.webid)) throw new Error('JWT claim "webid" is not a string.');
-      if (!isString(payload.azp)) throw new Error('JWT claim "azp" is not a string.');
+      if (typeof payload.webid !== 'string') throw new Error('JWT claim "webid" is not a string.');
+      if (typeof payload.azp !== 'string') throw new Error('JWT claim "azp" is not a string.');
 
       const permissions = payload.permissions;
 

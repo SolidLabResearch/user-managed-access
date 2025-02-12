@@ -62,11 +62,8 @@ export * from './views/ScopeDescription';
 /* Replace the following with CSS types */
 
 // Storage
-export * from './util/storage/JsonFileStore';
 export * from './util/storage/MemoryStore';
 export * from './util/storage/models/KeyValueStore';
-export * from './util/storage/models/TimedKeyValueStore';
-export * from './util/storage/models/TimedTypedKeyValueStore';
 export * from './util/storage/models/TypedKeyValueStore';
 
 // HTTP
