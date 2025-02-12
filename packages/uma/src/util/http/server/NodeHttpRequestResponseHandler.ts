@@ -2,7 +2,13 @@ import { v4 } from 'uuid';
 import { getLogger, makeErrorLoggable } from '../../logging/LoggerUtils';
 import { BadRequestHttpError } from '../errors/BadRequestHttpError';
 import { HttpHandler } from '../models/HttpHandler';
-import { HttpHandler as NodeHttpStreamsHandler, HttpHandlerInput, TargetExtractor } from '@solid/community-server';
+import {
+  HttpHandler as NodeHttpStreamsHandler,
+  HttpHandlerInput,
+  HttpRequest,
+  readableToString,
+  TargetExtractor
+} from '@solid/community-server';
 import { HttpHandlerContext } from '../models/HttpHandlerContext';
 import { HttpHandlerRequest } from '../models/HttpHandlerRequest';
 import { statusCodes } from './ErrorHandler';
@@ -39,24 +45,18 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
   }
 
-  private parseBody(
-    body: string,
-    contentType?: string,
-  ): string | { [key: string]: string } {
+  private async parseBody(requestStream: HttpRequest): Promise<string | Record<string, string>> {
+    const body = await readableToString(requestStream);
+    const contentType = requestStream.headers['content-type'];
+
     this.logger.debug('Parsing request body', { body, contentType });
 
     if (contentType?.startsWith('application/json')) {
-
       try {
-
         return JSON.parse(body);
-
       } catch (error: any) {
-
         throw new BadRequestHttpError(error instanceof Error ? error.message : '');
-
       }
-
     }
 
     return body;
@@ -113,17 +113,6 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
       throw new Error('method of the request cannot be null or undefined.');
     }
 
-    const chunks = [];
-
-    for await (const chunk of requestStream) {
-
-      chunks.push(chunk);
-
-    }
-
-    const buffer = Buffer.concat(chunks);
-    const message = buffer.toString();
-
     // Make sure first param doesn't start with multiple slashes
     const urlObject: URL = new URL((await this.targetExtractor.handleSafe({ request: requestStream })).path);
 
@@ -132,12 +121,12 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
     this.logger.setVariable('path', urlObject.pathname + urlObject.search + urlObject.hash);
     this.logger.setVariable('method', requestStream.method);
 
-    const httpHandlerRequest: HttpHandlerRequest = {
+    const httpHandlerRequest: HttpHandlerRequest<string | Record<string, string>> = {
       url: urlObject,
       method: requestStream.method,
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       headers: headers as { [key: string]: string },
-      ... (message && message !== '') && { body: this.parseBody(message, headers['content-type']) },
+      body: await this.parseBody(requestStream),
     };
 
     const context: HttpHandlerContext = { request: httpHandlerRequest };
