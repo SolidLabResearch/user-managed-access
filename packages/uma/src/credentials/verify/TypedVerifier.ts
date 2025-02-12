@@ -1,5 +1,4 @@
-import { getLoggerFor } from '@solid/community-server';
-import { BadRequestHttpError } from "../../util/http/errors/BadRequestHttpError";
+import { BadRequestHttpError, getLoggerFor } from '@solid/community-server';
 import { ClaimSet } from "../ClaimSet";
 import { Credential } from "../Credential";
 import { Verifier } from "./Verifier";

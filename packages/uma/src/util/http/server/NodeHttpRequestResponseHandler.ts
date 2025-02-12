@@ -1,7 +1,7 @@
 import { OutgoingHttpHeader } from 'node:http';
-import { BadRequestHttpError } from '../errors/BadRequestHttpError';
 import { HttpHandler } from '../models/HttpHandler';
 import {
+  BadRequestHttpError,
   getLoggerFor,
   HttpHandler as NodeHttpStreamsHandler,
   HttpHandlerInput,

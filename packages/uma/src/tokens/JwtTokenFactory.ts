@@ -1,7 +1,6 @@
-import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
 import { importJWK, jwtVerify, SignJWT } from 'jose';
 import { v4 } from 'uuid';
-import { getLoggerFor, JwkGenerator } from '@solid/community-server';
+import { BadRequestHttpError, getLoggerFor, HttpErrorClass, JwkGenerator } from '@solid/community-server';
 import { isString } from '../util/StringGuard';
 import { SerializedToken , TokenFactory} from './TokenFactory';
 import { AccessToken } from './AccessToken';
@@ -10,8 +9,6 @@ import { Permission } from '../views/Permission';
 import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 
 const AUD = 'solid';
-
-type ErrorConstructor = { new(msg: string): Error };
 
 export interface JwtTokenParams {
     expirationTime: string | number
@@ -94,10 +91,10 @@ export class JwtTokenFactory extends TokenFactory {
   /**
    * Logs and throws an error
    *
-   * @param {ErrorConstructor} constructor - the error constructor
+   * @param {HttpErrorClass} constructor - the error constructor
    * @param {string} message - the error message
    */
-  private error(constructor: ErrorConstructor, message: string): never {
+  private error(constructor: HttpErrorClass, message: string): never {
     this.logger.warn(message);
     throw new constructor(message);
   }

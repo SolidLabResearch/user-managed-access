@@ -1,19 +1,19 @@
-import { createErrorMessage, getLoggerFor } from '@solid/community-server';
-import {BadRequestHttpError} from '../util/http/errors/BadRequestHttpError';
+import {
+  BadRequestHttpError,
+  createErrorMessage,
+  getLoggerFor,
+  MethodNotAllowedHttpError,
+  UnauthorizedHttpError, UnsupportedMediaTypeHttpError
+} from '@solid/community-server';
 import {HttpHandler} from '../util/http/models/HttpHandler';
 import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
-import {UnauthorizedHttpError} from '../util/http/errors/UnauthorizedHttpError';
-import {UnsupportedMediaTypeHttpError} from '../util/http/errors/UnsupportedMediaTypeHttpError';
 import {KeyValueStore} from '../util/storage/models/KeyValueStore';
 import {v4} from 'uuid';
-import { MethodNotAllowedHttpError } from '../util/http/errors/MethodNotAllowedHttpError';
 import { HttpHandlerRequest } from '../util/http/models/HttpHandlerRequest';
 import { ResourceDescription } from '../views/ResourceDescription';
 import { reType } from '../util/ReType';
 import { extractRequestSigner, verifyRequest } from '../util/HttpMessageSignatures';
-
-type ErrorConstructor = { new(msg: string): Error };
 
 /**
  * A ResourceRegistrationRequestHandler is tasked with implementing
@@ -63,7 +63,7 @@ export class ResourceRegistrationRequestHandler implements HttpHandler {
       reType(body, ResourceDescription);
     } catch (e) {
       this.logger.warn(`Syntax error: ${createErrorMessage(e)}, ${body}`);
-      this.error(BadRequestHttpError, `Request has bad syntax${e instanceof Error ? ': ' + e.message : ''}`)
+      throw new BadRequestHttpError(`Request has bad syntax${e instanceof Error ? ': ' + e.message : ''}`)
     }
 
     const resource = v4();
@@ -96,16 +96,5 @@ export class ResourceRegistrationRequestHandler implements HttpHandler {
       status: 204,
       headers: {},
     });
-  }
-
-  /**
-   * Logs and throws an error
-   *
-   * @param {ErrorConstructor} constructor - the error constructor
-   * @param {string} message - the error message
-   */
-  private error(constructor: ErrorConstructor, message: string): never {
-    this.logger.warn(message);
-    throw new constructor(message);
   }
 }

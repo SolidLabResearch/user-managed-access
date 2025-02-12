@@ -1,14 +1,17 @@
-import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
 import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
 import { HttpHandler } from '../util/http/models/HttpHandler';
 import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
-import { UnauthorizedHttpError } from '../util/http/errors/UnauthorizedHttpError';
-import { UnsupportedMediaTypeHttpError } from '../util/http/errors/UnsupportedMediaTypeHttpError';
 import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { AccessToken } from '../tokens/AccessToken';
 import { JwtTokenFactory } from '../tokens/JwtTokenFactory';
 import { SerializedToken } from '../tokens/TokenFactory';
-import { getLoggerFor, JwkGenerator } from '@solid/community-server';
+import {
+  BadRequestHttpError,
+  getLoggerFor,
+  JwkGenerator,
+  UnauthorizedHttpError,
+  UnsupportedMediaTypeHttpError
+} from '@solid/community-server';
 import { verifyRequest } from '../util/HttpMessageSignatures';
 import { jwtDecrypt } from 'jose';
 

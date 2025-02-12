@@ -1,10 +1,12 @@
-import { createErrorMessage, getLoggerFor } from '@solid/community-server';
-import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
+import {
+  BadRequestHttpError,
+  createErrorMessage,
+  getLoggerFor, HttpErrorClass, UnauthorizedHttpError,
+  UnsupportedMediaTypeHttpError
+} from '@solid/community-server';
 import { HttpHandler } from '../util/http/models/HttpHandler';
 import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
 import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
-import { UnauthorizedHttpError } from '../util/http/errors/UnauthorizedHttpError';
-import { UnsupportedMediaTypeHttpError } from '../util/http/errors/UnsupportedMediaTypeHttpError';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
 import { Ticket } from '../ticketing/Ticket';
@@ -12,8 +14,6 @@ import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { v4 } from 'uuid';
 import { verifyRequest } from '../util/HttpMessageSignatures';
-
-type ErrorConstructor = { new(msg: string): Error };
 
 /**
  * A TicketRequestHandler is tasked with implementing
@@ -79,10 +79,10 @@ export class TicketRequestHandler implements HttpHandler {
   /**
    * Logs and throws an error
    *
-   * @param {ErrorConstructor} constructor - the error constructor
+   * @param {HttpErrorClass} constructor - the error constructor
    * @param {string} message - the error message
    */
-  private error(constructor: ErrorConstructor, message: string): never {
+  private error(constructor: HttpErrorClass, message: string): never {
     this.logger.warn(message);
     throw new constructor(message);
   }
