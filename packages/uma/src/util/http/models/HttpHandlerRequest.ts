@@ -1,4 +1,4 @@
-export interface HttpHandlerRequest<B = any> {
+export interface HttpHandlerRequest<B = unknown> {
   url: URL;
   method: string;
   parameters?: { [key: string]: string };
