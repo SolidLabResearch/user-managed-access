@@ -15,7 +15,7 @@ export class UnauthorizedHttpError extends HttpError {
 
     const errorIsInstance = HttpError.isInstance(error) && error.statusCode === 401;
 
-    this.logger.info(`Checking if ${error} is an instance of ${this.name}: `, errorIsInstance);
+    this.logger.info(`Checking if ${error} is an instance of ${this.name}: ${JSON.stringify(error)}`);
 
     return errorIsInstance;
 

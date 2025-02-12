@@ -1,9 +1,8 @@
 import { OutgoingHttpHeader } from 'node:http';
-import { v4 } from 'uuid';
-import { getLogger, makeErrorLoggable } from '../../logging/LoggerUtils';
 import { BadRequestHttpError } from '../errors/BadRequestHttpError';
 import { HttpHandler } from '../models/HttpHandler';
 import {
+  getLoggerFor,
   HttpHandler as NodeHttpStreamsHandler,
   HttpHandlerInput,
   HttpRequest,
@@ -21,7 +20,7 @@ import { statusCodes } from './ErrorHandler';
  * passing it through a { HttpHandler } and writing the resulting { HttpHandlerResponse } to the response stream.
  */
 export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
-  public logger = getLogger();
+  public logger = getLoggerFor(this);
 
   /**
    * Creates a { NodeHttpRequestResponseHandler } passing requests through the given handler.
@@ -39,7 +38,7 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
     const body = await readableToString(requestStream);
     const contentType = requestStream.headers['content-type'];
 
-    this.logger.debug('Parsing request body', { body, contentType });
+    this.logger.debug(`Parsing request body ${{ body, contentType }}`);
 
     if (contentType?.startsWith('application/json')) {
       try {
@@ -58,7 +57,8 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
     contentType?: OutgoingHttpHeader,
   ) {
     // don't log the body if it is a buffer. It results in a long, illegible log.
-    this.logger.debug('Parsing response body', { body: body instanceof Buffer ? '<Buffer>' : body, contentType });
+    this.logger.debug(`Parsing response body ${
+      JSON.stringify({ body: Buffer.isBuffer(body) ? '<Buffer>' : body, contentType })}`);
 
     if (typeof contentType === 'string' && contentType?.startsWith('application/json')) {
       return typeof body === 'string' || body instanceof Buffer ? body : JSON.stringify(body);
@@ -81,7 +81,7 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
     if (!requestStream.method) {
       // No request method was received, this path is technically impossible to reach
-      this.logger.warn('No method received', { requestStream });
+      this.logger.warn('No method received');
       throw new Error('method of the request cannot be null or undefined.');
     }
 
@@ -98,13 +98,13 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
     const context: HttpHandlerContext = { request: httpHandlerRequest };
 
-    this.logger.info('Domestic request:', { eventType: 'domestic_request', context });
+    this.logger.info(`Domestic request: ${JSON.stringify({ eventType: 'domestic_request', context })}`);
 
     let response = await this.httpHandler.handle(context).catch<HttpHandlerResponse<string>>((error) => {
       const status = error?.statusCode ?? error.status;
       const message = error?.message ?? error.body;
 
-      this.logger.warn(`Unhandled error is handled by Handlersjs :`, { error: makeErrorLoggable(error) });
+      this.logger.warn(`Unhandled error is handled by Handlersjs: ${JSON.stringify(error)}`);
 
       return {
         headers: {},
@@ -155,13 +155,13 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
     responseStream.end();
 
-    this.logger.info('Domestic response:', {
+    this.logger.info(`Domestic response: ${JSON.stringify({
       eventType: 'domestic_response',
       response: {
         ... response,
         // Set body to string '<Buffer>' if it is a Buffer Object to not pollute logs
         ... (Buffer.isBuffer(body)) && { body: '<Buffer>' },
-      },
-    });
+      }
+    })}`);
   }
 }

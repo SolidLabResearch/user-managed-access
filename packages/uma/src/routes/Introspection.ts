@@ -4,13 +4,11 @@ import { HttpHandler } from '../util/http/models/HttpHandler';
 import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
 import { UnauthorizedHttpError } from '../util/http/errors/UnauthorizedHttpError';
 import { UnsupportedMediaTypeHttpError } from '../util/http/errors/UnsupportedMediaTypeHttpError';
-import { Logger } from '../util/logging/Logger';
-import { getLoggerFor } from '../util/logging/LoggerUtils';
 import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { AccessToken } from '../tokens/AccessToken';
 import { JwtTokenFactory } from '../tokens/JwtTokenFactory';
 import { SerializedToken } from '../tokens/TokenFactory';
-import { JwkGenerator } from '@solid/community-server';
+import { getLoggerFor, JwkGenerator } from '@solid/community-server';
 import { verifyRequest } from '../util/HttpMessageSignatures';
 import { jwtDecrypt } from 'jose';
 
@@ -31,7 +29,7 @@ type IntrospectionResponse = {
  * An HTTP handler that provides introspection into opaque access tokens.
  */
 export class IntrospectionHandler implements HttpHandler {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   /**
    * Creates an introspection handler for tokens in the given token store.

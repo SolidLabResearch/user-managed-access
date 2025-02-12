@@ -1,4 +1,4 @@
-import { getLoggerFor } from '../../util/logging/LoggerUtils';
+import { getLoggerFor } from '@solid/community-server';
 import { Authorizer } from './Authorizer';
 import { Permission } from '../../views/Permission';
 import { Requirements, type ClaimVerifier } from '../../credentials/Requirements';
@@ -15,7 +15,7 @@ export class NamespacedAuthorizer implements Authorizer {
 
   /**
    * Creates a NamespacedAuthorizer with the given namespaces.
-   * 
+   *
    * @param config - A list of objects refering a list of namespaces to a specific Authorizer.
    */
   constructor(
@@ -25,7 +25,7 @@ export class NamespacedAuthorizer implements Authorizer {
 
   /** @inheritdoc */
   public async permissions(claims: ClaimSet, query?: Partial<Permission>[]): Promise<Permission[]> {
-    this.logger.info('Calculating permissions.', { claims, query });
+    this.logger.info(`Calculating permissions. ${JSON.stringify({ claims, query })}`);
 
     // No permissions if no query
     if (!query || query.length === 0) return [];
@@ -50,7 +50,7 @@ export class NamespacedAuthorizer implements Authorizer {
 
   /** @inheritdoc */
   public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements[]> {
-    this.logger.info('Calculating credentials.', { permissions, query });
+    this.logger.info(`Calculating credentials. ${JSON.stringify({ permissions, query })}`);
 
     // No requirements if no requested permissions
     if (!permissions || permissions.length === 0) return [];

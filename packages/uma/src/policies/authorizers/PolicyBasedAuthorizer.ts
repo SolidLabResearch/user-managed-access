@@ -1,22 +1,20 @@
-import { Logger } from '../../util/logging/Logger';
-import { getLoggerFor } from '../../util/logging/LoggerUtils';
 import { Authorizer } from './Authorizer';
 import { Permission } from '../../views/Permission';
 import { Requirements, type ClaimVerifier } from '../../credentials/Requirements';
 import { ClaimSet } from '../../credentials/ClaimSet';
-import { ODRL, PolicyExecutor, UconRequest, 
+import { ODRL, PolicyExecutor, UconRequest,
   UcpPatternEnforcement, UcpPlugin, UCRulesStorage } from '@solidlab/ucp';
 import { EyeJsReasoner } from "koreografeye";
 import { lstatSync, readFileSync, readdirSync } from 'fs';
 import path from 'path';
 import { WEBID } from '../../credentials/Claims';
-import { RDF } from '@solid/community-server';
+import { getLoggerFor, RDF } from '@solid/community-server';
 
 /**
  * An Authorizer granting access according to Usage Control Policies.
  */
 export class PolicyBasedAuthorizer implements Authorizer {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   private reasoner: EyeJsReasoner = new EyeJsReasoner(["--quiet", "--nope", "--pass"]);
   private plugins = { "http://example.org/dataUsage": new UcpPlugin() };
@@ -25,7 +23,7 @@ export class PolicyBasedAuthorizer implements Authorizer {
 
   /**
    * Creates a PublicNamespaceAuthorizer with the given public namespaces.
-   * 
+   *
    * @param rules - A store containing the UCP policy rules.
    * @param enforcer - The UcpPatternEnforcement engine.
    */
@@ -46,7 +44,7 @@ export class PolicyBasedAuthorizer implements Authorizer {
 
   /** @inheritdoc */
   public async permissions(claims: ClaimSet, query?: Partial<Permission>[]): Promise<Permission[]> {
-    this.logger.info('Calculating permissions.', { claims, query });
+    this.logger.info(`Calculating permissions. ${JSON.stringify({ claims, query })}`);
 
     if (!query) {
       this.logger.warn('The PolicyBasedAuthorizer can only calculate permissions for explicit queries.')
@@ -81,22 +79,22 @@ export class PolicyBasedAuthorizer implements Authorizer {
 
   /** @inheritdoc */
   public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements[]> {
-    this.logger.info('Calculating credentials.', { permissions, query });
-    
+    this.logger.info(`Calculating credentials. ${JSON.stringify({ permissions, query })}`);
+
     // No permissions => empty requirements
     if (permissions.length === 0) return [{}];
 
     const policyStore = await this.policies.getStore();
     const requirements: Requirements[] = [];
-    
+
     const policyPermissions = policyStore.getSubjects(RDF.terms.type, ODRL.terms.Permission, null);
-    
+
     // No policies => no solvable requirements
     if (policyPermissions.length === 0) return [];
-    
+
     for (const policyPermission of policyPermissions) {
       const verifiers: Record<string, ClaimVerifier> = {};
-      
+
       // TODO: remove this default and treat webid as any claim
       const webids = policyStore.getObjects(policyPermission, ODRL.terms.assignee, null).map(webid => webid.value);
       verifiers[WEBID] = async (webid: string) => webids.includes(webid);

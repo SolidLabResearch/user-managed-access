@@ -1,10 +1,9 @@
 import { ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM }
   from '@solid/access-token-verifier/dist/constant/ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM';
+import { getLoggerFor } from '@solid/community-server';
 import { HttpHandler } from '../util/http/models/HttpHandler';
 import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
 import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
-import { Logger } from '../util/logging/Logger';
-import { getLoggerFor } from '../util/logging/LoggerUtils';
 
 // eslint-disable no-unused-vars
 export enum ResponseType {
@@ -36,7 +35,7 @@ export type UmaConfiguration = OAuthConfiguration & {
  * of the UMA Authorization Service.
  */
 export class ConfigRequestHandler extends HttpHandler {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   /**
   * An HttpHandler used for returning the configuration
@@ -55,7 +54,7 @@ export class ConfigRequestHandler extends HttpHandler {
    */
   async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
     this.logger.info(`Received discovery request at '${context.request.url}'`);
-    
+
     return {
       body: JSON.stringify(this.getConfig()),
       headers: {'content-type': 'application/json'},

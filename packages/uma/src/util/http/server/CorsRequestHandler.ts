@@ -1,5 +1,4 @@
-import { OutgoingHttpHeaders } from 'http';
-import { getLogger } from '../../logging/LoggerUtils';
+import { getLoggerFor } from '@solid/community-server';
 import { HttpHandler } from '../models/HttpHandler';
 import { HttpHandlerContext } from '../models/HttpHandlerContext';
 import { HttpHandlerResponse } from '../models/HttpHandlerResponse';
@@ -23,7 +22,7 @@ export interface HttpCorsOptions {
 }
 export class CorsRequestHandler implements HttpHandler {
 
-  public logger = getLogger();
+  public logger = getLoggerFor(this);
 
   constructor(
     private handler: HttpHandler,

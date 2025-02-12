@@ -1,11 +1,10 @@
+import { createErrorMessage, getLoggerFor } from '@solid/community-server';
 import {BadRequestHttpError} from '../util/http/errors/BadRequestHttpError';
 import {HttpHandler} from '../util/http/models/HttpHandler';
 import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
 import {UnauthorizedHttpError} from '../util/http/errors/UnauthorizedHttpError';
 import {UnsupportedMediaTypeHttpError} from '../util/http/errors/UnsupportedMediaTypeHttpError';
-import {Logger} from '../util/logging/Logger';
-import {getLoggerFor} from '../util/logging/LoggerUtils';
 import {KeyValueStore} from '../util/storage/models/KeyValueStore';
 import {v4} from 'uuid';
 import { MethodNotAllowedHttpError } from '../util/http/errors/MethodNotAllowedHttpError';
@@ -23,7 +22,7 @@ type ErrorConstructor = { new(msg: string): Error };
  * It provides an endpoint to a Resource Server for registering its resources.
  */
 export class ResourceRegistrationRequestHandler implements HttpHandler {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   /**
    * @param {RequestingPartyRegistration[]} resourceServers - Pod Servers to be registered with the UMA AS
@@ -63,7 +62,7 @@ export class ResourceRegistrationRequestHandler implements HttpHandler {
     try {
       reType(body, ResourceDescription);
     } catch (e) {
-      this.logger.warn('Syntax error: ' + (e as Error).message, body);
+      this.logger.warn(`Syntax error: ${createErrorMessage(e)}, ${body}`);
       this.error(BadRequestHttpError, `Request has bad syntax${e instanceof Error ? ': ' + e.message : ''}`)
     }
 

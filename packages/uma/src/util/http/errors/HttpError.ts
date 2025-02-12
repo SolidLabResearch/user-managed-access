@@ -1,5 +1,5 @@
+import { getLoggerFor } from '@solid/community-server';
 import { types } from 'util';
-import { getLogger } from '../../logging/LoggerUtils';
 
 /**
  * A class for all errors that could be thrown by Solid.
@@ -9,7 +9,7 @@ export class HttpError extends Error {
 
   protected static readonly statusCode: number;
   public readonly statusCode: number;
-  protected static readonly logger = getLogger();
+  protected static readonly logger = getLoggerFor(this);
 
   /**
    * Creates a new HTTP error. Subclasses should call this with their fixed status code.
