@@ -1,5 +1,7 @@
-export interface HttpHandlerResponse<B = any> {
+import { OutgoingHttpHeaders } from 'http';
+
+export interface HttpHandlerResponse<B = unknown> {
   body?: B;
-  headers?: { [key: string]: string };
+  headers?: OutgoingHttpHeaders;
   status: number;
 }

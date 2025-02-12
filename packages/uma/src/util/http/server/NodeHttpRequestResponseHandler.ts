@@ -1,3 +1,4 @@
+import { OutgoingHttpHeader } from 'node:http';
 import { v4 } from 'uuid';
 import { getLogger, makeErrorLoggable } from '../../logging/LoggerUtils';
 import { BadRequestHttpError } from '../errors/BadRequestHttpError';
@@ -11,6 +12,7 @@ import {
 } from '@solid/community-server';
 import { HttpHandlerContext } from '../models/HttpHandlerContext';
 import { HttpHandlerRequest } from '../models/HttpHandlerRequest';
+import { HttpHandlerResponse } from '../models/HttpHandlerResponse';
 import { statusCodes } from './ErrorHandler';
 
 
@@ -33,16 +35,8 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
   constructor(
     private httpHandler: HttpHandler,
     protected readonly targetExtractor: TargetExtractor,
-    private poweredBy = 'handlers.js',
-    private hsts?: { maxAge: number; includeSubDomains: boolean },
   ) {
     super();
-    if (!httpHandler) {
-
-      throw new Error('A HttpHandler must be provided');
-
-    }
-
   }
 
   private async parseBody(requestStream: HttpRequest): Promise<string | Record<string, string>> {
@@ -65,22 +59,16 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
   private parseResponseBody(
     body: unknown,
-    contentType?: string,
+    contentType?: OutgoingHttpHeader,
   ) {
-
     // don't log the body if it is a buffer. It results in a long, illegible log.
     this.logger.debug('Parsing response body', { body: body instanceof Buffer ? '<Buffer>' : body, contentType });
 
-    if (contentType?.startsWith('application/json')) {
-
+    if (typeof contentType === 'string' && contentType?.startsWith('application/json')) {
       return typeof body === 'string' || body instanceof Buffer ? body : JSON.stringify(body);
-
     } else {
-
       return body;
-
     }
-
   }
 
   /**
@@ -133,8 +121,7 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
     this.logger.info('Domestic request:', { eventType: 'domestic_request', context });
 
-    let response = await this.httpHandler.handle(context).catch((error) => {
-
+    let response = await this.httpHandler.handle(context).catch<HttpHandlerResponse<string>>((error) => {
       const status = error?.statusCode ?? error.status;
       const message = error?.message ?? error.body;
 
@@ -146,61 +133,29 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
         body: message ?? 'Internal Server Error',
         status: statusCodes[status] ? status : 500
       };
-
     });
 
-    const contentTypeHeader = response.headers['content-type'];
-
-    const charsetString = contentTypeHeader ? contentTypeHeader.split(';')
-      .filter((part: string[]) => part.includes('charset='))
-      .map((part: string) => part.split('=')[1].toLowerCase())[0]
-      ?? 'utf-8' : 'utf-8';
-
-    if (
-      charsetString !== 'ascii'
-      && charsetString !== 'utf8'
-      && charsetString !== 'utf-8'
-      && charsetString !== 'utf16le'
-      && charsetString !== 'ucs2'
-      && charsetString !== 'ucs-2'
-      && charsetString !== 'base64'
-      && charsetString !== 'latin1'
-      && charsetString !== 'binary'
-      && charsetString !== 'hex'
-    ) {
-
-      this.logger.warn('Unsupported charset', { charsetString });
-
-      throw new Error('The specified charset is not supported');
-
-    }
+    response.headers = response.headers ?? {};
+    const contentTypeHeader = response.headers['content-type'] ?? response.headers['Content-Type'];
 
     // If the body is not a string or a buffer, for example an object, stringify it. This is needed
     // to use Buffer.byteLength and to eventually write the body to the response.
     // Functions will result in 'undefined' which is desired behavior
-    const body: string | Buffer = response.body !== undefined && response.body !== null
-      ? typeof response.body === 'string' || response.body instanceof Buffer
+    const hasBody = Boolean(response.body && response.body !== '');
+    const body: string | Buffer | undefined = hasBody
+      ? typeof response.body === 'string' || Buffer.isBuffer(response.body)
         ? response.body
         : JSON.stringify(response.body)
       : undefined;
 
     const extraHeaders = {
       ... (
-        body !== undefined && body !== null &&
-        !response.headers['content-type'] &&
-        !response.headers['Content-Type'] &&
-        typeof response.body !== 'string' && !(response.body instanceof Buffer)) && {
-          'content-type': 'application/json' },
-          ... (body !== undefined && body !== null) && {
-            'content-length': Buffer.byteLength(body, charsetString).toString()
-          },
-          ... (this.hsts?.maxAge) && {
-            'strict-transport-security': `max-age=${this.hsts.maxAge}${this.hsts.includeSubDomains 
-              ? '; includeSubDomains' 
-              : ''
-          }`
-      },
-      'x-powered-by': this.poweredBy,
+        hasBody &&
+        !contentTypeHeader &&
+        typeof response.body !== 'string' &&
+        !Buffer.isBuffer(response.body)
+      ) && {'content-type': 'application/json' },
+      ... hasBody && { 'content-length': Buffer.byteLength(body!).toString() },
       'x-request-id': this.requestId,
       'x-correlation-id': this.correlationId,
     };
@@ -221,14 +176,8 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
     this.logger.debug('Sending response');
 
     responseStream.writeHead(response.status, response.headers);
-
-    if (response.body !== undefined && response.body !== null) {
-
-      const contentTypeHeader = response.headers['content-type'] || response.headers['Content-Type'];
-
-      const body = this.parseResponseBody(response.body, contentTypeHeader);
-      responseStream.write(body);
-
+    if (hasBody) {
+      responseStream.write(this.parseResponseBody(response.body, contentTypeHeader));
     }
 
     responseStream.end();
@@ -238,14 +187,10 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
       response: {
         ... response,
         // Set body to string '<Buffer>' if it is a Buffer Object to not pollute logs
-        ... (response.body && response.body instanceof Buffer) && { body: '<Buffer>' },
+        ... (Buffer.isBuffer(body)) && { body: '<Buffer>' },
       },
     });
 
     this.logger.clearVariables();
-
-    return Promise.resolve();
-
   }
-
 }
