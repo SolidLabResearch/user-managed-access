@@ -21,11 +21,7 @@ import { statusCodes } from './ErrorHandler';
  * passing it through a { HttpHandler } and writing the resulting { HttpHandlerResponse } to the response stream.
  */
 export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
-
   public logger = getLogger();
-
-  private requestId = '';
-  private correlationId = '';
 
   /**
    * Creates a { NodeHttpRequestResponseHandler } passing requests through the given handler.
@@ -83,18 +79,6 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
     const { request: requestStream, response: responseStream } = nodeHttpStreams;
     const { headers } = requestStream;
 
-    // Add a request id to to be logged with every log from here on
-    const requestIdHeader = headers['x-request-id'];
-    this.requestId = (Array.isArray(requestIdHeader) ? requestIdHeader[0] : requestIdHeader) ?? v4();
-    this.logger.setVariable('requestId', this.requestId);
-    // Add a correlation id to be logged with every log from here on
-    const correlationIdHeader = headers['x-correlation-id'];
-    this.correlationId = (Array.isArray(correlationIdHeader) ? correlationIdHeader[0] : correlationIdHeader) ?? v4();
-    this.logger.setVariable('correlationId', this.correlationId);
-
-    // Set the logger label to the last 5 characters of the request id
-    this.logger.debug('Set initial Logger variables', { variables: this.logger.getVariables() });
-
     if (!requestStream.method) {
       // No request method was received, this path is technically impossible to reach
       this.logger.warn('No method received', { requestStream });
@@ -103,11 +87,6 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
     // Make sure first param doesn't start with multiple slashes
     const urlObject: URL = new URL((await this.targetExtractor.handleSafe({ request: requestStream })).path);
-
-    // Add host, path and method to the logger variables
-    this.logger.setVariable('host', urlObject.host);
-    this.logger.setVariable('path', urlObject.pathname + urlObject.search + urlObject.hash);
-    this.logger.setVariable('method', requestStream.method);
 
     const httpHandlerRequest: HttpHandlerRequest<string | Record<string, string>> = {
       url: urlObject,
@@ -156,13 +135,7 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
         !Buffer.isBuffer(response.body)
       ) && {'content-type': 'application/json' },
       ... hasBody && { 'content-length': Buffer.byteLength(body!).toString() },
-      'x-request-id': this.requestId,
-      'x-correlation-id': this.correlationId,
     };
-
-    // Reset variables so new requests will never share ids
-    this.requestId = '';
-    this.correlationId = '';
 
     response = {
       ... response,
@@ -190,7 +163,5 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
         ... (Buffer.isBuffer(body)) && { body: '<Buffer>' },
       },
     });
-
-    this.logger.clearVariables();
   }
 }
