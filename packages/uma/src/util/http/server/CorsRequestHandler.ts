@@ -1,17 +1,17 @@
+import { OutgoingHttpHeaders } from 'http';
 import { getLogger } from '../../logging/LoggerUtils';
 import { HttpHandler } from '../models/HttpHandler';
 import { HttpHandlerContext } from '../models/HttpHandlerContext';
 import { HttpHandlerResponse } from '../models/HttpHandlerResponse';
 
-export const cleanHeaders = (headers: Record<string, string>): Record<string, string> => Object.entries(headers).reduce(
-  (acc: Record<string, string>, [ key, value ]) => {
-
-    const lKey = key.toLowerCase();
-
-    return { ... acc, [lKey]: acc[lKey] ? `${acc[lKey]},${value}` : value };
-
-  }, {},
-);
+function cleanHeaders <T extends Record<string, unknown>>(headers: T): T {
+  return Object.entries(headers).reduce(
+    (acc: Record<string, string>, [key, value]) => {
+      const lKey = key.toLowerCase();
+      return { ...acc, [lKey]: acc[lKey] ? `${acc[lKey]},${value}` : value };
+    }, {},
+  ) as T;
+}
 
 export interface HttpCorsOptions {
   origins?: string[];
@@ -79,7 +79,7 @@ export class CorsRequestHandler implements HttpHandler {
 
       const initialOptions = this.passThroughOptions
         ? this.handler.handle(noCorsRequestContext)
-        : Promise.resolve({ status: 204, headers: {} });
+        : Promise.resolve<HttpHandlerResponse>({ status: 204, headers: {} });
 
       return initialOptions
         .then((response) => ({
@@ -92,9 +92,9 @@ export class CorsRequestHandler implements HttpHandler {
 
             ... response.headers,
             ... allowOrigin && ({
-              ... (allowOrigin !== '*') && { 
-                'vary': [ ... new Set([ 
-                  ... response.headers.vary?.split(',').map((v) => v.trim().toLowerCase()) ?? [], `origin` 
+              ... (allowOrigin !== '*') && {
+                'vary': [ ... new Set([
+                  ... response.headers.vary?.split(',').map((v) => v.trim().toLowerCase()) ?? [], `origin`
                 ]) ].join(', ')
               },
               'access-control-allow-origin': allowOrigin,
@@ -119,10 +119,10 @@ export class CorsRequestHandler implements HttpHandler {
             ... response.headers,
             ... allowOrigin && ({
               'access-control-allow-origin': allowOrigin,
-              ... (allowOrigin !== '*') && { 
-                'vary': [ ... new Set([ 
-                  ... response.headers?.vary?.split(',').map((v) => v.trim().toLowerCase()) ?? [], `origin` 
-                ]) ].join(', ') 
+              ... (allowOrigin !== '*') && {
+                'vary': [ ... new Set([
+                  ... response.headers?.vary?.split(',').map((v) => v.trim().toLowerCase()) ?? [], `origin`
+                ]) ].join(', ')
               },
               ... (credentials) && { 'access-control-allow-credentials': 'true' },
               ... (exposeHeaders) && { 'access-control-expose-headers': exposeHeaders.join(',') },
