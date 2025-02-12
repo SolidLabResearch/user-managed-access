@@ -1,18 +1,15 @@
-import { ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM }
-  from '@solid/access-token-verifier/dist/constant/ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM';
+import { getLoggerFor } from '@solid/community-server';
+import { getOperationLogger } from '../logging/OperationLogger';
 import { HttpHandler } from '../util/http/models/HttpHandler';
 import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
 import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
-import { Logger } from '../util/logging/Logger';
-import { getLoggerFor } from '../util/logging/LoggerUtils';
-import { getOperationLogger } from '../logging/OperationLogger';
 
 /**
- * An HttpHandler used for returning the logs 
+ * An HttpHandler used for returning the logs
  * stored in the UMA Authorization Service.
  */
 export class ContractRequestHandler extends HttpHandler {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   operationLogger = getOperationLogger()
 
@@ -33,7 +30,7 @@ export class ContractRequestHandler extends HttpHandler {
    */
   async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
     this.logger.info(`Received contract retrieval request at '${context.request.url}'`);
-    
+
     return {
       body: '<this> <is> "the contract endpoint".',
       headers: {'content-type': 'application/trig'},
@@ -42,5 +39,3 @@ export class ContractRequestHandler extends HttpHandler {
   }
 
 }
-
-

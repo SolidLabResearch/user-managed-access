@@ -1,11 +1,10 @@
+import { createErrorMessage, getLoggerFor } from '@solid/community-server';
 import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
 import { HttpHandler } from '../util/http/models/HttpHandler';
 import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
 import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
 import { UnauthorizedHttpError } from '../util/http/errors/UnauthorizedHttpError';
 import { UnsupportedMediaTypeHttpError } from '../util/http/errors/UnsupportedMediaTypeHttpError';
-import { Logger } from '../util/logging/Logger';
-import { getLoggerFor } from '../util/logging/LoggerUtils';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
 import { Ticket } from '../ticketing/Ticket';
@@ -23,7 +22,7 @@ type ErrorConstructor = { new(msg: string): Error };
  * It provides an endpoint to a Resource Server for requesting UMA tickets.
  */
 export class TicketRequestHandler implements HttpHandler {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   /**
    * A TicketRequestHandler is tasked with implementing
@@ -41,7 +40,7 @@ export class TicketRequestHandler implements HttpHandler {
   * @return {Observable<HttpHandlerResponse<PermissionRegistrationResponse>>}
   */
   async handle({request}: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
-    this.logger.info('Received permission registration request.', request);
+    this.logger.info(`Received permission registration request.`);
     if (!await verifyRequest(request)) throw new UnauthorizedHttpError();
 
     if (request.headers['content-type'] !== 'application/json') {
@@ -56,15 +55,15 @@ export class TicketRequestHandler implements HttpHandler {
     try {
       reType(request.body, array(Permission));
     } catch (e) {
-      this.logger.debug('Syntax error: ' + (e as Error).message, request.body);
-      e instanceof Error 
+      this.logger.debug(`Syntax error: ${createErrorMessage(e)}, ${request.body}`);
+      e instanceof Error
         ? this.error(BadRequestHttpError, 'Request has bad syntax: ' + e.message)
         : this.error(BadRequestHttpError, 'Request has bad syntax');
     }
 
     const ticket = await this.ticketingStrategy.initializeTicket(request.body);
     const resolved = await this.ticketingStrategy.resolveTicket(ticket);
-    
+
     if (resolved.success) return { status: 200 };
 
     const id = v4();

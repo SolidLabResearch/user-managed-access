@@ -1,8 +1,7 @@
+import { getLoggerFor } from '@solid/community-server';
 import {HttpHandler} from '../models/HttpHandler';
 import {HttpHandlerContext} from '../models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../models/HttpHandlerResponse';
-import {Logger} from '../../logging/Logger';
-import {getLoggerFor} from '../../logging/LoggerUtils';
 
 export const statusCodes: { [code: number]: string } = {
   400: 'Bad Request',
@@ -51,7 +50,7 @@ export const statusCodes: { [code: number]: string } = {
  * Handler class that properly processes the HttpErrors from handlersjs-http
  */
 export class JsonHttpErrorHandler implements HttpHandler {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   /**
    * Creates an {ErrorHandler} that catches errors and returns an error response to the given handler.
@@ -72,7 +71,7 @@ export class JsonHttpErrorHandler implements HttpHandler {
       return this.nestedHandler.handle(context);
     } catch (error) {
       this.logger.error(`Returned error for ${context.request.method} '${context.request.url}':` +
-      ` ${(error as Error).name} ${(error as Error).message}`, error);
+      ` ${(error as Error).name} ${(error as Error).message} ${JSON.stringify(error)}`);
 
       return {
         status: statusCodes[error?.statusCode] ? error.statusCode : 500,

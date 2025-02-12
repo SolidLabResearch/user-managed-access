@@ -1,4 +1,4 @@
-import { ForbiddenHttpError } from '@solid/community-server';
+import { createErrorMessage, ForbiddenHttpError, getLoggerFor } from '@solid/community-server';
 import { v4 } from 'uuid';
 import { AccessToken, Permission, Requirements } from '..';
 import { Verifier } from '../credentials/verify/Verifier';
@@ -8,8 +8,6 @@ import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../ticketing/Ticket';
 import { TokenFactory } from '../tokens/TokenFactory';
 import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
-import { Logger } from '../util/logging/Logger';
-import { getLoggerFor } from '../util/logging/LoggerUtils';
 import { processRequestPermission, switchODRLandCSSPermission } from '../util/rdf/RequestProcessing';
 import { Result, Success } from '../util/Result';
 import { reType } from '../util/ReType';
@@ -24,7 +22,7 @@ import { DialogOutput } from './Output';
  * A mocked Negotiator for demonstration purposes to display contract negotiation
  */
 export class ContractNegotiator implements Negotiator {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   // protected readonly operationLogger = getOperationLogger();
   protected readonly contractManager = new ContractManager();
@@ -56,14 +54,14 @@ export class ContractNegotiator implements Negotiator {
     reType(input, DialogInput);
     if (!input.permissions && input.permission?.length)
       input.permissions = input.permission.map(p => processRequestPermission(p))
-    this.logger.debug(`Input.`, input);
+    this.logger.debug(`Input. ${JSON.stringify(input)}`);
     // Create or retrieve ticket
     const ticket = await this.getTicket(input);
-    this.logger.debug(`Processing ticket.`, ticket);
+    this.logger.debug(`Processing ticket. ${JSON.stringify(ticket)}`);
 
     // Process pushed credentials
     const updatedTicket = await this.processCredentials(input, ticket);
-    this.logger.debug('Processed credentials', JSON.parse(JSON.stringify(updatedTicket)))
+    this.logger.debug(`Processed credentials ${JSON.stringify(updatedTicket)}`);
 
     let result : Result<ODRLContract, Requirements[]>
     let contract: ODRLContract | undefined;
@@ -72,22 +70,22 @@ export class ContractNegotiator implements Negotiator {
     try {
       contract = this.contractManager.findContract(updatedTicket)
     } catch (e) {
-      this.logger.debug('Error', e)
+      this.logger.debug(`Error: ${createErrorMessage(e)}`);
     }
 
-    this.logger.debug('Contract retrieval attempt', contract)
+    this.logger.debug(`Contract retrieval attempt ${JSON.stringify(contract)}`);
 
     if (contract) {
       result = Success(contract)
-      this.logger.debug('Existing contract discovered', contract)
+      this.logger.debug(`Existing contract discovered ${JSON.stringify(contract)}`);
     } else {
       this.logger.debug(`No existing contract discovered. Attempting to resolve ticket.`)
 
       const resolved = await this.ticketingStrategy.resolveTicket(updatedTicket);
-      this.logger.debug('Resolved ticket.', resolved);
+      this.logger.debug(`Resolved ticket. ${JSON.stringify(resolved)}`);
 
       if (resolved.success) {
-        this.logger.debug('Ticket resolved succesfully.', resolved)
+        this.logger.debug('Ticket resolved succesfully.')
         // todo: get necessary information here for contract creation
         contract = this.contractManager.createContract(resolved.value)
         result = Success(contract);
@@ -96,7 +94,7 @@ export class ContractNegotiator implements Negotiator {
         this.logger.debug(JSON.stringify(contract, null, 2))
       }
       else {
-        this.logger.debug('Ticket not resolved.', resolved)
+        this.logger.debug('Ticket not resolved.')
         result = resolved
       }
     }
@@ -127,16 +125,16 @@ export class ContractNegotiator implements Negotiator {
         }
       }
       let permissions: Permission[] = Object.values(permissionMap);
-      this.logger.debug('granting permissions:', permissions)
+      this.logger.debug(`granting permissions: ${JSON.stringify(permissions)}`);
 
       // Create response
       const tokenContents: AccessToken = { permissions, contract }
 
-      this.logger.debug('resolved result', result)
+      this.logger.debug(`resolved result ${JSON.stringify(result)}`);
 
       const { token, tokenType } = await this.tokenFactory.serialize(tokenContents);
 
-      this.logger.debug('Minted token', token);
+      this.logger.debug(`Minted token ${JSON.stringify(token)}`);
 
       // TODO:: test logging
       // this.operationLogger.addLogEntry(serializePolicyInstantiation())

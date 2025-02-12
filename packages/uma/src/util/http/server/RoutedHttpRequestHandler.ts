@@ -1,4 +1,4 @@
-import { getLogger } from '../../logging/LoggerUtils';
+import { getLoggerFor } from '@solid/community-server';
 import { HttpHandler } from '../models/HttpHandler';
 import { HttpHandlerContext } from '../models/HttpHandlerContext';
 import { HttpHandlerController } from '../models/HttpHandlerController';
@@ -13,7 +13,7 @@ import { HttpHandlerRoute } from '../models/HttpHandlerRoute';
 export class RoutedHttpRequestHandler implements HttpHandler {
 
   private pathToRouteMap: Map<string, { controller: HttpHandlerController; route: HttpHandlerRoute }[]>;
-  public logger = getLogger();
+  public logger = getLoggerFor(this);
 
   /**
    * Creates a RoutedHttpRequestHandler, super calls the HttpHandler class and expects a list of HttpHandlerControllers
@@ -55,7 +55,7 @@ export class RoutedHttpRequestHandler implements HttpHandler {
 
     const pathSegments = path.split('#')[0].split('?')[0].split('/').slice(1);
 
-    this.logger.debug('Finding route for path: ', { path });
+    this.logger.debug(`Finding route for path: ${ path }`);
 
     // Find a matching route
     const match = Array.from(this.pathToRouteMap.keys()).find((route) => {
@@ -72,7 +72,7 @@ export class RoutedHttpRequestHandler implements HttpHandler {
 
     });
 
-    this.logger.debug('Route matched:', { path, match: match ?? 'none' });
+    this.logger.debug(`Route matched: ${JSON.stringify({ path, match: match ?? 'none' })}`);
 
     const matchingRoutes = match ? this.pathToRouteMap.get(match) : undefined;
 
@@ -86,51 +86,48 @@ export class RoutedHttpRequestHandler implements HttpHandler {
 
       if (!matchingRouteWithOperation) {
 
-        this.logger.info(`Operation not supported. Supported operations:`, { allowedMethods });
+        this.logger.info(`Operation not supported. Supported operations: ${ allowedMethods }`);
 
         return {
           status: request.method === 'OPTIONS' ? 204 : 405,
-          headers: { 
+          headers: {
             'allow': allowedMethods.join(', ')
-          }, 
-          body: '', 
+          },
+          body: '',
         };
       }
-
-      // Add the route's path to the logger's variables
-      this.logger.setVariable('route', matchingRouteWithOperation.route.path);
 
       // add parameters from requestPath to the request object
       const paramNames = matchingRouteWithOperation.route.path.split('/').slice(1);
       const parameters = this.extractParameters(paramNames, pathSegments);
-      this.logger.debug('Extracted parameters from path: ', { parameters });
+      this.logger.debug(`Extracted parameters from path: ${JSON.stringify(parameters)}`);
       const requestWithParams = Object.assign(request, { parameters });
       const newContext = { ... context, request: requestWithParams, route: matchingRouteWithOperation.route };
       const preResponseHandler = matchingRouteWithOperation.controller.preResponseHandler;
 
       const preResponse = preResponseHandler ? await preResponseHandler.handle(newContext) : newContext;
       const response = await matchingRouteWithOperation.route.handler.handle(preResponse);
-      
+
       return {
         ... response,
         headers: {
           ... response.headers,
           ... (request.method === 'OPTIONS') && { Allow: allowedMethods.join(', ') },
-          ... (matchingRouteWithOperation.operation?.vary) && { 
-            vary: matchingRouteWithOperation.operation.vary.join(', ') 
+          ... (matchingRouteWithOperation.operation?.vary) && {
+            vary: matchingRouteWithOperation.operation.vary.join(', ')
           },
         },
       };
 
     } else if (this.defaultHandler) {
 
-      this.logger.info('No matching route found, calling default handler.', { path });
+      this.logger.info(`No matching route found, calling default handler. ${path}`);
 
       return this.defaultHandler.handle(context);
 
     } else {
 
-      this.logger.error('No matching route found.', { path });
+      this.logger.error(`No matching route found. ${path}`);
 
       return { body: '', headers: {}, status: 404 };
     }

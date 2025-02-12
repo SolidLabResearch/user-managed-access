@@ -1,11 +1,10 @@
+import { getLoggerFor } from '@solid/community-server';
 import { UnsupportedMediaTypeHttpError } from '../util/http/errors/UnsupportedMediaTypeHttpError';
 import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
 import { HttpHandler } from '../util/http/models/HttpHandler';
 import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
 import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
 import { Negotiator } from '../dialog/Negotiator';
-import { Logger } from '../util/logging/Logger';
-import { getLoggerFor } from '../util/logging/LoggerUtils';
 import { DialogInput } from '../dialog/Input';
 import { reType } from '../util/ReType';
 import { NeedInfoError } from '../errors/NeedInfoError';
@@ -15,7 +14,7 @@ import { ForbiddenHttpError } from '../util/http/errors/ForbiddenHttpError';
  * The TokenRequestHandler implements the interface of the UMA Token Endpoint.
  */
 export class TokenRequestHandler implements HttpHandler {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   constructor(
     protected negotiator: Negotiator,
@@ -28,10 +27,10 @@ export class TokenRequestHandler implements HttpHandler {
    * @return {Observable<HttpHandlerResponse<any>>} - response
    */
   async handle(input: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
-    this.logger.info('Received token request.', input);
+    this.logger.info(`Received token request.`);
 
     // This deviates from UMA, which reads application/x-www-form-urlencoded
-    if (input.request.headers['content-type'] !== 'application/json') { 
+    if (input.request.headers['content-type'] !== 'application/json') {
       throw new UnsupportedMediaTypeHttpError();
     }
 
@@ -70,5 +69,3 @@ export class TokenRequestHandler implements HttpHandler {
     }
   }
 }
-
-
