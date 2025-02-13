@@ -30,7 +30,7 @@ type IntrospectionResponse = {
 /**
  * An HTTP handler that provides introspection into opaque access tokens.
  */
-export class IntrospectionHandler implements HttpHandler {
+export class IntrospectionHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
   /**
@@ -43,7 +43,9 @@ export class IntrospectionHandler implements HttpHandler {
     private readonly tokenStore: KeyValueStorage<string, AccessToken>,
     private readonly jwtTokenFactory: JwtTokenFactory,
     private readonly keyGen: JwkGenerator,
-  ) {}
+  ) {
+    super();
+  }
 
   /**
   * Handle incoming requests for token introspection

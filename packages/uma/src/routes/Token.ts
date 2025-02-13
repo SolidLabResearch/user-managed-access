@@ -15,12 +15,14 @@ import { NeedInfoError } from '../errors/NeedInfoError';
 /**
  * The TokenRequestHandler implements the interface of the UMA Token Endpoint.
  */
-export class TokenRequestHandler implements HttpHandler {
+export class TokenRequestHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
   constructor(
     protected negotiator: Negotiator,
-  ) {}
+  ) {
+    super();
+  }
 
   /**
    * Handles an incoming token request.

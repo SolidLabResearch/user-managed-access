@@ -1,4 +1,4 @@
-import { Handler } from './Handler';
+import { AsyncHandler } from '@solid/community-server';
 import { HttpHandlerContext } from './HttpHandlerContext';
 import { HttpHandlerRoute } from './HttpHandlerRoute';
 
@@ -7,7 +7,7 @@ export class HttpHandlerController<C extends HttpHandlerContext = HttpHandlerCon
   constructor(
     public label: string,
     public routes: HttpHandlerRoute<C>[],
-    public preResponseHandler?: Handler<HttpHandlerContext, C>,
+    public preResponseHandler?: AsyncHandler<HttpHandlerContext, C>,
   ) { }
 
 }

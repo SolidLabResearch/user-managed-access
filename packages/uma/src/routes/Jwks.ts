@@ -7,7 +7,7 @@ import { getLoggerFor, JwkGenerator } from '@solid/community-server';
  * An HttpHandler used for returning the configuration
  * of the UMA Authorization Service.
  */
-export class JwksRequestHandler implements HttpHandler {
+export class JwksRequestHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
   /**
@@ -16,7 +16,9 @@ export class JwksRequestHandler implements HttpHandler {
    */
   public constructor(
     private readonly generator: JwkGenerator
-  ) {}
+  ) {
+    super();
+  }
 
   /**
      * Returns the JSON Web KeySet for specified keyholder
