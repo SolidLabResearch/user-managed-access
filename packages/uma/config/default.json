@@ -44,6 +44,40 @@
       }
     },
     {
+      "@id": "urn:uma:default:HttpHandler",
+      "@type": "SequenceHandler",
+      "handlers": [
+        {
+          "comment": "Adds all the necessary CORS headers.",
+          "@id": "urn:uma:default:CorsHandler",
+          "@type": "CorsHandler",
+          "options_methods": [
+            "GET",
+            "HEAD",
+            "OPTIONS",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ],
+          "options_credentials": true,
+          "options_preflightContinue": false,
+          "options_exposedHeaders": [
+            "Allow",
+            "ETag",
+            "Last-Modified",
+            "Link",
+            "Location",
+            "Updates-Via",
+            "Www-Authenticate"
+          ]
+        },
+        {
+          "@id": "urn:uma:default:NodeHttpRequestResponseHandler"
+        }
+      ]
+    },
+    {
       "@id": "urn:uma:default:NodeHttpRequestResponseHandler",
       "@type": "NodeHttpRequestResponseHandler",
       "targetExtractor": {
@@ -51,33 +85,29 @@
         "includeQueryString": true
       },
       "httpHandler": {
-        "@id": "urn:uma:default:CorsRequestHandler",
-        "@type": "CorsRequestHandler",
-        "handler": {
-          "@id": "urn:uma:default:RoutedHttpRequestHandler",
-          "@type": "RoutedHttpRequestHandler",
-          "handlerControllerList": [
-            {
-              "@id": "urn:uma:default:HttpHandlerController",
-              "@type": "HttpHandlerController",
-              "label": "ControllerList",
-              "routes": [
-                { "@id": "urn:uma:default:UmaConfigRoute" },
-                { "@id": "urn:uma:default:JwksRoute" },
-                { "@id": "urn:uma:default:DemoTokenRoute" },
-                { "@id": "urn:uma:default:PermissionRegistrationRoute" },
-                { "@id": "urn:uma:default:ResourceRegistrationRoute" },
-                { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
-                { "@id": "urn:uma:default:IntrospectionRoute" },
+        "@id": "urn:uma:default:RoutedHttpRequestHandler",
+        "@type": "RoutedHttpRequestHandler",
+        "handlerControllerList": [
+          {
+            "@id": "urn:uma:default:HttpHandlerController",
+            "@type": "HttpHandlerController",
+            "label": "ControllerList",
+            "routes": [
+              { "@id": "urn:uma:default:UmaConfigRoute" },
+              { "@id": "urn:uma:default:JwksRoute" },
+              { "@id": "urn:uma:default:DemoTokenRoute" },
+              { "@id": "urn:uma:default:PermissionRegistrationRoute" },
+              { "@id": "urn:uma:default:ResourceRegistrationRoute" },
+              { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
+              { "@id": "urn:uma:default:IntrospectionRoute" },
                   { "@id": "urn:uma:default:LogRoute" },
                   { "@id": "urn:uma:default:VCRoute" },
                   { "@id": "urn:uma:default:ContractRoute" }
-              ]
-            }
-          ],
-          "defaultHandler": {
-            "@type": "DefaultRequestHandler"
+            ]
           }
+        ],
+        "defaultHandler": {
+          "@type": "DefaultRequestHandler"
         }
       }
     },
