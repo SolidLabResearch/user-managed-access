@@ -1,7 +1,7 @@
-import { Handler } from './Handler';
+import { AsyncHandler } from '@solid/community-server';
 import { HttpHandlerResponse } from './HttpHandlerResponse';
 import { HttpHandlerContext } from './HttpHandlerContext';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export abstract class HttpHandler<C extends HttpHandlerContext = HttpHandlerContext>
-  extends Handler<C, HttpHandlerResponse> { }
+  extends AsyncHandler<C, HttpHandlerResponse> { }

@@ -49,7 +49,7 @@ export const statusCodes: { [code: number]: string } = {
 /**
  * Handler class that properly processes the HttpErrors from handlersjs-http
  */
-export class JsonHttpErrorHandler implements HttpHandler {
+export class JsonHttpErrorHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
   /**
@@ -58,6 +58,7 @@ export class JsonHttpErrorHandler implements HttpHandler {
   constructor(
     private nestedHandler: HttpHandler,
   ) {
+    super();
   }
 
   /**

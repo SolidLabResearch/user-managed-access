@@ -10,7 +10,7 @@ import { HttpHandlerRoute } from '../models/HttpHandlerRoute';
  *
  * @class
  */
-export class RoutedHttpRequestHandler implements HttpHandler {
+export class RoutedHttpRequestHandler extends HttpHandler {
 
   private pathToRouteMap: Map<string, { controller: HttpHandlerController; route: HttpHandlerRoute }[]>;
   public logger = getLoggerFor(this);
@@ -21,7 +21,7 @@ export class RoutedHttpRequestHandler implements HttpHandler {
    * @param {HttpHandlerController[]} handlerControllerList - a list of HttpHandlerController objects
    */
   constructor(private handlerControllerList: HttpHandlerController[], private defaultHandler?: HttpHandler) {
-
+    super();
     if (!handlerControllerList) {
 
       throw new Error('handlerControllerList must be defined.');

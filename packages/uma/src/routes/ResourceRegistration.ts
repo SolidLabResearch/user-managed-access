@@ -22,7 +22,7 @@ import { extractRequestSigner, verifyRequest } from '../util/HttpMessageSignatur
  *
  * It provides an endpoint to a Resource Server for registering its resources.
  */
-export class ResourceRegistrationRequestHandler implements HttpHandler {
+export class ResourceRegistrationRequestHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
   /**
@@ -30,7 +30,9 @@ export class ResourceRegistrationRequestHandler implements HttpHandler {
    */
   constructor(
     private readonly resourceStore: KeyValueStorage<string, ResourceDescription>,
-  ) {}
+  ) {
+    super();
+  }
 
   /**
   * Handle incoming requests for resource registration
