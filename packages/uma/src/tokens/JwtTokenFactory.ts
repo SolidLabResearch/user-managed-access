@@ -9,6 +9,7 @@ import { SerializedToken , TokenFactory} from './TokenFactory';
 import { AccessToken } from './AccessToken';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
+import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 
 const AUD = 'solid';
 
@@ -28,11 +29,13 @@ export class JwtTokenFactory extends TokenFactory {
   /**
      * Construct a new ticket factory
      * @param {JwkGenerator} keyGen - key generator to be used in issuance
+     * @param {KeyValueStore<string, AccessToken>} tokenStore
      */
   constructor(
     private readonly keyGen: JwkGenerator, 
     private readonly issuer: string,
-    private readonly params: JwtTokenParams = {expirationTime: '30m', aud: 'solid'}
+    private readonly params: JwtTokenParams = {expirationTime: '30m', aud: 'solid'},
+    private readonly tokenStore: KeyValueStore<string, AccessToken>
   ) {
     super();
   }
@@ -55,6 +58,7 @@ export class JwtTokenFactory extends TokenFactory {
       .sign(jwk);
 
     this.logger.debug('Issued new JWT Token', JSON.stringify(token, null, 2));
+    await this.tokenStore.set(jwt, token);
     return {token: jwt, tokenType: 'Bearer'};
   }
 

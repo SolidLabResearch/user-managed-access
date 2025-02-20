@@ -5035,6 +5035,7 @@ __metadata:
     jest: "npm:^29.7.0"
     jsonld: "npm:^8.3.3"
     koreografeye: "npm:^0.4.8"
+    odrl-evaluator: "npm:^0.1.1"
     shx: "npm:^0.3.4"
     ts-jest: "npm:^29.1.1"
     ts-node: "npm:^10.9.2"
@@ -5287,6 +5288,13 @@ __metadata:
   version: 1.39.10
   resolution: "@types/emscripten@npm:1.39.10"
   checksum: 10c0/c9adde9307d54efb5152931bfe99966fbe12fbd4d07663fb5cdc4cc1bd3a1f030882d50d4a27875b7b2d9713d160609e67b72e92177a021c9f4699ee5ac41035
+  languageName: node
+  linkType: hard
+
+"@types/emscripten@npm:^1.39.13":
+  version: 1.40.0
+  resolution: "@types/emscripten@npm:1.40.0"
+  checksum: 10c0/2c809da43cb42396a78bc1bf1f8bb1eb23874b22425ccc0efd2dff80522318739fc38e845d98983948ca271fe1a551f68043094d20df14e745aff8db2123a0e5
   languageName: node
   linkType: hard
 
@@ -5723,7 +5731,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/uuid@npm:^8.3.4":
+"@types/uuid@npm:8.3.4, @types/uuid@npm:^8.3.4":
   version: 8.3.4
   resolution: "@types/uuid@npm:8.3.4"
   checksum: 10c0/b9ac98f82fcf35962317ef7dc44d9ac9e0f6fdb68121d384c88fe12ea318487d5585d3480fa003cf28be86a3bbe213ca688ba786601dce4a97724765eb5b1cf2
@@ -7654,6 +7662,20 @@ __metadata:
   bin:
     eyereasoner: dist/bin/index.js
   checksum: 10c0/23412c50eb445015387cc1a591faddc2ec5aea9e4845c174d672071141ed6ad240666e6ad13895a720e10a796725ed75455aa57da6b458d180e4663d5b1d974b
+  languageName: node
+  linkType: hard
+
+"eyereasoner@npm:^16.18.4":
+  version: 16.34.1
+  resolution: "eyereasoner@npm:16.34.1"
+  dependencies:
+    n3: "npm:^1.16.3"
+    swipl-wasm: "npm:4.0.13"
+  peerDependencies:
+    "@rdfjs/types": ^1.1.0
+  bin:
+    eyereasoner: dist/bin/index.js
+  checksum: 10c0/a1c78114edc20d94b7cb052305d97bc16e49ece53b7c221cda4309c6e92deb1ed485ba31fff728e4bd1195ee16421e1cf25f5da43225e52939ddac2bca9678ba
   languageName: node
   linkType: hard
 
@@ -10113,6 +10135,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"n3@npm:^1.20.4":
+  version: 1.23.1
+  resolution: "n3@npm:1.23.1"
+  dependencies:
+    buffer: "npm:^6.0.3"
+    queue-microtask: "npm:^1.1.2"
+    readable-stream: "npm:^4.0.0"
+  checksum: 10c0/9f7f179b3f358f37c284dc65907f4f12b079657d5eaea0ed4e0f1dc248e54caf68e3c62439c6a1d3d1b3eec06edb18e20aa7d12da494b49ff112f5dd72b0d414
+  languageName: node
+  linkType: hard
+
 "nanoid@npm:^5.0.4":
   version: 5.0.4
   resolution: "nanoid@npm:5.0.4"
@@ -10306,6 +10339,24 @@ __metadata:
   version: 1.13.1
   resolution: "object-inspect@npm:1.13.1"
   checksum: 10c0/fad603f408e345c82e946abdf4bfd774260a5ed3e5997a0b057c44153ac32c7271ff19e3a5ae39c858da683ba045ccac2f65245c12763ce4e8594f818f4a648d
+  languageName: node
+  linkType: hard
+
+"odrl-evaluator@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "odrl-evaluator@npm:0.1.1"
+  dependencies:
+    "@rdfjs/types": "npm:^1.1.0"
+    "@types/n3": "npm:^1.16.3"
+    eyereasoner: "npm:^16.18.4"
+    n3: "npm:^1.20.4"
+    rdf-isomorphic: "npm:^1.3.1"
+    rdf-parse: "npm:^3.0.0"
+    rdf-store-stream: "npm:^2.0.1"
+    streamify-string: "npm:^1.0.1"
+    tmp: "npm:^0.2.3"
+    uuidv4: "npm:^6.2.13"
+  checksum: 10c0/5091b4402b2def1fb6bf8e7749d7f2b89a1817da59abfa6ae9f1a0db2fd3ae50222eebc578fba21f9d0f455cb5b515a067ac13584c43e3ba98f50454ccf30e16
   languageName: node
   linkType: hard
 
@@ -10780,7 +10831,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rdf-isomorphic@npm:^1.3.0":
+"rdf-isomorphic@npm:^1.3.0, rdf-isomorphic@npm:^1.3.1":
   version: 1.3.1
   resolution: "rdf-isomorphic@npm:1.3.1"
   dependencies:
@@ -10885,6 +10936,38 @@ __metadata:
     readable-stream: "npm:^4.3.0"
     stream-to-string: "npm:^1.2.0"
   checksum: 10c0/a70b86a1faff01773f52d2c5aff87a0706554d6d24bc43f286d01c4bf2839de3bfdad068e33d66603e445e2fd5c7999f85c94fdd544241b36604557232edab0e
+  languageName: node
+  linkType: hard
+
+"rdf-parse@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "rdf-parse@npm:3.0.0"
+  dependencies:
+    "@comunica/actor-http-fetch": "npm:^2.0.1"
+    "@comunica/actor-http-proxy": "npm:^2.0.1"
+    "@comunica/actor-rdf-parse-html": "npm:^2.0.1"
+    "@comunica/actor-rdf-parse-html-microdata": "npm:^2.0.1"
+    "@comunica/actor-rdf-parse-html-rdfa": "npm:^2.0.1"
+    "@comunica/actor-rdf-parse-html-script": "npm:^2.0.1"
+    "@comunica/actor-rdf-parse-jsonld": "npm:^2.0.1"
+    "@comunica/actor-rdf-parse-n3": "npm:^2.0.1"
+    "@comunica/actor-rdf-parse-rdfxml": "npm:^2.0.1"
+    "@comunica/actor-rdf-parse-shaclc": "npm:^2.6.2"
+    "@comunica/actor-rdf-parse-xml-rdfa": "npm:^2.0.1"
+    "@comunica/bus-http": "npm:^2.0.1"
+    "@comunica/bus-init": "npm:^2.0.1"
+    "@comunica/bus-rdf-parse": "npm:^2.0.1"
+    "@comunica/bus-rdf-parse-html": "npm:^2.0.1"
+    "@comunica/config-query-sparql": "npm:^2.0.1"
+    "@comunica/core": "npm:^2.0.1"
+    "@comunica/mediator-combine-pipeline": "npm:^2.0.1"
+    "@comunica/mediator-combine-union": "npm:^2.0.1"
+    "@comunica/mediator-number": "npm:^2.0.1"
+    "@comunica/mediator-race": "npm:^2.0.1"
+    "@rdfjs/types": "npm:*"
+    readable-stream: "npm:^4.3.0"
+    stream-to-string: "npm:^1.2.0"
+  checksum: 10c0/c85c1caed0772e69a3862ca6875c986ad44ab3d46744c6781e46395333f751b4f505ba490a983771d2eeddf791cae5fefb404fd1f3ff414a493962c009016335
   languageName: node
   linkType: hard
 
@@ -11944,6 +12027,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"swipl-wasm@npm:4.0.13":
+  version: 4.0.13
+  resolution: "swipl-wasm@npm:4.0.13"
+  dependencies:
+    "@types/emscripten": "npm:^1.39.13"
+  bin:
+    swipl-generate: dist/bin/index.js
+  checksum: 10c0/ea61942ceb60883bddd213d029ce21bb7010860621b69dfd1e13209b17948c90bc3c422153244a8662f5eb89275135b3905be5274d827ce4f2effac6a383f038
+  languageName: node
+  linkType: hard
+
 "tar@npm:^6.1.11, tar@npm:^6.1.2":
   version: 6.2.0
   resolution: "tar@npm:6.2.0"
@@ -12019,6 +12113,13 @@ __metadata:
   dependencies:
     rimraf: "npm:^3.0.0"
   checksum: 10c0/67607aa012059c9ce697bee820ee51bc0f39b29a8766def4f92d3f764d67c7cf9205d537d24e0cb1ce9685c40d4c628ead010910118ea18348666b5c46ed9123
+  languageName: node
+  linkType: hard
+
+"tmp@npm:^0.2.3":
+  version: 0.2.3
+  resolution: "tmp@npm:0.2.3"
+  checksum: 10c0/3e809d9c2f46817475b452725c2aaa5d11985cf18d32a7a970ff25b568438e2c076c2e8609224feef3b7923fa9749b74428e3e634f6b8e520c534eef2fd24125
   languageName: node
   linkType: hard
 
@@ -12536,12 +12637,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uuid@npm:8.3.2":
+  version: 8.3.2
+  resolution: "uuid@npm:8.3.2"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 10c0/bcbb807a917d374a49f475fae2e87fdca7da5e5530820ef53f65ba1d12131bd81a92ecf259cc7ce317cbe0f289e7d79fdfebcef9bfa3087c8c8a2fa304c9be54
+  languageName: node
+  linkType: hard
+
 "uuid@npm:^9.0.0, uuid@npm:^9.0.1":
   version: 9.0.1
   resolution: "uuid@npm:9.0.1"
   bin:
     uuid: dist/bin/uuid
   checksum: 10c0/1607dd32ac7fc22f2d8f77051e6a64845c9bce5cd3dd8aa0070c074ec73e666a1f63c7b4e0f4bf2bc8b9d59dc85a15e17807446d9d2b17c8485fbc2147b27f9b
+  languageName: node
+  linkType: hard
+
+"uuidv4@npm:^6.2.13":
+  version: 6.2.13
+  resolution: "uuidv4@npm:6.2.13"
+  dependencies:
+    "@types/uuid": "npm:8.3.4"
+    uuid: "npm:8.3.2"
+  checksum: 10c0/33287c7c71e19c5a9fe0d936c0df648338965442c80b5b26e51c13ec9a9c524a72c718355e0cea8a9431a78680d72a41a236b87046ecc0a05f518c8e22df9e35
   languageName: node
   linkType: hard
 
