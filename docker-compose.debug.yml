@@ -1,0 +1,20 @@
+version: '3.4'
+
+services:
+  user-managed-access:
+    image: css-uma-main
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      NODE_ENV: development
+    ports:
+      - 3000:3000
+      - 4000:4000
+      - 4444:4444
+      - 5123:5123
+      - 8201:8201
+      - 8202:8202
+      - 8203:8203
+      - 9229:9229
+    command: ["node", "--inspect=0.0.0.0:9229", "index.js"]

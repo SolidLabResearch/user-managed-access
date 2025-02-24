@@ -5,7 +5,8 @@ import { setLogger } from '../src/util/logging/LoggerUtils';
 import { WinstonLogger } from '../src/util/logging/WinstonLogger';
 
 const protocol = 'http';
-const host = 'localhost';
+// const host = 'localhost'; // This gives problems with docker internal network
+const host = '0.0.0.0';
 const port = 4000;
 
 const baseUrl = `${protocol}://${host}:${port}/uma`;
