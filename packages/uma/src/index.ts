@@ -63,7 +63,7 @@ export * from './views/ScopeDescription';
 export * from './util/http/identifier/BaseTargetExtractor';
 export * from './util/http/models/HttpHandler';
 export * from './util/http/models/HttpHandlerRoute';
-export * from './util/http/server/ErrorHandler';
+export * from './util/http/server/JsonHttpErrorHandler';
 export * from './util/http/server/JsonFormHttpHandler';
 export * from './util/http/server/NodeHttpRequestResponseHandler';
 export * from './util/http/server/RoutedHttpRequestHandler';

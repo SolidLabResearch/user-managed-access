@@ -8,11 +8,8 @@
       "@type": "HttpHandlerRoute",
       "methods": [ "POST" ],
       "handler": {
-        "@type": "JsonHttpErrorHandler",
-        "nestedHandler": {
-          "@type": "TokenRequestHandler",
-          "negotiator": { "@id": "urn:uma:default:DemoNegotiator" }
-        }
+        "@type": "TokenRequestHandler",
+        "negotiator": { "@id": "urn:uma:default:DemoNegotiator" }
       },
       "path": "/uma/token"
     }
