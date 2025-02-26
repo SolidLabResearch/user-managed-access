@@ -1,14 +1,12 @@
 import {
   BadRequestHttpError,
-  createErrorMessage,
   getLoggerFor,
   HttpHandler as NodeHttpStreamsHandler,
   HttpHandlerInput,
   TargetExtractor
 } from '@solid/community-server';
 import { buffer } from 'node:stream/consumers';
-import { HttpHandler, HttpHandlerContext, HttpHandlerRequest, HttpHandlerResponse } from '../models/HttpHandler';
-import { statusCodes } from './ErrorHandler';
+import { HttpHandler, HttpHandlerContext, HttpHandlerRequest } from '../models/HttpHandler';
 
 
 /**
@@ -72,17 +70,7 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
     this.logger.info(`Domestic request: ${JSON.stringify({ eventType: 'domestic_request', context })}`);
 
-    let response = await this.httpHandler.handleSafe(context).catch<HttpHandlerResponse<Buffer>>((error) => {
-      const status = error?.statusCode ?? error.status;
-      const message = error?.message ?? error.body;
-
-      this.logger.error(`Unhandled error: ${createErrorMessage(error)}`);
-
-      return {
-        body: Buffer.from(message ?? 'Internal Server Error'),
-        status: statusCodes[status] ? status : 500
-      };
-    });
+    let response = await this.httpHandler.handleSafe(context);
 
     response.headers = {
       // headers could be undefined at this point
