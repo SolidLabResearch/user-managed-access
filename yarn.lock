@@ -4823,6 +4823,7 @@ __metadata:
     "@solid/community-server": "npm:^7.0.4"
     "@solidlab/derived-resources-component": "npm:^1.0.2"
     "@solidlab/uma": "workspace:^"
+    "@types/n3": "npm:^1.16.4"
     componentsjs: "npm:^5.4.2"
     cross-fetch: "npm:^4.0.0"
     fetch-retry: "npm:^6.0.0"
@@ -4840,7 +4841,8 @@ __metadata:
     "@solid/access-token-verifier": "npm:^1.2.0"
     "@solid/community-server": "npm:^7.0.4"
     "@solidlab/ucp": "workspace:^"
-    clone: "npm:^2.1.2"
+    "@types/n3": "npm:^1.16.4"
+    "@types/uuid": "npm:^8.3.4"
     componentsjs: "npm:^5.4.2"
     cross-fetch: "npm:^4.0.0"
     get-jwks: "npm:^9.0.1"
@@ -4871,13 +4873,9 @@ __metadata:
     "@digitalcredentials/vc-data-model": "npm:^2.0.0"
     "@inrupt/solid-client": "npm:^2.0.1"
     "@inrupt/solid-client-authn-core": "npm:^2.1.0"
-    "@solid/community-server": "npm:^7.0.4"
     "@solidlab/ucp": "workspace:^"
-    "@types/clone": "npm:^2.1.4"
     "@types/jest": "npm:^29.5.12"
-    "@types/n3": "npm:^1.16.4"
     "@types/node": "npm:^20.11.25"
-    "@types/uuid": "npm:^8.3.4"
     "@typescript-eslint/eslint-plugin": "npm:^5.12.1"
     "@typescript-eslint/parser": "npm:^5.12.1"
     chalk: "npm:^5.4.1"
@@ -5068,13 +5066,6 @@ __metadata:
     "@types/connect": "npm:*"
     "@types/node": "npm:*"
   checksum: 10c0/aebeb200f25e8818d8cf39cd0209026750d77c9b85381cdd8deeb50913e4d18a1ebe4b74ca9b0b4d21952511eeaba5e9fbbf739b52731a2061e206ec60d568df
-  languageName: node
-  linkType: hard
-
-"@types/clone@npm:^2.1.4":
-  version: 2.1.4
-  resolution: "@types/clone@npm:2.1.4"
-  checksum: 10c0/89a18c96be125417b21191baa9a7eb7e1e80734b1a7e00dc1e32b268d0da616d6f5ec873dce8f2d36f9640a694d20039f419232f81c56a1bd4e94f07d04bc490
   languageName: node
   linkType: hard
 
@@ -6445,13 +6436,6 @@ __metadata:
     strip-ansi: "npm:^6.0.1"
     wrap-ansi: "npm:^7.0.0"
   checksum: 10c0/4bda0f09c340cbb6dfdc1ed508b3ca080f12992c18d68c6be4d9cf51756033d5266e61ec57529e610dacbf4da1c634423b0c1b11037709cc6b09045cbd815df5
-  languageName: node
-  linkType: hard
-
-"clone@npm:^2.1.2":
-  version: 2.1.2
-  resolution: "clone@npm:2.1.2"
-  checksum: 10c0/ed0601cd0b1606bc7d82ee7175b97e68d1dd9b91fd1250a3617b38d34a095f8ee0431d40a1a611122dcccb4f93295b4fdb94942aa763392b5fe44effa50c2d5e
   languageName: node
   linkType: hard
 
