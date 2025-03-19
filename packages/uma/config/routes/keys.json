@@ -17,13 +17,7 @@
     {
       "@id": "urn:uma:default:JwksRoute",
       "@type": "HttpHandlerRoute",
-      "operations": [
-        {
-          "@type": "HttpHandlerOperation",
-          "method": "GET",
-          "publish": true
-        }
-      ],
+      "methods": [ "GET" ],
       "handler": {
         "@type": "JwksRequestHandler",
         "generator": { "@id": "urn:uma:default:JwkGenerator" }
