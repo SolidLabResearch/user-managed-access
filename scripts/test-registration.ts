@@ -1,7 +1,5 @@
 #!/usr/bin/env ts-node
 
-import { fetch } from 'cross-fetch'
-
 const container = "http://localhost:3000/alice/public/";
 const slug = "resource.txt";
 const body = "This is a resource.";

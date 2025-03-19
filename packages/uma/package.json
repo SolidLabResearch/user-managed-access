@@ -65,9 +65,7 @@
     "@solid/community-server": "^7.0.4",
     "@solidlab/ucp": "workspace:^",
     "@types/n3": "^1.16.4",
-    "@types/uuid": "^8.3.4",
     "componentsjs": "^5.4.2",
-    "cross-fetch": "^4.0.0",
     "get-jwks": "^9.0.1",
     "http-message-signatures": "^1.0.4",
     "jose": "^5.2.2",
@@ -76,7 +74,6 @@
     "n3": "^1.17.2",
     "ts-node": "^10.9.2",
     "uri-template-lite": "^23.4.0",
-    "uuid": "^9.0.1",
     "winston": "^3.11.0"
   },
   "jest": {

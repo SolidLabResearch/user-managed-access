@@ -1,6 +1,6 @@
 import { Store, DataFactory } from "n3";
+import { randomUUID } from 'node:crypto';
 import { UconRequest, createContext } from "./Request"
-import { v4 as uuidv4 } from 'uuid';
 import { ACCESS_MODES_ALLOWED } from "./util/Constants";
 import { SimplePolicy } from "./policy/UsageControlPolicy";
 import { storeToString } from "./util/Conversion";
@@ -93,7 +93,7 @@ export function explanationToRdf(explanation: Explanation): Store {
 
     // conclusions
     for (const conclusion of explanation.conclusions) {
-        const conclusionIri = baseIRI + uuidv4();
+        const conclusionIri = baseIRI + randomUUID();
         const conclusionPred = namedNode(baseIRI + 'conclusion');
         const conclusionNode = namedNode(conclusionIri);
         store.addQuad(explanationNode, conclusionPred, conclusionNode);
@@ -110,8 +110,8 @@ export function explanationToRdf(explanation: Explanation): Store {
 }
 /**
  * Serialize the request together with a set of ucon rules and set of N3 rules interpreting into a single string.
- * 
- * This string can be given to an N3 reasoning engine. 
+ *
+ * This string can be given to an N3 reasoning engine.
  * When there is a conclusion, one or multiple rule activations will occur. (rule must be seen in the context of a policy rule)
  * Each rule activation contains permissions granted.
  * @param policies
@@ -135,10 +135,10 @@ export function serializePremises(policies: SimplePolicy[], request: UconRequest
  * - request
  * - ucon rules set
  * - n3 intepretation rules
- * @param explanation 
- * @param uconRules 
- * @param n3InterpretationRules 
- * @returns 
+ * @param explanation
+ * @param uconRules
+ * @param n3InterpretationRules
+ * @returns
  */
 export function serializeFullExplanation(explanation: Explanation, uconRules: Store, n3InterpretationRules: string): string {
     const explanationString = storeToString(explanationToRdf(explanation));

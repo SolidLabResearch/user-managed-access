@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Ticket } from '../ticketing/Ticket';
 import { Verifier } from '../credentials/verify/Verifier';
 import { TokenFactory } from '../tokens/TokenFactory';
@@ -7,7 +8,6 @@ import { DialogInput } from './Input';
 import { DialogOutput } from './Output';
 import { reType } from '../util/ReType';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
-import { v4 } from 'uuid';
 import {
   BadRequestHttpError,
   ForbiddenHttpError,
@@ -84,7 +84,7 @@ export class BaseNegotiator implements Negotiator {
     if (requiredClaims.length === 0) throw new ForbiddenHttpError();
 
     // ... require more info otherwise
-    const id = v4();
+    const id = randomUUID();
     this.ticketStore.set(id, ticket);
     throw new NeedInfoError('Need more info to authorize request ...', id, {
       required_claims: {

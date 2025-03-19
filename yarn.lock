@@ -4825,7 +4825,6 @@ __metadata:
     "@solidlab/uma": "workspace:^"
     "@types/n3": "npm:^1.16.4"
     componentsjs: "npm:^5.4.2"
-    cross-fetch: "npm:^4.0.0"
     fetch-retry: "npm:^6.0.0"
     http-message-signatures: "npm:^1.0.4"
     jose: "npm:^5.2.2"
@@ -4842,9 +4841,7 @@ __metadata:
     "@solid/community-server": "npm:^7.0.4"
     "@solidlab/ucp": "workspace:^"
     "@types/n3": "npm:^1.16.4"
-    "@types/uuid": "npm:^8.3.4"
     componentsjs: "npm:^5.4.2"
-    cross-fetch: "npm:^4.0.0"
     get-jwks: "npm:^9.0.1"
     http-message-signatures: "npm:^1.0.4"
     jose: "npm:^5.2.2"
@@ -4853,7 +4850,6 @@ __metadata:
     n3: "npm:^1.17.2"
     ts-node: "npm:^10.9.2"
     uri-template-lite: "npm:^23.4.0"
-    uuid: "npm:^9.0.1"
     winston: "npm:^3.11.0"
   languageName: unknown
   linkType: soft
@@ -4881,7 +4877,6 @@ __metadata:
     chalk: "npm:^5.4.1"
     componentsjs-generator: "npm:^3.1.2"
     concurrently: "npm:^8.2.2"
-    cross-fetch: "npm:^4.0.0"
     eslint: "npm:^8.10.0"
     jest: "npm:^29.7.0"
     jest-rdf: "npm:^1.8.1"
@@ -5556,13 +5551,6 @@ __metadata:
   version: 4.0.3
   resolution: "@types/url-join@npm:4.0.3"
   checksum: 10c0/7f0f86693070355ce731ec3861d47c03eaae09ab0ea1a72dde6b38a2a17089941acc59bac9ea2472376b6f96e189478da0a7ed29e2d282d1543382e92408d6ca
-  languageName: node
-  linkType: hard
-
-"@types/uuid@npm:^8.3.4":
-  version: 8.3.4
-  resolution: "@types/uuid@npm:8.3.4"
-  checksum: 10c0/b9ac98f82fcf35962317ef7dc44d9ac9e0f6fdb68121d384c88fe12ea318487d5585d3480fa003cf28be86a3bbe213ca688ba786601dce4a97724765eb5b1cf2
   languageName: node
   linkType: hard
 
