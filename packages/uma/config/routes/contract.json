@@ -6,13 +6,7 @@
     {
       "@id": "urn:uma:default:ContractRoute",
       "@type": "HttpHandlerRoute",
-      "operations": [
-        {
-          "@type": "HttpHandlerOperation",
-          "method": "GET",
-          "publish": true
-        }
-      ],
+      "methods": [ "GET" ],
       "handler": {
         "@type": "ContractRequestHandler",
         "baseUrl": { "@id": "urn:uma:variables:baseUrl" }

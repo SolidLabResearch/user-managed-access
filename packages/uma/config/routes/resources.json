@@ -11,28 +11,16 @@
     {
       "@id": "urn:uma:default:ResourceRegistrationRoute",
       "@type": "HttpHandlerRoute",
-      "operations": [
-        {
-          "@type": "HttpHandlerOperation",
-          "method": "POST",
-          "publish": true
-        }
-      ],
+      "methods": [ "POST" ],
       "handler": { "@id": "urn:uma:default:ResourceRegistrationHandler" },
       "path": "/uma/resources"
     },
     {
       "@id": "urn:uma:default:ResourceRegistrationOpsRoute",
       "@type": "HttpHandlerRoute",
-      "operations": [
-        {
-          "@type": "HttpHandlerOperation",
-          "method": "DELETE",
-          "publish": true
-        }
-      ],
+      "methods": [ "DELETE" ],
       "handler": { "@id": "urn:uma:default:ResourceRegistrationHandler" },
-      "path": "/uma/resources/:id"
+      "path": "/uma/resources/{id}"
     }
   ]
 }

@@ -6,13 +6,7 @@
     {
       "@id": "urn:uma:default:PermissionRegistrationRoute",
       "@type": "HttpHandlerRoute",
-      "operations": [
-        {
-          "@type": "HttpHandlerOperation",
-          "method": "POST",
-          "publish": true
-        }
-      ],
+      "methods": [ "POST" ],
       "handler": {
         "@type": "JsonHttpErrorHandler",
         "nestedHandler": {
