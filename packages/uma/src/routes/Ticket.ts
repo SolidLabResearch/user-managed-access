@@ -7,15 +7,15 @@ import {
   UnauthorizedHttpError,
   UnsupportedMediaTypeHttpError
 } from '@solid/community-server';
-import { v4 } from 'uuid';
-import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
-import { Ticket } from '../ticketing/Ticket';
+import { randomUUID } from 'node:crypto';
 import { HttpHandler } from '../util/http/models/HttpHandler';
 import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
 import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
 import { verifyRequest } from '../util/HttpMessageSignatures';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
+import { Ticket } from '../ticketing/Ticket';
+import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 
 /**
  * A TicketRequestHandler is tasked with implementing
@@ -70,7 +70,7 @@ export class TicketRequestHandler extends HttpHandler {
 
     if (resolved.success) return { status: 200 };
 
-    const id = v4();
+    const id = randomUUID();
     this.ticketStore.set(id, ticket);
 
     return {

@@ -1,5 +1,4 @@
 import { importJWK, jwtVerify, SignJWT } from 'jose';
-import { v4 } from 'uuid';
 import {
   BadRequestHttpError,
   getLoggerFor,
@@ -7,6 +6,7 @@ import {
   JwkGenerator,
   KeyValueStorage
 } from '@solid/community-server';
+import { randomUUID } from 'node:crypto';
 import { SerializedToken , TokenFactory} from './TokenFactory';
 import { AccessToken } from './AccessToken';
 import { array, reType } from '../util/ReType';
@@ -53,7 +53,7 @@ export class JwtTokenFactory extends TokenFactory {
       .setIssuer(this.issuer)
       .setAudience(AUD)
       .setExpirationTime(this.params.expirationTime)
-      .setJti(v4())
+      .setJti(randomUUID())
       .sign(jwk);
 
     this.logger.debug(`Issued new JWT Token ${JSON.stringify(token)}`);

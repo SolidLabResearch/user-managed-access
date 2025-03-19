@@ -7,10 +7,10 @@ import {
   UnauthorizedHttpError,
   UnsupportedMediaTypeHttpError
 } from '@solid/community-server';
+import { randomUUID } from 'node:crypto';
 import {HttpHandler} from '../util/http/models/HttpHandler';
 import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
 import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
-import {v4} from 'uuid';
 import { HttpHandlerRequest } from '../util/http/models/HttpHandlerRequest';
 import { ResourceDescription } from '../views/ResourceDescription';
 import { reType } from '../util/ReType';
@@ -69,7 +69,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
       throw new BadRequestHttpError(`Request has bad syntax${e instanceof Error ? ': ' + e.message : ''}`)
     }
 
-    const resource = v4();
+    const resource = randomUUID();
     this.resourceStore.set(resource, body);
 
     this.logger.info(`Registered resource ${resource}.`);
