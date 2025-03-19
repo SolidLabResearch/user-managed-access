@@ -71,13 +71,9 @@
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
-    "@solid/community-server": "^7.0.4",
     "@solidlab/ucp": "workspace:^",
-    "@types/clone": "^2.1.4",
     "@types/jest": "^29.5.12",
-    "@types/n3": "^1.16.4",
     "@types/node": "^20.11.25",
-    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.12.1",
     "@typescript-eslint/parser": "^5.12.1",
     "componentsjs-generator": "^3.1.2",

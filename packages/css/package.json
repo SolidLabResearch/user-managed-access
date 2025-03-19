@@ -70,6 +70,7 @@
     "@solid/community-server": "^7.0.4",
     "@solidlab/derived-resources-component": "^1.0.2",
     "@solidlab/uma": "workspace:^",
+    "@types/n3": "^1.16.4",
     "componentsjs": "^5.4.2",
     "cross-fetch": "^4.0.0",
     "fetch-retry": "^6.0.0",
