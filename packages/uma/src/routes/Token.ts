@@ -4,9 +4,7 @@ import {
   getLoggerFor,
   UnsupportedMediaTypeHttpError
 } from '@solid/community-server';
-import { HttpHandler } from '../util/http/models/HttpHandler';
-import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
-import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
+import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 import { Negotiator } from '../dialog/Negotiator';
 import { DialogInput } from '../dialog/Input';
 import { reType } from '../util/ReType';

@@ -1,5 +1,4 @@
-import { HttpHandler } from './HttpHandler';
-import { HttpHandlerContext } from './HttpHandlerContext';
+import { HttpHandler, HttpHandlerContext } from './HttpHandler';
 
 export abstract class HttpHandlerRoute<C extends HttpHandlerContext = HttpHandlerContext> {
   constructor(

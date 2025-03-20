@@ -1,9 +1,7 @@
 import { ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM }
   from '@solid/access-token-verifier/dist/constant/ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM';
 import { getLoggerFor } from '@solid/community-server';
-import { HttpHandler } from '../util/http/models/HttpHandler';
-import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
-import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
+import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 
 // eslint-disable no-unused-vars
 export enum ResponseType {

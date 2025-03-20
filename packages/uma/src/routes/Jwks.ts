@@ -1,6 +1,4 @@
-import { HttpHandler } from '../util/http/models/HttpHandler';
-import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
-import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
+import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 import { getLoggerFor, JwkGenerator } from '@solid/community-server';
 
 /**

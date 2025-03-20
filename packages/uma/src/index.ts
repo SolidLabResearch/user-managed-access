@@ -64,10 +64,6 @@ export * from './views/ScopeDescription';
 // HTTP
 export * from './util/http/identifier/BaseTargetExtractor';
 export * from './util/http/models/HttpHandler';
-export * from './util/http/models/HttpHandlerContext';
-export * from './util/http/models/HttpHandlerController';
-export * from './util/http/models/HttpHandlerRequest';
-export * from './util/http/models/HttpHandlerResponse';
 export * from './util/http/models/HttpHandlerRoute';
 export * from './util/http/server/ErrorHandler';
 export * from './util/http/server/NodeHttpRequestResponseHandler';

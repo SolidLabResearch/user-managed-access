@@ -8,10 +8,12 @@ import {
   UnsupportedMediaTypeHttpError
 } from '@solid/community-server';
 import { randomUUID } from 'node:crypto';
-import {HttpHandler} from '../util/http/models/HttpHandler';
-import {HttpHandlerContext} from '../util/http/models/HttpHandlerContext';
-import {HttpHandlerResponse} from '../util/http/models/HttpHandlerResponse';
-import { HttpHandlerRequest } from '../util/http/models/HttpHandlerRequest';
+import {
+  HttpHandler,
+  HttpHandlerContext,
+  HttpHandlerRequest,
+  HttpHandlerResponse
+} from '../util/http/models/HttpHandler';
 import { ResourceDescription } from '../views/ResourceDescription';
 import { reType } from '../util/ReType';
 import { extractRequestSigner, verifyRequest } from '../util/HttpMessageSignatures';

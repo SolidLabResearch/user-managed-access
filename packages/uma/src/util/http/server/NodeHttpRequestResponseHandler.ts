@@ -1,5 +1,5 @@
 import { OutgoingHttpHeader } from 'node:http';
-import { HttpHandler } from '../models/HttpHandler';
+import { HttpHandler, HttpHandlerContext, HttpHandlerRequest, HttpHandlerResponse } from '../models/HttpHandler';
 import {
   BadRequestHttpError,
   getLoggerFor,
@@ -9,9 +9,6 @@ import {
   readableToString,
   TargetExtractor
 } from '@solid/community-server';
-import { HttpHandlerContext } from '../models/HttpHandlerContext';
-import { HttpHandlerRequest } from '../models/HttpHandlerRequest';
-import { HttpHandlerResponse } from '../models/HttpHandlerResponse';
 import { statusCodes } from './ErrorHandler';
 
 
