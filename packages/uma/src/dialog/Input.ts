@@ -7,6 +7,7 @@ import { Permission } from "../views/Permission";
  */
 export const DialogInput = ({
   "@context": $(string),
+  grant_type: $(string),
   ticket: $(string),
   claim_token: $(string),
   claim_token_format: $(string), // TODO: switch to array of claims objects with unknown structure

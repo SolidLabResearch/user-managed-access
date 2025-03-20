@@ -21,16 +21,16 @@ export class TokenRequestHandler extends HttpHandler {
     this.logger.info(`Received token request.`);
     const params = input.request.body;
 
-    // if (params['grant_type'] !== 'urn:ietf:params:oauth:grant-type:uma-ticket') {
-    //   throw new BadRequestHttpError(
-    //     `Expected 'grant_type' to be set to 'urn:ietf:params:oauth:grant-type:uma-ticket'
-    //   `);
-    // }
-
     try {
       reType(params, DialogInput);
     } catch (e) {
       throw new BadRequestHttpError(`Invalid token request body: ${e instanceof Error ? e.message : ''}`);
+    }
+
+    if (params['grant_type'] !== 'urn:ietf:params:oauth:grant-type:uma-ticket') {
+      throw new BadRequestHttpError(
+        `Expected 'grant_type' to be set to 'urn:ietf:params:oauth:grant-type:uma-ticket'
+      `);
     }
 
     try {
