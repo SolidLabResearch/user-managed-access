@@ -1,6 +1,5 @@
-import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
-import { HttpHandler } from '../util/http/models/HttpHandler';
-import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
+
+import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 import { AccessToken } from '../tokens/AccessToken';
 import { JwtTokenFactory } from '../tokens/JwtTokenFactory';
 import { SerializedToken } from '../tokens/TokenFactory';

@@ -1,8 +1,6 @@
 import { getLoggerFor, serializeQuads } from '@solid/community-server';
 import { getOperationLogger } from '../logging/OperationLogger';
-import { HttpHandler } from '../util/http/models/HttpHandler';
-import { HttpHandlerContext } from '../util/http/models/HttpHandlerContext';
-import { HttpHandlerResponse } from '../util/http/models/HttpHandlerResponse';
+import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 
 
 export type LogMessage = {

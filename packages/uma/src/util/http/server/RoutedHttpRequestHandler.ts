@@ -1,8 +1,6 @@
 import { getLoggerFor } from '@solid/community-server';
 import Template from 'uri-template-lite';
-import { HttpHandler } from '../models/HttpHandler';
-import { HttpHandlerContext } from '../models/HttpHandlerContext';
-import { HttpHandlerResponse } from '../models/HttpHandlerResponse';
+import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../models/HttpHandler';
 import { HttpHandlerRoute } from '../models/HttpHandlerRoute';
 
 /**

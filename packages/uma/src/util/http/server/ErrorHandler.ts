@@ -1,7 +1,5 @@
 import { getLoggerFor } from '@solid/community-server';
-import {HttpHandler} from '../models/HttpHandler';
-import {HttpHandlerContext} from '../models/HttpHandlerContext';
-import {HttpHandlerResponse} from '../models/HttpHandlerResponse';
+import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../models/HttpHandler';
 
 export const statusCodes: { [code: number]: string } = {
   400: 'Bad Request',
