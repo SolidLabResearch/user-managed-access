@@ -1,8 +1,8 @@
 import { readJson } from 'fs-extra';
 import { array, object, string } from 'yup';
-import { PasswordStore, PodCreator, URL_SCHEMA, getLoggerFor, 
+import { PasswordStore, PodCreator, URL_SCHEMA, getLoggerFor,
   createErrorMessage, Initializer} from '@solid/community-server';
-import { ACCOUNT_SETTINGS_AUTHZ_SERVER, ACCOUNT_SETTINGS_KEYS, 
+import { ACCOUNT_SETTINGS_AUTHZ_SERVER, ACCOUNT_SETTINGS_KEYS,
   type AccountStore } from '../identity/interaction/account/util/AccountStore'
 
 const inSchema = array().of(object({
@@ -44,7 +44,7 @@ export interface SeededAccountInitializerArgs {
  * These accounts have exactly 1 email/password login method, and 0 or more pods.
  * The pod settings that can be defined are identical to those of the {@link CreatePodHandler}.
  */
-export class SeededAccountInitializer extends Initializer {
+export class UmaSeededAccountInitializer extends Initializer {
   protected readonly logger = getLoggerFor(this);
 
   private readonly accountStore: AccountStore;
