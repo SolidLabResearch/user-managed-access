@@ -12,7 +12,7 @@ export * from './identity/interaction/account/util/AccountStore';
 export * from './identity/interaction/account/util/BaseAccountStore';
 export * from './identity/interaction/account/util/LoginStorage';
 
-export * from './init/SeededAccountInitializer';
+export * from './init/UmaSeededAccountInitializer';
 
 export * from './server/description/AccountSettingsStorageDescriber';
 
