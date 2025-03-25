@@ -8,14 +8,9 @@
     ],
     "@graph": [
       {
-        "comment": "In case of WebACL authorization the ACL resources determine authorization.",
+        "comment": "There are no auth-specific resources, but this ID still has to exist.",
         "@id": "urn:solid-server:default:AuthResourceHttpHandler",
-        "@type": "RouterHandler",
-        "args_baseUrl": { "@id": "urn:solid-server:default:variable:baseUrl" },
-        "args_targetExtractor": { "@id": "urn:solid-server:default:TargetExtractor" },
-        "args_allowedMethods": [ "*" ],
-        "args_allowedPathNames": [ "^/.*\\.acl$" ],
-        "args_handler": { "@id": "urn:solid-server:default:LdpHandler" }
+        "@type": "UnsupportedAsyncHandler"
       }
     ]
   }
