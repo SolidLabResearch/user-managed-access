@@ -18,7 +18,7 @@
     "css:config/identity/oidc/default.json",
     "css:config/identity/ownership/token.json",
     "css:config/identity/pod/static.json",
-    "uma-css:config/ldp/authentication/uma.json",
+    "css:config/ldp/authentication/dpop-bearer.json",
     "uma-css:config/ldp/authorization/uma.json",
     "uma-css:config/ldp/handler/uma.json",
     "css:config/ldp/metadata-parser/default.json",
@@ -89,6 +89,22 @@
         "storage": {
           "@id": "urn:solid-server:default:AccountStorage"
         }
+      }
+    },
+    {
+      "comment": "Replace the DPoP authentication with UMA authentication.",
+      "@id": "urn:solid-server:override:AccessTokenExtractor",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:AccessTokenExtractor"
+      },
+      "overrideParameters": {
+        "comment": "Extracts information from UMA access tokens.",
+        "@type": "UmaTokenExtractor",
+        "client": { "@id": "urn:solid-server:default:UmaClient" },
+        "targetExtractor": { "@id": "urn:solid-server:default:TargetExtractor" },
+        "ownerUtil": { "@id": "urn:solid-server:default:OwnerUtil" },
+        "introspect": false
       }
     }
   ]
