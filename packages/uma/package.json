@@ -62,7 +62,7 @@
   "dependencies": {
     "@httpland/authorization-parser": "^1.1.0",
     "@solid/access-token-verifier": "^1.2.0",
-    "@solid/community-server": "^7.0.4",
+    "@solid/community-server": "^7.1.6",
     "@solidlab/ucp": "workspace:^",
     "@types/n3": "^1.16.4",
     "componentsjs": "^5.5.1",
