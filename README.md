@@ -16,7 +16,7 @@ cd user-managed-access/
 
 ### Setting up the Authorization Server 
 
-Before starting, make sure you are on the correct branch (pacsoi-poc1).
+Before starting, make sure you are on the correct branch (feat/contracts).
 See the above command to clone only the relevant branch for the demonstrator.
 
 In order to run the demonstrator you need to perform the following steps. 

@@ -1,0 +1,22 @@
+@prefix dcterms: <http://purl.org/dc/terms/>.
+@prefix eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#>.
+@prefix oac: <https://w3id.org/oac#>.
+@prefix odrl: <http://www.w3.org/ns/odrl/2/>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix ex: <http://example.org/>.
+
+<http://example.org/HCPX-request> a odrl:Request ;
+    odrl:uid ex:HCPX-request ;
+    odrl:profile oac: ;
+    dcterms:description "HCP X requests to read Alice's health data for bariatric care.";
+    odrl:permission <http://example.org/HCPX-request-permission> .
+<http://example.org/HCPX-request-permission> a odrl:Permission ;
+    odrl:action odrl:read ;
+    odrl:target <http://localhost:5656/smartdevice.txt> ;
+    odrl:assigner <http://localhost:3000/ruben/profile/card#me> ;
+    odrl:assignee <http://localhost:3000/alice/profile/card#me> ;
+    odrl:constraint <http://example.org/HCPX-request-permission-purpose> .
+<http://example.org/HCPX-request-permission-purpose> a odrl:Constraint ;
+    odrl:leftOperand odrl:purpose ; # can also be oac:Purpose, to conform with OAC profile
+    odrl:operator odrl:eq ;
+    odrl:rightOperand ex:bariatric-care.
