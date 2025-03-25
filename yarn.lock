@@ -4293,7 +4293,7 @@ __metadata:
     "@solidlab/derived-resources-component": "npm:^1.0.2"
     "@solidlab/uma": "workspace:^"
     "@types/n3": "npm:^1.16.4"
-    componentsjs: "npm:^5.4.2"
+    componentsjs: "npm:^5.5.1"
     fetch-retry: "npm:^6.0.0"
     http-message-signatures: "npm:^1.0.4"
     jose: "npm:^5.2.2"
@@ -4310,7 +4310,7 @@ __metadata:
     "@solid/community-server": "npm:^7.0.4"
     "@solidlab/ucp": "workspace:^"
     "@types/n3": "npm:^1.16.4"
-    componentsjs: "npm:^5.4.2"
+    componentsjs: "npm:^5.5.1"
     get-jwks: "npm:^9.0.1"
     http-message-signatures: "npm:^1.0.4"
     jose: "npm:^5.2.2"
@@ -6022,7 +6022,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"componentsjs@npm:^5.0.1, componentsjs@npm:^5.3.2, componentsjs@npm:^5.4.2":
+"componentsjs@npm:^5.0.1, componentsjs@npm:^5.3.2, componentsjs@npm:^5.4.2, componentsjs@npm:^5.5.1":
   version: 5.5.1
   resolution: "componentsjs@npm:5.5.1"
   dependencies:
