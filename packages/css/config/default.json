@@ -22,7 +22,7 @@
     "uma-css:config/ldp/authorization/uma.json",
     "css:config/ldp/handler/default.json",
     "css:config/ldp/metadata-parser/default.json",
-    "uma-css:config/ldp/metadata-writer/uma.json",
+    "css:config/ldp/metadata-writer/default.json",
     "css:config/ldp/modes/default.json",
     "css:config/storage/backend/memory.json",
     "css:config/storage/key-value/resource-store.json",
@@ -131,6 +131,19 @@
           },
           "operationHandler": { "@id": "urn:solid-server:default:OperationHandler" }
         }
+      }
+    },
+    {
+      "comment": "Replace WWW-Authenticate metadata writer with the UMA version.",
+      "@id": "urn:solid-server:override:MetadataWriter_WwwAuth",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:MetadataWriter_WwwAuth"
+      },
+      "overrideParameters": {
+        "comment": "Returns the UMA ticket in case of an unauthorized request.",
+        "@id": "urn:solid-server:default:MetadataWriter_UmaTicket",
+        "@type": "UmaTicketMetadataWriter"
       }
     }
   ]
