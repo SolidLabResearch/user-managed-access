@@ -20,7 +20,7 @@
     "css:config/identity/pod/static.json",
     "css:config/ldp/authentication/dpop-bearer.json",
     "uma-css:config/ldp/authorization/uma.json",
-    "uma-css:config/ldp/handler/uma.json",
+    "css:config/ldp/handler/default.json",
     "css:config/ldp/metadata-parser/default.json",
     "uma-css:config/ldp/metadata-writer/uma.json",
     "css:config/ldp/modes/default.json",
@@ -105,6 +105,32 @@
         "targetExtractor": { "@id": "urn:solid-server:default:TargetExtractor" },
         "ownerUtil": { "@id": "urn:solid-server:default:OwnerUtil" },
         "introspect": false
+      }
+    },
+    {
+      "comment": "Replace the authorization handler with UMA support.",
+      "@id": "urn:solid-server:override:LdpHandler",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:LdpHandler"
+      },
+      "overrideParameters": {
+        "@type": "ParsingHttpHandler",
+        "operationHandler": {
+          "@type": "AuthorizingHttpHandler",
+          "credentialsExtractor": { "@id": "urn:solid-server:default:CredentialsExtractor" },
+          "modesExtractor": { "@id": "urn:solid-server:default:ModesExtractor" },
+          "permissionReader": { "@id": "urn:solid-server:default:PermissionReader" },
+          "authorizer": {
+            "comment": "Requests UMA ticket when authorization fails.",
+            "@id": "urn:solid-server:default:UmaAuthorizer",
+            "@type": "UmaAuthorizer",
+            "authorizer": { "@id": "urn:solid-server:default:Authorizer" },
+            "umaClient": { "@id": "urn:solid-server:default:UmaClient" },
+            "ownerUtil": { "@id": "urn:solid-server:default:OwnerUtil" }
+          },
+          "operationHandler": { "@id": "urn:solid-server:default:OperationHandler" }
+        }
       }
     }
   ]
