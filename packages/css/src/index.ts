@@ -9,8 +9,8 @@ export * from './http/output/metadata/UmaTicketMetadataWriter';
 // export * from './identity/configuration/InMemoryJwksKeyHolder';
 
 export * from './identity/interaction/account/util/AccountStore';
-export * from './identity/interaction/account/util/BaseAccountStore';
 export * from './identity/interaction/account/util/LoginStorage';
+export * from './identity/interaction/account/util/UmaAccountStore';
 
 export * from './init/UmaSeededAccountInitializer';
 
