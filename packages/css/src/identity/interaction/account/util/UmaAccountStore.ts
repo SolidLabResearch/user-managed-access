@@ -1,10 +1,10 @@
 
 import { Initializer, getLoggerFor, createErrorMessage, InternalServerError } from '@solid/community-server';
 import { AccountLoginStorage, ACCOUNT_TYPE } from './LoginStorage';
-import { ACCOUNT_SETTINGS_AS_TOKEN, ACCOUNT_SETTINGS_AUTHZ_SERVER, ACCOUNT_SETTINGS_KEYS, 
+import { ACCOUNT_SETTINGS_AS_TOKEN, ACCOUNT_SETTINGS_AUTHZ_SERVER, ACCOUNT_SETTINGS_KEYS,
   ACCOUNT_SETTINGS_REMEMBER_LOGIN, AccountSettings, AccountStore } from './AccountStore';
 import { ValueType } from '../../../../storage/keyvalue/IndexedStorage';
-  
+
 export const ACCOUNT_STORAGE_DESCRIPTION = {
   [ACCOUNT_SETTINGS_REMEMBER_LOGIN]: 'boolean?',
   [ACCOUNT_SETTINGS_AUTHZ_SERVER]: 'string?',
@@ -16,7 +16,7 @@ export const ACCOUNT_STORAGE_DESCRIPTION = {
  * A {@link AccountStore} that uses an {@link AccountLoginStorage} to keep track of the accounts.
  * Needs to be initialized before it can be used.
  */
-export class BaseAccountStore extends Initializer implements AccountStore {
+export class UmaAccountStore extends Initializer implements AccountStore {
   private readonly logger = getLoggerFor(this);
 
   private readonly storage: AccountLoginStorage<{ [ACCOUNT_TYPE]: typeof ACCOUNT_STORAGE_DESCRIPTION }>;
