@@ -65,7 +65,7 @@
     "@solid/community-server": "^7.0.4",
     "@solidlab/ucp": "workspace:^",
     "@types/n3": "^1.16.4",
-    "componentsjs": "^5.4.2",
+    "componentsjs": "^5.5.1",
     "get-jwks": "^9.0.1",
     "http-message-signatures": "^1.0.4",
     "jose": "^5.2.2",

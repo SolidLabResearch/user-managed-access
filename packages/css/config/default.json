@@ -7,7 +7,7 @@
     "css:config/app/init/initialize-intro.json",
     "css:config/app/main/default.json",
     "css:config/app/variables/default.json",
-    "uma-css:config/http/handler/default.json",
+    "css:config/http/handler/default.json",
     "css:config/http/middleware/default.json",
     "css:config/http/notifications/all.json",
     "css:config/http/server-factory/http.json",
@@ -57,6 +57,25 @@
         "podCreator": { "@id": "urn:solid-server:default:PodCreator" },
         "configFilePath": { "@id": "urn:solid-server:default:variable:seedConfig" }
       }
+    },
+    {
+      "comment": "Add JWKS handler to list of base handlers so the server exposes its public key.",
+      "@id": "urn:solid-server:override:BaseHttpHandler",
+      "@type": "Override",
+      "overrideInstance": { "@id": "urn:solid-server:default:BaseHttpHandler" },
+      "overrideSteps": [{
+        "@type": "OverrideListInsertAt",
+        "overrideParameter": { "@id": "WaterfallHandler:_handlers" },
+        "overrideTarget": 0,
+        "overrideValue": {
+          "@id": "urn:solid-server:default:JwksHandler",
+          "@type": "JwksHandler",
+          "path": "/.well-known/jwks.json",
+          "generator": {
+            "@id": "urn:solid-server:default:JwkGenerator"
+          }
+        }
+      }]
     }
   ]
 }

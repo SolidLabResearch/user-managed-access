@@ -71,7 +71,7 @@
     "@solidlab/derived-resources-component": "^1.0.2",
     "@solidlab/uma": "workspace:^",
     "@types/n3": "^1.16.4",
-    "componentsjs": "^5.4.2",
+    "componentsjs": "^5.5.1",
     "fetch-retry": "^6.0.0",
     "http-message-signatures": "^1.0.4",
     "jose": "^5.2.2",
