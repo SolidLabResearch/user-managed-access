@@ -26,6 +26,11 @@
         "comment": "Path to the directory containing the N3 rules.",
         "@id": "urn:uma:variables:rulesDir",
         "@type": "Variable"
+      },
+      {
+        "comment": "Path of the local eye reasoner.",
+        "@id": "urn:uma:variables:eyePath",
+        "@type": "Variable"
       }
     ]
   }

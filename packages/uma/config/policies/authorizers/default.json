@@ -51,6 +51,7 @@
       "fallback": {
         "@id": "urn:uma:default:OdrlAuthorizer",
         "@type": "OdrlAuthorizer",
+        "eyePath": { "@id": "urn:uma:variables:eyePath" },
         "policies": {
           "@id": "urn:uma:default:RulesStorage",
           "@type": "DirectoryUCRulesStorage",
