@@ -4,16 +4,15 @@ import {
   getLoggerFor,
   HttpErrorClass,
   KeyValueStorage,
-  UnauthorizedHttpError,
-  UnsupportedMediaTypeHttpError
+  UnauthorizedHttpError
 } from '@solid/community-server';
 import { randomUUID } from 'node:crypto';
+import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
+import { Ticket } from '../ticketing/Ticket';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 import { verifyRequest } from '../util/HttpMessageSignatures';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
-import { Ticket } from '../ticketing/Ticket';
-import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 
 /**
  * A TicketRequestHandler is tasked with implementing
@@ -24,11 +23,6 @@ import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 export class TicketRequestHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
-  /**
-   * A TicketRequestHandler is tasked with implementing
-   * section 3.2 from the User-Managed Access (UMA) Profile of OAuth 2.0.
-   * @param {RequestingPartyRegistration[]} resourceServers - Pod Servers to be registered with the UMA AS
-   */
   constructor(
     private readonly ticketingStrategy: TicketingStrategy,
     private readonly ticketStore: KeyValueStorage<string, Ticket>,
@@ -36,19 +30,9 @@ export class TicketRequestHandler extends HttpHandler {
     super();
   }
 
-  /**
-  * Handle incoming requests for permission registration
-  * @param {HttpHandlerContext} param0
-  * @return {Observable<HttpHandlerResponse<PermissionRegistrationResponse>>}
-  */
   async handle({request}: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
     this.logger.info(`Received permission registration request.`);
     if (!await verifyRequest(request)) throw new UnauthorizedHttpError();
-
-    if (request.headers['content-type'] !== 'application/json') {
-      throw new UnsupportedMediaTypeHttpError(
-          'Only Media Type "application/json" is supported for this route.');
-    }
 
     if (!request.body || !Array.isArray(request.body)) {
       this.error(BadRequestHttpError, 'Request body must be a JSON array.');
@@ -69,10 +53,9 @@ export class TicketRequestHandler extends HttpHandler {
     if (resolved.success) return { status: 200 };
 
     const id = randomUUID();
-    this.ticketStore.set(id, ticket);
+    await this.ticketStore.set(id, ticket);
 
     return {
-      headers: {'content-type': 'application/json'},
       status: 201,
       body: { ticket: id },
     };

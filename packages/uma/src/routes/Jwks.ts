@@ -1,5 +1,5 @@
-import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 import { getLoggerFor, JwkGenerator } from '@solid/community-server';
+import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 
 /**
  * An HttpHandler used for returning the configuration
@@ -8,21 +8,12 @@ import { getLoggerFor, JwkGenerator } from '@solid/community-server';
 export class JwksRequestHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
-  /**
-   * Yields a new request handler for JWKS
-   * @param {JwksKeyHolder} keyholder - the keyholder to be used for serving JWKS
-   */
   public constructor(
     private readonly generator: JwkGenerator
   ) {
     super();
   }
 
-  /**
-     * Returns the JSON Web KeySet for specified keyholder
-     * @param {HttpHandlerContext} context - an irrelevant incoming context
-     * @return {Observable<HttpHandlerResponse>} - the JWKS response
-     */
   async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
     this.logger.info(`Received JWKS request at '${context.request.url}'`);
 
@@ -30,10 +21,7 @@ export class JwksRequestHandler extends HttpHandler {
 
     return {
       status: 200,
-      headers: {
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({ keys: [ key ] }),
+      body: { keys: [ key ] },
     };
   }
 }

@@ -1,15 +1,8 @@
-
-import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
+import { BadRequestHttpError, getLoggerFor, KeyValueStorage, UnauthorizedHttpError } from '@solid/community-server';
 import { AccessToken } from '../tokens/AccessToken';
 import { JwtTokenFactory } from '../tokens/JwtTokenFactory';
 import { SerializedToken } from '../tokens/TokenFactory';
-import {
-  BadRequestHttpError,
-  getLoggerFor,
-  JwkGenerator, KeyValueStorage,
-  UnauthorizedHttpError,
-  UnsupportedMediaTypeHttpError
-} from '@solid/community-server';
+import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 import { verifyRequest } from '../util/HttpMessageSignatures';
 import { jwtDecrypt } from 'jose';
 
@@ -41,28 +34,12 @@ export class IntrospectionHandler extends HttpHandler {
   constructor(
     private readonly tokenStore: KeyValueStorage<string, AccessToken>,
     private readonly jwtTokenFactory: JwtTokenFactory,
-    private readonly keyGen: JwkGenerator,
   ) {
     super();
   }
 
-  /**
-  * Handle incoming requests for token introspection
-  * @param {HttpHandlerContext} param0
-  * @return {Observable<HttpHandlerResponse<any>>}
-  */
   async handle({request}: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
     if (!await verifyRequest(request)) throw new UnauthorizedHttpError();
-
-    if (request.headers['content-type'] !== 'application/x-www-form-urlencoded') {
-      throw new UnsupportedMediaTypeHttpError(
-          'Only Media Type "application/x-www-form-urlencoded" is supported for this route.');
-    }
-
-    if (request.headers['accept'] !== 'application/json') {
-      throw new UnsupportedMediaTypeHttpError(
-          'Only "application/json" can be served by this route.');
-    }
 
     if (!request.body /*|| !(request.body instanceof Object) */) { // todo: why was the object check here??
       throw new BadRequestHttpError('Missing request body.');
@@ -73,7 +50,6 @@ export class IntrospectionHandler extends HttpHandler {
       if(!token) throw new Error('could not extract token from request body')
       const unsignedToken = await this.processJWTToken(token)
       return {
-        headers: {'content-type': 'application/json'},
         status: 200,
         body: unsignedToken,
       };

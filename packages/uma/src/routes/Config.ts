@@ -8,17 +8,17 @@ export enum ResponseType {
   Token = 'token',
   Code = 'code',
   IDToken = 'id_token'
-};
+}
 // eslint-enable
 
 export type OAuthConfiguration = {
-    issuer: string,
-    jwks_uri?: string,
-    token_endpoint?: string,
-    grant_types_supported?: string[],
-    dpop_signing_alg_values_supported?: string[],
-    response_types_supported?: ResponseType[]
-    scopes_supported?: string[]
+  issuer: string,
+  jwks_uri?: string,
+  token_endpoint?: string,
+  grant_types_supported?: string[],
+  dpop_signing_alg_values_supported?: string[],
+  response_types_supported?: ResponseType[]
+  scopes_supported?: string[]
 }
 
 export type UmaConfiguration = OAuthConfiguration & {
@@ -44,18 +44,11 @@ export class ConfigRequestHandler extends HttpHandler {
     super();
   }
 
-  /**
-   * Returns the endpoint's UMA configuration
-   *
-   * @param {HttpHandlerContext} context - an irrelevant incoming context
-   * @return {Observable<HttpHandlerResponse>} - the mock response
-   */
-  async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
+  public async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
     this.logger.info(`Received discovery request at '${context.request.url}'`);
 
     return {
-      body: JSON.stringify(this.getConfig()),
-      headers: {'content-type': 'application/json'},
+      body: this.getConfig(),
       status: 200,
     };
   }

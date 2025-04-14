@@ -4,8 +4,7 @@ import {
   getLoggerFor,
   KeyValueStorage,
   MethodNotAllowedHttpError,
-  UnauthorizedHttpError,
-  UnsupportedMediaTypeHttpError
+  UnauthorizedHttpError
 } from '@solid/community-server';
 import { randomUUID } from 'node:crypto';
 import {
@@ -14,9 +13,9 @@ import {
   HttpHandlerRequest,
   HttpHandlerResponse
 } from '../util/http/models/HttpHandler';
-import { ResourceDescription } from '../views/ResourceDescription';
-import { reType } from '../util/ReType';
 import { extractRequestSigner, verifyRequest } from '../util/HttpMessageSignatures';
+import { reType } from '../util/ReType';
+import { ResourceDescription } from '../views/ResourceDescription';
 
 /**
  * A ResourceRegistrationRequestHandler is tasked with implementing
@@ -27,20 +26,12 @@ import { extractRequestSigner, verifyRequest } from '../util/HttpMessageSignatur
 export class ResourceRegistrationRequestHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
-  /**
-   * @param {RequestingPartyRegistration[]} resourceServers - Pod Servers to be registered with the UMA AS
-   */
   constructor(
     private readonly resourceStore: KeyValueStorage<string, ResourceDescription>,
   ) {
     super();
   }
 
-  /**
-  * Handle incoming requests for resource registration
-  * @param {HttpHandlerContext} param0
-  * @return {Observable<HttpHandlerResponse<PermissionRegistrationResponse>>}
-  */
   async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
     const signer = await extractRequestSigner(request);
 
@@ -58,11 +49,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
   }
 
   private async handlePost(request: HttpHandlerRequest): Promise<HttpHandlerResponse<any>> {
-    const { headers, body } = request;
-
-    if (headers['content-type'] !== 'application/json') {
-      throw new UnsupportedMediaTypeHttpError('Only Media Type "application/json" is supported for this route.');
-    }
+    const { body } = request;
 
     try {
       reType(body, ResourceDescription);
@@ -72,19 +59,16 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     }
 
     const resource = randomUUID();
-    this.resourceStore.set(resource, body);
+    await this.resourceStore.set(resource, body);
 
     this.logger.info(`Registered resource ${resource}.`);
 
     return ({
       status: 201,
-      headers: {
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
+      body: {
         _id: resource,
         user_access_policy_uri: 'TODO: implement policy UI',
-      }),
+      },
     })
   }
 
@@ -97,9 +81,6 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
 
     this.logger.info(`Deleted resource ${parameters.id}.`);
 
-    return ({
-      status: 204,
-      headers: {},
-    });
+    return { status: 204 };
   }
 }

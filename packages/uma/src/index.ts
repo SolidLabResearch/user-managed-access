@@ -59,12 +59,17 @@ export * from './views/Contract';
 export * from './views/ResourceDescription';
 export * from './views/ScopeDescription';
 
-/* Replace the following with CSS types */
-
 // HTTP
 export * from './util/http/identifier/BaseTargetExtractor';
 export * from './util/http/models/HttpHandler';
 export * from './util/http/models/HttpHandlerRoute';
 export * from './util/http/server/ErrorHandler';
+export * from './util/http/server/JsonFormHttpHandler';
 export * from './util/http/server/NodeHttpRequestResponseHandler';
 export * from './util/http/server/RoutedHttpRequestHandler';
+
+// Util
+export * from './util/ConvertUtil';
+export * from './util/HttpMessageSignatures';
+export * from './util/Result';
+export * from './util/ReType';

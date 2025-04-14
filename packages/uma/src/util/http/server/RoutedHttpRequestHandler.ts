@@ -57,7 +57,7 @@ export class RoutedHttpRequestHandler extends HttpHandler {
     if (!match) {
       if (this.defaultHandler) {
         this.logger.info(`No matching route found, calling default handler. ${path}`);
-        return this.defaultHandler.handle(context);
+        return this.defaultHandler.handleSafe(context);
       } else {
         this.logger.error(`No matching route found. ${path}`);
         return { body: '', headers: {}, status: 404 };
@@ -76,6 +76,6 @@ export class RoutedHttpRequestHandler extends HttpHandler {
     }
     request.parameters = { ...request.parameters, ...match.parameters };
 
-    return match.route.handler.handle(context);
+    return match.route.handler.handleSafe(context);
   }
 }
