@@ -41,11 +41,11 @@ export class TokenRequestHandler extends HttpHandler {
         body: tokenResponse
       };
     } catch (e) {
-      if (ForbiddenHttpError.isInstance(e)) return ({
+      if (NeedInfoError.isInstance(e)) return ({
         status: 403,
         body: {
-          ticket: (e as NeedInfoError).ticket,
-          ...(e as NeedInfoError).additionalParams
+          ticket: e.ticket,
+          ...e.additionalParams
         }
       });
       throw e; // TODO: distinguish other errors

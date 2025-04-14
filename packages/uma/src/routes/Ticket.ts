@@ -2,7 +2,6 @@ import {
   BadRequestHttpError,
   createErrorMessage,
   getLoggerFor,
-  HttpErrorClass,
   KeyValueStorage,
   UnauthorizedHttpError
 } from '@solid/community-server';
@@ -34,17 +33,11 @@ export class TicketRequestHandler extends HttpHandler {
     this.logger.info(`Received permission registration request.`);
     if (!await verifyRequest(request)) throw new UnauthorizedHttpError();
 
-    if (!request.body || !Array.isArray(request.body)) {
-      this.error(BadRequestHttpError, 'Request body must be a JSON array.');
-    }
-
     try {
       reType(request.body, array(Permission));
     } catch (e) {
-      this.logger.debug(`Syntax error: ${createErrorMessage(e)}, ${request.body}`);
-      e instanceof Error
-        ? this.error(BadRequestHttpError, 'Request has bad syntax: ' + e.message)
-        : this.error(BadRequestHttpError, 'Request has bad syntax');
+      this.logger.warn(`Syntax error: ${createErrorMessage(e)}, ${request.body}`);
+      throw new BadRequestHttpError(`Request has bad syntax: ${createErrorMessage(e)}`);
     }
 
     const ticket = await this.ticketingStrategy.initializeTicket(request.body);
@@ -59,16 +52,5 @@ export class TicketRequestHandler extends HttpHandler {
       status: 201,
       body: { ticket: id },
     };
-  }
-
-  /**
-   * Logs and throws an error
-   *
-   * @param {HttpErrorClass} constructor - the error constructor
-   * @param {string} message - the error message
-   */
-  private error(constructor: HttpErrorClass, message: string): never {
-    this.logger.warn(message);
-    throw new constructor(message);
   }
 }
