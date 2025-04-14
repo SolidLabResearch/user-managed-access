@@ -3,7 +3,7 @@ import {
   createErrorMessage,
   getLoggerFor,
   KeyValueStorage,
-  MethodNotAllowedHttpError,
+  MethodNotAllowedHttpError, NotFoundHttpError,
   UnauthorizedHttpError
 } from '@solid/community-server';
 import { randomUUID } from 'node:crypto';
@@ -55,7 +55,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
       reType(body, ResourceDescription);
     } catch (e) {
       this.logger.warn(`Syntax error: ${createErrorMessage(e)}, ${body}`);
-      throw new BadRequestHttpError(`Request has bad syntax${e instanceof Error ? ': ' + e.message : ''}`)
+      throw new BadRequestHttpError(`Request has bad syntax: ${createErrorMessage(e)}`);
     }
 
     const resource = randomUUID();
@@ -75,8 +75,8 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
   private async handleDelete({ parameters }: HttpHandlerRequest): Promise<HttpHandlerResponse<any>> {
     if (typeof parameters?.id !== 'string') throw new Error('URI for DELETE operation should include an id.');
 
-    if (!await this.resourceStore.has(parameters.id)) {
-      throw new Error('Registration to be deleted does not exist (id unknown).');
+    if (!await this.resourceStore.delete(parameters.id)) {
+      throw new NotFoundHttpError('Registration to be deleted does not exist (id unknown).');
     }
 
     this.logger.info(`Deleted resource ${parameters.id}.`);

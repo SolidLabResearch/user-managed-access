@@ -31,4 +31,8 @@ export class NeedInfoError extends ForbiddenHttpError {
     this.ticket = ticket;
     this.additionalParams = additionalParams;
   }
+
+  public static isInstance(error: unknown): error is NeedInfoError {
+    return ForbiddenHttpError.isInstance(error) && typeof (error as NeedInfoError).ticket === 'string';
+  }
 }

@@ -68,7 +68,12 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
     const context: HttpHandlerContext<Buffer> = { request: httpHandlerRequest };
 
-    this.logger.info(`Domestic request: ${JSON.stringify({ eventType: 'domestic_request', context })}`);
+    this.logger.info(`Domestic request: ${JSON.stringify({ eventType: 'domestic_request', context: {
+      request: {
+        ...context.request,
+        ...context.request.body && { body: context.request.body.toString() }
+      }
+      } })}`);
 
     let response = await this.httpHandler.handleSafe(context);
 
