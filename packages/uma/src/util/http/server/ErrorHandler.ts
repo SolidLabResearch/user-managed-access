@@ -45,44 +45,34 @@ export const statusCodes: { [code: number]: string } = {
 };
 
 /**
- * Handler class that properly processes the HttpErrors from handlersjs-http
+ * Handler class that properly processes the HttpErrors and returns JSON responses.
  */
 export class JsonHttpErrorHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
-  /**
-   * Creates an {ErrorHandler} that catches errors and returns an error response to the given handler.
-   */
   constructor(
     private nestedHandler: HttpHandler,
   ) {
     super();
   }
 
-  /**
-   * Handle Http Request and catch any Errors that occur
-   *
-   * @param {HttpHandlerContext} context - Request context
-   * @return {Observable<HttpHandlerResponse>}
-   */
   async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
     try {
-      return this.nestedHandler.handle(context);
+      return await this.nestedHandler.handleSafe(context);
     } catch (error) {
       this.logger.error(`Returned error for ${context.request.method} '${context.request.url}':` +
       ` ${(error as Error).name} ${(error as Error).message} ${JSON.stringify(error)}`);
 
       return {
         status: statusCodes[error?.statusCode] ? error.statusCode : 500,
-        headers: {'content-type': 'application/json'},
-        body: JSON.stringify({
+        body: {
           'status': statusCodes[error?.statusCode] ? error.statusCode : 500,
           'description': statusCodes[error?.statusCode] ? statusCodes[error.statusCode] : statusCodes[500],
           'error': error?.type ?? error.type,
           'message': error?.message ?? error.message,
-          ...(error?.additionalParams?error.additionalParams:{}),
-        }),
+          ...(error?.additionalParams ? error.additionalParams : {}),
+        }
       };
-    };
+    }
   }
 }

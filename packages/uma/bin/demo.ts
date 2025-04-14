@@ -38,7 +38,7 @@ export const launch: () => Promise<void> = async () => {
   await manager.configRegistry.register(configPath);
 
   const umaServer: ServerInitializer = await manager.instantiate('urn:uma:default:NodeHttpServer',{variables});
-  await umaServer.handle();
+  await umaServer.handleSafe();
 
 };
 

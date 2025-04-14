@@ -1,8 +1,8 @@
 import { AsyncHandler } from '@solid/community-server';
 import { OutgoingHttpHeaders } from 'http';
 
-export interface HttpHandlerContext {
-  request: HttpHandlerRequest;
+export interface HttpHandlerContext<B = unknown> {
+  request: HttpHandlerRequest<B>;
 }
 
 export interface HttpHandlerRequest<B = unknown> {
@@ -19,5 +19,5 @@ export interface HttpHandlerResponse<B = unknown> {
   status: number;
 }
 
-export abstract class HttpHandler<C extends HttpHandlerContext = HttpHandlerContext>
-  extends AsyncHandler<C, HttpHandlerResponse> { }
+export abstract class HttpHandler<C extends HttpHandlerContext = HttpHandlerContext, B = unknown>
+  extends AsyncHandler<C, HttpHandlerResponse<B>> { }
