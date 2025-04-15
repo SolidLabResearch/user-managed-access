@@ -3,12 +3,18 @@
     "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
   ],
   "import": [
+    "uma-css:config/uma/overrides/account-seeding.json",
+    "uma-css:config/uma/overrides/account-store.json",
+    "uma-css:config/uma/overrides/authorization-handler.json",
+    "uma-css:config/uma/overrides/jwks.json",
+    "uma-css:config/uma/overrides/token-extractor.json",
+    "uma-css:config/uma/overrides/www-auth.json",
+
     "uma-css:config/uma/parts/cli.json",
     "uma-css:config/uma/parts/client.json",
     "uma-css:config/uma/parts/fetcher.json",
     "uma-css:config/uma/parts/owner-util.json",
     "uma-css:config/uma/parts/resource-registrar.json",
     "uma-css:config/uma/parts/server-configurator.json"
-  ],
-  "@graph": []
+  ]
 }

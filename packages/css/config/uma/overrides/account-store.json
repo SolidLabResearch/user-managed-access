@@ -1,0 +1,21 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Replace the account store with the UMA version that stores AS settings.",
+      "@id": "urn:solid-server:override:AccountStore",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:AccountStore"
+      },
+      "overrideParameters": {
+        "@type": "UmaAccountStore",
+        "storage": {
+          "@id": "urn:solid-server:default:AccountStorage"
+        }
+      }
+    }
+  ]
+}
