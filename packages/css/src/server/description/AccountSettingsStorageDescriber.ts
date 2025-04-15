@@ -1,16 +1,15 @@
 import type { NamedNode, Quad, Quad_Object, Term } from '@rdfjs/types';
+import type { AccountSettings, AccountStore, PodStore, ResourceIdentifier } from '@solid/community-server';
+import { StorageDescriber } from '@solid/community-server';
 import { DataFactory } from 'n3';
 import { stringToTerm } from 'rdf-string';
-import type { PodStore, ResourceIdentifier } from '@solid/community-server';
-import { StorageDescriber } from '@solid/community-server';
-import quad = DataFactory.quad;
 import namedNode = DataFactory.namedNode;
-import type { AccountStore, AccountSettings } from '../../identity/interaction/account/util/AccountStore';
+import quad = DataFactory.quad;
 
 /**
  * Adds triples to the storage description resource, based on the settings of
- * the account that created the storage. 
- * 
+ * the account that created the storage.
+ *
  * The resource identifier of the storage is used as subject.
  */
 export class AccountSettingsStorageDescriber extends StorageDescriber {
@@ -22,15 +21,15 @@ export class AccountSettingsStorageDescriber extends StorageDescriber {
     terms: Record<string, keyof AccountSettings>,
   ) {
     super();
-    
+
     const termMap = new Map<NamedNode, keyof AccountSettings>();
     for (const [ predicate, settingsKey ] of Object.entries(terms)) {
-    
+
       const predTerm = stringToTerm(predicate);
       if (predTerm.termType !== 'NamedNode') {
         throw new Error('Predicate needs to be a named node.');
       }
-      
+
       termMap.set(predTerm, settingsKey);
     }
 
@@ -51,7 +50,7 @@ export class AccountSettingsStorageDescriber extends StorageDescriber {
   }
 
   private async* generateTriples(subject: NamedNode, account: string): AsyncGenerator<Quad> {
-    
+
     for (const [ predicate, settingsKey ] of this.terms.entries()) {
 
       const settingsValue = await this.accountStore.getSetting(account, settingsKey);
