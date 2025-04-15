@@ -1,25 +1,23 @@
-import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
-import { Ticket } from '../ticketing/Ticket';
+import { ForbiddenHttpError } from '@solid/community-server';
+import { v4 } from 'uuid';
+import { AccessToken, Permission, Requirements } from '..';
 import { Verifier } from '../credentials/verify/Verifier';
-import { TokenFactory } from '../tokens/TokenFactory';
-import { Negotiator } from './Negotiator';
-import { getLoggerFor } from '../util/logging/LoggerUtils';
-import { Logger } from '../util/logging/Logger';
 import { NeedInfoError } from '../errors/NeedInfoError';
-import { DialogInput } from './Input';
-import { DialogOutput } from './Output';
+import { ContractManager } from '../policies/contracts/ContractManager';
+import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
+import { Ticket } from '../ticketing/Ticket';
+import { TokenFactory } from '../tokens/TokenFactory';
+import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
+import { Logger } from '../util/logging/Logger';
+import { getLoggerFor } from '../util/logging/LoggerUtils';
+import { processRequestPermission, switchODRLandCSSPermission } from '../util/rdf/RequestProcessing';
+import { Result, Success } from '../util/Result';
 import { reType } from '../util/ReType';
 import { KeyValueStore } from '../util/storage/models/KeyValueStore';
-import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
-import { v4 } from 'uuid';
-import { ForbiddenHttpError } from '@solid/community-server';
-// import { getOperationLogger } from '../logging/OperationLogger';
-// import { serializePolicyInstantiation } from '../logging/OperationSerializer';
-import { ContractManager } from '../policies/contracts/ContractManager';
-import { Result, Success } from '../util/Result';
-import { AccessToken, Permission, Requirements } from '..';
-import { convertStringOrJsonLdIdentifierToString, JsonLdIdentifier, ODRLContract, ODRLPermission, StringOrJsonLdIdentifier } from '../views/Contract';
-import { processRequestPermission, switchODRLandCSSPermission } from '../util/rdf/RequestProcessing';
+import { convertStringOrJsonLdIdentifierToString, ODRLContract, StringOrJsonLdIdentifier } from '../views/Contract';
+import { DialogInput } from './Input';
+import { Negotiator } from './Negotiator';
+import { DialogOutput } from './Output';
 
 
 /**
@@ -56,7 +54,7 @@ export class ContractNegotiator implements Negotiator {
    */
   public async negotiate(input: DialogInput): Promise<DialogOutput> {
     reType(input, DialogInput);
-    if (!input.permissions && input.permission?.length) 
+    if (!input.permissions && input.permission?.length)
       input.permissions = input.permission.map(p => processRequestPermission(p))
     this.logger.debug(`Input.`, input);
     // Create or retrieve ticket
@@ -74,17 +72,17 @@ export class ContractNegotiator implements Negotiator {
     try {
       contract = this.contractManager.findContract(updatedTicket)
     } catch (e) {
-      this.logger.debug('Error', e)  
+      this.logger.debug('Error', e)
     }
-    
+
     this.logger.debug('Contract retrieval attempt', contract)
 
-    if (contract) { 
+    if (contract) {
       result = Success(contract)
       this.logger.debug('Existing contract discovered', contract)
     } else {
       this.logger.debug(`No existing contract discovered. Attempting to resolve ticket.`)
-      
+
       const resolved = await this.ticketingStrategy.resolveTicket(updatedTicket);
       this.logger.debug('Resolved ticket.', resolved);
 
@@ -92,8 +90,7 @@ export class ContractNegotiator implements Negotiator {
         this.logger.debug('Ticket resolved succesfully.', resolved)
         // todo: get necessary information here for contract creation
         contract = this.contractManager.createContract(resolved.value)
-        if (contract) result = Success(contract)
-        else throw new Error('It should not be possible to get an incorrect contract with a resolved policy evaluation')
+        result = Success(contract);
 
         this.logger.debug('New contract created')
         this.logger.debug(JSON.stringify(contract, null, 2))
@@ -104,22 +101,32 @@ export class ContractNegotiator implements Negotiator {
       }
     }
 
-    if (result.success) {      
+    if (result.success) {
       let contract : ODRLContract = result.value
 
       this.logger.debug(JSON.stringify(contract, null, 2))
 
       // todo: set resource scopes according to contract!
-      let permissions: Permission[] = contract.permission.map( (p: ODRLPermission) => {
-        const perm : Permission = {
-          // We do not accept AssetCollections as targets of an UMA access request formatted as an ODRL request!
-          resource_id: convertStringOrJsonLdIdentifierToString(p.target as StringOrJsonLdIdentifier),
-          resource_scopes: [ // mapping from ODRL to internal CSS read permission
-            switchODRLandCSSPermission(convertStringOrJsonLdIdentifierToString(p.action))
-          ] 
+      // Using a map first as the contract could return multiple entries for the same resource_id
+      // as it only allows 1 action per entry.
+      const permissionMap: Record<string, Permission> = {};
+      for (const permission of contract.permission) {
+        const id = convertStringOrJsonLdIdentifierToString(permission.target as StringOrJsonLdIdentifier);
+        if (!permissionMap[id]) {
+          permissionMap[id] = {
+            // We do not accept AssetCollections as targets of an UMA access request formatted as an ODRL request!
+            resource_id: id,
+            resource_scopes: [ // mapping from ODRL to internal CSS read permission
+              switchODRLandCSSPermission(convertStringOrJsonLdIdentifierToString(permission.action))
+            ]
+          };
+        } else {
+          permissionMap[id].resource_scopes.push(
+            switchODRLandCSSPermission(convertStringOrJsonLdIdentifierToString(permission.action))
+          );
         }
-        return(perm)
-      })
+      }
+      let permissions: Permission[] = Object.values(permissionMap);
       this.logger.debug('granting permissions:', permissions)
 
       // Create response
@@ -137,8 +144,9 @@ export class ContractNegotiator implements Negotiator {
       // Store created instantiated policy (above contract variable) in the pod storage as an instantiated policy
       // todo: dynamic URL
       // todo: fix instantiated from url
-      // contract['http://www.w3.org/ns/prov#wasDerivedFrom'] = [ 'urn:ucp:be-gov:policy:d81b8118-af99-4ab3-b2a7-63f8477b6386 '] 
-      const instantiatedPolicyContainer = 'http://localhost:3000/ruben/settings/policies/instantiated/'; 
+      // contract['http://www.w3.org/ns/prov#wasDerivedFrom'] = [ 'urn:ucp:be-gov:policy:d81b8118-af99-4ab3-b2a7-63f8477b6386 ']
+      // TODO: test-private error: this container does not exist and unauth does not have append perms
+      const instantiatedPolicyContainer = 'http://localhost:3000/ruben/settings/policies/instantiated/';
       const policyCreationResponse = await fetch(instantiatedPolicyContainer, {
         method: 'POST',
         headers: { 'content-type': 'application/ld+json' },
@@ -146,15 +154,15 @@ export class ContractNegotiator implements Negotiator {
       });
 
       if (policyCreationResponse.status !== 201) { this.logger.warn('Adding a policy did not succeed...') }
-     
-      // TODO:: dynamic contract link to stored signed contract. 
+
+      // TODO:: dynamic contract link to stored signed contract.
       // If needed we can always embed here directly into the return JSON
       return ({
         access_token: token,
         token_type: tokenType,
       });
     }
-    
+
     // ... on failure, deny if no solvable requirements
     const requiredClaims = ticket.required.map(req => Object.keys(req));
     if (requiredClaims.length === 0) throw new ForbiddenHttpError();
@@ -172,9 +180,9 @@ export class ContractNegotiator implements Negotiator {
   /**
    * Helper function that retrieves a Ticket from the TicketStore if it exists,
    * or initializes a new one otherwise.
-   * 
+   *
    * @param input - The input of the negotiation dialog.
-   * 
+   *
    * @returns The Ticket describing the dialog at hand.
    */
   private async getTicket(input: DialogInput): Promise<Ticket> {
@@ -201,7 +209,7 @@ export class ContractNegotiator implements Negotiator {
    *
    * @param input - The input of the negotiation dialog.
    * @param ticket - The Ticket against which to validate any Credentials.
-   * 
+   *
    * @returns An updated Ticket in which the Credentials have been validated.
    */
   private async processCredentials(input: DialogInput, ticket: Ticket): Promise<Ticket> {
@@ -224,7 +232,7 @@ export class ContractNegotiator implements Negotiator {
    *
    * @param {ErrorConstructor} constructor - The error constructor.
    * @param {string} message - The error message.
-   * 
+   *
    * @throws An Error constructed with the provided constructor with the
    * provided message
    */
