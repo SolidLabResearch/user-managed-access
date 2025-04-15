@@ -1,0 +1,34 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Replace the authorization handler with UMA support.",
+      "@id": "urn:solid-server:override:LdpHandler",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:LdpHandler"
+      },
+      "overrideParameters": {
+        "@type": "ParsingHttpHandler",
+        "operationHandler": {
+          "@type": "AuthorizingHttpHandler",
+          "credentialsExtractor": { "@id": "urn:solid-server:default:CredentialsExtractor" },
+          "modesExtractor": { "@id": "urn:solid-server:default:ModesExtractor" },
+          "permissionReader": { "@id": "urn:solid-server:default:PermissionReader" },
+          "authorizer": {
+            "comment": "Requests UMA ticket when authorization fails.",
+            "@id": "urn:solid-server:default:UmaAuthorizer",
+            "@type": "UmaAuthorizer",
+            "authorizer": { "@id": "urn:solid-server:default:Authorizer" },
+            "umaClient": { "@id": "urn:solid-server:default:UmaClient" },
+            "ownerUtil": { "@id": "urn:solid-server:default:OwnerUtil" }
+          },
+          "operationHandler": { "@id": "urn:solid-server:default:OperationHandler" }
+        }
+      }
+    }
+  ]
+}
