@@ -1,0 +1,23 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Replace the account seeder with the UMA version so the AS is taken into account.",
+      "@id": "urn:solid-server:override:SeededAccountInitializer",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:SeededAccountInitializer"
+      },
+      "overrideParameters": {
+        "comment": "Initializer that instantiates all the seeded accounts and pods.",
+        "@type": "UmaSeededAccountInitializer",
+        "accountStore": { "@id": "urn:solid-server:default:AccountStore" },
+        "passwordStore": { "@id": "urn:solid-server:default:PasswordStore" },
+        "podCreator": { "@id": "urn:solid-server:default:PodCreator" },
+        "configFilePath": { "@id": "urn:solid-server:default:variable:seedConfig" }
+      }
+    }
+  ]
+}
