@@ -1,9 +1,19 @@
+import {
+  AccountStore,
+  createErrorMessage,
+  getLoggerFor,
+  Initializer,
+  PasswordStore,
+  PodCreator,
+  URL_SCHEMA
+} from '@solid/community-server';
 import { readJson } from 'fs-extra';
 import { array, object, string } from 'yup';
-import { PasswordStore, PodCreator, URL_SCHEMA, getLoggerFor,
-  createErrorMessage, Initializer} from '@solid/community-server';
-import { ACCOUNT_SETTINGS_AUTHZ_SERVER, ACCOUNT_SETTINGS_KEYS,
-  type AccountStore } from '../identity/interaction/account/util/AccountStore'
+import {
+  ACCOUNT_SETTINGS_AUTHZ_SERVER,
+  ACCOUNT_SETTINGS_KEYS,
+  UMA_ACCOUNT_STORAGE_TYPE
+} from '../identity/interaction/account/util/AccountSettings';
 
 const inSchema = array().of(object({
   email: string().trim().email().lowercase().required(),
@@ -24,7 +34,7 @@ export interface SeededAccountInitializerArgs {
   /**
    * Creates the accounts.
    */
-  accountStore: AccountStore;
+  accountStore: AccountStore<UMA_ACCOUNT_STORAGE_TYPE>;
   /**
    * Adds the login methods.
    */
@@ -47,7 +57,7 @@ export interface SeededAccountInitializerArgs {
 export class UmaSeededAccountInitializer extends Initializer {
   protected readonly logger = getLoggerFor(this);
 
-  private readonly accountStore: AccountStore;
+  private readonly accountStore: AccountStore<UMA_ACCOUNT_STORAGE_TYPE>;
   private readonly passwordStore: PasswordStore;
   private readonly podCreator: PodCreator;
   private readonly configFilePath?: string;
