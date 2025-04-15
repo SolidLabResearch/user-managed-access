@@ -1,9 +1,9 @@
-import { getLoggerFor } from "@solid/community-server";
-import { DialogInput, Permission, Ticket } from "../.."
-import { ContractStorage } from "./ContractStorage";
-import { ODRLContract, ODRLConstraint, ODRLPermission } from "../../views/Contract";
-import { randomUUID } from "crypto";
-import { switchODRLandCSSPermission } from "../../util/rdf/RequestProcessing";
+import { getLoggerFor } from '@solid/community-server';
+import { randomUUID } from 'crypto';
+import { Permission, Ticket } from '../..'
+import { switchODRLandCSSPermission } from '../../util/rdf/RequestProcessing';
+import { ODRLContract, ODRLPermission } from '../../views/Contract';
+import { ContractStorage } from './ContractStorage';
 
 
 export class ContractManager {
@@ -28,7 +28,10 @@ export class ContractManager {
         console.log('Creating Contract', JSON.stringify(perms, null, 2))
 
         // todo: un-mock this!!!
-        const permission = perms[0];
+        type Pair = { action: string, target: string };
+        const permissionPairs: Pair[] = perms.flatMap(
+          (perm): Pair[] => perm.resource_scopes.map(
+            (scope): Pair => ({ action: scope, target: perm.resource_id })));
 
         const contract: ODRLContract = {
             "@context": "http://www.w3.org/ns/odrl.jsonld",
@@ -36,10 +39,10 @@ export class ContractManager {
             uid: `urn:uma:pacsoi:agreement:${randomUUID()}`,
             "http://purl.org/dc/terms/description": "Agreement for HCP X to read Alice's health data for bariatric care.",
             "https://w3id.org/dpv#hasLegalBasis": { "@id": "https://w3id.org/dpv/legal/eu/gdpr#eu-gdpr:A9-2-a" },
-            permission: [ { 
+            permission: permissionPairs.map(({ action, target }): ODRLPermission => ({
                 "@type": "Permission",
-                action: switchODRLandCSSPermission(permission.resource_scopes[0]),
-                target: permission.resource_id,
+                action: switchODRLandCSSPermission(action),
+                target: target,
                 assigner: 'http://localhost:3000/ruben/profile/card#me', // user WebID
                 assignee: 'http://localhost:3000/alice/profile/card#me', // target WebID
                 constraint: [ {
@@ -48,7 +51,7 @@ export class ContractManager {
                     operator:  "eq",
                     rightOperand: { "@id": "http://example.org/bariatric-care" },
                 } ]
-            } ]
+            })),
         }
         return contract;
     }
