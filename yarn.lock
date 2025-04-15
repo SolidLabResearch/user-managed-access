@@ -4187,7 +4187,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solid/community-server@npm:^7.0.3, @solid/community-server@npm:^7.1.6":
+"@solid/community-server@npm:^7.0.3, @solid/community-server@npm:^7.1.7":
   version: 7.1.7
   resolution: "@solid/community-server@npm:7.1.7"
   dependencies:
@@ -4297,7 +4297,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@solidlab/uma-css@workspace:packages/css"
   dependencies:
-    "@solid/community-server": "npm:^7.1.6"
+    "@solid/community-server": "npm:^7.1.7"
     "@solidlab/derived-resources-component": "npm:^1.0.2"
     "@solidlab/uma": "workspace:^"
     "@types/n3": "npm:^1.16.4"
@@ -4315,7 +4315,7 @@ __metadata:
   dependencies:
     "@httpland/authorization-parser": "npm:^1.1.0"
     "@solid/access-token-verifier": "npm:^1.2.0"
-    "@solid/community-server": "npm:^7.1.6"
+    "@solid/community-server": "npm:^7.1.7"
     "@solidlab/ucp": "workspace:^"
     "@types/n3": "npm:^1.16.4"
     componentsjs: "npm:^5.5.1"
