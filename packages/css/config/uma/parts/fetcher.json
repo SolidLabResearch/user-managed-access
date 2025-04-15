@@ -1,0 +1,26 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Adds additional features when performing HTTP requests",
+      "@id": "urn:solid-server:default:UmaFetcher",
+      "@type": "PausableFetcher",
+      "fetcher": {
+        "@type": "RetryingFetcher",
+        "fetcher": {
+          "@type": "SignedFetcher",
+          "fetcher": {
+            "@type": "BaseFetcher"
+          },
+          "baseUrl": { "@id": "urn:solid-server:default:variable:baseUrl" },
+          "keyGen": { "@id": "urn:solid-server:default:JwkGenerator" }
+        },
+        "retries": 150,
+        "exponent": 3,
+        "retryOn": [401, 500]
+      }
+    }
+  ]
+}
