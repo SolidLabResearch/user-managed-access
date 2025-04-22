@@ -13,9 +13,9 @@ jobs:
       fail-fast: false
       matrix:
         node-version:
-          - 18.x # Maintenance
-          - 20.x # Active
-          - 21.x # Current
+          - 20.x # Maintenance
+          - 22.x # Active
+          - 23.x # Current
 
     steps:
 
