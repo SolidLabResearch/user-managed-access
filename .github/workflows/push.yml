@@ -19,6 +19,9 @@ jobs:
 
     steps:
 
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+
       - name: Enable Node.js Corepack
         run: corepack enable
 
@@ -27,8 +30,5 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Checkout main branch
-        uses: actions/checkout@v4
-
       - name: Yarn install
-        run: yarn install --frozen-lockfile
+        run: yarn install
