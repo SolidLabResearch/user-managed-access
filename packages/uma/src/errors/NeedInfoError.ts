@@ -1,4 +1,4 @@
-import {ForbiddenHttpError} from '../util/http/errors/ForbiddenHttpError';
+import { ForbiddenHttpError } from '@solid/community-server';
 
 export type RedirectUserInfo = {
     redirect_user: string
@@ -30,5 +30,9 @@ export class NeedInfoError extends ForbiddenHttpError {
     super(message);
     this.ticket = ticket;
     this.additionalParams = additionalParams;
+  }
+
+  public static isInstance(error: unknown): error is NeedInfoError {
+    return ForbiddenHttpError.isInstance(error) && typeof (error as NeedInfoError).ticket === 'string';
   }
 }

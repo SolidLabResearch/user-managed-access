@@ -9,7 +9,8 @@
       "params_expirationTime": "5m",
       "params_aud": "solid",
       "issuer": { "@id": "urn:uma:variables:baseUrl" },
-      "keyGen": { "@id": "urn:uma:default:JwkGenerator" }
+      "keyGen": { "@id": "urn:uma:default:JwkGenerator" },
+      "tokenStore": { "@id": "urn:uma:default:TokenStore" }
     }
   ]
 }

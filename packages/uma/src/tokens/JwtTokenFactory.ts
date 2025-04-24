@@ -1,18 +1,18 @@
-import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
-import { Logger } from '../util/logging/Logger';
-import { getLoggerFor } from '../util/logging/LoggerUtils';
 import { importJWK, jwtVerify, SignJWT } from 'jose';
-import { v4 } from 'uuid';
-import { JwkGenerator } from '@solid/community-server';
-import { isString } from '../util/StringGuard';
+import {
+  BadRequestHttpError,
+  getLoggerFor,
+  HttpErrorClass,
+  JwkGenerator,
+  KeyValueStorage
+} from '@solid/community-server';
+import { randomUUID } from 'node:crypto';
 import { SerializedToken , TokenFactory} from './TokenFactory';
 import { AccessToken } from './AccessToken';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
 
 const AUD = 'solid';
-
-type ErrorConstructor = { new(msg: string): Error };
 
 export interface JwtTokenParams {
     expirationTime: string | number
@@ -23,16 +23,18 @@ export interface JwtTokenParams {
  * A TokenFactory yielding its tokens as signed JWTs.
  */
 export class JwtTokenFactory extends TokenFactory {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   /**
      * Construct a new ticket factory
      * @param {JwkGenerator} keyGen - key generator to be used in issuance
+     * @param {KeyValueStore<string, AccessToken>} tokenStore
      */
   constructor(
-    private readonly keyGen: JwkGenerator, 
+    private readonly keyGen: JwkGenerator,
     private readonly issuer: string,
-    private readonly params: JwtTokenParams = {expirationTime: '30m', aud: 'solid'}
+    private readonly params: JwtTokenParams = {expirationTime: '30m', aud: 'solid'},
+    private readonly tokenStore: KeyValueStorage<string, AccessToken>
   ) {
     super();
   }
@@ -45,16 +47,17 @@ export class JwtTokenFactory extends TokenFactory {
   public async serialize(token: AccessToken): Promise<SerializedToken> {
     const key = await this.keyGen.getPrivateKey();
     const jwk = await importJWK(key, key.alg);
-    const jwt = await new SignJWT({ permissions: token.permissions })
+    const jwt = await new SignJWT({ permissions: token.permissions, contract: token.contract })
       .setProtectedHeader({alg: key.alg, kid: key.kid})
       .setIssuedAt()
       .setIssuer(this.issuer)
       .setAudience(AUD)
       .setExpirationTime(this.params.expirationTime)
-      .setJti(v4())
+      .setJti(randomUUID())
       .sign(jwk);
 
-    this.logger.debug('Issued new JWT Token', token);
+    this.logger.debug(`Issued new JWT Token ${JSON.stringify(token)}`);
+    await this.tokenStore.set(jwt, token);
     return {token: jwt, tokenType: 'Bearer'};
   }
 
@@ -76,8 +79,8 @@ export class JwtTokenFactory extends TokenFactory {
         throw new Error('Missing JWT parameter(s): {sub, aud, permissions, webid, azp} are required.');
       }
 
-      if (!isString(payload.webid)) throw new Error('JWT claim "webid" is not a string.');
-      if (!isString(payload.azp)) throw new Error('JWT claim "azp" is not a string.');
+      if (typeof payload.webid !== 'string') throw new Error('JWT claim "webid" is not a string.');
+      if (typeof payload.azp !== 'string') throw new Error('JWT claim "azp" is not a string.');
 
       const permissions = payload.permissions;
 
@@ -92,10 +95,10 @@ export class JwtTokenFactory extends TokenFactory {
   /**
    * Logs and throws an error
    *
-   * @param {ErrorConstructor} constructor - the error constructor
+   * @param {HttpErrorClass} constructor - the error constructor
    * @param {string} message - the error message
    */
-  private error(constructor: ErrorConstructor, message: string): never {
+  private error(constructor: HttpErrorClass, message: string): never {
     this.logger.warn(message);
     throw new constructor(message);
   }

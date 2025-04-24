@@ -1,0 +1,216 @@
+
+
+
+=================== UMA prototype flow ======================
+
+This flow defines the retrieval by a doctor of a patient resource.
+
+Doctor WebID:     http://localhost:3000/alice/profile/card#me
+Patient WebID:    http://localhost:3000/ruben/profile/card#me
+Target Resource:  http://localhost:3000/ruben/medical/smartwatch.ttl
+
+To protect this data, a policy is added restricting access to a specific healthcare employee for the purpose of bariatric care.
+
+Note: Policy management is out of scope for POC1, right now they are just served from a public container on the pod.
+additionally, selecting relevant policies is not implemented at the moment, all policies are evaluated, but this is a minor fix in the AS.
+
+The following policy is set for the AS:
+
+----------------------------------------------------
+
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#>
+PREFIX oac: <https://w3id.org/oac#>
+PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+PREFIX ex: <http://example.org/>
+
+<http://example.org/HCPX-request> a odrl:Request ;
+    odrl:uid ex:HCPX-request ;
+    odrl:profile oac: ;
+    dcterms:description "HCP X requests to read Alice's health data for bariatric care.";
+    odrl:permission <http://example.org/HCPX-request-permission> .
+
+<http://example.org/HCPX-request-permission> a odrl:Permission ;
+    odrl:action odrl:read ;
+    odrl:target <http://localhost:3000/ruben/medical/smartwatch.ttl> ;
+    odrl:assigner <http://localhost:3000/ruben/profile/card#me> ;
+    odrl:assignee <http://localhost:3000/alice/profile/card#me> ;
+    odrl:constraint <http://example.org/HCPX-request-permission-purpose>,
+        <http://example.org/HCPX-request-permission-lb> .
+
+<http://example.org/HCPX-request-permission-purpose> a odrl:Constraint ;
+    odrl:leftOperand odrl:purpose ; # can also be oac:Purpose, to conform with OAC profile
+    odrl:operator odrl:eq ;
+    odrl:rightOperand ex:bariatric-care .
+
+<http://example.org/HCPX-request-permission-lb> a odrl:Constraint ;
+    odrl:leftOperand oac:LegalBasis ;
+    odrl:operator odrl:eq ;
+    odrl:rightOperand eu-gdpr:A9-2-a .
+
+----------------------------------------------------
+
+The policy assigns read permissions for the personal doctor http://localhost:3000/alice/profile/card#me of the patient for the smartwatch resource 
+on the condition of the purpose of the request being "http://example.org/bariatric-care" and the legal basis being "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a".
+
+The doctor now tries to access the private smartwatch resource.
+
+First, a resource request is done without authorization that results in a 403 response and accompanying UMA ticket in the WWW-Authenticate header according to the UMA specification:
+UMA realm="solid", as_uri="http://localhost:4000/uma", ticket="d7d26537-7dc4-4bd4-befb-80e4fa30fa15"
+
+To the discovered AS, we now send a request for read permission to the target resource
+
+
+{
+  '@context': 'http://www.w3.org/ns/odrl.jsonld',
+  '@type': 'Request',
+  profile: { '@id': 'https://w3id.org/oac#' },
+  uid: 'http://example.org/HCPX-request/5d4dd7d0-6127-4aef-b2bc-d8ca5edbf431',
+  description: "HCP X requests to read Alice's health data for bariatric care.",
+  permission: [
+    {
+      '@type': 'Permission',
+      uid: 'http://example.org/HCPX-request-permission/b6b3f04d-e924-4597-b146-43bde021a0a0',
+      assigner: 'http://localhost:3000/ruben/profile/card#me',
+      assignee: 'http://localhost:3000/alice/profile/card#me',
+      action: [Object],
+      target: 'http://localhost:3000/ruben/medical/smartwatch.ttl'
+    }
+  ],
+  grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
+  ticket: 'd7d26537-7dc4-4bd4-befb-80e4fa30fa15'
+}
+
+Based on the policy set above, the Authorization Server requests the following claims from the doctor:
+
+  - urn:solidlab:uma:claims:types:webid
+
+  - http://www.w3.org/ns/odrl/2/purpose
+
+  - https://w3id.org/oac#LegalBasis
+
+accompanied by an updated ticket: 89f508e3-2d5d-49c5-807a-4526479a09b1.
+
+The doctor's client now gathers the necessary claims (how is out-of-scope for this demo)
+
+
+{
+  'http://www.w3.org/ns/odrl/2/purpose': 'http://example.org/bariatric-care',
+  'urn:solidlab:uma:claims:types:webid': 'http://localhost:3000/alice/profile/card#me',
+  'https://w3id.org/oac#LegalBasis': 'https://w3id.org/dpv/legal/eu/gdpr#A9-2-a'
+}
+
+and bundles them as an UMA-compliant JWT.
+
+
+{
+  claim_token: 'eyJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vd3d3LnczLm9yZy9ucy9vZHJsLzIvcHVycG9zZSI6Imh0dHA6Ly9leGFtcGxlLm9yZy9iYXJpYXRyaWMtY2FyZSIsInVybjpzb2xpZGxhYjp1bWE6Y2xhaW1zOnR5cGVzOndlYmlkIjoiaHR0cDovL2xvY2FsaG9zdDozMDAwL2FsaWNlL3Byb2ZpbGUvY2FyZCNtZSIsImh0dHBzOi8vdzNpZC5vcmcvb2FjI0xlZ2FsQmFzaXMiOiJodHRwczovL3czaWQub3JnL2Rwdi9sZWdhbC9ldS9nZHByI0E5LTItYSJ9.nT55jaXNDsHgAo_zcRMsbJqcNj4FVdW_-xjcwNam-1M',
+  claim_token_format: 'urn:solidlab:uma:claims:formats:jwt'
+}
+
+Together with the UMA grant_type and ticket requirements, these are bundled as an ODRL Request and sent back to the Authorization Server
+
+{
+  "@context": "http://www.w3.org/ns/odrl.jsonld",
+  "@type": "Request",
+  "profile": {
+    "@id": "https://w3id.org/oac#"
+  },
+  "uid": "http://example.org/HCPX-request/de7cf6e2-192c-4f75-8d81-1d82b119c19c",
+  "description": "HCP X requests to read Alice's health data for bariatric care.",
+  "permission": [
+    {
+      "@type": "Permission",
+      "@id": "http://example.org/HCPX-request-permission/b537acb7-1e8b-4017-8d30-3143a1d4ec8b",
+      "target": "http://localhost:3000/ruben/medical/smartwatch.ttl",
+      "action": {
+        "@id": "https://w3id.org/oac#read"
+      },
+      "assigner": "http://localhost:3000/ruben/profile/card#me",
+      "assignee": "http://localhost:3000/alice/profile/card#me",
+      "constraint": [
+        {
+          "@type": "Constraint",
+          "@id": "http://example.org/HCPX-request-permission-purpose/74e44ed2-b425-486a-ab16-4f899131e315",
+          "leftOperand": "purpose",
+          "operator": "eq",
+          "rightOperand": {
+            "@id": "http://example.org/bariatric-care"
+          }
+        },
+        {
+          "@type": "Constraint",
+          "@id": "http://example.org/HCPX-request-permission-purpose/ea563c10-d554-4a24-9ab9-e9e2406b981f",
+          "leftOperand": {
+            "@id": "https://w3id.org/oac#LegalBasis"
+          },
+          "operator": "eq",
+          "rightOperand": {
+            "@id": "https://w3id.org/dpv/legal/eu/gdpr#A9-2-a"
+          }
+        }
+      ]
+    }
+  ],
+  "claim_token": "eyJhbGciOiJIUzI1NiJ9.eyJodHRwOi8vd3d3LnczLm9yZy9ucy9vZHJsLzIvcHVycG9zZSI6Imh0dHA6Ly9leGFtcGxlLm9yZy9iYXJpYXRyaWMtY2FyZSIsInVybjpzb2xpZGxhYjp1bWE6Y2xhaW1zOnR5cGVzOndlYmlkIjoiaHR0cDovL2xvY2FsaG9zdDozMDAwL2FsaWNlL3Byb2ZpbGUvY2FyZCNtZSIsImh0dHBzOi8vdzNpZC5vcmcvb2FjI0xlZ2FsQmFzaXMiOiJodHRwczovL3czaWQub3JnL2Rwdi9sZWdhbC9ldS9nZHByI0E5LTItYSJ9.nT55jaXNDsHgAo_zcRMsbJqcNj4FVdW_-xjcwNam-1M",
+  "claim_token_format": "urn:solidlab:uma:claims:formats:jwt",
+  "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
+  "ticket": "89f508e3-2d5d-49c5-807a-4526479a09b1"
+}
+
+Note: the ODRL Request constraints are not yet evaluated as claims, only the passed claim token is.
+There are two main points of work here: right now the claim token gathers all claims internally, as only a single token can be passed.
+This is problematic when claims and OIDC tokens have to be passed. It might be worth looking deeper into ODRL requests to carry these claims instead of an UMA token.
+
+The UMA server checks the claims with the relevant policy, and returns the agent an access token with the requested permissions.
+
+
+[
+  {
+    "resource_id": "http://localhost:3000/ruben/medical/smartwatch.ttl",
+    "resource_scopes": [
+      "urn:example:css:modes:read"
+    ]
+  }
+]
+
+and the accompanying agreement:
+
+
+{
+  "@context": "http://www.w3.org/ns/odrl.jsonld",
+  "@type": "Agreement",
+  "uid": "urn:uma:pacsoi:agreement:848bd5bc-9b88-4a44-a356-47f6b9130548",
+  "http://purl.org/dc/terms/description": "Agreement for HCP X to read Alice's health data for bariatric care.",
+  "https://w3id.org/dpv#hasLegalBasis": {
+    "@id": "https://w3id.org/dpv/legal/eu/gdpr#eu-gdpr:A9-2-a"
+  },
+  "permission": [
+    {
+      "@type": "Permission",
+      "action": "https://w3id.org/oac#read",
+      "target": "http://localhost:3000/ruben/medical/smartwatch.ttl",
+      "assigner": "http://localhost:3000/ruben/profile/card#me",
+      "assignee": "http://localhost:3000/alice/profile/card#me",
+      "constraint": [
+        {
+          "@type": "Constraint",
+          "leftOperand": "purpose",
+          "operator": "eq",
+          "rightOperand": {
+            "@id": "http://example.org/bariatric-care"
+          }
+        }
+      ]
+    }
+  ]
+}
+
+Future work: at a later stage, this agreements will be signed by both parties to form a binding contract.
+
+Now the doctor can retrieve the resource:
+
+
+<this> <is> <smartwatch> <data>.

@@ -1,0 +1,17 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:default:DemoTokenRoute",
+      "@type": "HttpHandlerRoute",
+      "methods": [ "POST" ],
+      "handler": {
+        "@type": "TokenRequestHandler",
+        "negotiator": { "@id": "urn:uma:default:DemoNegotiator" }
+      },
+      "path": "/uma/token"
+    }
+  ]
+}

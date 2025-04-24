@@ -3,6 +3,7 @@
   "AccessToken",
   "Authorization",
   "Authorizer",
+  "Buffer",
   "Error",
   "EventEmitter",
   "Map",
@@ -13,5 +14,6 @@
   "ReType",
   "ScopeDescription",
   "Ticket",
-  "URL"
+  "URL",
+  "WeakMap"
 ]

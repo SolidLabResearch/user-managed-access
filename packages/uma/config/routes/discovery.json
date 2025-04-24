@@ -6,13 +6,7 @@
     {
       "@id": "urn:uma:default:UmaConfigRoute",
       "@type": "HttpHandlerRoute",
-      "operations": [
-        {
-          "@type": "HttpHandlerOperation",
-          "method": "GET",
-          "publish": true
-        }
-      ],
+      "methods": [ "GET" ],
       "handler": {
         "@type": "ConfigRequestHandler",
         "baseUrl": { "@id": "urn:uma:variables:baseUrl" }

@@ -1,0 +1,27 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Add JWKS handler to list of base handlers so the server exposes its public key.",
+      "@id": "urn:solid-server:override:BaseHttpHandler",
+      "@type": "Override",
+      "overrideInstance": { "@id": "urn:solid-server:default:BaseHttpHandler" },
+      "overrideSteps": [{
+        "@type": "OverrideListInsertAt",
+        "overrideParameter": { "@id": "WaterfallHandler:_handlers" },
+        "overrideTarget": 0,
+        "overrideValue": {
+          "@id": "urn:solid-server:default:JwksHandler",
+          "@type": "JwksHandler",
+          "path": "/.well-known/jwks.json",
+          "generator": {
+            "@id": "urn:solid-server:default:JwkGenerator"
+          }
+        }
+      }]
+    }
+  ]
+}

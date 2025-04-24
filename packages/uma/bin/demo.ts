@@ -1,8 +1,6 @@
 import * as path from 'path';
 import { ComponentsManager } from 'componentsjs';
-import { NodeHttpServer } from '../src/util/http/server/NodeHttpServer';
-import { setLogger } from '../src/util/logging/LoggerUtils';
-import { WinstonLogger } from '../src/util/logging/WinstonLogger';
+import { ServerInitializer, setGlobalLoggerFactory, WinstonLoggerFactory } from '@solid/community-server';
 
 const protocol = 'http';
 const host = 'localhost';
@@ -19,7 +17,7 @@ export const launch: () => Promise<void> = async () => {
   variables['urn:uma:variables:host'] = host;
   variables['urn:uma:variables:protocol'] = protocol;
   variables['urn:uma:variables:baseUrl'] = baseUrl;
-  
+
   // variables['urn:uma:variables:policyDir'] = path.join(rootDir, './config/rules/policy');
   variables['urn:uma:variables:rulesDir'] = path.join(rootDir, './config/rules/n3');
 
@@ -29,7 +27,7 @@ export const launch: () => Promise<void> = async () => {
   const mainModulePath = variables['urn:uma:variables:mainModulePath'];
   const configPath = variables['urn:uma:variables:customConfigPath'];
 
-  setLogger(new WinstonLogger('test-logger', 60, 30));
+  setGlobalLoggerFactory(new WinstonLoggerFactory('info'));
 
   const manager = await ComponentsManager.build({
     mainModulePath,
@@ -39,8 +37,8 @@ export const launch: () => Promise<void> = async () => {
 
   await manager.configRegistry.register(configPath);
 
-  const umaServer: NodeHttpServer = await manager.instantiate('urn:uma:default:NodeHttpServer',{variables});
-  umaServer.start();
+  const umaServer: ServerInitializer = await manager.instantiate('urn:uma:default:NodeHttpServer',{variables});
+  await umaServer.handleSafe();
 
 };
 

@@ -1,7 +1,7 @@
+import { KeyValueStorage } from '@solid/community-server';
+import { randomUUID } from 'node:crypto';
 import {AccessToken} from './AccessToken';
 import {SerializedToken, TokenFactory} from './TokenFactory';
-import {KeyValueStore} from '../util/storage/models/KeyValueStore';
-import {v4} from 'uuid';
 
 /**
  * A TokenFactory that serializes to an opaque string
@@ -9,9 +9,9 @@ import {v4} from 'uuid';
 export class OpaqueTokenFactory extends TokenFactory {
   /**
    *
-   * @param {KeyValueStore<string, AccessToken>} tokenStore
+   * @param {KeyValueStorage<string, AccessToken>} tokenStore
    */
-  constructor(private tokenStore: KeyValueStore<string, AccessToken>) {
+  constructor(private tokenStore: KeyValueStorage<string, AccessToken>) {
     super();
   }
 
@@ -21,7 +21,7 @@ export class OpaqueTokenFactory extends TokenFactory {
    * @return {Promise<SerializedToken>}
    */
   public async serialize(token: AccessToken): Promise<SerializedToken> {
-    const serialized = v4();
+    const serialized = randomUUID();
     await this.tokenStore.set(serialized, token);
     return {tokenType: 'Bearer', token: serialized};
   }

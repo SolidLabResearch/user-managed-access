@@ -1,15 +1,13 @@
 #!/usr/bin/env ts-node
 
-import { fetch } from 'cross-fetch'
-
 const privateResource = "http://localhost:3000/alice/private/resource.txt"
 
 function parseJwt (token:string) {
   return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
 }
 
-const request: RequestInit = { 
-  method: "PUT", 
+const request: RequestInit = {
+  method: "PUT",
   headers: {},
   body: 'Some text ...' ,
 };
@@ -31,7 +29,7 @@ async function main() {
   const { as_uri, ticket } = Object.fromEntries(wwwAuthenticateHeader.replace(/^UMA /,'').split(', ').map(
       param => param.split('=').map(s => s.replace(/"/g,''))
   ));
-  
+
   const tokenEndpoint = as_uri + "/token" // should normally be retrieved from .well-known/uma2-configuration
 
   const claim_token = "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me"
@@ -59,7 +57,7 @@ async function main() {
   // console.log("Authorization Server response:", await asRequestResponse.text());
   // throw 'stop'
 
-  const asResponse = await asRequestResponse.json();
+  const asResponse: any = await asRequestResponse.json();
 
   const decodedToken = parseJwt(asResponse.access_token);
 
@@ -71,14 +69,14 @@ async function main() {
   // for (const permission of decodedToken.permissions) {
   //   console.log(`Permissioned scopes for resource ${permission.resource_id}:`, permission.resource_scopes)
   // }
-  
+
   console.log(`=== Trying to create private resource <${privateResource}> WITH access token.\n`);
 
   request.headers = { 'Authorization': `${asResponse.token_type} ${asResponse.access_token}` };
-  
+
   const tokenResponse = await fetch(privateResource, request);
 
-  console.log(`= Status: ${tokenResponse.status}\n`); 
+  console.log(`= Status: ${tokenResponse.status}\n`);
 }
 
 main();

@@ -1,3 +1,4 @@
+import { getLoggerFor } from '@solid/community-server';
 import { ClaimSet } from "../../credentials/ClaimSet";
 import { Ticket } from "../Ticket";
 import { Permission } from "../../views/Permission";
@@ -5,8 +6,6 @@ import { Failure, Result, Success } from "../../util/Result";
 import { TicketingStrategy } from "./TicketingStrategy";
 import { Requirements } from "../../credentials/Requirements";
 import { Authorizer } from "../../policies/authorizers/Authorizer";
-import { Logger } from "../../util/logging/Logger";
-import { getLoggerFor } from "../../util/logging/LoggerUtils";
 
 /**
  * A TicketingStrategy that calculates all necessary Claims for a given Permissions
@@ -15,7 +14,7 @@ import { getLoggerFor } from "../../util/logging/LoggerUtils";
  * requested Permissions.
  */
 export class ClaimEliminationStrategy implements TicketingStrategy {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   constructor(
     private authorizer: Authorizer,
@@ -23,7 +22,7 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
 
   /** @inheritdoc */
   async initializeTicket(permissions: Permission[]): Promise<Ticket> {
-    this.logger.info('Initializing ticket.', permissions)
+    this.logger.info(`Initializing ticket. ${JSON.stringify(permissions)}`)
 
     return ({
       permissions,
@@ -38,7 +37,7 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
 
   /** @inheritdoc */
   async validateClaims(ticket: Ticket, claims: ClaimSet): Promise<Ticket> {
-    this.logger.info('Validating claims.', { ticket, claims });
+    this.logger.debug(`Validating claims. ${JSON.stringify({ ticket, claims })}`);
 
     for (const key of Object.keys(claims)) {
       ticket.provided[key] = claims[key];
@@ -47,7 +46,7 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
         const requirement = requirements[key];
 
         if (requirement && await requirement(claims[key])) {
-          delete requirements[key]; 
+          delete requirements[key];
         }
       }
     }
@@ -57,10 +56,10 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
 
   /** @inheritdoc {@link TicketingStrategy.resolveTicket} */
   async resolveTicket(ticket: Ticket): Promise<Result<Permission[], Requirements[]>> {
-    this.logger.info('Resolving ticket.', ticket);
-    
-    return ticket.required.some(req => Object.keys(req).length === 0) 
-      ? Success(ticket.permissions) 
+    this.logger.debug(`Resolving ticket. ${JSON.stringify(ticket)}`);
+
+    return ticket.required.some(req => Object.keys(req).length === 0)
+      ? Success(ticket.permissions)
       : Failure(ticket.required);
   }
 }
