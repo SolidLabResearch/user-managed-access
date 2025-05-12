@@ -12,6 +12,7 @@
         "@id": "urn:solid-server:default:UmaIdStore",
         "@type": "MemoryMapStorage"
       },
+      "identifierStrategy": { "@id": "urn:solid-server:default:IdentifierStrategy" },
       "fetcher": {
         "@id": "urn:solid-server:default:UmaFetcher"
       }
