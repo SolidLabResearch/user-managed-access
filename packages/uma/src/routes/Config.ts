@@ -65,7 +65,7 @@ export class ConfigRequestHandler extends HttpHandler {
       issuer: `${this.baseUrl}`,
       permission_endpoint: `${this.baseUrl}/ticket`,
       introspection_endpoint: `${this.baseUrl}/introspect`,
-      resource_registration_endpoint: `${this.baseUrl}/resources`,
+      resource_registration_endpoint: `${this.baseUrl}/resources/`,
       uma_profiles_supported: ['http://openid.net/specs/openid-connect-core-1_0.html#IDToken'],
       dpop_signing_alg_values_supported: [...ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM],
       response_types_supported: [ResponseType.Token],

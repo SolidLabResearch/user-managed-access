@@ -13,12 +13,12 @@
       "@type": "HttpHandlerRoute",
       "methods": [ "POST" ],
       "handler": { "@id": "urn:uma:default:ResourceRegistrationHandler" },
-      "path": "/uma/resources"
+      "path": "/uma/resources/"
     },
     {
       "@id": "urn:uma:default:ResourceRegistrationOpsRoute",
       "@type": "HttpHandlerRoute",
-      "methods": [ "DELETE" ],
+      "methods": [ "PUT", "DELETE" ],
       "handler": { "@id": "urn:uma:default:ResourceRegistrationHandler" },
       "path": "/uma/resources/{id}"
     }
