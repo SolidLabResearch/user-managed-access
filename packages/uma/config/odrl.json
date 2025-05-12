@@ -49,6 +49,7 @@
                   { "@id": "urn:uma:default:TokenRoute" },
                   { "@id": "urn:uma:default:PermissionRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationRoute" },
+                  { "@id": "urn:uma:default:ResourceRegistrationUpdateRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
                   { "@id": "urn:uma:default:IntrospectionRoute" }
                 ]

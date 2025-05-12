@@ -22,6 +22,19 @@
       "path": "/uma/resources"
     },
     {
+      "@id": "urn:uma:default:ResourceRegistrationUpdateRoute",
+      "@type": "HttpHandlerRoute",
+      "operations": [
+        {
+          "@type": "HttpHandlerOperation",
+          "method": "PUT",
+          "publish": true
+        }
+      ],
+      "handler": { "@id": "urn:uma:default:ResourceRegistrationHandler" },
+      "path": "/uma/resources/:id"
+    },
+    {
       "@id": "urn:uma:default:ResourceRegistrationOpsRoute",
       "@type": "HttpHandlerRoute",
       "operations": [
