@@ -28,6 +28,7 @@
     "css:config/util/resource-locker/memory.json",
     "css:config/util/variables/default.json",
     "uma-css:config/uma/default.json",
+    "uma-css:config/uma/overrides/modes.json",
     "uma-css:config/http/handler/default.json",
     "uma-css:config/ldp/authentication/uma.json",
     "uma-css:config/ldp/authorization/uma.json",
