@@ -62,7 +62,8 @@
             "@id": "urn:uma:variables:policyBaseIRI"
           }
         }
-      }
+      },
+      "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
     }
   ]
 }
