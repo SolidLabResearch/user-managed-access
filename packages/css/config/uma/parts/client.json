@@ -14,7 +14,8 @@
       },
       "fetcher": {
         "@id": "urn:solid-server:default:UmaFetcher"
-      }
+      },
+      "resourceSet": { "@id": "urn:solid-server:default:CachedResourceSet" }
     }
   ]
 }
