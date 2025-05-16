@@ -1,6 +1,6 @@
 [
   "UmaVerificationOptions",
-  
+
   "AccessMap",
   "Adapter",
   "AlgJwk",
@@ -34,6 +34,7 @@
   "Readonly",
   "RegExp",
   "Server",
+  "Set",
   "SetMultiMap",
   "Shorthand",
   "Template",
