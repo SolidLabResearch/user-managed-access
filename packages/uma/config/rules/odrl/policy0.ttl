@@ -29,7 +29,7 @@ ex:usagePolicy2a a odrl:Agreement .
 ex:usagePolicy2a odrl:permission ex:permission2 .
 ex:permission2a a odrl:Permission .
 ex:permission2a odrl:action odrl:create .
-ex:permission2a odrl:target <alice/other/> .
+ex:permission2a odrl:target <alice/>, <alice/other/> .
 ex:permission2a odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
 ex:permission2a odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
 
