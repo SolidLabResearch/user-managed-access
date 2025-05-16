@@ -98,16 +98,12 @@ describe('An ODRL server setup', (): void => {
       expect(jsonResponse.token_type).toBe('Bearer');
       const token = JSON.parse(Buffer.from(jsonResponse.access_token.split('.')[1], 'base64').toString());
       expect(Array.isArray(token.permissions)).toBe(true);
-      expect(token.permissions).toHaveLength(2);
+      expect(token.permissions).toHaveLength(1);
       expect(token.permissions).toContainEqual({
-        resource_id: resource,
-        resource_scopes: [ 'urn:example:css:modes:append', 'urn:example:css:modes:create' ]
+        // This is the first container on the path that already exists
+        resource_id: `http://localhost:${cssPort}/alice/`,
+        resource_scopes: [ 'urn:example:css:modes:create' ]
       });
-      expect(token.permissions).toContainEqual({
-          resource_id: `http://localhost:${cssPort}/alice/other/`,
-          resource_scopes: [ 'urn:example:css:modes:create' ]
-        }
-      );
     });
 
     it('RS: provides access when receiving a valid token.', async(): Promise<void> => {
