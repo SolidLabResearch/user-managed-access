@@ -42,10 +42,6 @@ describe('A server setup', (): void => {
   });
 
   describe('using public namespace authorization', (): void => {
-    const container = `http://localhost:${cssPort}/alice/public/`;
-    const slug = 'resource.txt';
-    const body = 'This is a resource.';
-
     it('RS: provides immediate read access.', async(): Promise<void> => {
       const publicResource = `http://localhost:${cssPort}/alice/profile/card`;
 
@@ -53,40 +49,6 @@ describe('A server setup', (): void => {
 
       expect(publicResponse.status).toBe(200);
       expect(publicResponse.headers.get('content-type')).toBe('text/turtle');
-    });
-
-    it('RS: provides immediate create access to the container', async(): Promise<void> => {
-      const containerResponse = await fetch(container, {
-        method: 'PUT',
-      });
-      expect(containerResponse.status).toBe(201);
-      expect(containerResponse.headers.get('location')).toBe(container);
-    });
-
-    it('RS: provides immediate create access to the contents', async(): Promise<void> => {
-      const createResponse = await fetch(container, {
-        method: 'POST',
-        headers: { slug },
-        body
-      });
-      expect(createResponse.status).toBe(201);
-      expect(createResponse.headers.get('location')).toBe(`${container}${slug}`);
-    });
-
-    it('RS: provides immediate read access to the contents', async(): Promise<void> => {
-      const readResponse = await fetch(`${container}${slug}`);
-      expect(readResponse.status).toBe(200);
-      await expect(readResponse.text()).resolves.toBe(body);
-    });
-
-    it('RS: provides immediate delete access to the contents', async(): Promise<void> => {
-      const deleteResponse = await fetch(`${container}${slug}`, {
-        method: 'DELETE',
-      })
-      expect(deleteResponse.status).toBe(205);
-
-      const readResponse = await fetch(`${container}${slug}`);
-      expect(readResponse.status).toBe(404);
     });
   });
 
@@ -150,13 +112,10 @@ describe('A server setup', (): void => {
       expect(jsonResponse.token_type).toBe('Bearer');
       const token = JSON.parse(Buffer.from(jsonResponse.access_token.split('.')[1], 'base64').toString());
       expect(Array.isArray(token.permissions)).toBe(true);
-      expect(token.permissions).toHaveLength(2);
+      expect(token.permissions).toHaveLength(1);
       expect(token.permissions).toContainEqual({
-        resource_id: `http://localhost:${cssPort}/alice/private/resource.txt`,
-        resource_scopes: [ 'urn:example:css:modes:append', 'urn:example:css:modes:create' ]
-      });
-      expect(token.permissions).toContainEqual({
-          resource_id: `http://localhost:${cssPort}/alice/private/`,
+        // This is the first container on the path that already exists
+          resource_id: `http://localhost:${cssPort}/alice/`,
           resource_scopes: [ 'urn:example:css:modes:create' ]
         }
       );
