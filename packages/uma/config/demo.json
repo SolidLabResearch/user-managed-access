@@ -33,7 +33,8 @@
               "@id": "urn:uma:default:AllAuthorizer"
             }
           }
-        ]
+        ],
+        "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
       }
     },
     {
