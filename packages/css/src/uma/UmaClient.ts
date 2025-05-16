@@ -252,6 +252,7 @@ export class UmaClient {
     const { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
 
     const description: ResourceDescription = {
+      name: resource.path,
       resource_scopes: [
         'urn:example:css:modes:read',
         'urn:example:css:modes:append',
@@ -300,6 +301,7 @@ export class UmaClient {
       }
 
       await this.umaIdStore.set(resource.path, umaId);
+      this.logger.info(`Registered resource ${resource.path} with UMA ID ${umaId}`);
       if (parentError) { {
         await this.updateParentId(resource, umaId, description, endpoint, true);
       }}
@@ -354,7 +356,7 @@ export class UmaClient {
 
     description.resource_relations = { '^http://www.w3.org/ns/ldp#contains': [ parentId ] };
     const updateRequest = {
-      url: joinUrl(endpoint, umaId),
+      url: joinUrl(endpoint, encodeURIComponent(umaId)),
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(description),
