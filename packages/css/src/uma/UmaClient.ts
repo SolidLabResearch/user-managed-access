@@ -33,10 +33,10 @@ export type UmaVerificationOptions = Omit<JWTVerifyOptions, 'iss' | 'aud' | 'sub
 const UMA_DISCOVERY = '/.well-known/uma2-configuration';
 
 const REQUIRED_METADATA = [
-  'issuer', 
-  'jwks_uri', 
-  'permission_endpoint', 
-  'introspection_endpoint', 
+  'issuer',
+  'jwks_uri',
+  'permission_endpoint',
+  'introspection_endpoint',
   'resource_registration_endpoint'
 ];
 
@@ -134,7 +134,7 @@ export class UmaClient {
 
     for (const permission of Array.isArray(payload.permissions) ? payload.permissions : []) {
       if (!(
-        'resource_id' in permission && 
+        'resource_id' in permission &&
         typeof permission.resource_id === 'string' &&
         'resource_scopes' in permission &&
         Array.isArray(permission.resource_scopes) &&
@@ -154,11 +154,11 @@ export class UmaClient {
    */
   public async verifyJwtToken(token: string, validIssuers: string[]): Promise<UmaClaims> {
     let config: UmaConfig;
-    
+
     try {
       const issuer = decodeJwt(token).iss;
       if (!issuer) throw new Error('The JWT does not contain an "iss" parameter.');
-      if (!validIssuers.includes(issuer)) 
+      if (!validIssuers.includes(issuer))
         throw new Error(`The JWT wasn't issued by one of the target owners' issuers.`);
       config = await this.fetchUmaConfig(issuer);
     } catch (error: unknown) {
@@ -177,7 +177,7 @@ export class UmaClient {
    */
   public async verifyOpaqueToken(token: string, issuer: string): Promise<UmaClaims> {
     let config: UmaConfig;
-    
+
     try {
       config = await this.fetchUmaConfig(issuer);
     } catch (error: unknown) {
@@ -237,6 +237,7 @@ export class UmaClient {
     const { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
 
     const description: ResourceDescription = {
+      name: resource.path,
       resource_scopes: [
         'urn:example:css:modes:read',
         'urn:example:css:modes:append',
@@ -265,12 +266,13 @@ export class UmaClient {
       }
 
       const { _id: umaId } = await resp.json();
-      
+
       if (!umaId || typeof umaId !== 'string') {
         throw new Error ('Unexpected response from UMA server; no UMA id received.');
       }
-      
-      this.umaIdStore.set(resource.path, umaId);
+
+      await this.umaIdStore.set(resource.path, umaId);
+      this.logger.info(`Registered resource ${resource.path} with UMA ID ${umaId}`);
     }).catch(error => {
       // TODO: Do something useful on error
       this.logger.warn(
@@ -279,7 +281,7 @@ export class UmaClient {
     });
   }
 
-  public async deleteResource(resource: ResourceIdentifier, issuer: string): Promise<void> {    
+  public async deleteResource(resource: ResourceIdentifier, issuer: string): Promise<void> {
     const { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
 
     this.logger.info(`Deleting resource registration for <${resource.path}> at <${endpoint}>`);
