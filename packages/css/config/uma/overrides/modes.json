@@ -5,7 +5,14 @@
   ],
   "@graph": [
     {
-      "comment": "Replace the account seeder with the UMA version so the AS is taken into account.",
+      "comment": "Moves create permission requests of non-existent resources to the first existing parent.",
+      "@id": "urn:uma:default:ParentCreateExtractor",
+      "@type": "ParentCreateExtractor",
+      "identifierStrategy": { "@id": "urn:solid-server:default:IdentifierStrategy" },
+      "resourceSet": { "@id": "urn:solid-server:default:CachedResourceSet" },
+      "source": { "@id": "urn:solid-server:default:HttpModesExtractor" }
+    },
+    {
       "@id": "urn:solid-server:override:ModesExtractor",
       "@type": "Override",
       "overrideInstance": {
@@ -21,7 +28,7 @@
             "@type": "IntermediateCreateExtractor",
             "resourceSet": { "@id": "urn:solid-server:default:CachedResourceSet" },
             "strategy": { "@id": "urn:solid-server:default:IdentifierStrategy" },
-            "source": { "@id": "urn:solid-server:default:HttpModesExtractor" }
+            "source": { "@id": "urn:uma:default:ParentCreateExtractor" }
           },
           "auxiliaryStrategy": { "@id": "urn:solid-server:default:AuxiliaryStrategy" }
         }
