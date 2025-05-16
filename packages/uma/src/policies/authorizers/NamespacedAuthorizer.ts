@@ -1,4 +1,6 @@
 import { getLoggerFor } from '../../util/logging/LoggerUtils';
+import { KeyValueStore } from '../../util/storage/models/KeyValueStore';
+import { ResourceDescription } from '../../views/ResourceDescription';
 import { Authorizer } from './Authorizer';
 import { Permission } from '../../views/Permission';
 import { Requirements, type ClaimVerifier } from '../../credentials/Requirements';
@@ -15,12 +17,16 @@ export class NamespacedAuthorizer implements Authorizer {
 
   /**
    * Creates a NamespacedAuthorizer with the given namespaces.
-   * 
-   * @param config - A list of objects refering a list of namespaces to a specific Authorizer.
+   *
+   * @param authorizers - A key/value map with the key being the relevant namespace
+   *                      and the value being the corresponding authorizer to use for that namespace.
+   * @param fallback - Authorizer to use if there is no namespace match.
+   * @param resourceStore - The key/value store containing the resource registrations.
    */
   constructor(
     protected authorizers: Record<string, Authorizer>,
     protected fallback: Authorizer,
+    protected resourceStore: KeyValueStore<string, ResourceDescription>,
   ) {}
 
   /** @inheritdoc */
@@ -31,7 +37,7 @@ export class NamespacedAuthorizer implements Authorizer {
     if (!query || query.length === 0) return [];
 
     // Base namespace on first resource
-    const ns = query[0].resource_id ? namespace(query[0].resource_id) : undefined;
+    const ns = query[0].resource_id ? await this.findNamespace(query[0].resource_id) : undefined;
 
     // Check namespaces of other resources
     for (const permission of query) {
@@ -42,7 +48,7 @@ export class NamespacedAuthorizer implements Authorizer {
     }
 
     // Find applicable authorizer
-    const authorizer = ns ? this.authorizers[ns] : this.fallback;
+    const authorizer = (typeof ns === 'string' && this.authorizers[ns]) || this.fallback;
 
     // Delegate to authorizer
     return authorizer.permissions(claims, query);
@@ -56,7 +62,7 @@ export class NamespacedAuthorizer implements Authorizer {
     if (!permissions || permissions.length === 0) return [];
 
     // Base namespace on first resource
-    const ns = namespace(permissions[0].resource_id);
+    const ns = await this.findNamespace(permissions[0].resource_id);
 
     // Check namespaces of other resources
     for (const permission of permissions) {
@@ -67,8 +73,31 @@ export class NamespacedAuthorizer implements Authorizer {
     }
 
     // Find applicable authorizer
-    const authorizer = this.authorizers[ns] ?? this.fallback;
+    const authorizer = (typeof ns === 'string' && this.authorizers[ns]) || this.fallback;
 
     return authorizer.credentials(permissions, query);
+  }
+
+  /**
+   * Finds the applicable authorizer to use based on the input query.
+   */
+  protected async findNamespace(resourceId?: string): Promise<string | undefined> {
+    if (!resourceId) {
+      return;
+    }
+
+    const description = await this.resourceStore.get(resourceId);
+    if (!description) {
+      this.logger.warn(`Cannot find a registered resource with id ${resourceId}`);
+      return;
+    }
+
+    const resourceIdentifier = description.name;
+    if (!resourceIdentifier) {
+      this.logger.warn(`Resource ${resourceId} has no registered name.`);
+      return
+    }
+
+    return namespace(resourceIdentifier);
   }
 }

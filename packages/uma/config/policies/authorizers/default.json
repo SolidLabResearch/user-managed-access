@@ -42,7 +42,8 @@
             "@id": "urn:uma:variables:policyDir"
           }
         }
-      }
+      },
+      "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
     }
   ]
 }

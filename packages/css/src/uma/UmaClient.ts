@@ -2,7 +2,9 @@ import {
   AccessMap,
   getLoggerFor,
   IdentifierStrategy,
-  isContainerIdentifier, joinUrl,
+  InternalServerError,
+  isContainerIdentifier,
+  joinUrl,
   type KeyValueStorage,
   type ResourceIdentifier
 } from '@solid/community-server';
@@ -104,10 +106,12 @@ export class UmaClient {
 
     const body = [];
     for (const [ target, modes ] of permissions.entrySets()) {
-      // const umaId = await this.umaIdStore.get(target.path);
-      // if (!umaId) throw new NotFoundHttpError();
+      const umaId = await this.umaIdStore.get(target.path);
+      if (!umaId) {
+        throw new InternalServerError(`Unable to request ticket: no UMA ID found for ${target.path}`);
+      }
       body.push({
-        resource_id: target.path, // TODO: map to umaId ? (but raises problems on creation, discovery ...)
+        resource_id: umaId,
         resource_scopes: Array.from(modes).map(mode => `urn:example:css:modes:${mode}`)
       });
     }

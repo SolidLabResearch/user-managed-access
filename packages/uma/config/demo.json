@@ -36,7 +36,8 @@
         ],
         "fallback": {
           "@id": "urn:uma:default:PolicyBasedAuthorizer"
-        }
+        },
+        "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
       }
     },
     {
