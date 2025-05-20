@@ -27,7 +27,8 @@ You can then execute the following flows:
 - `yarn script:public`: `GET` the public `/alice/profile/card` without redirection to the UMA server;
 - `yarn script:private`: `PUT` some text to the private `/alice/private/resource.txt`, protected by a simple WebID check;
 - `yarn script:uma-ucp`: `PUT` some text to the private `/alice/other/resource.txt`, protected by a UCP enforcer checking WebIDs according to policies in `packages/uma/config/rules/policy/`.
-- `yarn script:registration`: `POST`, `GET` and `DELETE` some text to/from `/alice/public/resource.txt` to test the correct creation and deletion of resource registrations on the UNA server.
+- `yarn script:collection`: `POST`, `GET` and `DELETE` some text to/from `/alice/public/resource.txt` to test the correct creation and deletion of resource registrations on the UMA server.
+                            An AssetCollection policy is used to create `/alice/public/`.
 
 `yarn script:flow` runs all flows in sequence.
 
