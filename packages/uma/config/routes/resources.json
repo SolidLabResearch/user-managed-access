@@ -6,7 +6,8 @@
     {
       "@id": "urn:uma:default:ResourceRegistrationHandler",
       "@type": "ResourceRegistrationRequestHandler",
-      "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
+      "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
+      "policies": { "@id": "urn:uma:default:RulesStorage" }
     },
     {
       "@id": "urn:uma:default:ResourceRegistrationRoute",
