@@ -36,14 +36,17 @@
         "@id": "urn:uma:default:OdrlAuthorizer",
         "@type": "OdrlAuthorizer",
         "policies": {
-          "@id": "urn:uma:default:RulesStorage",
-          "@type": "DirectoryUCRulesStorage",
-          "directoryPath": {
-            "@id": "urn:uma:variables:policyDir"
-          }
+          "@id": "urn:uma:default:RulesStorage"
         }
       },
       "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
+    },
+    {
+      "@id": "urn:uma:default:RulesStorage",
+      "@type": "DirectoryUCRulesStorage",
+      "directoryPath": {
+        "@id": "urn:uma:variables:policyDir"
+      }
     }
   ]
 }
