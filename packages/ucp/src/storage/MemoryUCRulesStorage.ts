@@ -1,6 +1,6 @@
-import { Store } from "n3";
-import { extractQuadsRecursive } from "../util/Util";
-import { UCRulesStorage } from "./UCRulesStorage";
+import { Store } from 'n3';
+import { extractQuadsRecursive } from '../util/Util';
+import { UCRulesStorage } from './UCRulesStorage';
 
 export class MemoryUCRulesStorage implements UCRulesStorage {
     private store: Store;
@@ -26,5 +26,9 @@ export class MemoryUCRulesStorage implements UCRulesStorage {
     public async deleteRule(identifier: string): Promise<void> {
         const store = await this.getRule(identifier)
         this.store.removeQuads(store.getQuads(null, null, null, null));
+    }
+
+    public async removeData(data: Store): Promise<void> {
+        this.store.removeQuads(data.getQuads(null, null, null, null));
     }
 }
