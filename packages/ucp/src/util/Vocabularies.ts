@@ -106,15 +106,18 @@ export function extendVocabulary<TBase extends string, TLocal extends string, TN
 export const RDF = createVocabulary(
     'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
     'type',
-  );
+);
 
 
 export const ODRL = createVocabulary(
     'http://www.w3.org/ns/odrl/2/',
+    'AssetCollection',
     'Agreement',
     'Offer',
     'Permission',
     'Request',
+    'source',
+    'partOf',
     'action',
     'target',
     'assignee',
@@ -129,7 +132,17 @@ export const ODRL = createVocabulary(
     'gt',
     'lt',
     'eq',
-)
+);
+
+export const ODRL_P = createVocabulary(
+  'https://w3id.org/force/odrl3proposal#',
+  'relation',
+);
+
+export const OWL = createVocabulary(
+  'http://www.w3.org/2002/07/owl#',
+  'inverseOf',
+);
 
 export const XSD = createVocabulary(
     'http://www.w3.org/2001/XMLSchema#',
@@ -137,4 +150,4 @@ export const XSD = createVocabulary(
     'duration',
     'integer',
     'string',
-  );
+);
