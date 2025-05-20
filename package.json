@@ -62,10 +62,10 @@
     "script:demo-test": "yarn exec tsx ./demo/flow-test.ts",
     "script:public": "yarn exec tsx ./scripts/test-public.ts",
     "script:private": "yarn exec tsx ./scripts/test-private.ts",
-    "script:registration": "yarn exec tsx ./scripts/test-registration.ts",
+    "script:collection": "yarn exec tsx ./scripts/test-collection.ts",
     "script:uma-ucp": "yarn exec tsx ./scripts/test-uma-ucp.ts",
     "script:uma-odrl": "yarn exec tsx ./scripts/test-uma-ODRL.ts",
-    "script:flow": "yarn run script:public && yarn run script:private && yarn run script:uma-ucp && yarn run script:registration",
+    "script:flow": "yarn run script:public && yarn run script:private && yarn run script:collection && yarn run script:uma-ucp",
     "sync:list": "syncpack list-mismatches",
     "sync:fix": "syncpack fix-mismatches"
   },
