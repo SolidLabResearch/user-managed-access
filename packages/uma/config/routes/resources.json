@@ -6,7 +6,8 @@
     {
       "@id": "urn:uma:default:ResourceRegistrationHandler",
       "@type": "ResourceRegistrationRequestHandler",
-      "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
+      "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
+      "policies": { "@id": "urn:uma:default:RulesStorage" }
     },
     {
       "@id": "urn:uma:default:ResourceRegistrationRoute",
@@ -20,6 +21,19 @@
       ],
       "handler": { "@id": "urn:uma:default:ResourceRegistrationHandler" },
       "path": "/uma/resources"
+    },
+    {
+      "@id": "urn:uma:default:ResourceRegistrationUpdateRoute",
+      "@type": "HttpHandlerRoute",
+      "operations": [
+        {
+          "@type": "HttpHandlerOperation",
+          "method": "PUT",
+          "publish": true
+        }
+      ],
+      "handler": { "@id": "urn:uma:default:ResourceRegistrationHandler" },
+      "path": "/uma/resources/:id"
     },
     {
       "@id": "urn:uma:default:ResourceRegistrationOpsRoute",
