@@ -10,7 +10,7 @@ import {
   UnsupportedMediaTypeHttpError,
 } from '@solid/community-server';
 import { ODRL, ODRL_P, RDF, UCRulesStorage } from '@solidlab/ucp';
-import { DataFactory as DF, NamedNode, Quad_Subject, Store } from 'n3';
+import { DataFactory as DF, NamedNode, Quad_Object, Quad_Subject, Store } from 'n3';
 import { randomUUID } from 'node:crypto';
 import {
   HttpHandler,
@@ -242,7 +242,6 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     for (const entry of entries) {
       const collectionIds = this.findCollectionIds(entry, policyStore);
       if (collectionIds.length === 0) {
-        // TODO: if there is no collection we have to create one!
         const collectionId = DF.namedNode(randomUUID());
         store.addQuad(DF.quad(collectionId, RDF.terms.type, ODRL.terms.AssetCollection));
         store.addQuad(DF.quad(collectionId, ODRL.terms.source, entry.source));
@@ -251,6 +250,8 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
         this.logger.info(`Creating new AssetCollection ${collectionId.value} with source ${
           entry.source.value} and relation ${entry.relation.value}`);
       }
+      collectionIds.push(...this.findRecursiveCollectionIds(entry.source, policyStore));
+
       // for (const collectionId of collectionIds) {
       //   store.addQuad(DF.quad(entry.part, ODRL.terms.partOf, collectionId));
       // }
@@ -271,5 +272,21 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     const sourceMatches = data.getSubjects(ODRL.terms.source, entry.source, null);
     return sourceMatches.filter((subject): boolean =>
       data.has(DF.quad(subject, ODRL_P.terms.relation, entry.relation)));
+  }
+
+  /**
+   * Finds all collections that contain `part`,
+   * or recursively contain the source of those collections.
+   * @param part - Collection part.
+   * @param data - {@link Store} in which to find the matching triples.
+   */
+  protected findRecursiveCollectionIds(part: Quad_Object, data: Store): Quad_Subject[] {
+    const collectionIds = data.getObjects(part, ODRL.terms.partOf, null);
+    const collectionSources = collectionIds.flatMap(
+      (collectionId) => data.getObjects(collectionId, ODRL.terms.source, null));
+    return [
+      ...collectionIds,
+      ...collectionSources.flatMap((collectionSource) => this.findRecursiveCollectionIds(collectionSource, data)),
+    ].filter((id): boolean => id.termType !== 'Literal') as Quad_Subject[];
   }
 }
