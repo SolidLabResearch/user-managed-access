@@ -1,6 +1,6 @@
 import { createVocabulary, DC, getLoggerFor, RDF } from '@solid/community-server';
 import { basicPolicy, ODRL, UCPPolicy, UCRulesStorage } from '@solidlab/ucp';
-import { DataFactory, Literal, NamedNode, Quad_Subject, Store } from 'n3';
+import { DataFactory, Literal, NamedNode, Quad_Subject, Store, Writer } from 'n3';
 import { EyeReasoner, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator'
 import { WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
@@ -35,13 +35,14 @@ export class OdrlAuthorizer implements Authorizer {
      *
      *
      * @param policies - A store containing the ODRL policy rules.
+     * @param eyePath - The path to run the local EYE reasoner, if there is one.
      */
     constructor(
         private readonly policies: UCRulesStorage,
-        private readonly eyePath?: string,
+        eyePath?: string,
     ) {
         const engine = eyePath ?
-          new ODRLEngineMultipleSteps(new EyeReasoner(eyePath, ["--quiet", "--nope", "--pass-only-new"])) :
+          new ODRLEngineMultipleSteps({reasoner: new EyeReasoner(eyePath, ["--quiet", "--nope", "--pass-only-new"])}) :
           new ODRLEngineMultipleSteps();
         this.odrlEvaluator = new ODRLEvaluator(engine);
     }
@@ -100,8 +101,9 @@ export class OdrlAuthorizer implements Authorizer {
                 const PolicyReportNodes = reportStore.getSubjects(RDF.type, CR.PolicyReport, null);
                 for (const policyReportNode of PolicyReportNodes) {
                     const policyReport = parseComplianceReport(policyReportNode, reportStore)
-                    if (policyReport.ruleReport[0].activationState === ActivationState.Active &&
-                        policyReport.ruleReport[0].type === RuleReportType.PermissionReport) {
+                    const activeReports = policyReport.ruleReport.filter(
+                      (report) => report.activationState === ActivationState.Active);
+                    if (activeReports.length > 0 && activeReports[0].type === RuleReportType.PermissionReport) {
                         grantedPermissions[resource_id].push(action);
                     }
                 }
@@ -182,25 +184,25 @@ type PremiseReport = {
 // is it possible to just use CR.namespace + "term"?
 // https://github.com/microsoft/TypeScript/issues/40793
 enum RuleReportType {
-    PermissionReport= 'http://example.com/report/temp/PermissionReport',
-    ProhibitionReport= 'http://example.com/report/temp/ProhibitionReport',
-    ObligationReport= 'http://example.com/report/temp/ObligationReport',
+    PermissionReport= 'https://w3id.org/force/compliance-report#PermissionReport',
+    ProhibitionReport= 'https://w3id.org/force/compliance-report#ProhibitionReport',
+    ObligationReport= 'https://w3id.org/force/compliance-report#ObligationReport',
 }
 enum SatisfactionState {
-    Satisfied= 'http://example.com/report/temp/Satisfied',
-    Unsatisfied= 'http://example.com/report/temp/Unsatisfied',
+    Satisfied= 'https://w3id.org/force/compliance-report#Satisfied',
+    Unsatisfied= 'https://w3id.org/force/compliance-report#Unsatisfied',
 }
 
 enum PremiseReportType {
-    ConstraintReport = 'http://example.com/report/temp/ConstraintReport',
-    PartyReport = 'http://example.com/report/temp/PartyReport',
-    TargetReport = 'http://example.com/report/temp/TargetReport',
-    ActionReport = 'http://example.com/report/temp/ActionReport',
+    ConstraintReport = 'https://w3id.org/force/compliance-report#ConstraintReport',
+    PartyReport = 'https://w3id.org/force/compliance-report#PartyReport',
+    TargetReport = 'https://w3id.org/force/compliance-report#TargetReport',
+    ActionReport = 'https://w3id.org/force/compliance-report#ActionReport',
 }
 
 enum ActivationState {
-    Active= 'http://example.com/report/temp/Active',
-    Inactive= 'http://example.com/report/temp/Inactive',
+    Active= 'https://w3id.org/force/compliance-report#Active',
+    Inactive= 'https://w3id.org/force/compliance-report#Inactive',
 }
 
 /**
@@ -254,7 +256,7 @@ function parsePremiseReport(identifier: Quad_Subject, store: Store): PremiseRepo
         satisfactionState: store.getObjects(identifier, CR.satisfactionState, null)[0].value as SatisfactionState
     }
 }
-const CR = createVocabulary('http://example.com/report/temp/',
+const CR = createVocabulary('https://w3id.org/force/compliance-report#',
     'PolicyReport',
     'RuleReport',
     'PermissionReport',

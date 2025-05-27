@@ -4096,6 +4096,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rdfjs/types@npm:^2.0.0, @rdfjs/types@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@rdfjs/types@npm:2.0.1"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/81012b02e28737e15dfc27068664bbab7b989cc2ff82e0a6a341df492d9d97210b5e462d85bfb7882aa0ef5bf84e2c5e95647fb779b67b7b1910b1837d79c500
+  languageName: node
+  linkType: hard
+
 "@rubensworks/saxes@npm:^6.0.1":
   version: 6.0.1
   resolution: "@rubensworks/saxes@npm:6.0.1"
@@ -4325,7 +4334,7 @@ __metadata:
     koreografeye: "npm:^0.4.8"
     logform: "npm:^2.6.0"
     n3: "npm:^1.17.2"
-    odrl-evaluator: "npm:^0.1.1"
+    odrl-evaluator: "npm:^0.3.0"
     ts-node: "npm:^10.9.2"
     uri-template-lite: "npm:^23.4.0"
     winston: "npm:^3.11.0"
@@ -4437,6 +4446,18 @@ __metadata:
   dependencies:
     defer-to-connect: "npm:^2.0.1"
   checksum: 10c0/4629d2fbb2ea67c2e9dc03af235c0991c79ebdddcbc19aed5d5732fb29ce01c13331e9b1a491584b9069bd6ecde6581dcbf871f11b7eefdebbab34de6cf2197e
+  languageName: node
+  linkType: hard
+
+"@treecg/types@npm:^0.4.6":
+  version: 0.4.6
+  resolution: "@treecg/types@npm:0.4.6"
+  dependencies:
+    "@rdfjs/types": "npm:*"
+    loglevel: "npm:^1.8.1"
+    loglevel-plugin-prefix: "npm:^0.8.4"
+    rdf-data-factory: "npm:^1.1.0"
+  checksum: 10c0/956dfc34dbbcad4ef3099431be55bd1f5c8b1f5fca71f0bc90ca5823017ba25c70f6db1a066691541c900a59e1ad7522f041965162f66627e19e20c99bce5cf9
   languageName: node
   linkType: hard
 
@@ -4839,6 +4860,16 @@ __metadata:
     "@rdfjs/types": "npm:^1.1.0"
     "@types/node": "npm:*"
   checksum: 10c0/34486916aca38ea90a40da5c2dba9326ed8e7784bf986fc3231976334a3fb2b7080e05a0f4f29780b33d81f7349b472c24561e8fbe0630e299dfda116bdb30c6
+  languageName: node
+  linkType: hard
+
+"@types/n3@npm:^1.21.1":
+  version: 1.24.2
+  resolution: "@types/n3@npm:1.24.2"
+  dependencies:
+    "@rdfjs/types": "npm:*"
+    "@types/node": "npm:*"
+  checksum: 10c0/4d9fceea390134a1e4c3da63d493b841ffea8ef581264fdd6b764809403f99e94517770799fa53bfc01000b88a2627385502b20df7c0e7461869e694bb667b0a
   languageName: node
   linkType: hard
 
@@ -9139,6 +9170,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"loglevel-plugin-prefix@npm:^0.8.4":
+  version: 0.8.4
+  resolution: "loglevel-plugin-prefix@npm:0.8.4"
+  checksum: 10c0/357524eec4c165ff823b5bbf72e8373ff529e5cb95c1f4b20749847bd5b5b16ab328d6d33d1a9019f1a2dc52e28fca5d595e52f2ee20e24986182a6f9552a9ec
+  languageName: node
+  linkType: hard
+
+"loglevel@npm:^1.8.1":
+  version: 1.9.2
+  resolution: "loglevel@npm:1.9.2"
+  checksum: 10c0/1e317fa4648fe0b4a4cffef6de037340592cee8547b07d4ce97a487abe9153e704b98451100c799b032c72bb89c9366d71c9fb8192ada8703269263ae77acdc7
+  languageName: node
+  linkType: hard
+
 "lowercase-keys@npm:^3.0.0":
   version: 3.0.0
   resolution: "lowercase-keys@npm:3.0.0"
@@ -9535,6 +9580,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"n3@npm:^1.23.1":
+  version: 1.25.2
+  resolution: "n3@npm:1.25.2"
+  dependencies:
+    buffer: "npm:^6.0.3"
+    readable-stream: "npm:^4.0.0"
+  checksum: 10c0/47cb03555ddceb98be9c5ed10d67c9a045afe13d1a4225fe2ace9a63dcf8e1b6afe6019d72cb03e320c2c1d2fb6942c18ec92cdf3673e792a2084d5b1b5e089f
+  languageName: node
+  linkType: hard
+
 "nanoid@npm:^5.0.4":
   version: 5.0.4
   resolution: "nanoid@npm:5.0.4"
@@ -9743,21 +9798,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"odrl-evaluator@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "odrl-evaluator@npm:0.1.1"
+"odrl-evaluator@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "odrl-evaluator@npm:0.3.0"
   dependencies:
     "@rdfjs/types": "npm:^1.1.0"
     "@types/n3": "npm:^1.16.3"
     eyereasoner: "npm:^16.18.4"
     n3: "npm:^1.20.4"
     rdf-isomorphic: "npm:^1.3.1"
+    rdf-lens: "npm:^1.3.5"
     rdf-parse: "npm:^3.0.0"
     rdf-store-stream: "npm:^2.0.1"
+    rdf-vocabulary: "npm:^1.0.1"
     streamify-string: "npm:^1.0.1"
     tmp: "npm:^0.2.3"
     uuidv4: "npm:^6.2.13"
-  checksum: 10c0/5091b4402b2def1fb6bf8e7749d7f2b89a1817da59abfa6ae9f1a0db2fd3ae50222eebc578fba21f9d0f455cb5b515a067ac13584c43e3ba98f50454ccf30e16
+  checksum: 10c0/a42fd82a48012ffbd8ff7165883bce10bce1a31fd5d8f82ba951cf67a9b438bbcf5d4fc6eb5ac52635ebc7c2411613509267cecf41ed3169ae5a5fe88da261f3
   languageName: node
   linkType: hard
 
@@ -10230,6 +10287,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rdf-data-factory@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "rdf-data-factory@npm:2.0.2"
+  dependencies:
+    "@rdfjs/types": "npm:^2.0.0"
+  checksum: 10c0/5c72ebc22f4910fd35bf3efb1e1def10785aca6f8d22dd8cee34c9ffb764225698ebdfeaf09a2afba6c25e17733940ab52cefd5c751cc2720b29b5ee56ef32ee
+  languageName: node
+  linkType: hard
+
 "rdf-dereference@npm:^2.2.0":
   version: 2.2.0
   resolution: "rdf-dereference@npm:2.2.0"
@@ -10290,6 +10356,19 @@ __metadata:
   dependencies:
     "@rdfjs/types": "npm:*"
   checksum: 10c0/63840293d51b2fb56ab690ca5a5f890e2fcd08ae4c60d6f8b5893633147f6c48d77f607b1cf4404a9b91b3269073aa26d0187d3f1712e3599b50dba659259055
+  languageName: node
+  linkType: hard
+
+"rdf-lens@npm:^1.3.5":
+  version: 1.3.5
+  resolution: "rdf-lens@npm:1.3.5"
+  dependencies:
+    "@rdfjs/types": "npm:^2.0.1"
+    "@treecg/types": "npm:^0.4.6"
+    "@types/n3": "npm:^1.21.1"
+    n3: "npm:^1.23.1"
+    rdf-data-factory: "npm:^2.0.2"
+  checksum: 10c0/28522512d32569e913cefc37ee125f47942943a67e2daf407195162ba000b0b46317599ed78ec3432cbdf67118ba0a1b70126a116a8d023d2f99fac7f935b822
   languageName: node
   linkType: hard
 
@@ -10503,6 +10582,15 @@ __metadata:
     rdf-literal: "npm:^1.3.0"
     rdf-validate-datatype: "npm:^0.1.5"
   checksum: 10c0/6aa997649c9b5c041c1cef674e7833ee7099e277238a7af3045ddfe2f6c06bf8cfdec06914ffdc4a9fc11729504a143fa4f8d8ad868b51d142776f452b409f33
+  languageName: node
+  linkType: hard
+
+"rdf-vocabulary@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "rdf-vocabulary@npm:1.0.1"
+  dependencies:
+    "@rdfjs/types": "npm:*"
+  checksum: 10c0/5f9f9a7c2dea9084b57a26b03989b24b00c2d606eefe18f8a12adf5425da11329f01e132ed3ce0363a399a854cacad38226865426ecab92dd0719846c6eea34e
   languageName: node
   linkType: hard
 
