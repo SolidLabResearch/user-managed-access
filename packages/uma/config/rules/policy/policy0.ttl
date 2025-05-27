@@ -4,7 +4,15 @@
 ex:usagePolicy a odrl:Agreement .
 ex:usagePolicy odrl:permission ex:permission .
 ex:permission a odrl:Permission .
-ex:permission odrl:action odrl:read , odrl:modify .
+ex:permission odrl:action odrl:read , odrl:create , odrl:modify .
 ex:permission odrl:target <http://localhost:3000/alice/other/> , <http://localhost:3000/alice/other/resource.txt> .
 ex:permission odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
 ex:permission odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+ex:usagePolicy2 a odrl:Agreement .
+ex:usagePolicy2 odrl:permission ex:permission2 .
+ex:permission2 a odrl:Permission .
+ex:permission2 odrl:action odrl:create , odrl:modify .
+ex:permission2 odrl:target <http://localhost:3000/alice/private/> , <http://localhost:3000/alice/private/resource.txt> .
+ex:permission2 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission2 odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .

@@ -13,11 +13,14 @@ jobs:
       fail-fast: false
       matrix:
         node-version:
-          - 18.x # Maintenance
-          - 20.x # Active
-          - 21.x # Current
+          - 20.x # Maintenance
+          - 22.x # Active
+          - 23.x # Current
 
     steps:
+
+      - name: Checkout main branch
+        uses: actions/checkout@v4
 
       - name: Enable Node.js Corepack
         run: corepack enable
@@ -26,9 +29,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-
-      - name: Checkout main branch
-        uses: actions/checkout@v4
 
       - name: Yarn install
         run: yarn install

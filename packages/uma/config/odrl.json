@@ -6,7 +6,7 @@
   "import": [
     "sai-uma:config/credentials/verifiers/default.json",
     "sai-uma:config/dialog/negotiators/contract.json",
-    "sai-uma:config/policies/authorizers/default.json",
+    "sai-uma:config/policies/authorizers/odrl.json",
     "sai-uma:config/resources/storage/default.json",
     "sai-uma:config/routes/discovery.json",
     "sai-uma:config/routes/introspection.json",
@@ -101,9 +101,9 @@
               { "@id": "urn:uma:default:ResourceRegistrationRoute" },
               { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
               { "@id": "urn:uma:default:IntrospectionRoute" },
-          { "@id": "urn:uma:default:LogRoute" },
-          { "@id": "urn:uma:default:VCRoute" },
-          { "@id": "urn:uma:default:ContractRoute" }
+              { "@id": "urn:uma:default:LogRoute" },
+              { "@id": "urn:uma:default:VCRoute" },
+              { "@id": "urn:uma:default:ContractRoute" }
             ],
             "defaultHandler": {
               "@type": "DefaultRequestHandler"

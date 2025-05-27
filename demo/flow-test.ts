@@ -65,7 +65,7 @@ async function main() {
     log('Error fetching WebID data:', e);
     return;
   }
-  
+
   const umaServer = webIdData.getObjects(terms.agents.ruben, terms.solid.umaServer, null)[0].value;
   const configUrl = new URL('.well-known/uma2-configuration', umaServer);
   const umaConfig = await (await fetch(configUrl)).json();
@@ -84,8 +84,8 @@ Target Resource:  ${terms.resources.smartwatch}`)
   log('To protect this data, a policy is added restricting access to a specific healthcare employee for the purpose of bariatric care.');
   log(chalk.italic(`Note: Policy management is out of scope for POC1, right now they are just served from a public container on the pod.
 additionally, selecting relevant policies is not implemented at the moment, all policies are evaluated, but this is a minor fix in the AS.`))
-  
-const healthcare_patient_policy = 
+
+const healthcare_patient_policy =
   `@prefix dcterms: <http://purl.org/dc/terms/>.
   @prefix eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#>.
   @prefix oac: <https://w3id.org/oac#>.
@@ -94,29 +94,28 @@ const healthcare_patient_policy =
 
   @prefix ex: <http://example.org/>.
 
-  <http://example.org/HCPX-request> a odrl:Request ;
-      odrl:uid ex:HCPX-request ;
+  <http://example.org/HCPX-agreement> a odrl:Agreement ;
+      odrl:uid ex:HCPX-agreement ;
       odrl:profile oac: ;
-      dcterms:description "HCP X requests to read Alice's health data for bariatric care.";
-      odrl:permission <http://example.org/HCPX-request-permission> .
+      odrl:permission <http://example.org/HCPX-agreement-permission> .
 
-  <http://example.org/HCPX-request-permission> a odrl:Permission ;
+  <http://example.org/HCPX-agreement-permission> a odrl:Permission ;
       odrl:action odrl:read ;
       odrl:target <http://example.org/medical-data-access-collection> ;
       odrl:assigner <${terms.agents.ruben}> ;
       odrl:assignee <${terms.agents.alice}> ;
-      odrl:constraint <http://example.org/HCPX-request-permission-purpose>,
-          <http://example.org/HCPX-request-permission-lb> .
+      odrl:constraint <http://example.org/HCPX-agreement-permission-purpose>,
+          <http://example.org/HCPX-agreement-permission-lb> .
     
   <http://example.org/medical-data-access-collection> a odrl:AssetCollection;
       odrl:source <${terms.resources.collectionSource}> .
 
-  <http://example.org/HCPX-request-permission-purpose> a odrl:Constraint ;
+  <http://example.org/HCPX-agreement-permission-purpose> a odrl:Constraint ;
       odrl:leftOperand odrl:purpose ; # can also be oac:Purpose, to conform with OAC profile
       odrl:operator odrl:eq ;
       odrl:rightOperand ex:bariatric-care .
 
-  <http://example.org/HCPX-request-permission-lb> a odrl:Constraint ;
+  <http://example.org/HCPX-agreement-permission-lb> a odrl:Constraint ;
       odrl:leftOperand oac:LegalBasis ;
       odrl:operator odrl:eq ;
       odrl:rightOperand eu-gdpr:A9-2-a .`
@@ -211,7 +210,7 @@ const healthcare_patient_policy =
       ],
     } ],
     // claims: [{
-      claim_token: claim_token, 
+      claim_token: claim_token,
       claim_token_format: "urn:solidlab:uma:claims:formats:jwt",
     // }],
     // UMA specific fields
@@ -224,15 +223,15 @@ const healthcare_patient_policy =
   if (response2.failed) {
     throw new Error(`Resource request for ${terms.resources.smartwatch} should not have failed with claims: ${response}`)
   }
-  
+
   const access_token = parseJwt(response2.access_token)
 
-  log(`The UMA server checks the claims with the relevant policy, and returns the agent an access token with the requested permissions.`, 
+  log(`The UMA server checks the claims with the relevant policy, and returns the agent an access token with the requested permissions.`,
     JSON.stringify(access_token.permissions, null, 2));
-  
-  log(`and the accompanying agreement:`, 
+
+  log(`and the accompanying agreement:`,
     JSON.stringify(access_token.contract, null, 2));
-  
+
   log(chalk.italic(`Future work: at a later stage, this agreements will be signed by both parties to form a binding contract.`))
 
   const accessWithTokenResponse = await fetch(terms.resources.smartwatch, {
@@ -242,7 +241,7 @@ const healthcare_patient_policy =
   log(`Now the doctor can retrieve the resource:`, await accessWithTokenResponse.text());
 
   if (accessWithTokenResponse.status !== 200) { log(`Access with token failed...`); throw 0; }
-  
+
 }
 
 main();
@@ -270,7 +269,7 @@ async function executeReadWithClaims(target: string, request: any, options: { to
     method: "GET",
     headers: { "content-type": "application/json" },
   });
-  
+
   const umaHeader = await res.headers.get('WWW-Authenticate')
 
   log(`Resource request to ${target} results in ${umaHeader}`)
@@ -287,7 +286,7 @@ async function executeReadWithClaims(target: string, request: any, options: { to
     headers: { "content-type": "application/json" },
     body: JSON.stringify(request),
   });
-  
+
   // if (response.status !== 403) { log('Access request succeeded without claims...', await response.text()); throw 0; }
 
   const responseJSON = await response.json();

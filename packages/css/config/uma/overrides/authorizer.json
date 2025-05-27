@@ -1,0 +1,30 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:solid-server:overrides:AuthorizerOverride",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:Authorizer"
+      },
+      "overrideParameters": {
+        "@type": "UmaAuthorizer",
+        "authorizer": {
+          "@type": "PermissionBasedAuthorizer",
+          "resourceSet": {
+            "@id": "urn:solid-server:default:CachedResourceSet"
+          }
+        },
+        "umaClient": {
+          "@id": "urn:solid-server:default:UmaClient"
+        },
+        "ownerUtil": {
+          "@id": "urn:solid-server:default:OwnerUtil"
+        }
+      }
+    }
+  ]
+}

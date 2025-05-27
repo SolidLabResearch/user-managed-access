@@ -4,7 +4,7 @@ import { ClaimSet } from '../ClaimSet';
 import { Credential } from "../Credential";
 import { JWT } from '../Formats';
 import { decodeJwt, decodeProtectedHeader, jwtVerify } from 'jose';
-import buildGetJwks from 'get-jwks';
+import buildGetJwks, {GetJwks} from 'get-jwks';
 
 /**
  * An UNSECURE Verifier that parses Tokens of the format `encode_uri(webId)[:encode_uri(clientId)]`,
@@ -12,7 +12,7 @@ import buildGetJwks from 'get-jwks';
  */
 export class JwtVerifier implements Verifier {
   protected readonly logger = getLoggerFor(this);
-  protected jwks = buildGetJwks();
+  protected jwks:GetJwks = buildGetJwks();
 
   constructor(
     private readonly allowedClaims: string[],

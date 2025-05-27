@@ -42,7 +42,7 @@ export class NamespacedAuthorizer implements Authorizer {
     }
 
     // Find applicable authorizer
-    const authorizer = ns ? this.authorizers[ns] : this.fallback;
+    const authorizer = (ns && this.authorizers[ns]) || this.fallback;
 
     // Delegate to authorizer
     return authorizer.permissions(claims, query);

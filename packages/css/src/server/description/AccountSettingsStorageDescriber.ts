@@ -3,8 +3,8 @@ import type { AccountSettings, AccountStore, PodStore, ResourceIdentifier } from
 import { StorageDescriber } from '@solid/community-server';
 import { DataFactory } from 'n3';
 import { stringToTerm } from 'rdf-string';
-import namedNode = DataFactory.namedNode;
-import quad = DataFactory.quad;
+
+const {quad, namedNode} = DataFactory
 
 /**
  * Adds triples to the storage description resource, based on the settings of
