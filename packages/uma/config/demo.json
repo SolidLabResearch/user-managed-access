@@ -33,10 +33,7 @@
               "@id": "urn:uma:default:AllAuthorizer"
             }
           }
-        ],
-        "fallback": {
-          "@id": "urn:uma:default:PolicyBasedAuthorizer"
-        }
+        ]
       }
     },
     {

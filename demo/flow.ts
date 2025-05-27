@@ -54,7 +54,7 @@ const policyContainer = 'http://localhost:3000/ruben/settings/policies/';
 async function main() {
 
   const webIdData = new Store(parser.parse(await (await fetch(terms.agents.ruben)).text()));
-  
+
   const umaServer = webIdData.getObjects(terms.agents.ruben, terms.solid.umaServer, null)[0].value;
   const configUrl = new URL('.well-known/uma2-configuration', umaServer);
   const umaConfig = await (await fetch(configUrl)).json();
@@ -73,8 +73,8 @@ Target Resource:  ${terms.resources.smartwatch}`)
   log('To protect this data, a policy is added restricting access to a specific healthcare employee for the purpose of bariatric care.');
   log(chalk.italic(`Note: Policy management is out of scope for POC1, right now they are just served from a public container on the pod.
 additionally, selecting relevant policies is not implemented at the moment, all policies are evaluated, but this is a minor fix in the AS.`))
-  
-  const healthcare_patient_policy = 
+
+  const healthcare_patient_policy =
   `PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#>
 PREFIX oac: <https://w3id.org/oac#>
@@ -83,26 +83,25 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 PREFIX ex: <http://example.org/>
 
-<http://example.org/HCPX-request> a odrl:Request ;
-    odrl:uid ex:HCPX-request ;
+  <http://example.org/HCPX-agreement> a odrl:Agreement ;
+    odrl:uid ex:HCPX-agreement ;
     odrl:profile oac: ;
-    dcterms:description "HCP X requests to read Alice's health data for bariatric care.";
-    odrl:permission <http://example.org/HCPX-request-permission> .
+    odrl:permission <http://example.org/HCPX-agreement-permission> .
 
-<http://example.org/HCPX-request-permission> a odrl:Permission ;
+<http://example.org/HCPX-agreement-permission> a odrl:Permission ;
     odrl:action odrl:read ;
     odrl:target <${terms.resources.smartwatch}> ;
     odrl:assigner <${terms.agents.ruben}> ;
     odrl:assignee <${terms.agents.alice}> ;
-    odrl:constraint <http://example.org/HCPX-request-permission-purpose>,
-        <http://example.org/HCPX-request-permission-lb> .
+    odrl:constraint <http://example.org/HCPX-agreement-permission-purpose>,
+        <http://example.org/HCPX-agreement-permission-lb> .
 
-<http://example.org/HCPX-request-permission-purpose> a odrl:Constraint ;
+<http://example.org/HCPX-agreement-permission-purpose> a odrl:Constraint ;
     odrl:leftOperand odrl:purpose ; # can also be oac:Purpose, to conform with OAC profile
     odrl:operator odrl:eq ;
     odrl:rightOperand ex:bariatric-care .
 
-<http://example.org/HCPX-request-permission-lb> a odrl:Constraint ;
+<http://example.org/HCPX-agreement-permission-lb> a odrl:Constraint ;
     odrl:leftOperand oac:LegalBasis ;
     odrl:operator odrl:eq ;
     odrl:rightOperand eu-gdpr:A9-2-a .`
@@ -129,7 +128,7 @@ on the condition of the purpose of the request being "http://example.org/bariatr
     method: "GET",
     headers: { "content-type": "application/json" },
   });
-  
+
   const umaHeader = await res.headers.get('WWW-Authenticate')
 
   log(`First, a resource request is done without authorization that results in a 403 response and accompanying UMA ticket in the WWW-Authenticate header according to the UMA specification:
@@ -164,12 +163,12 @@ ${umaHeader}`)
     headers: { "content-type": "application/json" },
     body: JSON.stringify(smartWatchAccessRequestNoClaimsODRL),
   });
-  
+
   if (doctor_needInfoResponse.status !== 403) { log('Access request succeeded without claims...', await doctor_needInfoResponse.text()); throw 0; }
 
   const { ticket: ticket2, required_claims: doctor_claims } = await doctor_needInfoResponse.json();
   ticket = ticket2
-  
+
   log(`Based on the policy set above, the Authorization Server requests the following claims from the doctor:`);
   doctor_claims.claim_token_format[0].forEach((format: string) => log(`  - ${format}`))
   log(`accompanied by an updated ticket: ${ticket}.`)
@@ -225,7 +224,7 @@ ${umaHeader}`)
       ],
     } ],
     // claims: [{
-      claim_token: claim_token, 
+      claim_token: claim_token,
       claim_token_format: "urn:solidlab:uma:claims:formats:jwt",
     // }],
     // UMA specific fields
@@ -235,7 +234,7 @@ ${umaHeader}`)
 
   log('Together with the UMA grant_type and ticket requirements, these are bundled as an ODRL Request and sent back to the Authorization Server')
   log(JSON.stringify(smartWatchAccessRequestODRL, null, 2))
-  
+
   log(chalk.italic(`Note: the ODRL Request constraints are not yet evaluated as claims, only the passed claim token is.
 There are two main points of work here: right now the claim token gathers all claims internally, as only a single token can be passed.
 This is problematic when claims and OIDC tokens have to be passed. It might be worth looking deeper into ODRL requests to carry these claims instead of an UMA token.`))
@@ -246,19 +245,19 @@ This is problematic when claims and OIDC tokens have to be passed. It might be w
     body: JSON.stringify(smartWatchAccessRequestODRL)
   });
 
-  if (accessGrantedResponse.status !== 200) { 
-    log('Access request failed despite policy...', JSON.stringify(await accessGrantedResponse.text(), null, 2)); throw 0; 
+  if (accessGrantedResponse.status !== 200) {
+    log('Access request failed despite policy...', JSON.stringify(await accessGrantedResponse.text(), null, 2)); throw 0;
   }
 
   const tokenParams = await accessGrantedResponse.json();
   const access_token = parseJwt(tokenParams.access_token)
 
-  log(`The UMA server checks the claims with the relevant policy, and returns the agent an access token with the requested permissions.`, 
+  log(`The UMA server checks the claims with the relevant policy, and returns the agent an access token with the requested permissions.`,
     JSON.stringify(access_token.permissions, null, 2));
-  
-  log(`and the accompanying agreement:`, 
+
+  log(`and the accompanying agreement:`,
     JSON.stringify(access_token.contract, null, 2));
-  
+
   log(chalk.italic(`Future work: at a later stage, this agreements will be signed by both parties to form a binding contract.`))
 
   const accessWithTokenResponse = await fetch(terms.resources.smartwatch, {
@@ -268,7 +267,7 @@ This is problematic when claims and OIDC tokens have to be passed. It might be w
   log(`Now the doctor can retrieve the resource:`, await accessWithTokenResponse.text());
 
   if (accessWithTokenResponse.status !== 200) { log(`Access with token failed...`); throw 0; }
-  
+
 }
 
 main();
@@ -301,4 +300,3 @@ async function initContainer(policyContainer: string): Promise<void> {
     }
   }
 }
-
