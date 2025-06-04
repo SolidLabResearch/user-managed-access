@@ -5,7 +5,7 @@
   ],
   "import": [
     "sai-uma:config/credentials/verifiers/default.json",
-    "sai-uma:config/dialog/negotiators/contract.json",
+    "sai-uma:config/dialog/negotiators/default.json",
     "sai-uma:config/policies/authorizers/default.json",
     "sai-uma:config/resources/storage/default.json",
     "sai-uma:config/routes/discovery.json",
@@ -13,7 +13,7 @@
     "sai-uma:config/routes/keys.json",
     "sai-uma:config/routes/resources.json",
     "sai-uma:config/routes/tickets.json",
-    "sai-uma:config/routes/tokens_contract.json",
+    "sai-uma:config/routes/tokens.json",
     "sai-uma:config/routes/log.json",
     "sai-uma:config/routes/vc.json",
     "sai-uma:config/routes/contract.json",
@@ -96,14 +96,14 @@
             "routes": [
               { "@id": "urn:uma:default:UmaConfigRoute" },
               { "@id": "urn:uma:default:JwksRoute" },
-              { "@id": "urn:uma:default:DemoTokenRoute" },
+              { "@id": "urn:uma:default:TokenRoute" },
               { "@id": "urn:uma:default:PermissionRegistrationRoute" },
               { "@id": "urn:uma:default:ResourceRegistrationRoute" },
               { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
               { "@id": "urn:uma:default:IntrospectionRoute" },
-          { "@id": "urn:uma:default:LogRoute" },
-          { "@id": "urn:uma:default:VCRoute" },
-          { "@id": "urn:uma:default:ContractRoute" }
+              { "@id": "urn:uma:default:LogRoute" },
+              { "@id": "urn:uma:default:VCRoute" },
+              { "@id": "urn:uma:default:ContractRoute" }
             ],
             "defaultHandler": {
               "@type": "DefaultRequestHandler"
