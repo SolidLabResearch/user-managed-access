@@ -1,8 +1,12 @@
-version: '3.4'
+# The server is currently configured to use localhost as its base URL.
+# When using multiple docker containers that want to interact with each other, 0.0.0.0 should be used.
+# Because of this, and also because of potential external interactions with the server,
+# it might be necessary in the future to add changes to support this.
+# Newer versions of CSS can be configured to allow multiple base URLs which will be necessary then.
 
 services:
-  pacsoi-poc-1:
-    image: pacsoi-poc1
+  solidtrustflows:
+    image: solidtrustflows
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -11,8 +15,3 @@ services:
     ports:
       - 3000:3000
       - 4000:4000
-      - 4444:4444
-      - 5123:5123
-      - 8201:8201
-      - 8202:8202
-      - 8203:8203
