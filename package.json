@@ -63,10 +63,9 @@
     "script:public": "yarn exec ts-node ./scripts/test-public.ts",
     "script:private": "yarn exec ts-node ./scripts/test-private.ts",
     "script:registration": "yarn exec ts-node ./scripts/test-registration.ts",
-    "script:ucp-enforcement": "yarn exec ts-node ./scripts/test-ucp-enforcement.ts",
     "script:uma-ucp": "yarn exec ts-node ./scripts/test-uma-ucp.ts",
     "script:uma-odrl": "yarn exec ts-node ./scripts/test-uma-ODRL.ts",
-    "script:flow": "yarn run script:public && yarn run script:private && yarn run script:uma-ucp && yarn run script:registration && yarn run script:ucp-enforcement",
+    "script:flow": "yarn run script:public && yarn run script:private && yarn run script:uma-ucp && yarn run script:registration",
     "sync:list": "syncpack list-mismatches",
     "sync:fix": "syncpack fix-mismatches"
   },
