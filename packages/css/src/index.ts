@@ -10,8 +10,6 @@ export * from './identity/interaction/account/util/UmaAccountStore';
 
 export * from './init/UmaSeededAccountInitializer';
 
-export * from './server/description/AccountSettingsStorageDescriber';
-
 export * from './server/middleware/JwksHandler';
 
 export * from './uma/ResourceRegistrar';

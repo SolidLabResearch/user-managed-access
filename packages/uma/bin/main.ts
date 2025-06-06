@@ -10,28 +10,20 @@ const baseUrl = `${protocol}://${host}:${port}/uma`;
 const rootDir = path.join(__dirname, '../');
 
 export const launch: () => Promise<void> = async () => {
-
-  const variables: Record<string, any> = {};
+  const variables: Record<string, unknown> = {};
 
   variables['urn:uma:variables:port'] = port;
-  variables['urn:uma:variables:host'] = host;
-  variables['urn:uma:variables:protocol'] = protocol;
   variables['urn:uma:variables:baseUrl'] = baseUrl;
 
   variables['urn:uma:variables:policyDir'] = path.join(rootDir, './config/rules/policy');
-  variables['urn:uma:variables:rulesDir'] = path.join(rootDir, './config/rules/n3');
   variables['urn:uma:variables:eyePath'] = 'eye';
 
-  variables['urn:uma:variables:mainModulePath'] = rootDir;
-  variables['urn:uma:variables:customConfigPath'] = path.join(rootDir, './config/default.json');
-
-  const mainModulePath = variables['urn:uma:variables:mainModulePath'];
-  const configPath = variables['urn:uma:variables:customConfigPath'];
+  const configPath = path.join(rootDir, './config/default.json');
 
   setGlobalLoggerFactory(new WinstonLoggerFactory('info'));
 
   const manager = await ComponentsManager.build({
-    mainModulePath,
+    mainModulePath: rootDir,
     logLevel: 'silly',
     typeChecking: false,
   });
@@ -40,7 +32,6 @@ export const launch: () => Promise<void> = async () => {
 
   const umaServer: ServerInitializer = await manager.instantiate('urn:uma:default:NodeHttpServer',{variables});
   await umaServer.handleSafe();
-
 };
 
 launch();
