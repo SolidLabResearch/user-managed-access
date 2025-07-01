@@ -42,7 +42,7 @@
     }
   ],
   "private": true,
-  "packageManager": "yarn@4.1.0",
+  "packageManager": "yarn@4.9.2",
   "engines": {
     "node": ">=20.0",
     "yarn": ">=4.0"
@@ -54,7 +54,7 @@
     "postinstall": "yarn run sync:list && yarn build",
     "clean": "shx rm -rf ./**/node_modules",
     "build": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited -t run build",
-    "test": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run test",
+    "test": "vitest run",
     "start": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run start",
     "start:odrl": "yarn workspace @solidlab/uma run start:odrl & yarn workspace @solidlab/uma-css run start",
     "start:demo": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run demo",
@@ -73,31 +73,26 @@
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.11.25",
+    "@types/node": "^20.19.1",
     "@typescript-eslint/eslint-plugin": "^5.12.1",
     "@typescript-eslint/parser": "^5.12.1",
     "chalk": "^5.4.1",
     "componentsjs-generator": "^3.1.2",
     "eslint": "^8.10.0",
-    "jest": "^29.7.0",
     "jest-rdf": "^1.8.1",
     "shx": "^0.3.4",
     "syncpack": "^13.0.2",
-    "ts-jest": "^29.1.2",
     "tsx": "^4.19.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.3"
   },
   "resolutions": {
-    "@types/node": "^20.11.25"
+    "@types/node": "^20.19.1"
   },
   "workspaces": [
     "packages/*"
   ],
-  "jest": {
-    "projects": [
-      "./packages/*/package.json"
-    ]
-  },
   "eslintConfig": {
     "env": {
       "browser": true,
