@@ -44,7 +44,9 @@
       },
       "overrideParameters": {
         "@type": "ContainerUCRulesStorage",
-        "containerURL": "http://localhost:3000/ruben/settings/policies/"
+        "containerURL": {
+          "@id": "urn:uma:variables:policyContainer"
+        }
       }
     }
   ]
