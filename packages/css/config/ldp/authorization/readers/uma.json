@@ -13,29 +13,23 @@
         "requestedModes"
       ],
       "source": {
-        "comment": "Requests permissions on subject resources for auxiliary resources.",
-        "@type": "AuxiliaryReader",
-        "auxiliaryStrategy": {
-          "@id": "urn:solid-server:default:AuxiliaryStrategy"
-        },
-        "reader": {
-          "@type": "UnionPermissionReader",
-          "readers": [
-            {
-              "comment": "This PermissionReader will be used to prevent external access to containers used for internal storage.",
-              "@id": "urn:solid-server:default:PathBasedReader",
-              "@type": "PathBasedReader",
-              "baseUrl": {
-                "@id": "urn:solid-server:default:variable:baseUrl"
-              }
-            },
-            {
-              "comment": "The main reader, checks permissions from UMA token.",
-              "@id": "urn:solid-server:default:UmaPermissionReader",
-              "@type": "UmaPermissionReader"
+        "@id": "urn:uma:default:UnionPermissionReader",
+        "@type": "UnionPermissionReader",
+        "readers": [
+          {
+            "comment": "This PermissionReader will be used to prevent external access to containers used for internal storage.",
+            "@id": "urn:solid-server:default:PathBasedReader",
+            "@type": "PathBasedReader",
+            "baseUrl": {
+              "@id": "urn:solid-server:default:variable:baseUrl"
             }
-          ]
-        }
+          },
+          {
+            "comment": "The main reader, checks permissions from UMA token.",
+            "@id": "urn:solid-server:default:UmaPermissionReader",
+            "@type": "UmaPermissionReader"
+          }
+        ]
       }
     }
   ]
