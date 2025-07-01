@@ -1,0 +1,18 @@
+[
+  {
+    "email": "ruben@example.org",
+    "password": "abc123",
+    "pods": [{
+      "name": "ruben"
+    }]
+  },
+  {
+    "email": "demo@example.org",
+    "password": "abc123",
+    "pods": [
+      {
+        "name": "demo"
+      }
+    ]
+  }
+]
