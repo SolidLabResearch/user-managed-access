@@ -70,7 +70,6 @@
     "get-jwks": "^9.0.1",
     "http-message-signatures": "^1.0.4",
     "jose": "^5.2.2",
-    "koreografeye": "^0.4.8",
     "logform": "^2.6.0",
     "n3": "^1.17.2",
     "odrl-evaluator": "^0.3.0",
