@@ -15,6 +15,7 @@ export const launch: () => Promise<void> = async () => {
   variables['urn:uma:variables:port'] = port;
   variables['urn:uma:variables:baseUrl'] = baseUrl;
 
+  variables['urn:uma:variables:policyBaseIRI'] = 'http://localhost:3000/';
   variables['urn:uma:variables:policyDir'] = path.join(rootDir, './config/rules/policy');
   variables['urn:uma:variables:eyePath'] = 'eye';
 

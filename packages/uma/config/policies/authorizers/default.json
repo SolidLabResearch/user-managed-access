@@ -57,6 +57,9 @@
           "@type": "DirectoryUCRulesStorage",
           "directoryPath": {
             "@id": "urn:uma:variables:policyDir"
+          },
+          "baseIRI": {
+            "@id": "urn:uma:variables:policyBaseIRI"
           }
         }
       }
