@@ -32,7 +32,7 @@
     }
   ],
   "private": true,
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.9.2",
   "engines": {
     "node": ">=20.0",
     "yarn": ">=4.0"
@@ -55,7 +55,6 @@
     "build": "yarn build:ts && yarn build:components",
     "build:ts": "yarn run -T tsc",
     "build:components": "yarn run -T componentsjs-generator -r sai-uma -s src -c dist/components -i .componentsignore --lenient",
-    "test": "yarn run -T jest --coverage",
     "start": "yarn run -T tsx bin/main.ts",
     "start:odrl": "yarn run -T tsx bin/odrl.ts",
     "demo": "yarn run -T tsx bin/demo.ts"
@@ -75,11 +74,6 @@
     "odrl-evaluator": "^0.3.0",
     "uri-template-lite": "^23.4.0",
     "winston": "^3.11.0"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts)$"
   },
   "lsd:module": "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma",
   "lsd:components": "dist/components/components.jsonld",
