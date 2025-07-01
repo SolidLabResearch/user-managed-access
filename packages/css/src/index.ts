@@ -1,5 +1,6 @@
 export * from './authentication/UmaTokenExtractor';
 
+export * from './authorization/AuxiliaryModesExtractor';
 export * from './authorization/UmaAuthorizer';
 export * from './authorization/UmaPermissionReader';
 
