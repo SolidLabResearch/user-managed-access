@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S npx tsx
 
 const container = "http://localhost:3000/alice/public/";
 const slug = "resource.txt";
