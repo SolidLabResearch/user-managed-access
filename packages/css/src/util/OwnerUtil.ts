@@ -51,9 +51,6 @@ export class OwnerUtil {
 
     this.logger.debug(`Looking up owners of pod ${pod.id}`);
 
-    const as = await this.accountStore.getSetting(pod.accountId, ACCOUNT_SETTINGS_AUTHZ_SERVER);
-    this.logger.warn(`REAL AS is ${JSON.stringify(as)}`);
-
     const owners = await this.podStore.getOwners(pod.id);
     if (!owners) throw new Error(`Unable to find owners for pod ${storage.path}`);
 
