@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S npx tsx
 
 // Resource and WebID as set in config/rules/policy/policy0.ttl
 const resource = "http://localhost:3000/alice/other/resource.txt";
