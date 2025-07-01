@@ -25,6 +25,23 @@
   ],
   "@graph": [
     {
+      "comment": "This is the entry point to the application. It can be used to both start and stop the server.",
+      "@id": "urn:uma:default:App",
+      "@type": "App",
+      "initializer": { "@id": "urn:uma:default:NodeHttpServer" },
+      "finalizer": {
+        "@id": "urn:uma:default:Finalizer",
+        "@type": "SequenceHandler",
+        "handlers": [
+          {
+            "comment": "Provides handler to shut down the server",
+            "@type": "FinalizableHandler",
+            "finalizable": { "@id": "urn:uma:default:NodeHttpServer" }
+          }
+        ]
+      }
+    },
+    {
       "@id": "urn:uma:default:NodeHttpServer",
       "@type": "ServerInitializer",
       "port": {
