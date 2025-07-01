@@ -26,6 +26,11 @@
         "comment": "Path of the local eye reasoner.",
         "@id": "urn:uma:variables:eyePath",
         "@type": "Variable"
+      },
+      {
+        "comment": "URL of container where policies are stored.",
+        "@id": "urn:uma:variables:policyContainer",
+        "@type": "Variable"
       }
     ]
   }
