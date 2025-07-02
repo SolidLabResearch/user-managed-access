@@ -2,14 +2,14 @@ import { getLoggerFor } from "@solid/community-server";
 import { UCRulesStorage } from "@solidlab/ucp";
 import { HttpHandlerContext, HttpHandlerResponse, HttpHandler, HttpHandlerRequest } from "../util/http/models/HttpHandler";
 import { Quad, Writer, DataFactory } from "n3";
+import { ODRL } from "../../../ucp/src/util/Vocabularies";
 
-// Need this for the 
+// Need this to query
 const { namedNode } = DataFactory;
 
-// ODRL implementation, notice that we currently give every policy where client is
-// mentioned with 'permission', 'prohibition' and 'duty'.
-const ordlAssigner = namedNode('http://www.w3.org/ns/odrl/2/assigner');
-const relations = ['permission', 'prohibition', 'duty']
+// relevant ODRL implementations
+const ordlAssigner = ODRL.terms.assigner;
+const relations = [ODRL.terms.permission, ODRL.terms.prohibition, ODRL.terms.duty]
 
 /**
  * Endpoint to handle policies, this implementation gives all policies that have the
@@ -24,7 +24,7 @@ export class PolicyRequestHandler extends HttpHandler {
      * (To be altered with actual Solid-OIDC)
      * 
      * @param request the request with the client 'id' as body
-     * @returns the client webID
+     * @returns the client id
      */
     private getClient(request: HttpHandlerRequest): string {
         const header = request.headers['authorization'];
@@ -32,8 +32,8 @@ export class PolicyRequestHandler extends HttpHandler {
             throw new Error('Missing Authorization header');
         }
         return header as string;
-    }
 
+    }
 
     constructor(
         private readonly store: UCRulesStorage
@@ -63,7 +63,7 @@ export class PolicyRequestHandler extends HttpHandler {
         const rules = quads.map(quad => quad.subject);
         for (const relation of relations) {
             for (const rule of rules) {
-                const foundPolicies = store.getQuads(null, namedNode(`http://www.w3.org/ns/odrl/2/${relation}`), rule, null);
+                const foundPolicies = store.getQuads(null, relation, rule, null);
                 for (const quad of foundPolicies) {
                     policies.add(quad.subject.value);
                 }
