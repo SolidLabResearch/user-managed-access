@@ -1,7 +1,6 @@
 import { Store, Triple, DataFactory, Quad_Graph, Quad } from 'n3'
 
-
-class OperationLogger {
+export class OperationLogger {
 
     store: Store = new Store();
 
@@ -11,7 +10,7 @@ class OperationLogger {
      * @returns {Quad_Graph} name of the graph in which the triples are stored
      */
     addLogEntry(triples: Triple[], graphName?: string): Quad_Graph {
-        let graphTerm: Quad_Graph = graphName 
+        let graphTerm: Quad_Graph = graphName
             ? DataFactory.namedNode(graphName)
             : DataFactory.blankNode()
         this.store.addQuads(
@@ -44,4 +43,4 @@ const logger = new OperationLogger();
 
 export function getOperationLogger() {
     return logger;
-} 
+}

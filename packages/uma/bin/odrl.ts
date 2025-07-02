@@ -1,4 +1,4 @@
-import { ServerInitializer, setGlobalLoggerFactory, WinstonLoggerFactory } from '@solid/community-server';
+import { App, setGlobalLoggerFactory, WinstonLoggerFactory } from '@solid/community-server';
 import * as path from 'path';
 import { ComponentsManager } from 'componentsjs';
 
@@ -15,6 +15,7 @@ export const launch: () => Promise<void> = async () => {
     variables['urn:uma:variables:port'] = port;
     variables['urn:uma:variables:baseUrl'] = baseUrl;
 
+    variables['urn:uma:variables:policyBaseIRI'] = 'http://localhost:3000/';
     variables['urn:uma:variables:policyDir'] = path.join(rootDir, './config/rules/odrl');
     variables['urn:uma:variables:eyePath'] = 'eye';
 
@@ -30,8 +31,8 @@ export const launch: () => Promise<void> = async () => {
 
     await manager.configRegistry.register(configPath);
 
-    const umaServer: ServerInitializer = await manager.instantiate('urn:uma:default:NodeHttpServer',{variables});
-    await umaServer.handleSafe();
+    const umaServer: App = await manager.instantiate('urn:uma:default:App',{variables});
+    await umaServer.start();
 };
 
 launch();
