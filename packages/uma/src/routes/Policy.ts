@@ -1,15 +1,19 @@
 import { getLoggerFor } from "@solid/community-server";
 import { UCRulesStorage } from "@solidlab/ucp";
 import { HttpHandlerContext, HttpHandlerResponse, HttpHandler, HttpHandlerRequest } from "../util/http/models/HttpHandler";
-import { Quad, Writer, DataFactory } from "n3";
+import { Quad, Writer, DataFactory, Quad_Subject } from "n3";
 import { ODRL } from "../../../ucp/src/util/Vocabularies";
 
 // Need this to query
 const { namedNode } = DataFactory;
 
 // relevant ODRL implementations
-const ordlAssigner = ODRL.terms.assigner;
-const relations = [ODRL.terms.permission, ODRL.terms.prohibition, ODRL.terms.duty]
+const odrlAssigner = ODRL.terms.assigner;
+const relations = [
+    ODRL.terms.permission,
+    ODRL.terms.prohibition,
+    ODRL.terms.duty
+]
 
 /**
  * Endpoint to handle policies, this implementation gives all policies that have the
@@ -52,28 +56,46 @@ export class PolicyRequestHandler extends HttpHandler {
 
         // Query the quads that have the requested client as assigner
         const store = await this.store.getStore();
-        const quads = store.getQuads(null, ordlAssigner, namedNode(client), null);
+        const quads = store.getQuads(null, odrlAssigner, namedNode(client), null);
 
         // For debug purposes
         // console.log(new Writer().quadsToString(quads));
 
         // For every rule that has `client` as `assigner`, get its policy
-        const policies = new Set<string>();
+        const policies = new Set<Quad_Subject>();
 
         const rules = quads.map(quad => quad.subject);
         for (const relation of relations) {
             for (const rule of rules) {
                 const foundPolicies = store.getQuads(null, relation, rule, null);
                 for (const quad of foundPolicies) {
-                    policies.add(quad.subject.value);
+                    policies.add(quad.subject);
                 }
             }
+        }
+
+        // We use these policies to search everything about them
+        const policyDetails = new Map<string, Quad[]>();
+
+        for (const policy of policies) {
+            const directQuads: Quad[] = store.getQuads(policy, null, null, null);
+            const relatedQuads: Quad[] = []
+            for (const relation of relations) {
+                const relatedNodes = store.getQuads(policy, relation, null, null);
+                for (const q of relatedNodes) {
+                    // Look at the rule in relation to the policy
+                    const targetNode = q.object;
+                    // Now find every quad over that rule, without check if the rule is assigned by our client
+                    relatedQuads.push(...store.getQuads(targetNode, null, null, null));
+                }
+            }
+            policyDetails.set(policy.value, [...directQuads, ...relatedQuads]);
         }
 
         return {
             status: 200,
             body: {
-                policies: [...policies]
+                policies: policyDetails
             }
         };
     }
