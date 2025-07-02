@@ -20,15 +20,20 @@ export class PolicyRequestHandler extends HttpHandler {
     protected readonly logger = getLoggerFor(this);
 
     /**
-     * Mock function to extract client from the request, because it is not known yet what
-     * this request will look like in the future.
+     * This function takes the GET-request with `Authorization: webID` and extracts the webID
+     * (To be altered with actual Solid-OIDC)
      * 
      * @param request the request with the client 'id' as body
-     * @returns the client id
+     * @returns the client webID
      */
     private getClient(request: HttpHandlerRequest): string {
-        return request.body as string;
+        const header = request.headers['authorization'];
+        if (!header) {
+            throw new Error('Missing Authorization header');
+        }
+        return header as string;
     }
+
 
     constructor(
         private readonly store: UCRulesStorage
