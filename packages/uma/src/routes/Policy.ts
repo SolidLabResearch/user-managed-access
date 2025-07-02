@@ -52,7 +52,7 @@ export class PolicyRequestHandler extends HttpHandler {
         // For debug purposes
         // console.log(new Writer().quadsToString(quads));
 
-        // TODO: for every rule that has `client` as `assigner`, get its policy
+        // For every rule that has `client` as `assigner`, get its policy
         const policies = new Set<string>();
 
         const rules = quads.map(quad => quad.subject);
