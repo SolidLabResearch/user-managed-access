@@ -1,4 +1,4 @@
-const endpoint = 'http://localhost:3000/policies'
+const endpoint = 'http://localhost:4000/uma/policies'
 const client1 = 'https://pod.woutslabbinck.com/profile/card#me';
 const client2 = 'https://pod.example.com/profile/card#me';
 

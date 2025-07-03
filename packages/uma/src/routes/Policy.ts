@@ -1,11 +1,10 @@
-import { getLoggerFor } from "@solid/community-server";
+import { BadRequestHttpError, getLoggerFor } from "@solid/community-server";
 import { UCRulesStorage } from "@solidlab/ucp";
 import { HttpHandlerContext, HttpHandlerResponse, HttpHandler, HttpHandlerRequest } from "../util/http/models/HttpHandler";
-import { Quad, Writer, DataFactory, Quad_Subject } from "n3";
-import { ODRL } from "../../../ucp/src/util/Vocabularies";
+import { DataFactory, Quad, Writer } from "n3";
+import { ODRL } from "@solidlab/ucp";
 
-// Need this to query
-const { namedNode } = DataFactory;
+const { namedNode } = DataFactory
 
 // relevant ODRL implementations
 const odrlAssigner = ODRL.terms.assigner;
@@ -23,6 +22,12 @@ export class PolicyRequestHandler extends HttpHandler {
 
     protected readonly logger = getLoggerFor(this);
 
+    constructor(
+        private readonly store: UCRulesStorage
+    ) {
+        super();
+    }
+
     /**
      * This function takes the GET-request with `Authorization: webID` and extracts the webID
      * (To be altered with actual Solid-OIDC)
@@ -30,52 +35,49 @@ export class PolicyRequestHandler extends HttpHandler {
      * @param request the request with the client 'id' as body
      * @returns the client id
      */
-    private getClient(request: HttpHandlerRequest): string {
+    protected getCredentials(request: HttpHandlerRequest): string {
         const header = request.headers['authorization'];
-        if (!header) {
-            throw new Error('Missing Authorization header');
+        if (typeof header !== 'string') {
+            throw new BadRequestHttpError('Missing Authorization header');
         }
-        return header as string;
-
+        return header;
     }
 
-    constructor(
-        private readonly store: UCRulesStorage
-    ) {
-        super();
-    }
-
-    async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
+    /**
+     * Get all policy information relevant to the client in the request.
+     * This iplementation searches for all subjects in relation with the policy with depth 1, a deeper algorithm is required.
+     * 
+     * @param param0 a request with the clients webID as authorization header.
+     * @returns all policy information (depth 1) relevant to the client
+     */
+    public async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
         this.logger.info(`Received policy request`);
 
         // Extract client from request
-        const client = this.getClient(request);
+        const client = this.getCredentials(request);
 
         // TODO: verify authorization
-
 
         // Query the quads that have the requested client as assigner
         const store = await this.store.getStore();
         const quads = store.getQuads(null, odrlAssigner, namedNode(client), null);
 
-        // For debug purposes
-        // console.log(new Writer().quadsToString(quads));
 
         // For every rule that has `client` as `assigner`, get its policy
-        const policies = new Set<Quad_Subject>();
+        const policies = new Set<string>();
 
         const rules = quads.map(quad => quad.subject);
         for (const relation of relations) {
             for (const rule of rules) {
                 const foundPolicies = store.getQuads(null, relation, rule, null);
                 for (const quad of foundPolicies) {
-                    policies.add(quad.subject);
+                    policies.add(quad.subject.value);
                 }
             }
         }
 
-        // We use these policies to search everything about them
-        const policyDetails = new Map<string, Quad[]>();
+        // We use these policies to search everything about them, this will be changed to a recursive variant
+        let policyDetails: Quad[] = [];
 
         for (const policy of policies) {
             const directQuads: Quad[] = store.getQuads(policy, null, null, null);
@@ -89,13 +91,13 @@ export class PolicyRequestHandler extends HttpHandler {
                     relatedQuads.push(...store.getQuads(targetNode, null, null, null));
                 }
             }
-            policyDetails.set(policy.value, [...directQuads, ...relatedQuads]);
+            policyDetails = policyDetails.concat([...directQuads, ...relatedQuads]);
         }
 
         return {
             status: 200,
             body: {
-                policies: policyDetails
+                policies: new Writer().quadsToString(policyDetails)
             }
         };
     }

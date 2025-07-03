@@ -12,7 +12,7 @@
             "handler": {
                 "@type": "PolicyRequestHandler",
                 "store": {
-                    "@id": "urn:uma:variables:policyDir"
+                    "@id": "urn:uma:default:RulesStorage"
                 }
             },
             "path": "/uma/policies"

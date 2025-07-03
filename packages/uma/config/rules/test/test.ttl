@@ -1,3 +1,9 @@
+############################################
+# File for Policy endpoint Testing Purposes
+#  this will serve to test some edge cases
+############################################
+
+
 @prefix ex: <http://example.org/>.
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 

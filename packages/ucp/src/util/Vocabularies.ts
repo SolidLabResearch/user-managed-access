@@ -5,7 +5,7 @@ import type { NamedNode } from '@rdfjs/types';
 /**
  * A `Record` in which each value is a concatenation of the baseUrl and its key.
  */
-type ExpandedRecord<TBase extends string, TLocal extends string> = { [K in TLocal]: `${TBase}${K}` };
+type ExpandedRecord<TBase extends string, TLocal extends string> = {[K in TLocal]: `${TBase}${K}` };
 
 /**
  * Has a base URL as `namespace` value and each key has as value the concatenation with that base URL.
@@ -15,7 +15,7 @@ type ValueVocabulary<TBase extends string, TLocal extends string> =
 /**
  * A {@link ValueVocabulary} where the URI values are {@link NamedNode}s.
  */
-type TermVocabulary<T> = T extends ValueVocabulary<any, any> ? { [K in keyof T]: NamedNode<T[K]> } : never;
+type TermVocabulary<T> = T extends ValueVocabulary<any, any> ? {[K in keyof T]: NamedNode<T[K]> } : never;
 
 /**
  * Contains a namespace and keys linking to the entries in this namespace.
@@ -50,7 +50,7 @@ export type VocabularyTerm<T> = T extends Vocabulary<any, infer TKey> ? T['terms
  * Creates a {@link ValueVocabulary} with the given `baseUri` as namespace and all `localNames` as entries.
  */
 function createValueVocabulary<TBase extends string, TLocal extends string>(baseUri: TBase, localNames: TLocal[]):
-  ValueVocabulary<TBase, TLocal> {
+ValueVocabulary<TBase, TLocal> {
   const expanded: Partial<ExpandedRecord<TBase, TLocal>> = {};
   // Expose the listed local names as properties
   for (const localName of localNames) {
@@ -66,10 +66,10 @@ function createValueVocabulary<TBase extends string, TLocal extends string>(base
  * Creates a {@link TermVocabulary} based on the provided {@link ValueVocabulary}.
  */
 function createTermVocabulary<TBase extends string, TLocal extends string>(values: ValueVocabulary<TBase, TLocal>):
-  TermVocabulary<ValueVocabulary<TBase, TLocal>> {
+TermVocabulary<ValueVocabulary<TBase, TLocal>> {
   // Need to cast since `fromEntries` typings aren't strict enough
   return Object.fromEntries(
-    Object.entries(values).map(([key, value]): [string, NamedNode] => [key, DataFactory.namedNode(value)]),
+    Object.entries(values).map(([ key, value ]): [string, NamedNode] => [ key, DataFactory.namedNode(value) ]),
   ) as TermVocabulary<ValueVocabulary<TBase, TLocal>>;
 }
 
@@ -79,7 +79,7 @@ function createTermVocabulary<TBase extends string, TLocal extends string>(value
  * The `terms` field contains all the same values but as {@link NamedNode} instead.
  */
 export function createVocabulary<TBase extends string, TLocal extends string>(baseUri: TBase, ...localNames: TLocal[]):
-  string extends TLocal ? PartialVocabulary<TBase> : Vocabulary<TBase, TLocal> {
+string extends TLocal ? PartialVocabulary<TBase> : Vocabulary<TBase, TLocal> {
   const values = createValueVocabulary(baseUri, localNames);
   return {
     ...values,
@@ -99,46 +99,46 @@ export function extendVocabulary<TBase extends string, TLocal extends string, TN
   ReturnType<typeof createVocabulary<TBase, TLocal | TNew>> {
   const localNames = Object.keys(vocabulary)
     .filter((key): boolean => key !== 'terms' && key !== 'namespace') as TLocal[];
-  const allNames = [...localNames, ...newNames];
+  const allNames = [ ...localNames, ...newNames ];
   return createVocabulary(vocabulary.namespace, ...allNames);
 }
 
 export const RDF = createVocabulary(
-  'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-  'type',
-);
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+    'type',
+  );
 
 
 export const ODRL = createVocabulary(
-  'http://www.w3.org/ns/odrl/2/',
-  'Agreement',
-  'Offer',
-  'Permission',
-  'Prohibition',
-  'Duty',
-  'Request',
-  'action',
-  'target',
-  'assignee',
-  'assigner',
-  'constraint',
-  'operator',
-  'permission',
-  'prohibition',
-  'duty',
-  'dateTime',
-  'purpose',
-  'leftOperand',
-  'rightOperand',
-  'gt',
-  'lt',
-  'eq',
+    'http://www.w3.org/ns/odrl/2/',
+    'Agreement',
+    'Offer',
+    'Permission',
+    'Prohibition',
+    'Duty',
+    'Request',
+    'action',
+    'target',
+    'assignee',
+    'assigner',
+    'constraint',
+    'operator',
+    'permission',
+    'prohibition',
+    'duty',
+    'dateTime',
+    'purpose',
+    'leftOperand',
+    'rightOperand',
+    'gt',
+    'lt',
+    'eq',
 )
 
 export const XSD = createVocabulary(
-  'http://www.w3.org/2001/XMLSchema#',
-  'dateTime',
-  'duration',
-  'integer',
-  'string',
-);
+    'http://www.w3.org/2001/XMLSchema#',
+    'dateTime',
+    'duration',
+    'integer',
+    'string',
+  );
