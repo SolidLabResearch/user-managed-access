@@ -41,7 +41,7 @@ export * from './routes/Config';
 export * from './routes/Log';
 export * from './routes/VC';
 export * from './routes/Contract';
-export * from './routes/Policy'
+export * from './routes/Policy';
 
 // Tickets
 export * from './ticketing/Ticket';
