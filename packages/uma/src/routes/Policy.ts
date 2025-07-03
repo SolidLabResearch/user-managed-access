@@ -62,7 +62,6 @@ export class PolicyRequestHandler extends HttpHandler {
         const store = await this.store.getStore();
         const quads = store.getQuads(null, odrlAssigner, namedNode(client), null);
 
-
         // For every rule that has `client` as `assigner`, get its policy
         const policies = new Set<string>();
 
@@ -81,7 +80,7 @@ export class PolicyRequestHandler extends HttpHandler {
 
         for (const policy of policies) {
             const directQuads: Quad[] = store.getQuads(policy, null, null, null);
-            const relatedQuads: Quad[] = []
+            const relatedQuads: Quad[] = [];
             for (const relation of relations) {
                 const relatedNodes = store.getQuads(policy, relation, null, null);
                 for (const q of relatedNodes) {
@@ -94,11 +93,22 @@ export class PolicyRequestHandler extends HttpHandler {
             policyDetails = policyDetails.concat([...directQuads, ...relatedQuads]);
         }
 
-        return {
-            status: 200,
-            body: {
-                policies: new Writer().quadsToString(policyDetails)
-            }
-        };
+        // Serialize as Turtle
+        const writer = new Writer({ format: 'Turtle' });
+        writer.addQuads(policyDetails);
+
+        return new Promise<HttpHandlerResponse<any>>((resolve, reject) => {
+            writer.end((error, result) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve({
+                        status: 200,
+                        headers: { 'content-type': 'text/turtle' },
+                        body: result
+                    });
+                }
+            });
+        });
     }
 }
