@@ -8,10 +8,10 @@ async function main() {
 
     let response = await fetch(endpoint, { headers: { 'Authorization': client1 } })
 
-    console.log("expecting usagePolicy1, usagePolicy2a and usagePolicy3", response.body)
+    console.log("expecting usagePolicy1, usagePolicy2a and usagePolicy3", await response.text())
 
     response = await fetch(endpoint, { headers: { 'Authorization': client2 } })
 
-    console.log("expecting usagePolicy1a and usagePolicy2", response.body)
+    console.log("expecting usagePolicy1a and usagePolicy2", await response.text())
 }
 main()
