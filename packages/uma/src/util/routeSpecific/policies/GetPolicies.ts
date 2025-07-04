@@ -37,6 +37,7 @@ function isPolicy(policyId: string): boolean {
  * policy if available. 
  */
 async function getOnePolicy(policyId: string, store: Store, clientId: string): Promise<HttpHandlerResponse<any>> {
+    policyId = decodeURI(policyId);
 
     // 1. Search the policy by ID
     const policyMatches = store.getQuads(namedNode(policyId), null, null, null);
