@@ -75,39 +75,28 @@ async function getOnePolicy(policyId: string, store: Store, clientId: string): P
  */
 async function getAllPolicies(store: Store, clientId: string): Promise<HttpHandlerResponse<any>> {
 
-    // Query the quads that have the requested client as assigner
-    const quads = store.getQuads(null, odrlAssigner, namedNode(clientId), null);
+    // Keep track of all the matching policies
+    const policyDetails: Set<Quad> = new Set();
 
-    // For every rule that has `client` as `assigner`, get its policy
-    const policies = new Set<string>();
-
-    const rules = quads.map(quad => quad.subject);
     for (const relation of relations) {
-        for (const rule of rules) {
-            const foundPolicies = store.getQuads(null, relation, rule, null);
-            for (const quad of foundPolicies) {
-                policies.add(quad.subject.value);
+        // Collect every quad that matches with the relation (one of Permission, Prohibition or Duty)
+        const matchingRules = store.getQuads(null, relation, null, null);
+
+        // Every quad will represent a policy in relation with a rule
+        for (const quad of matchingRules) {
+            // Extract the policy and rule out the quad
+            const policy = quad.subject;
+            const rule = quad.object;
+
+            // Only go on if the rule is assigned by the client
+            if (store.getQuads(rule, odrlAssigner, namedNode(clientId), null).length > 0) {
+
+                // Because an ODRL policy may only have one assigner, we can now add all policy and rule information
+                store.getQuads(policy, null, null, null).forEach(quad => policyDetails.add(quad));
+                store.getQuads(rule, null, null, null).forEach(quad => policyDetails.add(quad));
             }
         }
     }
 
-    // We use these policies to search everything about them, this will be changed to a recursive variant
-    let policyDetails: Quad[] = [];
-
-    for (const policy of policies) {
-        const directQuads: Quad[] = store.getQuads(policy, null, null, null);
-        const relatedQuads: Quad[] = [];
-        for (const relation of relations) {
-            const relatedNodes = store.getQuads(policy, relation, null, null);
-            for (const q of relatedNodes) {
-                // Look at the rule in relation to the policy
-                const targetNode = q.object;
-                // Now find every quad over that rule, without check if the rule is assigned by our client
-                relatedQuads.push(...store.getQuads(targetNode, null, null, null));
-            }
-        }
-        policyDetails = policyDetails.concat([...directQuads, ...relatedQuads]);
-    }
-
-    return quadsToText(policyDetails)
+    return quadsToText(Array.from(policyDetails));
 }
