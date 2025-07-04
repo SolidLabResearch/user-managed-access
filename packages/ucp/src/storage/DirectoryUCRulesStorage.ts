@@ -1,11 +1,13 @@
 import { UCRulesStorage } from "./UCRulesStorage";
 import * as path from 'path'
 import * as fs from 'fs'
-import { Store } from "n3";
+import { Store, Writer } from "n3";
 import { parseAsN3Store } from "koreografeye";
 
 export class DirectoryUCRulesStorage implements UCRulesStorage {
     private directoryPath: string;
+    private addedRulesPath: string;
+
     /**
      * 
      * @param directoryPath The absolute path to a directory
@@ -16,6 +18,8 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
         if (!fs.lstatSync(directoryPath).isDirectory()) {
             throw Error(`${directoryPath} does not resolve to a directory`)
         }
+
+        this.addedRulesPath = path.join(this.directoryPath, 'addedRules.ttl');
     }
 
     public async getStore(): Promise<Store> {
@@ -30,8 +34,31 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
     }
 
 
+    /**
+     * TEST IMPLEMENTATION - This is just to test the POST :uma/policies endpoint
+     * 
+     * @param rule The quads to be added
+     */
     public async addRule(rule: Store): Promise<void> {
-        throw Error('not implemented');
+        const writer = new Writer({ format: 'Turtle' });
+
+        writer.addQuads(rule.getQuads(null, null, null, null));
+
+        const serializedTurtle: string = await new Promise((resolve, reject) => {
+            writer.end((error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            });
+        });
+
+        // Append or create the file
+        if (!fs.existsSync(this.addedRulesPath)) {
+            fs.writeFileSync(this.addedRulesPath, serializedTurtle);
+        } else {
+            fs.appendFileSync(this.addedRulesPath, '\n' + serializedTurtle);
+        }
+
+        console.log(`[${new Date().toISOString()}] - Added new rule to ${this.addedRulesPath}`);
     }
     public async getRule(identifier: string): Promise<Store> {
         throw Error('not implemented');
