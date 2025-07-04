@@ -1,17 +1,23 @@
 import { Store } from "n3";
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
 import { namedNode, odrlAssigner, PolicyBody } from "./helpers";
-import { BadRequestHttpError } from "@solid/community-server";
+import { BadRequestHttpError, InternalServerError } from "@solid/community-server";
 import { parseStringAsN3Store } from "koreografeye";
+import { UCRulesStorage } from "@solidlab/ucp";
 
-export async function addPolicies(request: HttpHandlerRequest, store: Store, clientId: string): Promise<HttpHandlerResponse<any>> {
+export async function addPolicies(request: HttpHandlerRequest, store: Store, storage: UCRulesStorage, clientId: string): Promise<HttpHandlerResponse<any>> {
 
     // 1. Parse the requested policy
     const requestedPolicy = (request as HttpHandlerRequest<PolicyBody>).body?.policy;
     if (typeof requestedPolicy !== 'string') {
         throw new BadRequestHttpError(`Invalid request body`);
     }
-    const parsedPolicy: Store = await parseStringAsN3Store(requestedPolicy);
+    let parsedPolicy: Store;
+    try {
+        parsedPolicy = await parseStringAsN3Store(requestedPolicy);
+    } catch (error) {
+        throw new BadRequestHttpError(`Policy string can not be parsed: ${error}`)
+    }
 
     // 2. Check if assigner is client
     const matchingClient = parsedPolicy.getQuads(null, odrlAssigner, namedNode(clientId), null);
@@ -29,8 +35,13 @@ export async function addPolicies(request: HttpHandlerRequest, store: Store, cli
 
     // Check if assigner of the policy has access to the target
 
-    // 4. Add the policy to the store
-    store.addQuads(parsedPolicy.getQuads(null, null, null, null));
+    // 4. Add the policy to the rule storage
+    try {
+        await storage.addRule(parsedPolicy);
+    } catch (error) {
+        throw new InternalServerError("Failed to add policy");
+    }
+
 
     return {
         status: 201

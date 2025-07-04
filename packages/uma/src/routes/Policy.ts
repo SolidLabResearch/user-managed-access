@@ -45,7 +45,7 @@ export class PolicyRequestHandler extends HttpHandler {
 
         switch (request.method) {
             case 'GET': return getPolicies(request, store, client);
-            case 'POST': return addPolicies(request, store, client);
+            case 'POST': return addPolicies(request, store, this.storage, client);
             // TODO: add other endpoints
             default: throw new MethodNotAllowedHttpError();
         }
