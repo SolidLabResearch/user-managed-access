@@ -1,7 +1,8 @@
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
 import { Quad, Store, Writer } from "n3";
-import { odrlAssigner, relations, namedNode } from "./helpers";
-import { MethodNotAllowedHttpError } from "@solid/community-server";
+import { odrlAssigner, relations, namedNode, quadsToText } from "./helpers";
+import { BadRequestHttpError, InternalServerError, MethodNotAllowedHttpError } from "@solid/community-server";
+import { NotImplementedError } from "@inrupt/solid-client-authn-core";
 
 /**
  * Handling of the GET /uma/policies endpoint
@@ -33,14 +34,34 @@ function isPolicy(policyId: string): boolean {
 
 /**
  * Function to implement the GET /uma/policies/<id> endpoint, it retrieves all information about a certain
- * policy if available. Yet to be implemented.
+ * policy if available. 
  */
 async function getOnePolicy(policyId: string, store: Store, clientId: string): Promise<HttpHandlerResponse<any>> {
-    // TODO
-    return {
-        status: 202,
-        body: `GET ${policyId} for ${clientId} received properly`
+
+    // 1. Search the policy by ID
+    const policyMatches = store.getQuads(namedNode(policyId), null, null, null);
+
+    // 2. Find the rules in the policy assigned by the client (first find the clients rules, then filter the ones based on the policy)
+    const ownedRules = store.getQuads(null, odrlAssigner, namedNode(clientId), null);
+    const filteredRules = ownedRules.filter(rule =>
+        policyMatches.some(quad => quad.object.id === rule.subject.id)
+    );
+
+    // 3. Check if there are no other assigners in this policy (this is against ODRL definition of a policy)
+    const otherAssigners = store.getQuads(null, odrlAssigner, null, null);
+    if (ownedRules.length < otherAssigners.length) {
+        // TODO: We might expose information, handle here
+        throw new NotImplementedError("Handling of policies with multiple assigners is yet to be implemented");
     }
+
+    // 4. Search all info about the policy AND the rules, for now with depth 1 but a recursive variant needs to be implemented.
+    let details: Set<Quad> = new Set(policyMatches);
+    filteredRules.forEach((rule) => {
+        details.add(rule);
+        store.getQuads(rule.subject, null, null, null).forEach(q => details.add(q))
+    });
+
+    return quadsToText(Array.from(details));
 }
 
 
@@ -87,21 +108,5 @@ async function getAllPolicies(store: Store, clientId: string): Promise<HttpHandl
         policyDetails = policyDetails.concat([...directQuads, ...relatedQuads]);
     }
 
-    // Serialize as Turtle
-    const writer = new Writer({ format: 'Turtle' });
-    writer.addQuads(policyDetails);
-
-    return new Promise<HttpHandlerResponse<any>>((resolve, reject) => {
-        writer.end((error, result) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve({
-                    status: 200,
-                    headers: { 'content-type': 'text/turtle' },
-                    body: result
-                });
-            }
-        });
-    });
+    return quadsToText(policyDetails)
 }

@@ -49,7 +49,7 @@ async function postPolicy() {
 
 async function main() {
     await getAllPolicies();
-    //await getOnePolicy(); awaiting implementation
+    await getOnePolicy();
     await postPolicy();
 }
 main()

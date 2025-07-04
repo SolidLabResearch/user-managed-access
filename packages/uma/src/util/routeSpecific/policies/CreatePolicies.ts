@@ -31,9 +31,12 @@ export async function addPolicies(request: HttpHandlerRequest, store: Store, sto
         throw new BadRequestHttpError(`Policy is incorrectly built`);
     }
 
-    // 3. Perform other validity checks
+    // TODO: 3. Perform other validity checks
 
     // Check if assigner of the policy has access to the target
+    // Check if there is at least one permission/prohibition/duty
+    // Check if every rule has a target
+    // ...
 
     // 4. Add the policy to the rule storage
     try {
@@ -44,6 +47,7 @@ export async function addPolicies(request: HttpHandlerRequest, store: Store, sto
 
 
     return {
-        status: 201
+        status: 201,
+        body: { message: "Policy stored successfully" }
     }
 }
