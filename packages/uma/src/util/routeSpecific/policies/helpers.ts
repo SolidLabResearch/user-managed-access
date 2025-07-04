@@ -11,3 +11,7 @@ export const relations = [
 
 export const { namedNode } = DataFactory;
 
+export interface PolicyBody {
+    policy: string;
+}
+

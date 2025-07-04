@@ -99,6 +99,7 @@
               { "@id": "urn:uma:default:JwksRoute" },
               { "@id": "urn:uma:default:TokenRoute" },
               { "@id": "urn:uma:default:PolicyRoute" },
+              { "@id": "urn:uma:default:GetOnePolicyRoute" },
               { "@id": "urn:uma:default:PermissionRegistrationRoute" },
               { "@id": "urn:uma:default:ResourceRegistrationRoute" },
               { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },

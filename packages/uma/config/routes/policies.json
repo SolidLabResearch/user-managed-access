@@ -7,7 +7,8 @@
             "@id": "urn:uma:default:PolicyRoute",
             "@type": "HttpHandlerRoute",
             "methods": [
-                "GET"
+                "GET", 
+                "POST"
             ],
             "handler": {
                 "@type": "PolicyRequestHandler",
@@ -16,6 +17,20 @@
                 }
             },
             "path": "/uma/policies"
+        },
+        {
+            "@id": "urn:uma:default:GetOnePolicyRoute",
+            "@type": "HttpHandlerRoute",
+            "methods": [
+                "GET"
+            ],
+            "handler": {
+                "@type": "PolicyRequestHandler",
+                "storage": {
+                    "@id": "urn:uma:default:RulesStorage"
+                }
+            },
+            "path": "/uma/policies/{id}"
         }
     ]
 }
