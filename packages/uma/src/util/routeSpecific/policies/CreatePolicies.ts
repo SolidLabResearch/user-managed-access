@@ -8,20 +8,20 @@ import { UCRulesStorage } from "@solidlab/ucp";
 export async function addPolicies(request: HttpHandlerRequest, store: Store, storage: UCRulesStorage, clientId: string): Promise<HttpHandlerResponse<any>> {
 
     // 1. Parse the requested policy
-    const contentType = request.headers['content-type'] ?? 'turtle';
 
-    // Regex check for content type
-    if (/(?:n3|trig|turtle|nquads?|ntriples?)$/i.test(contentType)) {
-        throw new BadRequestHttpError(`Content-Type ${contentType} is not supported.`);
-    }
+    // const contentType = request.headers['content-type'] ?? 'turtle';
+    // // Regex check for content type (awaiting server implementation)
+    // if (/(?:n3|trig|turtle|nquads?|ntriples?)$/i.test(contentType)) {
+    //     throw new BadRequestHttpError(`Content-Type ${contentType} is not supported.`);
+    // }
 
-    const requestedPolicy = request.body;
+    const requestedPolicy = (request as HttpHandlerRequest<PolicyBody>).body?.policy;
     if (typeof requestedPolicy !== 'string') {
         throw new BadRequestHttpError(`Invalid request body`);
     }
     let parsedPolicy: Store;
     try {
-        parsedPolicy = await parseStringAsN3Store(requestedPolicy, { format: contentType });
+        parsedPolicy = await parseStringAsN3Store(requestedPolicy/*, { format: contentType }*/);
     } catch (error) {
         throw new BadRequestHttpError(`Policy string can not be parsed: ${error}`)
     }
@@ -32,11 +32,11 @@ export async function addPolicies(request: HttpHandlerRequest, store: Store, sto
         throw new BadRequestHttpError(`Policy is not authorized correctly`);
     }
 
-    // This check works if the 'assigner' relation only applies to rules of a policy
-    const allAssigners = parsedPolicy.getQuads(null, odrlAssigner, null, null);
-    if (allAssigners.length !== matchingClient.length) {
-        throw new BadRequestHttpError(`Policy is incorrectly built`);
-    }
+    // // This check works if the 'assigner' relation only applies to rules of a policy
+    // const allAssigners = parsedPolicy.getQuads(null, odrlAssigner, null, null);
+    // if (allAssigners.length !== matchingClient.length) {
+    //     throw new BadRequestHttpError(`Policy is incorrectly built`);
+    // }
 
     // TODO: 3. Perform other validity checks
 

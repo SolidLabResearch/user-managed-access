@@ -106,7 +106,8 @@
                   { "@id": "urn:uma:default:PermissionRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
-                  { "@id": "urn:uma:default:IntrospectionRoute" }
+                  { "@id": "urn:uma:default:IntrospectionRoute" },
+                  { "@id": "urn:uma:default:GetOnePolicyRoute" }
                 ],
                 "defaultHandler": {
                   "@type": "DefaultRequestHandler"
@@ -120,7 +121,8 @@
               "routes": [
                 { "@id": "urn:uma:default:ContractRoute" },
                 { "@id": "urn:uma:default:LogRoute" },
-                { "@id": "urn:uma:default:VCRoute" }
+                { "@id": "urn:uma:default:VCRoute" },
+                { "@id": "urn:uma:default:PolicyRoute" }
               ]
             }
           ]
