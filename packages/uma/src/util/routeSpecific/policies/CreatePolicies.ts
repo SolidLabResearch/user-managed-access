@@ -8,36 +8,20 @@ import { UCRulesStorage } from "@solidlab/ucp";
 export async function addPolicies(request: HttpHandlerRequest, store: Store, storage: UCRulesStorage, clientId: string): Promise<HttpHandlerResponse<any>> {
 
     // 1. Parse the requested policy
-    const contentType = request.headers['content-type'] ?? '';
+    const contentType = request.headers['content-type'] ?? 'turtle';
 
-    let parseFormat = 'Turtle';
-    switch (true) {
-        case contentType.includes('application/n-triples'):
-            parseFormat = 'N-Triples';
-            break;
-        case contentType.includes('application/n-quads'):
-            parseFormat = 'N-Quads';
-            break;
-        case contentType.includes('application/trig'):
-            parseFormat = 'TriG';
-            break;
-        case contentType.includes('text/n3'):
-            parseFormat = 'N3';
-            break;
-        case contentType.includes('text/turtle'):
-            parseFormat = 'Turtle';
-            break;
-        default:
-            throw new BadRequestHttpError(`Unsupported Content-Type: ${contentType}`);
+    // Regex check for content type
+    if (/(?:n3|trig|turtle|nquads?|ntriples?)$/i.test(contentType)) {
+        throw new BadRequestHttpError(`Content-Type ${contentType} is not supported.`);
     }
 
-    const requestedPolicy = (request as HttpHandlerRequest<PolicyBody>).body?.policy;
+    const requestedPolicy = request.body;
     if (typeof requestedPolicy !== 'string') {
         throw new BadRequestHttpError(`Invalid request body`);
     }
     let parsedPolicy: Store;
     try {
-        parsedPolicy = await parseStringAsN3Store(requestedPolicy, { format: parseFormat });
+        parsedPolicy = await parseStringAsN3Store(requestedPolicy, { format: contentType });
     } catch (error) {
         throw new BadRequestHttpError(`Policy string can not be parsed: ${error}`)
     }
