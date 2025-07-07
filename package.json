@@ -65,6 +65,7 @@
     "script:registration": "yarn exec ts-node ./scripts/test-registration.ts",
     "script:uma-ucp": "yarn exec ts-node ./scripts/test-uma-ucp.ts",
     "script:uma-odrl": "yarn exec ts-node ./scripts/test-uma-ODRL.ts",
+    "script:uma-odrl-policy": "yarn exec ts-node ./scripts/test-uma-ODRL-policy.ts",
     "script:flow": "yarn run script:public && yarn run script:private && yarn run script:uma-ucp && yarn run script:registration",
     "sync:list": "syncpack list-mismatches",
     "sync:fix": "syncpack fix-mismatches"

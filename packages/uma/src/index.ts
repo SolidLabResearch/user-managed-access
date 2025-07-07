@@ -41,6 +41,7 @@ export * from './routes/Config';
 export * from './routes/Log';
 export * from './routes/VC';
 export * from './routes/Contract';
+export * from './routes/Policy';
 
 // Tickets
 export * from './ticketing/Ticket';
@@ -73,3 +74,5 @@ export * from './util/ConvertUtil';
 export * from './util/HttpMessageSignatures';
 export * from './util/Result';
 export * from './util/ReType';
+export * from './util/routeSpecific/policies/GetPolicies';
+export * from './util/routeSpecific/policies/PolicyUtil';
