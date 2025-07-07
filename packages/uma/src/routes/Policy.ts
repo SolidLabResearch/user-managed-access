@@ -1,7 +1,7 @@
 import { BadRequestHttpError, getLoggerFor, MethodNotAllowedHttpError } from "@solid/community-server";
 import { UCRulesStorage } from "@solidlab/ucp";
 import { HttpHandlerContext, HttpHandlerResponse, HttpHandler, HttpHandlerRequest } from "../util/http/models/HttpHandler";
-import { getPolicies as getPolicies } from "../util/routeSpecific/policies/";
+import { getPolicies as getPolicies } from "../util/routeSpecific/policies/GetPolicies";
 
 /**
  * Endpoint to handle policies, this implementation gives all policies that have the

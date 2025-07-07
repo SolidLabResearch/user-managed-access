@@ -9,11 +9,17 @@
 
 ex:usagePolicy1 a odrl:Agreement .
 ex:usagePolicy1 odrl:permission ex:permission1 .
+ex:usagePolicy1 odrl:permission ex:permission1b .
 ex:permission1 a odrl:Permission .
 ex:permission1 odrl:action odrl:modify .
 ex:permission1 odrl:target <http://localhost:3000/alice/other/resource.txt> .
 ex:permission1 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
-ex:permission1 odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+ex:permission1 odrl:assigner <https://pod.a.com/profile/card#me> .
+ex:permission1b a odrl:Permission .
+ex:permission1b odrl:action odrl:modify .
+ex:permission1b odrl:target <http://localhost:3000/alice/other/resource.txt> .
+ex:permission1b odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission1b odrl:assigner <https://pod.b.com/profile/card#me> .
 
 ex:usagePolicy1a a odrl:Agreement .
 ex:usagePolicy1a odrl:permission ex:permission1a .
