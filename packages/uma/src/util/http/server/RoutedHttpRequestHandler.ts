@@ -1,7 +1,14 @@
-import { getLoggerFor } from '@solid/community-server';
+import {
+  getLoggerFor,
+  InternalServerError,
+  MethodNotAllowedHttpError,
+  NotImplementedHttpError
+} from '@solid/community-server';
 import Template from 'uri-template-lite';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../models/HttpHandler';
 import { HttpHandlerRoute } from '../models/HttpHandlerRoute';
+
+type RouteMatch = { parameters: Record<string, string>, route: HttpHandlerRoute };
 
 /**
  * A {@link HttpHandler} handling requests based on routes in a given list of {@link HttpHandlerRoute}s.
@@ -18,16 +25,17 @@ import { HttpHandlerRoute } from '../models/HttpHandlerRoute';
  * E.g., `http://example.com/foo/bar` will match the route template `/bar`.
  */
 export class RoutedHttpRequestHandler extends HttpHandler {
+  protected readonly logger = getLoggerFor(this);
 
   protected readonly routeMap: Map<Template, HttpHandlerRoute>;
-  protected readonly logger = getLoggerFor(this);
+  protected readonly handledRequests: WeakMap<HttpHandlerContext, RouteMatch>;
+
 
   /**
    * Creates a RoutedHttpRequestHandler, super calls the HttpHandler class and expects a list of HttpHandlerControllers.
    */
   constructor(
     routes: HttpHandlerRoute[],
-    protected readonly defaultHandler?: HttpHandler,
     onlyMatchTail = false,
   ) {
     super();
@@ -37,9 +45,10 @@ export class RoutedHttpRequestHandler extends HttpHandler {
       // Add a catchall variable to the front if only the URL tail needs to be matched.
       this.routeMap.set(new Template(onlyMatchTail ? `{_prefix}${route.path}` : route.path), route);
     }
+    this.handledRequests = new WeakMap();
   }
 
-  async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
+  public async canHandle(context: HttpHandlerContext): Promise<void> {
     const request = context.request;
     const path = request.url.pathname;
 
@@ -55,26 +64,24 @@ export class RoutedHttpRequestHandler extends HttpHandler {
     }
 
     if (!match) {
-      if (this.defaultHandler) {
-        this.logger.info(`No matching route found, calling default handler. ${path}`);
-        return this.defaultHandler.handleSafe(context);
-      } else {
-        this.logger.error(`No matching route found. ${path}`);
-        return { body: '', headers: {}, status: 404 };
-      }
+      throw new NotImplementedHttpError();
     }
 
     this.logger.debug(`Route matched: ${JSON.stringify({ path, parameters: match.parameters })}`);
 
     if (match.route.methods && !match.route.methods.includes(request.method)) {
       this.logger.info(`Operation not supported. Supported operations: ${ match.route.methods }`);
-      return {
-        status: 405,
-        headers: { 'allow': match.route.methods.join(', ') },
-        body: '',
-      };
+      throw new MethodNotAllowedHttpError([ request.method ]);
     }
-    request.parameters = { ...request.parameters, ...match.parameters };
+    this.handledRequests.set(context, match);
+  }
+
+  public async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
+    const match = this.handledRequests.get(context);
+    if (!match) {
+      throw new InternalServerError('Calling handle without successful canHandle');
+    }
+    context.request.parameters = { ...context.request.parameters, ...match.parameters };
 
     return match.route.handler.handleSafe(context);
   }

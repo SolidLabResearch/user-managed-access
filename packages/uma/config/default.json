@@ -106,10 +106,7 @@
                   { "@id": "urn:uma:default:ResourceRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
                   { "@id": "urn:uma:default:IntrospectionRoute" }
-                ],
-                "defaultHandler": {
-                  "@type": "DefaultRequestHandler"
-                }
+                ]
               }
             },
             {
@@ -121,6 +118,10 @@
                 { "@id": "urn:uma:default:LogRoute" },
                 { "@id": "urn:uma:default:VCRoute" }
               ]
+            },
+            {
+              "@type": "StaticThrowHandler",
+              "error": { "@type": "NotFoundHttpError" }
             }
           ]
         }
