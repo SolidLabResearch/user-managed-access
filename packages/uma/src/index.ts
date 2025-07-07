@@ -75,4 +75,4 @@ export * from './util/HttpMessageSignatures';
 export * from './util/Result';
 export * from './util/ReType';
 export * from './util/routeSpecific/policies/GetPolicies';
-export * from './util/routeSpecific/policies/policyUtil';
+export * from './util/routeSpecific/policies/PolicyUtil';
