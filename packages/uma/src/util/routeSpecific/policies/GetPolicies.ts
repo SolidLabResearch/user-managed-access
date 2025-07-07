@@ -1,6 +1,6 @@
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
 import { Quad, Store, Writer } from "n3";
-import { odrlAssigner, relations, namedNode } from "./policyUtil";
+import { odrlAssigner, relations, namedNode } from "./PolicyUtil";
 import { MethodNotAllowedHttpError } from "@solid/community-server";
 
 /**
