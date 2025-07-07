@@ -50,13 +50,18 @@ async function postPolicy() {
     console.log(`expecting a positive response: status code ${response.status}, ${await response.text()}`);
 }
 
+const typeCheck = ((contentType: string): boolean => {
+    return (/(?:n3|trig|turtle|nquads?|ntriples?)$/i.test(contentType))
+})
+
 async function main() {
-    console.log("Testing all implemented Policy Endpoints:\n\n\n");
-    await postPolicy();
-    console.log("\n\n\n");
-    await getAllPolicies();
-    console.log("\n\n\n");
-    await getOnePolicy();
-    console.log("\n\n\n");
+    console.log(typeCheck('text/turtle'))
+    // console.log("Testing all implemented Policy Endpoints:\n\n\n");
+    // await postPolicy();
+    // console.log("\n\n\n");
+    // await getAllPolicies();
+    // console.log("\n\n\n");
+    // await getOnePolicy();
+    // console.log("\n\n\n");
 }
 main()
