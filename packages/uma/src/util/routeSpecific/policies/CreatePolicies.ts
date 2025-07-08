@@ -1,37 +1,11 @@
-import { Quad, Quad_Subject, Store } from "n3";
+import { Quad, Store } from "n3";
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
-import { namedNode, odrlAssigner, relations } from "./PolicyUtil";
+import { odrlAssigner, relations } from "./PolicyUtil";
 import { BadRequestHttpError, InternalServerError } from "@solid/community-server";
 import { parseStringAsN3Store } from "koreografeye";
 import { UCRulesStorage } from "@solidlab/ucp";
 
-export async function addPolicies(request: HttpHandlerRequest, store: Store, storage: UCRulesStorage, clientId: string): Promise<HttpHandlerResponse<any>> {
-
-    // 1. Parse the requested policy
-
-    // Regex check for content type
-    const contentType = request.headers['content-type'];
-    if (!/(?:n3|trig|turtle|nquads?|ntriples?)$/i.test(contentType)) {
-        throw new BadRequestHttpError(`Content-Type ${contentType} is not supported.`);
-    }
-
-    console.log("Requested Policy:", request.body)
-    let requestedPolicy;
-    if (Buffer.isBuffer(request.body)) {
-        requestedPolicy = request.body.toString('utf-8');
-        console.log('RDF body:', requestedPolicy);
-    } else {
-        throw new Error("Expected Buffer body");
-    }
-    let parsedPolicy: Store;
-    try {
-        parsedPolicy = await parseStringAsN3Store(requestedPolicy, { format: contentType });
-    } catch (error) {
-        throw new BadRequestHttpError(`Policy string can not be parsed: ${error}`)
-    }
-
-    // 2. Sanitization checks
-
+export function sanitizeRule(parsedPolicy: Store, clientId: string): void {
     // Check that every rule defined by the policy has exactly one assigner, every rule is unique and every assigner is the client
     const definedRules = new Set();
     for (const relation of relations) {
@@ -59,6 +33,35 @@ export async function addPolicies(request: HttpHandlerRequest, store: Store, sto
     // Check if there is at least one permission/prohibition/duty
     // Check if every rule has a target
     // ...
+}
+
+export async function addPolicies(request: HttpHandlerRequest, storage: UCRulesStorage, clientId: string): Promise<HttpHandlerResponse<any>> {
+
+    // 1. Parse the requested policy
+
+    // Regex check for content type
+    const contentType = request.headers['content-type'];
+    if (!/(?:n3|trig|turtle|nquads?|ntriples?)$/i.test(contentType)) {
+        throw new BadRequestHttpError(`Content-Type ${contentType} is not supported.`);
+    }
+
+    let requestedPolicy;
+    if (Buffer.isBuffer(request.body)) {
+        requestedPolicy = request.body.toString('utf-8');
+        console.log('RDF body:', requestedPolicy);
+    } else {
+        throw new Error("Expected Buffer body");
+    }
+    let parsedPolicy: Store;
+    try {
+        parsedPolicy = await parseStringAsN3Store(requestedPolicy, { format: contentType });
+    } catch (error) {
+        throw new BadRequestHttpError(`Policy string can not be parsed: ${error}`)
+    }
+
+    // 2. Sanitization checks (error is thrown when checks fail)
+    sanitizeRule(parsedPolicy, clientId);
+
 
     // 3 Add the policy to the rule storage
     try {

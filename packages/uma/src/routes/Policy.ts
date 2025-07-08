@@ -13,7 +13,8 @@ export class PolicyRequestHandler extends HttpHandler {
     protected readonly logger = getLoggerFor(this);
 
     constructor(
-        private readonly storage: UCRulesStorage
+        protected readonly storage: UCRulesStorage,
+        protected readonly baseUrl: string,
     ) {
         super();
     }
@@ -44,8 +45,8 @@ export class PolicyRequestHandler extends HttpHandler {
         const store = await this.storage.getStore();
 
         switch (request.method) {
-            case 'GET': return getPolicies(request, store, client);
-            case 'POST': return addPolicies(request, store, this.storage, client);
+            case 'GET': return getPolicies(request, store, client, this.baseUrl);
+            case 'POST': return addPolicies(request, this.storage, client);
             // TODO: add other endpoints
             default: throw new MethodNotAllowedHttpError();
         }

@@ -1,36 +1,30 @@
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
-import { Quad, Store, Writer } from "n3";
+import { Quad, Store } from "n3";
 import { odrlAssigner, relations, namedNode, quadsToText } from "./PolicyUtil";
 import { MethodNotAllowedHttpError } from "@solid/community-server";
-import { NotImplementedError } from "@inrupt/solid-client-authn-core";
 
 /**
  * Handling of the GET /uma/policies endpoint
  * 
  * @param request will give all policies when no <id> is fixed in the URL, otherwise it will give the required policy (if allowed)
  */
-export async function getPolicies(request: HttpHandlerRequest, store: Store, clientId: string): Promise<HttpHandlerResponse<any>> {
-    if (request.url.pathname === '/uma/policies')
+export async function getPolicies(request: HttpHandlerRequest, store: Store, clientId: string, baseUrl: string): Promise<HttpHandlerResponse<any>> {
+    console.log("PATHNAME VS BASE URL", request.url, baseUrl);
+    if (request.url.href.slice(0, baseUrl.length) !== baseUrl) throw new MethodNotAllowedHttpError();
+    const pathname = request.url.href.slice(baseUrl.length);
+    console.log(pathname)
+    if (pathname === '/policies')
         return getAllPolicies(store, clientId);
 
     // If asked for a policy, validate the policy ID
-    const args = request.url.pathname.split('/');
-    if (args.length === 4 && isPolicy(args[3]))
-        return getOnePolicy(args[3], store, clientId);
+    const args = pathname.split('/');
+    console.log(args)
+    if (args.length === 3 && args[1] === 'policies')
+        return getOnePolicy(args[2], store, clientId);
 
     throw new MethodNotAllowedHttpError();
 }
 
-/**
- * Function to determine the validity of the <id> of the GET /uma/policies/<id> endpoint (not implemented yet)
- * 
- * @param policyId 
- * @returns the validity of policyId
- */
-function isPolicy(policyId: string): boolean {
-    // TODO
-    return true;
-}
 
 /**
  * Function to implement the GET /uma/policies/<id> endpoint, it retrieves all information about a certain
@@ -55,7 +49,7 @@ async function getOnePolicy(policyId: string, store: Store, clientId: string): P
 
     // 3. Only keep the rules assigned by the client
     const ownedRules = policyRules.filter(quad => store.getQuads(quad.object, odrlAssigner, namedNode(clientId), null).length > 0);
-
+    console.log('owned rules', ownedRules)
     // Return an empty body when no rules are found
     if (ownedRules.length === 0) {
         return {
