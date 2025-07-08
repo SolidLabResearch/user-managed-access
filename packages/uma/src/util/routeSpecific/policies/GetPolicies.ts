@@ -1,7 +1,8 @@
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
 import { Quad, Store } from "n3";
-import { odrlAssigner, relations, namedNode, quadsToText } from "./PolicyUtil";
+import { odrlAssigner, relations, namedNode, quadsToText, checkBaseURL, retrieveID } from "./PolicyUtil";
 import { MethodNotAllowedHttpError } from "@solid/community-server";
+
 
 /**
  * Handling of the GET /uma/policies endpoint
@@ -10,22 +11,17 @@ import { MethodNotAllowedHttpError } from "@solid/community-server";
  */
 export async function getPolicies(request: HttpHandlerRequest, store: Store, clientId: string, baseUrl: string): Promise<HttpHandlerResponse<any>> {
     // This shouldn't happen
-    if (request.url.href.slice(0, baseUrl.length) !== baseUrl) throw new MethodNotAllowedHttpError();
-    const pathname = request.url.href.slice(baseUrl.length);
+    const pathname = checkBaseURL(request, baseUrl);
 
     // If no other argument(s), get all
     if (pathname === '/policies')
         return getAllPolicies(store, clientId);
 
     // If asked for a policy, get one
-    const args = pathname.split('/');
-    console.log(args)
-    if (args.length === 3 && args[1] === 'policies')
-        return getOnePolicy(args[2], store, clientId);
+    const id = retrieveID(pathname);
+    return getOnePolicy(id, store, clientId);
 
-    throw new MethodNotAllowedHttpError();
 }
-
 
 /**
  * Function to implement the GET /uma/policies/<id> endpoint, it retrieves all information about a certain
@@ -50,7 +46,6 @@ async function getOnePolicy(policyId: string, store: Store, clientId: string): P
 
     // 3. Only keep the rules assigned by the client
     const ownedRules = policyRules.filter(quad => store.getQuads(quad.object, odrlAssigner, namedNode(clientId), null).length > 0);
-    console.log('owned rules', ownedRules)
     // Return an empty body when no rules are found
     if (ownedRules.length === 0) {
         return {
@@ -59,7 +54,7 @@ async function getOnePolicy(policyId: string, store: Store, clientId: string): P
                 'content-type': 'text/turtle',
             },
             body: '',
-        }
+        };
     }
 
     // 4. Search all info about the policy AND the rules, for now with depth 1 but a recursive variant needs to be implemented here.

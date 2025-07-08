@@ -14,7 +14,8 @@
                 "@type": "PolicyRequestHandler",
                 "storage": {
                     "@id": "urn:uma:default:RulesStorage"
-                }
+                },
+                "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
             },
             "path": "/uma/policies"
         },
@@ -22,13 +23,15 @@
             "@id": "urn:uma:default:GetOnePolicyRoute",
             "@type": "HttpHandlerRoute",
             "methods": [
-                "GET"
+                "GET", 
+                "DELETE"
             ],
             "handler": {
                 "@type": "PolicyRequestHandler",
                 "storage": {
                     "@id": "urn:uma:default:RulesStorage"
-                }
+                },
+                "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
             },
             "path": "/uma/policies/{id}"
         }
