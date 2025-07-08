@@ -1,0 +1,7 @@
+<http://example.org/usagePolicy4> a <http://www.w3.org/ns/odrl/2/Agreement>;
+    <http://www.w3.org/ns/odrl/2/permission> <http://example.org/permission4>.
+<http://example.org/permission4> a <http://www.w3.org/ns/odrl/2/Permission>;
+    <http://www.w3.org/ns/odrl/2/action> <http://www.w3.org/ns/odrl/2/read>;
+    <http://www.w3.org/ns/odrl/2/target> <http://localhost:3000/alice/other/resource.txt>;
+    <http://www.w3.org/ns/odrl/2/assignee> <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me>;
+    <http://www.w3.org/ns/odrl/2/assigner> <https://pod.example.com/profile/card#me>.

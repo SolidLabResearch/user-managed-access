@@ -1,7 +1,8 @@
 import { BadRequestHttpError, getLoggerFor, MethodNotAllowedHttpError } from "@solid/community-server";
 import { UCRulesStorage } from "@solidlab/ucp";
 import { HttpHandlerContext, HttpHandlerResponse, HttpHandler, HttpHandlerRequest } from "../util/http/models/HttpHandler";
-import { getPolicies as getPolicies } from "../util/routeSpecific/policies/GetPolicies";
+import { getPolicies } from "../util/routeSpecific/policies/GetPolicies";
+import { addPolicies } from "../util/routeSpecific/policies/CreatePolicies";
 
 /**
  * Endpoint to handle policies, this implementation gives all policies that have the
@@ -22,7 +23,7 @@ export class PolicyRequestHandler extends HttpHandler {
      * (To be altered with actual Solid-OIDC)
      * 
      * @param request the request with the client 'id' as body
-     * @returns the client id
+     * @returns the client webID
      */
     protected getCredentials(request: HttpHandlerRequest): string {
         const header = request.headers['authorization'];
@@ -44,6 +45,7 @@ export class PolicyRequestHandler extends HttpHandler {
 
         switch (request.method) {
             case 'GET': return getPolicies(request, store, client);
+            case 'POST': return addPolicies(request, store, this.storage, client);
             // TODO: add other endpoints
             default: throw new MethodNotAllowedHttpError();
         }
