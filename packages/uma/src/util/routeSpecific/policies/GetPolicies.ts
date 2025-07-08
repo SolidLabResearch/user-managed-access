@@ -9,14 +9,15 @@ import { MethodNotAllowedHttpError } from "@solid/community-server";
  * @param request will give all policies when no <id> is fixed in the URL, otherwise it will give the required policy (if allowed)
  */
 export async function getPolicies(request: HttpHandlerRequest, store: Store, clientId: string, baseUrl: string): Promise<HttpHandlerResponse<any>> {
-    console.log("PATHNAME VS BASE URL", request.url, baseUrl);
+    // This shouldn't happen
     if (request.url.href.slice(0, baseUrl.length) !== baseUrl) throw new MethodNotAllowedHttpError();
     const pathname = request.url.href.slice(baseUrl.length);
-    console.log(pathname)
+
+    // If no other argument(s), get all
     if (pathname === '/policies')
         return getAllPolicies(store, clientId);
 
-    // If asked for a policy, validate the policy ID
+    // If asked for a policy, get one
     const args = pathname.split('/');
     console.log(args)
     if (args.length === 3 && args[1] === 'policies')
