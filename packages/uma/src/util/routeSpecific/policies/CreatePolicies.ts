@@ -1,6 +1,6 @@
 import { Store } from "n3";
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
-import { namedNode, odrlAssigner, PolicyBody } from "./helpers";
+import { namedNode, odrlAssigner } from "./PolicyUtil";
 import { BadRequestHttpError, InternalServerError } from "@solid/community-server";
 import { parseStringAsN3Store } from "koreografeye";
 import { UCRulesStorage } from "@solidlab/ucp";
