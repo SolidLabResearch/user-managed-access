@@ -1,6 +1,6 @@
-import * as path from 'path';
-import { ComponentsManager } from 'componentsjs';
-import { App, setGlobalLoggerFactory, WinstonLoggerFactory } from '@solid/community-server';
+const path = require('path');
+const { ComponentsManager } = require('componentsjs');
+const { setGlobalLoggerFactory, WinstonLoggerFactory } = require('@solid/community-server');
 
 const protocol = 'http';
 const host = 'localhost';
@@ -9,8 +9,8 @@ const port = 4000;
 const baseUrl = `${protocol}://${host}:${port}/uma`;
 const rootDir = path.join(__dirname, '../');
 
-export const launch: () => Promise<void> = async () => {
-  const variables: Record<string, unknown> = {};
+const launch = async () => {
+  const variables = {};
 
   variables['urn:uma:variables:port'] = port;
   variables['urn:uma:variables:baseUrl'] = baseUrl;
@@ -31,7 +31,7 @@ export const launch: () => Promise<void> = async () => {
 
   await manager.configRegistry.register(configPath);
 
-  const umaServer: App = await manager.instantiate('urn:uma:default:App',{variables});
+  const umaServer = await manager.instantiate('urn:uma:default:App',{variables});
   await umaServer.start();
 };
 
