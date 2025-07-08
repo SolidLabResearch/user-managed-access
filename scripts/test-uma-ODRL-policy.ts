@@ -104,10 +104,10 @@ async function getOnePolicy() {
     console.log(`expecting to return relevent information about ${policyId}`, await response.text());
 
     response = await fetch(endpoint(`/${badPolicyId}`), { headers: { 'Authorization': client('b') } });
-    console.log(`expecting 4xx error code since the policy ID is not valid: ${response.status}`)
+    console.log(`expecting an empty body, the policy ID does not exist: ${await response.text()}`);
 
     response = await fetch(endpoint(`/${encoded}`), { headers: { 'Authorization': client('c') } });
-    console.log(`expecting 4xx error code since the client is not authorized to access the policy: ${response.status}`)
+    console.log(`expecting an empty body, the client is not authorized: ${await response.text()}`);
 }
 
 async function postPolicy() {
