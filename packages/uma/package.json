@@ -55,9 +55,9 @@
     "build": "yarn build:ts && yarn build:components",
     "build:ts": "yarn run -T tsc",
     "build:components": "yarn run -T componentsjs-generator -r sai-uma -s src -c dist/components -i .componentsignore --lenient",
-    "start": "yarn run -T tsx bin/main.ts",
-    "start:odrl": "yarn run -T tsx bin/odrl.ts",
-    "demo": "yarn run -T tsx bin/demo.ts"
+    "start": "node bin/main.js",
+    "start:odrl": "node bin/odrl.js",
+    "demo": "node bin/demo.js"
   },
   "dependencies": {
     "@httpland/authorization-parser": "^1.1.0",
