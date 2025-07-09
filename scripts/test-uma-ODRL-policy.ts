@@ -4,12 +4,12 @@
  * The purpose of this file is to test the /policies endpoint.
  */
 
-import { policyA, policyB, policyC, badPolicy1, changePolicy1, changePolicy95e } from "./util/policyExampels";
+import { policyA, policyB, policyC, badPolicy1, changePolicy1, changePolicy95e, putPolicy95e } from "./util/policyExampels";
 
 const endpoint = (extra: string = '') => 'http://localhost:4000/uma/policies' + extra;
 const client = (client: string = 'a') => `https://pod.${client}.com/profile/card#me`;
-const policyId = 'http://example.org/usagePolicy1';
-const policyToDelete = 'urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc'
+const policyId1 = 'http://example.org/usagePolicy1';
+const policyId95e = 'urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc'
 const badPolicyId = 'nonExistentPolicy';
 const quickBuffer = (text: string) => Buffer.from(text, 'utf-8');
 let errorCounter = 0;
@@ -19,9 +19,33 @@ const testCode = (code: number, shouldbe: number = 2, trunc: boolean = true) => 
     if ((trunc ? Math.trunc(Number(code) / 100) : code) !== shouldbe) errorCounter++;
 }
 
+async function putPolicies() {
+    const encoded = encodeURIComponent(policyId95e);
+    console.log("test PUT policies");
+
+    // Delete the policy to be sure
+    await fetch(endpoint(`/${encoded}`), { method: 'DELETE', headers: { 'Authorization': client('a') } });
+
+    // POST it again
+    let response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('a'), 'Content-Type': 'text/turtle' }, body: quickBuffer(policyA) });
+    console.log(`expecting a positive response: status code ${response.status}, ${await response.text()}`);
+    testCode(response.status);
+
+    response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('b'), 'Content-Type': 'text/turtle' }, body: quickBuffer(policyB) });
+    console.log(`expecting a positive response: status code ${response.status}, ${await response.text()}`);
+    testCode(response.status);
+
+    response = await fetch(endpoint(`/${encoded}`), { method: 'PUT', headers: { 'Authorization': client('a'), 'Content-Type': 'text/turtle' }, body: quickBuffer(putPolicy95e) });
+    console.log(`expecting Policy header to mistakenly contain the old policy, and (correctly) the new policies: ${response.status}\n${await response.text()}`);
+
+    response = await fetch(endpoint(`/${encoded}`), { headers: { 'Authorization': client('b') } });
+    console.log(`expecting to stay the same as before ${policyId95e}`, await response.text());
+
+}
+
 async function patchPolicies() {
     console.log("Simple test for the PATCH policy endpoint");
-    const encoded = encodeURIComponent(policyId);
+    const encoded = encodeURIComponent(policyId1);
 
     let response = await fetch(endpoint(`/${encoded}`), { method: 'PATCH', headers: { 'Authorization': client('a'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy1) });
     console.log(`expecting a positive response: status code ${response.status}\n expecting to see policy100 as its only rule: \n${await response.text()}`);
@@ -56,10 +80,10 @@ async function getAllPolicies() {
 async function getOnePolicy() {
     console.log("Simple test for the GET One Policy endpoint");
 
-    const encoded = encodeURIComponent(policyId);
+    const encoded = encodeURIComponent(policyId1);
 
     let response = await fetch(endpoint(`/${encoded}`), { headers: { 'Authorization': client('a') } });
-    console.log(`expecting to return relevent information about ${policyId}`, await response.text());
+    console.log(`expecting to return relevent information about ${policyId1}`, await response.text());
 
     response = await fetch(endpoint(`/${badPolicyId}`), { headers: { 'Authorization': client('b') } });
     let resText = await response.text();
@@ -97,7 +121,7 @@ async function postPolicy() {
 }
 
 async function testDelete() {
-    const encodedPolicyId = encodeURIComponent(policyToDelete);
+    const encodedPolicyId = encodeURIComponent(policyId95e);
     console.log("Testing Delete endpoint");
 
     let response = await fetch(endpoint(`/${encodedPolicyId}`), { method: 'DELETE', headers: { 'Authorization': client('c') } });
@@ -152,13 +176,17 @@ async function main() {
     await postPolicy();
     console.log("\n\n\n");
     await patchPolicies();
-    // await getAllPolicies();
-    // console.log("\n\n\n");
-    // await getOnePolicy();
-    // console.log("\n\n\n");
-    // await testDelete();
-    // console.log("\n\n\n");
+    console.log("\n\n\n");
+    await getAllPolicies();
+    console.log("\n\n\n");
+    await getOnePolicy();
+    console.log("\n\n\n");
+    await testDelete();
+    console.log("\n\n\n");
+    await putPolicies();
+    console.log("\n\n\n");
     await deleteAll()
+    console.log("\n\n\n");
 
     console.log(errorCounter === 0 ? `No fails detected` : `${errorCounter} tests have failed`);
 }

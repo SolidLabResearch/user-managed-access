@@ -1,6 +1,6 @@
 import { Quad, Store } from "n3";
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
-import { odrlAssigner, parsePolicyBody, relations } from "./PolicyUtil";
+import { odrlAssigner, parseBodyToStore, parseBufferToString, relations } from "./PolicyUtil";
 import { BadRequestHttpError, InternalServerError } from "@solid/community-server";
 import { parseStringAsN3Store } from "koreografeye";
 import { UCRulesStorage } from "@solidlab/ucp";
@@ -38,22 +38,7 @@ export function sanitizeRule(parsedPolicy: Store, clientId: string): void {
 export async function addPolicies(request: HttpHandlerRequest, storage: UCRulesStorage, clientId: string): Promise<HttpHandlerResponse<any>> {
 
     // 1. Parse the requested policy
-
-    // Regex check for content type
-    const contentType = request.headers['content-type'];
-    if (!/(?:n3|trig|turtle|nquads?|ntriples?)$/i.test(contentType)) {
-        throw new BadRequestHttpError(`Content-Type ${contentType} is not supported.`);
-    }
-
-    // Try to parse the body
-    const requestedPolicy = parsePolicyBody(request.body);
-
-    let parsedPolicy: Store;
-    try {
-        parsedPolicy = await parseStringAsN3Store(requestedPolicy, { format: contentType });
-    } catch (error) {
-        throw new BadRequestHttpError(`Policy string can not be parsed: ${error}`)
-    }
+    const parsedPolicy = await parseBodyToStore(request);
 
     // 2. Sanitization checks (error is thrown when checks fail)
     sanitizeRule(parsedPolicy, clientId);

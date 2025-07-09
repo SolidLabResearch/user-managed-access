@@ -4,6 +4,13 @@ import { checkBaseURL, namedNode, odrlAssigner, quadsToText, relations, retrieve
 import { Quad, Store } from "n3";
 import { InternalServerError } from "@solid/community-server";
 
+export async function deletePolicy(request: HttpHandlerRequest, store: Store, storage: UCRulesStorage, clientId: string, baseUrl: string): Promise<HttpHandlerResponse<any>> {
+
+    const policyId = decodeURIComponent(retrieveID(checkBaseURL(request, baseUrl)));
+    return deleteOnePolicy(policyId, store, storage, clientId)
+}
+
+
 /**
  *  TODO: documentation
  * @param request 
@@ -13,11 +20,9 @@ import { InternalServerError } from "@solid/community-server";
  * @param baseUrl 
  * @returns 
  */
-export async function deletePolicy(request: HttpHandlerRequest, store: Store, storage: UCRulesStorage, clientId: string, baseUrl: string): Promise<HttpHandlerResponse<any>> {
-    // 1. Retrieve Policy ID
-    const policyId = decodeURIComponent(retrieveID(checkBaseURL(request, baseUrl)));
+export async function deleteOnePolicy(policyId: string, store: Store, storage: UCRulesStorage, clientId: string): Promise<HttpHandlerResponse<any>> {
 
-    // 2. Collect the IDs of the rules we want to delete
+    // 1. Collect the IDs of the rules we want to delete
     const policyRules: Quad[] = relations.flatMap(relation =>
         store.getQuads(namedNode(policyId), relation, null, null)
     )
@@ -39,11 +44,11 @@ export async function deletePolicy(request: HttpHandlerRequest, store: Store, st
         };
     }
 
-    // 3. If the policy contains only rules assigned by the client, we can remove the entire policy
+    // 2. If the policy contains only rules assigned by the client, we can remove the entire policy
     // Otherwise, we only remove the rules within our reach
     const idsToDelete = otherRules.length === 0 ? [policyId] : ownedRules;
 
-    // 4. Remove the specified quads
+    // 3. Remove the specified quads
     try {
         await Promise.all(idsToDelete.map(id => storage.deleteRule(id)));
 

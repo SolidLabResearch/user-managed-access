@@ -1,7 +1,8 @@
 import { ODRL } from "@solidlab/ucp";
-import { DataFactory, Quad, Writer } from "n3";
+import { DataFactory, Quad, Store, Writer } from "n3";
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
 import { BadRequestHttpError, MethodNotAllowedHttpError } from "@solid/community-server";
+import { parseStringAsN3Store } from "koreografeye";
 
 // relevant ODRL implementations
 export const odrlAssigner = ODRL.terms.assigner;
@@ -61,7 +62,7 @@ export async function quadsToText(quads: Quad[]): Promise<HttpHandlerResponse<an
     });
 }
 
-export function parsePolicyBody(body: any): string {
+export function parseBufferToString(body: any): string {
     let requestedPolicy;
     if (Buffer.isBuffer(body)) {
         requestedPolicy = body.toString('utf-8');
@@ -69,4 +70,23 @@ export function parsePolicyBody(body: any): string {
         throw new BadRequestHttpError("Expected Buffer body");
     }
     return requestedPolicy;
+}
+
+export async function parseBodyToStore(request: HttpHandlerRequest): Promise<Store> {
+    // Regex check for content type
+    const contentType = request.headers['content-type'];
+    if (!/(?:n3|trig|turtle|nquads?|ntriples?)$/i.test(contentType)) {
+        throw new BadRequestHttpError(`Content-Type ${contentType} is not supported.`);
+    }
+
+    // Try to parse the body
+    const requestedPolicy = parseBufferToString(request.body);
+
+    let parsedPolicy: Store;
+    try {
+        parsedPolicy = await parseStringAsN3Store(requestedPolicy, { format: contentType });
+    } catch (error) {
+        throw new BadRequestHttpError(`Policy string can not be parsed: ${error}`)
+    }
+    return parsedPolicy
 }

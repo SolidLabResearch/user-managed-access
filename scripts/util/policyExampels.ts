@@ -146,3 +146,19 @@ WHERE {
   }
 }
 `
+
+export const putPolicy95e = `
+<urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc> a <http://www.w3.org/ns/odrl/2/Set>;
+    <http://purl.org/dc/terms/description> "ZENO is data owner of resource X. ALICE may READ resource X.";
+    <http://www.w3.org/ns/odrl/2/permission> <urn:uuid:a1111111-2222-3333-4444-555555555555>, <urn:uuid:b6666666-7777-8888-9999-aaaaaaaaaaaa>.
+<urn:uuid:a1111111-2222-3333-4444-555555555555> a <http://www.w3.org/ns/odrl/2/Permission>;
+    <http://www.w3.org/ns/odrl/2/assignee> <http://example.org/alice>;
+    <http://www.w3.org/ns/odrl/2/assigner> <https://pod.a.com/profile/card#me>;
+    <http://www.w3.org/ns/odrl/2/action> <http://www.w3.org/ns/odrl/2/write>;
+    <http://www.w3.org/ns/odrl/2/target> <http://example.org/x>.
+<urn:uuid:b6666666-7777-8888-9999-aaaaaaaaaaaa> a <http://www.w3.org/ns/odrl/2/Permission>;
+    <http://www.w3.org/ns/odrl/2/assignee> <http://example.org/alice>;
+    <http://www.w3.org/ns/odrl/2/assigner> <https://pod.a.com/profile/card#me>;
+    <http://www.w3.org/ns/odrl/2/action> <http://www.w3.org/ns/odrl/2/delete>;
+    <http://www.w3.org/ns/odrl/2/target> <http://example.org/x>.
+`

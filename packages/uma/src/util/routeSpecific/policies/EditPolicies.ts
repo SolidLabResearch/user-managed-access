@@ -1,7 +1,7 @@
 import { Store } from "n3";
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
 import { UCRulesStorage } from "@solidlab/ucp";
-import { checkBaseURL, parsePolicyBody, quadsToText, retrieveID } from "./PolicyUtil";
+import { checkBaseURL, parseBufferToString, quadsToText, retrieveID } from "./PolicyUtil";
 import { QueryEngine } from '@comunica/query-sparql';
 import { BadRequestHttpError, InternalServerError } from "@solid/community-server";
 import { getOnePolicyInfo } from "./GetPolicies";
@@ -20,7 +20,7 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
     if (!/(?:application\/sparql-update)$/i.test(contentType)) {
         throw new BadRequestHttpError(`Content-Type ${contentType} is not supported.`);
     }
-    const query = parsePolicyBody(request.body);
+    const query = parseBufferToString(request.body);
 
     // 3. Retrieve the existing policy info
     const { policyQuads, ownedRules, otherRules } = getOnePolicyInfo(policyId, store, clientId);
