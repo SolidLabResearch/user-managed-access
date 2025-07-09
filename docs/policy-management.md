@@ -15,7 +15,7 @@ The body is expected to represent a proper ODRL policy, although some [sanitizat
 ### Reading policies
 To read policies, two endpoints are implemented:
 - GET `/uma/policies`: get policy information that you are authorized to see, for every policy
-- GET `/uma/policies/<id>`: get policy information that you are authorized to see, for the policy with the requested ID
+- GET `/uma/policies/<id>`: get policy information that you are authorized to see, for the policy with the requested [URL encoded](#uri-encodig-decision) ID.
 
 The current algorithm will retrieve the IDs of the policies and its rules that you are authorized to see. It will seek information about those properties with **depth 1**. This is not representative for a lot of policies, hence a recursive algorithm will be implemented in the future.
 
@@ -23,7 +23,12 @@ The current algorithm will retrieve the IDs of the policies and its rules that y
 Yet to be implemented...
 
 ### Deleting policies
-Yet to be implemented...
+To delete a policy, send a DELETE request to `/uma/policies/<id>` with the URL encoded ID of the policy. The DELETE works like this:
+1. Find the rules defined in the policy
+2. Filter the rules that are assigned by the client, and delete them
+3. Find out if there are rules not assigned by the client
+    * if there are other rules, we cannot delete the policy information as well
+    * if there are no other rules, we can delete the entire policy
 
 extra info
 

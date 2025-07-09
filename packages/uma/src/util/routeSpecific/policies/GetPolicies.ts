@@ -39,10 +39,9 @@ async function getOnePolicy(policyId: string, store: Store, clientId: string): P
     const policyMatches = store.getQuads(namedNode(policyId), null, null, null);
 
     // 2. Find the rules that this policy defines
-    let policyRules: Quad[] = []
-    for (const relation of relations) {
-        policyRules = [...policyRules, ...store.getQuads(namedNode(policyId), relation, null, null)]
-    }
+    const policyRules: Quad[] = relations.flatMap(relation =>
+        store.getQuads(namedNode(policyId), relation, null, null)
+    )
 
     // 3. Only keep the rules assigned by the client
     const ownedRules = policyRules.filter(quad => store.getQuads(quad.object, odrlAssigner, namedNode(clientId), null).length > 0);

@@ -9,13 +9,14 @@ import { policyA, policyB, policyC, badPolicy1 } from "./util/policyExampels";
 const endpoint = (extra: string = '') => 'http://localhost:4000/uma/policies' + extra;
 const client = (client: string = 'a') => `https://pod.${client}.com/profile/card#me`;
 const policyId = 'http://example.org/usagePolicy1';
+const policyToDelete = 'urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc'
 const badPolicyId = 'nonExistentPolicy';
 
 let errorCounter = 0;
 
 // Test if the first digit of the status code equals the second arg, or match the entire code when specific is false
-const testCode = (code: number, shouldbe: number = 2, specific: boolean = true) => {
-    if ((specific ? Math.trunc(Number(code) / 100) : code) !== shouldbe) errorCounter++;
+const testCode = (code: number, shouldbe: number = 2, trunc: boolean = true) => {
+    if ((trunc ? Math.trunc(Number(code) / 100) : code) !== shouldbe) errorCounter++;
 }
 
 async function getAllPolicies() {
@@ -77,6 +78,52 @@ async function postPolicy() {
     testCode(response.status);
 }
 
+async function testDelete() {
+    const encodedPolicyId = encodeURIComponent(policyToDelete);
+    console.log("Testing Delete endpoint");
+
+    let response = await fetch(endpoint(`/${encodedPolicyId}`), { method: 'DELETE', headers: { 'Authorization': client('c') } });
+    console.log(`expecting status 204, nothing to delete: ${response.status}`);
+    testCode(response.status, 204, false);
+
+    response = await fetch(endpoint(`/${encodedPolicyId}`), { method: 'DELETE', headers: { 'Authorization': client('a') } });
+    console.log(`expecting status 200: ${response.status}\n`);
+    testCode(response.status, 200, false);
+
+    console.log('testing if the policy is deleted for client a, but not for client b\n');
+    response = await fetch(endpoint(`/${encodedPolicyId}`), { headers: { 'Authorization': client('a') } });
+    let resText = await response.text();
+    console.log(`expecting an empty body, the policy should be deleted for client a: ${resText}`);
+    testCode(resText.length, 0, false);
+
+    response = await fetch(endpoint(`/${encodedPolicyId}`), { headers: { 'Authorization': client('b') } });
+    resText = await response.text();
+    console.log(`expecting the policy with one rule: ${resText}\n\n`);
+
+    console.log('now we delete the policy for client b. It should delete the rules AND the policy information');
+    response = await fetch(endpoint(`/${encodedPolicyId}`), { method: 'DELETE', headers: { 'Authorization': client('b') } });
+    console.log(`expecting status 200: ${response.status}`);
+    testCode(response.status, 200, false);
+    response = await fetch(endpoint(`/${encodedPolicyId}`), { headers: { 'Authorization': client('a') } });
+    resText = await response.text();
+    console.log(`expecting an empty body, the policy should be deleted for client a: ${resText}`);
+    testCode(resText.length, 0, false);
+}
+
+async function deleteAll() {
+    const obj = {
+        'a': ['http://example.org/usagePolicy1', 'http://example.org/usagePolicy1a', 'urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc'],
+        'b': ['http://example.org/usagePolicy2', 'http://example.org/usagePolicy2a', 'urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc'], 'c': ['http://example.org/usagePolicy3']
+    }
+    console.log("deleting all policies")
+    for (const [clientId, policyIds] of Object.entries(obj)) {
+        for (const policyId of policyIds) {
+            const response = await fetch(endpoint(`/${encodeURIComponent(policyId)}`), { method: 'DELETE', headers: { 'Authorization': client(clientId) } })
+            console.log(`DELETE ${policyId} from client ${clientId} responded with status ${response.status}`)
+        }
+    }
+}
+
 /**
  * As explained in the docs, the order of execution is extremely important. 
  * The storage is filled with the POST requests, so this must precede the other tests!
@@ -90,6 +137,9 @@ async function main() {
     console.log("\n\n\n");
     await getOnePolicy();
     console.log("\n\n\n");
+    await testDelete();
+    console.log("\n\n\n");
+    await deleteAll()
 
     console.log(errorCounter === 0 ? `No fails detected` : `${errorCounter} tests have failed`);
 }

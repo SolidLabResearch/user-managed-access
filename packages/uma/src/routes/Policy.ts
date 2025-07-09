@@ -3,7 +3,7 @@ import { UCRulesStorage } from "@solidlab/ucp";
 import { HttpHandlerContext, HttpHandlerResponse, HttpHandler, HttpHandlerRequest } from "../util/http/models/HttpHandler";
 import { getPolicies } from "../util/routeSpecific/policies/GetPolicies";
 import { addPolicies } from "../util/routeSpecific/policies/CreatePolicies";
-import { deletePolicies } from "../util/routeSpecific/policies/DeletePolicies";
+import { deletePolicy } from "../util/routeSpecific/policies/DeletePolicies";
 
 /**
  * Endpoint to handle policies, this implementation gives all policies that have the
@@ -48,7 +48,7 @@ export class PolicyRequestHandler extends HttpHandler {
         switch (request.method) {
             case 'GET': return getPolicies(request, store, client, this.baseUrl);
             case 'POST': return addPolicies(request, this.storage, client);
-            case 'DELETE': return deletePolicies(request, store, this.storage, client, this.baseUrl);
+            case 'DELETE': return deletePolicy(request, store, this.storage, client, this.baseUrl);
             // TODO: add other endpoints
             default: throw new MethodNotAllowedHttpError();
         }
