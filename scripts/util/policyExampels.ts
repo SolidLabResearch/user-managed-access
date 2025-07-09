@@ -83,3 +83,66 @@ ex:permissionBad odrl:action odrl:modify .
 ex:permissionBad odrl:target <http://localhost:3000/alice/other/> .
 ex:permissionBad odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
 `
+
+export const changePolicy1 = `
+PREFIX ex: <http://example.org/>
+PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
+PREFIX dct: <http://purl.org/dc/terms/>
+
+DELETE {
+  ex:usagePolicy1 odrl:permission ex:permission1 .
+  ex:permission1 a odrl:Permission ;
+                 odrl:action odrl:modify ;
+                 odrl:target <http://localhost:3000/alice/other/resource.txt> ;
+                 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> ;
+                 odrl:assigner <https://pod.a.com/profile/card#me> .
+}
+INSERT {
+  ex:usagePolicy1 odrl:permission ex:permission100 .
+  ex:permission100 a odrl:Permission ;
+                 odrl:action odrl:read ;
+                 odrl:target <http://localhost:3000/alice/other/resource.txt> ;
+                 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> ;
+                 odrl:assigner <https://pod.a.com/profile/card#me> .
+}
+WHERE {
+  ex:usagePolicy1 odrl:permission ex:permission1 .
+  ex:permission1 a odrl:Permission ;
+                 odrl:action odrl:modify ;
+                 odrl:target <http://localhost:3000/alice/other/resource.txt> ;
+                 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> ;
+                 odrl:assigner <https://pod.a.com/profile/card#me> .
+}
+`
+
+export const changePolicy95e = `
+PREFIX ex: <http://example.org/>
+PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
+PREFIX dct: <http://purl.org/dc/terms/>
+
+DELETE {
+  <urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc> odrl:permission <urn:uuid:f5199b0a-d824-45a0-bc08-1caa8d19a001> .
+  <urn:uuid:f5199b0a-d824-45a0-bc08-1caa8d19a001> ?p ?o .
+}
+INSERT {
+  <urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc> odrl:permission <urn:uuid:a1111111-2222-3333-4444-555555555555> .
+  <urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc> odrl:permission <urn:uuid:b6666666-7777-8888-9999-aaaaaaaaaaaa> .
+
+  <urn:uuid:a1111111-2222-3333-4444-555555555555> a odrl:Permission ;
+    odrl:assignee ex:alice ;
+    odrl:assigner <https://pod.a.com/profile/card#me> ;
+    odrl:action odrl:write ;
+    odrl:target ex:x .
+
+  <urn:uuid:b6666666-7777-8888-9999-aaaaaaaaaaaa> a odrl:Permission ;
+    odrl:assignee ex:alice ;
+    odrl:assigner <https://pod.a.com/profile/card#me> ;
+    odrl:action odrl:delete ;
+    odrl:target ex:x .
+}
+WHERE {
+  OPTIONAL {
+    <urn:uuid:f5199b0a-d824-45a0-bc08-1caa8d19a001> ?p ?o .
+  }
+}
+`

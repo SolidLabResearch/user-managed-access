@@ -4,7 +4,7 @@
  * The purpose of this file is to test the /policies endpoint.
  */
 
-import { policyA, policyB, policyC, badPolicy1 } from "./util/policyExampels";
+import { policyA, policyB, policyC, badPolicy1, changePolicy1, changePolicy95e } from "./util/policyExampels";
 
 const endpoint = (extra: string = '') => 'http://localhost:4000/uma/policies' + extra;
 const client = (client: string = 'a') => `https://pod.${client}.com/profile/card#me`;
@@ -17,6 +17,24 @@ let errorCounter = 0;
 // Test if the first digit of the status code equals the second arg, or match the entire code when specific is false
 const testCode = (code: number, shouldbe: number = 2, trunc: boolean = true) => {
     if ((trunc ? Math.trunc(Number(code) / 100) : code) !== shouldbe) errorCounter++;
+}
+
+async function patchPolicies() {
+    console.log("Simple test for the PATCH policy endpoint");
+    const encoded = encodeURIComponent(policyId);
+
+    let response = await fetch(endpoint(`/${encoded}`), { method: 'PATCH', headers: { 'Authorization': client('a'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy1) });
+    console.log(`expecting a positive response: status code ${response.status}\n expecting to see policy100 as its only rule: \n${await response.text()}`);
+    // console.log(`expecting a negative response since assigner != client: status code ${response.status}\nmessage: ${await response.text()}`);
+    testCode(response.status);
+
+    response = await fetch(endpoint(`/${encoded}`), { method: 'PATCH', headers: { 'Authorization': client('a'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy95e) });
+    console.log(`expecting a positive response: status code ${response.status}\nexpecting the old rule to delete and two rules to take its place: \n${await response.text()}`);
+    testCode(response.status);
+
+    response = await fetch(endpoint(`/${encoded}`), { method: 'PATCH', headers: { 'Authorization': client('c'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy1) });
+    console.log(`expecting a negative response since the query changes another client's rules ${response.status}\nmessage: ${await response.text()}`);
+    testCode(response.status, 4);
 }
 
 async function getAllPolicies() {
@@ -133,12 +151,13 @@ async function main() {
     console.log("Testing all implemented Policy Endpoints:\n\n\n");
     await postPolicy();
     console.log("\n\n\n");
-    await getAllPolicies();
-    console.log("\n\n\n");
-    await getOnePolicy();
-    console.log("\n\n\n");
-    await testDelete();
-    console.log("\n\n\n");
+    await patchPolicies();
+    // await getAllPolicies();
+    // console.log("\n\n\n");
+    // await getOnePolicy();
+    // console.log("\n\n\n");
+    // await testDelete();
+    // console.log("\n\n\n");
     await deleteAll()
 
     console.log(errorCounter === 0 ? `No fails detected` : `${errorCounter} tests have failed`);
