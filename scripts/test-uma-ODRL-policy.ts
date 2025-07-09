@@ -11,7 +11,7 @@ const client = (client: string = 'a') => `https://pod.${client}.com/profile/card
 const policyId = 'http://example.org/usagePolicy1';
 const policyToDelete = 'urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc'
 const badPolicyId = 'nonExistentPolicy';
-
+const quickBuffer = (text: string) => Buffer.from(text, 'utf-8');
 let errorCounter = 0;
 
 // Test if the first digit of the status code equals the second arg, or match the entire code when specific is false
@@ -57,23 +57,23 @@ async function getOnePolicy() {
 async function postPolicy() {
     console.log("Simple test for the POST policy endpoint");
 
-    let response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('a'), 'Content-Type': 'text/turtle' }, body: Buffer.from(policyB, 'utf-8') });
+    let response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('a'), 'Content-Type': 'text/turtle' }, body: quickBuffer(policyB) });
     console.log(`expecting a negative response since assigner != client: status code ${response.status}\nmessage: ${await response.text()}`);
     testCode(response.status, 4);
 
-    response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('b'), 'Content-Type': 'text/turtle' }, body: Buffer.from(badPolicy1, 'utf-8') });
+    response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('b'), 'Content-Type': 'text/turtle' }, body: quickBuffer(badPolicy1) });
     console.log(`expecting a negative response since policy has a rule with no assigner ${response.status}\nmessage: ${await response.text()}`);
     testCode(response.status, 4);
 
-    response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('a'), 'Content-Type': 'text/turtle' }, body: Buffer.from(policyA, 'utf-8') });
+    response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('a'), 'Content-Type': 'text/turtle' }, body: quickBuffer(policyA) });
     console.log(`expecting a positive response: status code ${response.status}, ${await response.text()}`);
     testCode(response.status);
 
-    response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('b'), 'Content-Type': 'text/turtle' }, body: Buffer.from(policyB, 'utf-8') });
+    response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('b'), 'Content-Type': 'text/turtle' }, body: quickBuffer(policyB) });
     console.log(`expecting a positive response: status code ${response.status}, ${await response.text()}`);
     testCode(response.status);
 
-    response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('c'), 'Content-Type': 'text/turtle' }, body: Buffer.from(policyC, 'utf-8') });
+    response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('c'), 'Content-Type': 'text/turtle' }, body: quickBuffer(policyC) });
     console.log(`expecting a positive response: status code ${response.status}, ${await response.text()}`);
     testCode(response.status);
 }

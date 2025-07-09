@@ -50,7 +50,7 @@ export class PolicyRequestHandler extends HttpHandler {
             case 'GET': return getPolicies(request, store, client, this.baseUrl);
             case 'POST': return addPolicies(request, this.storage, client);
             case 'DELETE': return deletePolicy(request, store, this.storage, client, this.baseUrl);
-            case 'PATCH': return editPolicy(request, store, client, this.baseUrl);
+            case 'PATCH': return editPolicy(request, store, this.storage, client, this.baseUrl);
             // TODO: add other endpoints
             default: throw new MethodNotAllowedHttpError();
         }
