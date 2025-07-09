@@ -20,11 +20,13 @@
             "path": "/uma/policies"
         },
         {
-            "@id": "urn:uma:default:GetOnePolicyRoute",
+            "@id": "urn:uma:default:OnePolicyRoute",
             "@type": "HttpHandlerRoute",
             "methods": [
                 "GET", 
-                "DELETE"
+                "DELETE",
+                "PATCH",
+                "PUT"
             ],
             "handler": {
                 "@type": "PolicyRequestHandler",

@@ -1,7 +1,7 @@
 import { ODRL } from "@solidlab/ucp";
 import { DataFactory, Quad, Writer } from "n3";
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
-import { MethodNotAllowedHttpError } from "@solid/community-server";
+import { BadRequestHttpError, MethodNotAllowedHttpError } from "@solid/community-server";
 
 // relevant ODRL implementations
 export const odrlAssigner = ODRL.terms.assigner;
@@ -59,4 +59,14 @@ export async function quadsToText(quads: Quad[]): Promise<HttpHandlerResponse<an
             }
         });
     });
+}
+
+export function parsePolicyBody(body: any): string {
+    let requestedPolicy;
+    if (Buffer.isBuffer(body)) {
+        requestedPolicy = body.toString('utf-8');
+    } else {
+        throw new BadRequestHttpError("Expected Buffer body");
+    }
+    return requestedPolicy;
 }

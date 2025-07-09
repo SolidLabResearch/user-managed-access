@@ -23,6 +23,53 @@ export async function getPolicies(request: HttpHandlerRequest, store: Store, cli
 
 }
 
+// Interface to represent a policy based on a client
+export interface OnePolicy {
+    clientId: string;
+    policyId: string;
+    policyQuads: Set<Quad>;
+    ownedRules: Set<Quad>;
+    otherRules: Set<Quad>;
+}
+
+// Functional implementation to get one policy
+export function getOnePolicyInfo(policyId: string, store: Store, clientId: string): OnePolicy {
+    // 1. Search the policy by ID
+    const policyMatches = store.getQuads(namedNode(policyId), null, null, null);
+
+    // 2. Find the rules that this policy defines
+    const policyRules: Quad[] = relations.flatMap(relation =>
+        store.getQuads(namedNode(policyId), relation, null, null)
+    )
+
+    // 3. Separate the rules owned by the client from the others
+    const otherRules: Set<Quad> = new Set();
+    const ownedRules: Set<Quad> = new Set();
+    policyRules.forEach(quad => {
+        if (store.getQuads(quad.object, odrlAssigner, namedNode(clientId), null).length === 1)
+            // This is the step to be replaced with the recursive variant
+            store.getQuads(quad.object, null, null, null).forEach(
+                quad => ownedRules.add(quad)
+            )
+        else
+            // Once again, this is to be replaced with the recursive variant
+            store.getQuads(quad.object, null, null, null).forEach(
+                quad => otherRules.add(quad)
+            )
+    });
+
+    // 4. Return the detailed object
+    return {
+        policyId: policyId,
+        clientId: clientId,
+        policyQuads: new Set(policyMatches),
+        ownedRules: ownedRules,
+        otherRules: otherRules
+    }
+
+}
+
+
 /**
  * Function to implement the GET /uma/policies/<id> endpoint, it retrieves all information about a certain
  * policy if available. 
@@ -35,34 +82,18 @@ export async function getPolicies(request: HttpHandlerRequest, store: Store, cli
 async function getOnePolicy(policyId: string, store: Store, clientId: string): Promise<HttpHandlerResponse<any>> {
     policyId = decodeURIComponent(policyId);
 
-    // 1. Search the policy by ID
-    const policyMatches = store.getQuads(namedNode(policyId), null, null, null);
+    const { policyQuads, ownedRules } = getOnePolicyInfo(policyId, store, clientId);
 
-    // 2. Find the rules that this policy defines
-    const policyRules: Quad[] = relations.flatMap(relation =>
-        store.getQuads(namedNode(policyId), relation, null, null)
-    )
-
-    // 3. Only keep the rules assigned by the client
-    const ownedRules = policyRules.filter(quad => store.getQuads(quad.object, odrlAssigner, namedNode(clientId), null).length > 0);
-    // Return an empty body when no rules are found
-    if (ownedRules.length === 0) {
+    if (ownedRules.size === 0)
         return {
-            status: 200,
+            status: 204,
             headers: {
                 'content-type': 'text/turtle',
             },
             body: '',
-        };
-    }
+        }
 
-    // 4. Search all info about the policy AND the rules, for now with depth 1 but a recursive variant needs to be implemented here.
-    let details: Set<Quad> = new Set(policyMatches);
-    ownedRules.forEach((rule) => {
-        store.getQuads(rule.object, null, null, null).forEach(q => details.add(q));
-    });
-
-    return quadsToText(Array.from(details));
+    return quadsToText([...policyQuads, ...ownedRules]);
 }
 
 
@@ -92,6 +123,7 @@ async function getAllPolicies(store: Store, clientId: string): Promise<HttpHandl
             if (store.getQuads(rule, odrlAssigner, namedNode(clientId), null).length > 0) {
 
                 // Because an ODRL policy may only have one assigner, we can now add all policy and rule information
+                // Note that this is the only part of the function to be replaced with the recursive variant
                 store.getQuads(policy, null, null, null).forEach(quad => policyDetails.add(quad));
                 store.getQuads(rule, null, null, null).forEach(quad => policyDetails.add(quad));
             }
