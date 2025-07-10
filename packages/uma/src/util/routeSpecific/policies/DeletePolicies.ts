@@ -49,6 +49,7 @@ export async function deleteOnePolicy(policyId: string, store: Store, storage: U
     const idsToDelete = otherRules.length === 0 ? [policyId] : ownedRules;
 
     // 3. Remove the specified quads
+    // Note that the current implementation of the storages 'deleteRule' cannot delete the quads that define the deleted rules
     try {
         await Promise.all(idsToDelete.map(id => storage.deleteRule(id)));
 

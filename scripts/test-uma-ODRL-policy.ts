@@ -45,18 +45,18 @@ async function putPolicies() {
 
 async function patchPolicies() {
     console.log("Simple test for the PATCH policy endpoint");
-    const encoded = encodeURIComponent(policyId1);
+    const encoded1 = encodeURIComponent(policyId1);
+    const encoded95e = encodeURIComponent(policyId95e);
 
-    let response = await fetch(endpoint(`/${encoded}`), { method: 'PATCH', headers: { 'Authorization': client('a'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy1) });
+    let response = await fetch(endpoint(`/${encoded1}`), { method: 'PATCH', headers: { 'Authorization': client('a'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy1) });
     console.log(`expecting a positive response: status code ${response.status}\n expecting to see policy100 as its only rule: \n${await response.text()}`);
-    // console.log(`expecting a negative response since assigner != client: status code ${response.status}\nmessage: ${await response.text()}`);
     testCode(response.status);
 
-    response = await fetch(endpoint(`/${encoded}`), { method: 'PATCH', headers: { 'Authorization': client('a'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy95e) });
+    response = await fetch(endpoint(`/${encoded95e}`), { method: 'PATCH', headers: { 'Authorization': client('a'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy95e) });
     console.log(`expecting a positive response: status code ${response.status}\nexpecting the old rule to delete and two rules to take its place: \n${await response.text()}`);
     testCode(response.status);
 
-    response = await fetch(endpoint(`/${encoded}`), { method: 'PATCH', headers: { 'Authorization': client('c'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy1) });
+    response = await fetch(endpoint(`/${encoded1}`), { method: 'PATCH', headers: { 'Authorization': client('c'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy1) });
     console.log(`expecting a negative response since the query changes another client's rules ${response.status}\nmessage: ${await response.text()}`);
     testCode(response.status, 4);
 }
@@ -175,11 +175,11 @@ async function main() {
     console.log("Testing all implemented Policy Endpoints:\n\n\n");
     await postPolicy();
     console.log("\n\n\n");
-    await patchPolicies();
-    console.log("\n\n\n");
     await getAllPolicies();
     console.log("\n\n\n");
     await getOnePolicy();
+    console.log("\n\n\n");
+    await patchPolicies();
     console.log("\n\n\n");
     await testDelete();
     console.log("\n\n\n");

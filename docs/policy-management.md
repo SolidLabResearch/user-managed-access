@@ -15,36 +15,42 @@ The body is expected to represent a proper ODRL policy, although some [sanitizat
 ### Reading policies
 To read policies, two endpoints are implemented:
 - GET `/uma/policies`: get policy information that you are authorized to see, for every policy
-- GET `/uma/policies/<id>`: get policy information that you are authorized to see, for the policy with the requested [URL encoded](#uri-encodig-decision) ID.
+- GET `/uma/policies/<policyId>`: get policy information that you are authorized to see, for the policy with the requested [URL encoded](#uri-encodig-decision) ID.
 
 The current algorithm will retrieve the IDs of the policies and its rules that you are authorized to see. It will seek information about those properties with **depth 1**. This is not representative for a lot of policies, hence a recursive algorithm will be implemented in the future.
 
 ### Updating policies
-Yet to be implemented...
+Updating a policy can be done through a PUT or a PATCH request. Both requests have different implementations. Both requests are sent to endpoint `/uma/policies/<policyId>`
+
+#### PUT
+A PUT request to the policy endpoint will redefine the entire policy to the requested body, whithin the reach of the client. 
+
+#### PATCH
 
 ### Deleting policies
-To delete a policy, send a DELETE request to `/uma/policies/<id>` with the URL encoded ID of the policy. The DELETE works like this:
+To delete a policy, send a DELETE request to `/uma/policies/<policyId>` with the URL encoded ID of the policy. The DELETE works like this:
 1. Find the rules defined in the policy
 2. Filter the rules that are assigned by the client, and delete them
 3. Find out if there are rules not assigned by the client
     * if there are other rules, we cannot delete the policy information as well
     * if there are no other rules, we can delete the entire policy
 
-extra info
+
+## Implementation details
 
 #### Authorization/Authentication decisions
 The current implementation has insufficient authentication restrictions. Currently, the only requirement is that the 'Authorization' header is to be set to the webID of the "logged on" client. Proper procedures to authenticate this client are still to be implemented.
 
 #### Sanitization decisions
 Some endpoints allow new policies to be created, or existing policies to be modified. This introduces the possibility of invalid syntactic or semantic policies, hence a sanitization strategy is required. In the current implementation, only POST could introduce such problems. We provided the following basic checks:
-- Every defined rule must have a unique ID
-- Every rule must have exactly one assigner
-- Every assigner must match the authenticated client
+- Every defined rule must have a unique ID.
+- Every rule must have exactly one assigner.
+- Every assigner must match the authenticated client.
 
 Sanitization Limitations
-- It is possible to `POST` a policy with an ID that already exists, or with rules that reuse already existing IDs
+- It is possible to `POST` a policy with an ID that already exists, or with rules that reuse already existing IDs.
 - There are currently no checks to verify whether a client is sufficiently authorized to create or modify a policy/rule for a specific target.
-    * A client should not be in able to alter rights about a target it does not have access to
+    * A client should not be in able to alter rights about a target it does not have access to.
 - There are plenty of other sanitization checks to be considered. 
 
 #### URI encodig decision
@@ -55,3 +61,9 @@ The current implementation is tested only by the script in `scripts\test-uma-ODR
 
 ## Problems
 - When you have a policy with multiple rules that have different assigners, DELETE on every rule of one assigner will succesfully delete the rule itself, but not the definition of the rule within the policy. This is due to the fact that you can currently only DELETE based on the ID of the rule/policy you want to delete, and you cannot delete the entire policy since other assigners depend on it. 
+
+- Because PATCH currently works with sets, it contains a safety hazard. When client A has a certain policy/rule, or even just a certain quad, this can be discovered by an intrusive client B. Client B can simply PATCH an INSERT of a random quad that does NOT belong to its own rules/policies, which can have one of three outcomes:
+    1. The PATCH resolves in an error saying that you cannot change rules that do not belong to you. This means that client A does not have this quad, since a modification was detected.
+    2. The PATCH resolves in an error saying that you cannot change rules that belong to nobody. This means that the quad is not affiliated with any client.
+    3. The PATCH completes with code 200. Since the inserted quad does NOT belong to you, there must be another client that owns the quad. In this way, any policy can be discovered.
+  An extra constraint, disabling clients to PATCH policies it has no rules in, would still enable the client to exploit policies that it has rules in. 
