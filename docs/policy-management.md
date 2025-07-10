@@ -35,6 +35,7 @@ To delete a policy, send a DELETE request to `/uma/policies/<policyId>` with the
 3. Find out if there are rules not assigned by the client
     * if there are other rules, we cannot delete the policy information as well
     * if there are no other rules, we can delete the entire policy
+
 This method has one rather significant issue. When a client wishes to delete a policy, but other clients are still part of it, we will only remove the rules of the client whithin the policy. We will not remove the definitions of those rules in the policy itself, because there is currently no way to do this. A way to deal with this could be updating the store using dedicated DELETE sparql queries, or by introducing a variant of the storage.deleteRule.
 
 
