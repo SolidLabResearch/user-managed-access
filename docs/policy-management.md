@@ -62,8 +62,14 @@ The current implementation is tested only by the script in `scripts\test-uma-ODR
 ## Problems
 - When you have a policy with multiple rules that have different assigners, DELETE on every rule of one assigner will succesfully delete the rule itself, but not the definition of the rule within the policy. This is due to the fact that you can currently only DELETE based on the ID of the rule/policy you want to delete, and you cannot delete the entire policy since other assigners depend on it. 
 
-- Because PATCH currently works with sets, it contains a safety hazard. When client A has a certain policy/rule, or even just a certain quad, this can be discovered by an intrusive client B. Client B can simply PATCH an INSERT of a random quad that does NOT belong to its own rules/policies, which can have one of three outcomes:
-    1. The PATCH resolves in an error saying that you cannot change rules that do not belong to you. This means that client A does not have this quad, since a modification was detected.
-    2. The PATCH resolves in an error saying that you cannot change rules that belong to nobody. This means that the quad is not affiliated with any client.
-    3. The PATCH completes with code 200. Since the inserted quad does NOT belong to you, there must be another client that owns the quad. In this way, any policy can be discovered.
-  An extra constraint, disabling clients to PATCH policies it has no rules in, would still enable the client to exploit policies that it has rules in. 
+
+### Solved Problems
+
+#### PATCH fix
+Because PATCH currently works with sets, it contains a safety hazard. When client A has a certain policy/rule, or even just a certain quad, this can be discovered by an intrusive client B. Client B can simply PATCH an INSERT of a random quad that does NOT belong to its own rules/policies, which can have one of three outcomes:
+1. The PATCH resolves in an error saying that you cannot change rules that do not belong to you. This means that client A does not have this quad, since a modification was detected.
+2. The PATCH resolves in an error saying that you cannot change rules that belong to nobody. This means that the quad is not affiliated with any client.
+3. The PATCH completes with code 200. Since the inserted quad does NOT belong to you, there must be another client that owns the quad. In this way, any policy can be discovered.
+An extra constraint, disabling clients to PATCH policies it has no rules in, would still enable the client to exploit policies that it has rules in. 
+
+This problem was solved by splitting the policy into the parts where the client has access to, and the parts where it does not. By executing the query only on the parts that the client has access to, it would be easier to analyse the resulting store of the query. If this store has rules that the client does not have access to, they must have been added by the client and the operation gets cancelled. This method is also protected from deleting rules out of our reach.

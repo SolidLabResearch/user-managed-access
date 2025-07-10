@@ -59,6 +59,10 @@ async function patchPolicies() {
     response = await fetch(endpoint(`/${encoded1}`), { method: 'PATCH', headers: { 'Authorization': client('c'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy1) });
     console.log(`expecting a negative response since the query changes another client's rules ${response.status}\nmessage: ${await response.text()}`);
     testCode(response.status, 4);
+
+    response = await fetch(endpoint(), { headers: { 'Authorization': client('a') } })
+    console.log("expecting to see the patched policy for client a: \n", await response.text())
+    testCode(response.status);
 }
 
 async function getAllPolicies() {

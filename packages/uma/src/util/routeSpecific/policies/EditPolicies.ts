@@ -7,12 +7,7 @@ import { BadRequestHttpError, InternalServerError } from "@solid/community-serve
 import { getOnePolicyInfo } from "./GetPolicies";
 
 // Apparently js does not have this
-const setIsEqual = (xs: Quad[], ys: Quad[]) => {
-    // if (xs.length === ys.length)
-    //     [...xs].every((x) => {
-    //         console.log([...ys].some(y => x.equals(y)))
-    //         return [...ys].some(y => x.equals(y));
-    //     })
+const sameContent = (xs: Quad[], ys: Quad[]) => {
     return xs.length === ys.length &&
         xs.every((x) => ys.some(y => x.equals(y)))
 };
@@ -35,79 +30,79 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
     if (ownedRules.length === 0)
         throw new BadRequestHttpError("Update not allowed: You cannot update policies that you are not affiliated with");
 
-    // 4. Execute the query on the policy
-    const policyStore = new Store([...policyDefinitions, ...ownedPolicyRules, ...otherPolicyRules, ...ownedRules, ...otherRules]);
+    // 4. Execute the query on the part of the policy that lays within reach
+    const policyStore = new Store([...policyDefinitions, ...ownedPolicyRules, ...ownedRules]);
     const initialQuads = policyStore.getQuads(null, null, null, null);
-    // const writer = new Writer('Turtle');
-    // console.log(
-    //     `
-    //     -----------------------------------------------
-    //     INITIAL LENGTHS AND LISTS:
-    //     policy quads: ${policyQuads.length}
-    //     ${writer.quadsToString([...policyQuads])}
-
-    //     owned rules: ${ownedRules.length}
-    //     ${writer.quadsToString([...ownedRules])}
-
-    //     other rules: ${otherRules.length}
-    //     ${writer.quadsToString([...otherRules])}
-
-    //     initial length: ${initialQuads.length}
-    //     #rules out of reach: ${initialQuads.length - policyQuads.length - ownedRules.length}
-    //     -----------------------------------------------
-    //     `
-    // );
-
     try {
         await new QueryEngine().queryVoid(query, { sources: [policyStore] });
     } catch (error) {
         throw new BadRequestHttpError("Query could not be executed:", error);
     }
+    const writer = new Writer('Turtle')
+
+    console.log(
+        `
+        -----------------------------------------------
+        INITIAL LENGTHS AND LISTS:
+        policy quads: 
+            Definitions: ${policyDefinitions.length}
+            ${writer.quadsToString([...policyDefinitions])}
+            Owned: ${ownedPolicyRules.length}
+            ${writer.quadsToString([...ownedPolicyRules])}
+            Other: ${otherPolicyRules.length}
+            ${writer.quadsToString([...otherPolicyRules])}
+        owned rules: ${ownedRules.length}
+        ${writer.quadsToString([...ownedRules])}
+        other rules: ${otherRules.length}
+        ${writer.quadsToString([...otherRules])}
+        initial length: ${initialQuads.length}
+        #rules out of reach: ${initialQuads.length - policyDefinitions.length - ownedPolicyRules.length - ownedRules.length}
+        -----------------------------------------------
+        `
+    );
 
     // 5. Simple safety checks
     // Check that the other rules are unchanged
-
     const newState = getOnePolicyInfo(policyId, policyStore, clientId);
-    // console.log(writer.quadsToString([...newState.otherRules]))
-    if (!setIsEqual(newState.otherRules, otherRules))
+    const newQuads = policyStore.getQuads(null, null, null, null);
+
+    console.log(
+        `
+        -----------------------------------------------
+        NEW LENGTHS AND LISTS:
+        policy quads: 
+            Definitions: ${newState.policyDefinitions.length}
+            ${writer.quadsToString([...newState.policyDefinitions])}
+            Owned: ${newState.ownedPolicyRules.length}
+            ${writer.quadsToString([...newState.ownedPolicyRules])}
+            Other: ${otherPolicyRules.length}
+            ${writer.quadsToString([...newState.otherPolicyRules])}
+        owned rules: ${newState.ownedRules.length}
+        ${writer.quadsToString([...newState.ownedRules])}
+        other rules: ${newState.otherRules.length}
+        ${writer.quadsToString([...newState.otherRules])}
+        initial length: ${newQuads.length}
+        #rules out of reach: ${newQuads.length - newState.policyDefinitions.length - newState.ownedPolicyRules.length - newState.ownedRules.length}
+        -----------------------------------------------
+        `
+    );
+    if (newState.otherRules.length !== 0)
         throw new BadRequestHttpError("Update not allowed: attempted to modify rules not owned by client");
 
     // Check that only Policy/Rule changing quads are introduced and removed
     // The only modifications we allow are policy definitions, policy rules that define owned rules and owned rules themselves
-    const newQuads = policyStore.getQuads(null, null, null, null);
-    // console.log(
-    //     writer.quadsToString(newQuads)
-    // );
-    // console.log(
-    //     `
-    //     -----------------------------------------------
-    //     NEW LENGTHS AND LISTS:
-    //     policy quads: ${newState.policyQuads.length}
-    //     ${writer.quadsToString([...newState.policyQuads])}
 
-    //     owned rules: ${newState.ownedRules.length}
-    //     ${writer.quadsToString([...newState.ownedRules])}
-
-    //     other rules: ${newState.otherRules.length}
-    //     ${writer.quadsToString([...otherRules])}
-
-    //     new length: ${newQuads.length}
-    //     #rules out of reach: ${newQuads.length - newState.policyQuads.length - newState.ownedRules.length}
-    //     -----------------------------------------------
-
-
-    //     check object reference
-    //     old policy quads ${policyQuads.length}
-    //     old owned rule quads ${ownedRules.length}
-    //     `
-    // );
     if (newQuads.length - newState.ownedRules.length - newState.ownedPolicyRules.length - newState.policyDefinitions.length
         !== initialQuads.length - ownedPolicyRules.length - ownedRules.length - policyDefinitions.length)
-        throw new BadRequestHttpError("Update not allowed: this query introduces quads that have nothing to do with the policy/rules you own")
+        throw new BadRequestHttpError("Update not allowed: this query introduces quads that have nothing to do with the policy/rules you own");
 
     // 6. Modify the storage to the updated version
     try {
+        // Since no update function is available, we need to remove the old one and set the updated one
         await storage.deleteRule(policyId);
+
+        // Add the other quads back into the policy
+        policyStore.addQuads([...otherPolicyRules, ...otherRules]);
         await storage.addRule(policyStore);
     } catch (error) {
         throw new InternalServerError("Something went wrong while editting the policy:", error);

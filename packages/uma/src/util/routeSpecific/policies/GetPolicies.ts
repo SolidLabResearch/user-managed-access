@@ -121,8 +121,8 @@ async function getOnePolicy(policyId: string, store: Store, clientId: string): P
  */
 async function getAllPolicies(store: Store, clientId: string): Promise<HttpHandlerResponse<any>> {
 
-    // Keep track of all the matching policies
-    const policyDetails: Set<Quad> = new Set();
+    // Keep track of all the matching policies (use store because javascript does not know how sets work)
+    const policyDetails: Store = new Store();
 
     for (const relation of relations) {
         // Collect every quad that matches with the relation (one of Permission, Prohibition or Duty)
@@ -137,15 +137,15 @@ async function getAllPolicies(store: Store, clientId: string): Promise<HttpHandl
             // Only go on if the rule is assigned by the client
             if (store.getQuads(rule, odrlAssigner, namedNode(clientId), null).length > 0) {
 
-                // Because an ODRL policy may only have one assigner, we can now add all policy and rule information, except the policy quads that define other client's rules
+                // Because an ODRL policy may only have one assigner, we can now add all policy and rule information, except the policy quads that define other clients rules
                 // Note that this is the only part of the function to be replaced with the recursive variant
                 store.getQuads(policy, null, null, null).forEach(quad => {
                     if (!(relations.map(r => r.value as string).includes(quad.predicate.id)) || store.getQuads(quad.object, odrlAssigner, namedNode(clientId), null).length > 0)
-                        policyDetails.add(quad);
+                        policyDetails.addQuad(quad);
                 });
-                store.getQuads(rule, null, null, null).forEach(quad => policyDetails.add(quad));
+                store.getQuads(rule, null, null, null).forEach(quad => policyDetails.addQuad(quad));
             }
         }
     }
-    return quadsToText(Array.from(policyDetails));
+    return quadsToText(policyDetails.getQuads(null, null, null, null));
 }

@@ -50,6 +50,7 @@ export async function deleteOnePolicy(policyId: string, store: Store, storage: U
 
     // 3. Remove the specified quads
     // Note that the current implementation of the storages 'deleteRule' cannot delete the quads that define the deleted rules
+    // A way to deal with this could be updating the store using dedicated DELETE sparql queries, or by introducing a variant of the storage.deleteRule
     try {
         await Promise.all(idsToDelete.map(id => storage.deleteRule(id)));
 
