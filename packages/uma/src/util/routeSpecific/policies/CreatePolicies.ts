@@ -1,8 +1,7 @@
-import { Quad, Store } from "n3";
+import { Store } from "n3";
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
-import { odrlAssigner, parseBodyToStore, parseBufferToString, relations } from "./PolicyUtil";
+import { odrlAssigner, parseBodyToStore, relations } from "./PolicyUtil";
 import { BadRequestHttpError, InternalServerError } from "@solid/community-server";
-import { parseStringAsN3Store } from "koreografeye";
 import { UCRulesStorage } from "@solidlab/ucp";
 
 export function sanitizeRule(parsedPolicy: Store, clientId: string): void {
