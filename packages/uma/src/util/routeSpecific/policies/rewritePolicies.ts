@@ -12,8 +12,8 @@ export async function rewritePolicy(request: HttpHandlerRequest, store: Store, s
     const policyId = decodeURIComponent(retrieveID(checkBaseURL(request, baseUrl)));
 
     // 2: Get all reachable policy information
-    const { policyDefinitions, ownedPolicyRules, otherPolicyRules, ownedRules, otherRules } = getOnePolicyInfo(policyId, store, clientId);
-    if (policyDefinitions.length === 0)
+    const policyInfo = getOnePolicyInfo(policyId, store, clientId);
+    if (policyInfo.policyDefinitions.length === 0)
         throw new BadRequestHttpError("You cannot PATCH a nonexistent policy");
 
     // 3. Parse the requested policy
@@ -23,7 +23,9 @@ export async function rewritePolicy(request: HttpHandlerRequest, store: Store, s
     sanitizeRule(parsedPolicy, clientId);
 
     // 5. Delete the old policy information and keep track of the old ones for possible rollback
-    const oldQuads: Quad[] = [...policyDefinitions, ...ownedPolicyRules, ...otherPolicyRules, ...ownedRules, ...otherRules];
+    const oldQuads: Quad[] = [...policyInfo.policyDefinitions, ...policyInfo.ownedPolicyRules, ...policyInfo.otherPolicyRules, ...policyInfo.ownedRules, ...policyInfo.otherRules];
+
+    // TODO: this deletion does not delete rule definitions in the Policy declaration when there are multiple clients in the Policy
     await deleteOnePolicy(policyId, store, storage, clientId);
 
     try {
@@ -41,5 +43,7 @@ export async function rewritePolicy(request: HttpHandlerRequest, store: Store, s
         throw new InternalServerError("Failed to PATCH policy\n", error);
     }
 
-    return quadsToText(parsedPolicy.getQuads(null, null, null, null));
+    // Delete only what is in your reach
+    const { policyDefinitions, ownedPolicyRules, ownedRules } = getOnePolicyInfo(policyId, parsedPolicy, clientId);
+    return quadsToText([...policyDefinitions, ...ownedPolicyRules, ...ownedRules]);
 }

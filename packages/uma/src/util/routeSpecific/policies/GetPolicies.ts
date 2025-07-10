@@ -29,6 +29,7 @@ export interface OnePolicy {
     policyId: string;
 
     // Policy quads are split in three parts, to not leak information out of the clients reach
+    // The definitions are every policy quad that do not declare a rule
     policyDefinitions: Quad[];
     ownedPolicyRules: Quad[];
     otherPolicyRules: Quad[];
@@ -56,13 +57,13 @@ export function getOnePolicyInfo(policyId: string, store: Store, clientId: strin
     const otherPolicyRules: Quad[] = [];
     policyRules.forEach(quad => {
         if (store.getQuads(quad.object, odrlAssigner, namedNode(clientId), null).length === 1) {
-            // This is the step to be replaced with the recursive variant
+            // TODO: This is the step to be replaced with the recursive variant
             store.getQuads(quad.object, null, null, null).forEach(
                 quad => ownedRules.push(quad)
             );
             ownedPolicyRules.push(quad);
         } else {
-            // Once again, this is to be replaced with the recursive variant
+            // TODO: Once again, this is to be replaced with the recursive variant
             store.getQuads(quad.object, null, null, null).forEach(
                 quad => otherRules.push(quad)
             );
@@ -111,6 +112,17 @@ async function getOnePolicy(policyId: string, store: Store, clientId: string): P
     return quadsToText([...policyDefinitions, ...ownedPolicyRules, ...ownedRules]);
 }
 
+// Fill the policyDetails store with
+//     1. The policy definitions
+//     2. The owned rules declared in the policy
+// TODO: This is a depth 1 algorithm that has to be replaced
+export function getFilteredPolicyQuads(dataStore: Store, policyDetails: Store, policyId: string, clientId: string) {
+    dataStore.getQuads(namedNode(policyId), null, null, null).forEach(quad => {
+        if (!(relations.map(r => r.value as string).includes(quad.predicate.id)) || dataStore.getQuads(quad.object, odrlAssigner, namedNode(clientId), null).length > 0)
+            policyDetails.addQuad(quad);
+    });
+}
+
 
 /**
  * Get all policy information relevant to the client in the request.
@@ -123,6 +135,7 @@ async function getAllPolicies(store: Store, clientId: string): Promise<HttpHandl
 
     // Keep track of all the matching policies (use store because javascript does not know how sets work)
     const policyDetails: Store = new Store();
+    const memory: Set<string> = new Set();
 
     for (const relation of relations) {
         // Collect every quad that matches with the relation (one of Permission, Prohibition or Duty)
@@ -139,10 +152,10 @@ async function getAllPolicies(store: Store, clientId: string): Promise<HttpHandl
 
                 // Because an ODRL policy may only have one assigner, we can now add all policy and rule information, except the policy quads that define other clients rules
                 // Note that this is the only part of the function to be replaced with the recursive variant
-                store.getQuads(policy, null, null, null).forEach(quad => {
-                    if (!(relations.map(r => r.value as string).includes(quad.predicate.id)) || store.getQuads(quad.object, odrlAssigner, namedNode(clientId), null).length > 0)
-                        policyDetails.addQuad(quad);
-                });
+                if (!memory.has(policy.id)) {
+                    getFilteredPolicyQuads(store, policyDetails, policy.id, clientId);
+                    memory.add(policy.id);
+                }
                 store.getQuads(rule, null, null, null).forEach(quad => policyDetails.addQuad(quad));
             }
         }

@@ -1,16 +1,10 @@
-import { Quad, Store, Writer } from "n3";
+import { Store } from "n3";
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
 import { UCRulesStorage } from "@solidlab/ucp";
 import { checkBaseURL, parseBufferToString, quadsToText, retrieveID } from "./PolicyUtil";
 import { QueryEngine } from '@comunica/query-sparql';
 import { BadRequestHttpError, InternalServerError } from "@solid/community-server";
 import { getOnePolicyInfo } from "./GetPolicies";
-
-// Apparently js does not have this
-const sameContent = (xs: Quad[], ys: Quad[]) => {
-    return xs.length === ys.length &&
-        xs.every((x) => ys.some(y => x.equals(y)))
-};
 
 export async function editPolicy(request: HttpHandlerRequest, store: Store, storage: UCRulesStorage, clientId: string, baseUrl: string): Promise<HttpHandlerResponse<any>> {
     // 1. Retrieve Policy ID
@@ -38,60 +32,16 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
     } catch (error) {
         throw new BadRequestHttpError("Query could not be executed:", error);
     }
-    const writer = new Writer('Turtle')
-
-    console.log(
-        `
-        -----------------------------------------------
-        INITIAL LENGTHS AND LISTS:
-        policy quads: 
-            Definitions: ${policyDefinitions.length}
-            ${writer.quadsToString([...policyDefinitions])}
-            Owned: ${ownedPolicyRules.length}
-            ${writer.quadsToString([...ownedPolicyRules])}
-            Other: ${otherPolicyRules.length}
-            ${writer.quadsToString([...otherPolicyRules])}
-        owned rules: ${ownedRules.length}
-        ${writer.quadsToString([...ownedRules])}
-        other rules: ${otherRules.length}
-        ${writer.quadsToString([...otherRules])}
-        initial length: ${initialQuads.length}
-        #rules out of reach: ${initialQuads.length - policyDefinitions.length - ownedPolicyRules.length - ownedRules.length}
-        -----------------------------------------------
-        `
-    );
 
     // 5. Simple safety checks
     // Check that the other rules are unchanged
     const newState = getOnePolicyInfo(policyId, policyStore, clientId);
-    const newQuads = policyStore.getQuads(null, null, null, null);
-
-    console.log(
-        `
-        -----------------------------------------------
-        NEW LENGTHS AND LISTS:
-        policy quads: 
-            Definitions: ${newState.policyDefinitions.length}
-            ${writer.quadsToString([...newState.policyDefinitions])}
-            Owned: ${newState.ownedPolicyRules.length}
-            ${writer.quadsToString([...newState.ownedPolicyRules])}
-            Other: ${otherPolicyRules.length}
-            ${writer.quadsToString([...newState.otherPolicyRules])}
-        owned rules: ${newState.ownedRules.length}
-        ${writer.quadsToString([...newState.ownedRules])}
-        other rules: ${newState.otherRules.length}
-        ${writer.quadsToString([...newState.otherRules])}
-        initial length: ${newQuads.length}
-        #rules out of reach: ${newQuads.length - newState.policyDefinitions.length - newState.ownedPolicyRules.length - newState.ownedRules.length}
-        -----------------------------------------------
-        `
-    );
-    if (newState.otherRules.length !== 0)
+    if (newState.otherRules.length !== 0 || newState.otherPolicyRules.length !== 0)
         throw new BadRequestHttpError("Update not allowed: attempted to modify rules not owned by client");
 
     // Check that only Policy/Rule changing quads are introduced and removed
     // The only modifications we allow are policy definitions, policy rules that define owned rules and owned rules themselves
-
+    const newQuads = policyStore.getQuads(null, null, null, null);
     if (newQuads.length - newState.ownedRules.length - newState.ownedPolicyRules.length - newState.policyDefinitions.length
         !== initialQuads.length - ownedPolicyRules.length - ownedRules.length - policyDefinitions.length)
         throw new BadRequestHttpError("Update not allowed: this query introduces quads that have nothing to do with the policy/rules you own");
