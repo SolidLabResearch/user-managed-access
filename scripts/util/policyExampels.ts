@@ -50,6 +50,9 @@ ex:permission2a odrl:assigner <https://pod.b.com/profile/card#me> .
 `;
 
 export const putPolicyB = `
+@prefix ex: <http://example.org/>.
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix dct: <http://purl.org/dc/terms/>.
 <urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc> a odrl:Set;
     dct:description "ZENO is data owner of resource X. ALICE may READ resource X.";
     odrl:permission <urn:uuid:69d57d36-74e5-443c-bae5-30159b0cbd3e> .

@@ -45,15 +45,15 @@ export async function deleteOnePolicy(policyId: string, store: Store, storage: U
         };
     }
 
-    // 2. If the policy contains only rules assigned by the client, we can remove the entire policy
-    // Otherwise, we only remove the rules within our reach
-    const idsToDelete = otherRules.length === 0 ? [policyId] : ownedRules;
-
-    // 3. Remove the specified quads
-    // Note that the current implementation of the storages 'deleteRule' cannot delete the quads that define the deleted rules
-    // A way to deal with this could be updating the store using dedicated DELETE sparql queries, or by introducing a variant of the storage.deleteRule
+    // DELETE the quads
     try {
-        await Promise.all(idsToDelete.map(id => storage.deleteRule(id)));
+        if (otherRules.length === 0) {
+            // If the policy contains only rules assigned by the client, we can remove the entire policy
+            await storage.deleteRule(policyId);
+        } else {
+            // Otherwise, we only remove the rules within our reach
+            await Promise.all(ownedRules.map(id => storage.deleteRuleFromPolicy(id, policyId)));
+        }
 
     } catch (error) {
         throw new InternalServerError(`Failed to delete rules: ${error}`);

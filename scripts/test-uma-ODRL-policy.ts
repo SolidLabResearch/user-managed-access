@@ -16,26 +16,18 @@ let errorCounter = 0;
 
 // Test if the first digit of the status code equals the second arg, or match the entire code when specific is false
 const testCode = (code: number, shouldbe: number = 2, trunc: boolean = true) => {
-    if ((trunc ? Math.trunc(Number(code) / 100) : code) !== shouldbe) errorCounter++;
+    if ((trunc ? Math.trunc(Number(code) / 100) : code) !== shouldbe) { errorCounter++; console.log("here") }
 }
 
 async function putPolicies() {
     const encoded = encodeURIComponent(policyId95e);
     console.log("test PUT policies");
 
-    // Delete the policy to be sure
-    await fetch(endpoint(`/${encoded}`), { method: 'DELETE', headers: { 'Authorization': client('a') } });
+    // reset the policy to be sure
+    await deleteAll();
+    await postPolicy();
 
-    // POST it again
-    let response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('a'), 'Content-Type': 'text/turtle' }, body: quickBuffer(policyA) });
-    console.log(`expecting a positive response: status code ${response.status}, ${await response.text()}`);
-    testCode(response.status);
-
-    response = await fetch(endpoint(), { method: 'POST', headers: { 'Authorization': client('b'), 'Content-Type': 'text/turtle' }, body: quickBuffer(policyB) });
-    console.log(`expecting a positive response: status code ${response.status}, ${await response.text()}`);
-    testCode(response.status);
-
-    response = await fetch(endpoint(`/${encoded}`), { method: 'PUT', headers: { 'Authorization': client('a'), 'Content-Type': 'text/turtle' }, body: quickBuffer(putPolicy95e) });
+    let response = await fetch(endpoint(`/${encoded}`), { method: 'PUT', headers: { 'Authorization': client('a'), 'Content-Type': 'text/turtle' }, body: quickBuffer(putPolicy95e) });
     console.log(`expecting Policy header to mistakenly contain the new policies: ${response.status}\n${await response.text()}`);
 
     response = await fetch(endpoint(`/${encoded}`), { headers: { 'Authorization': client('b') } });

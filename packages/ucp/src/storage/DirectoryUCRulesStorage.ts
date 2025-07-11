@@ -33,6 +33,11 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
         return store;
     }
 
+    async deleteRuleFromPolicy(ruleID: string, PolicyID: string) {
+        return new Promise<void>(() => { })
+    }
+
+
 
     /**
      * TEST IMPLEMENTATION - This is just to test the POST :uma/policies endpoint

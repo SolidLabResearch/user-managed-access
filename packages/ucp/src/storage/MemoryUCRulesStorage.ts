@@ -1,6 +1,8 @@
-import { Store } from "n3";
+import { DataFactory, Store } from "n3";
 import { extractQuadsRecursive } from "../util/Util";
 import { UCRulesStorage } from "./UCRulesStorage";
+
+const { namedNode } = DataFactory;
 
 export class MemoryUCRulesStorage implements UCRulesStorage {
     private store: Store;
@@ -27,4 +29,11 @@ export class MemoryUCRulesStorage implements UCRulesStorage {
         const store = await this.getRule(identifier)
         this.store.removeQuads(store.getQuads(null, null, null, null));
     }
+
+    public async deleteRuleFromPolicy(ruleID: string, PolicyID: string) {
+        // Delete the rule and its definition in the policy
+        this.store.getQuads(namedNode(PolicyID), null, namedNode(ruleID), null).forEach(this.store.delete);
+        this.deleteRule(ruleID);
+    }
+
 }

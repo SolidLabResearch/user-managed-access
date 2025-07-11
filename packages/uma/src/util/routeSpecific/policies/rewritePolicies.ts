@@ -42,7 +42,6 @@ export async function rewritePolicy(request: HttpHandlerRequest, store: Store, s
     // 3. Delete the old policy information and keep track of the old ones for possible rollback
     const oldQuads: Quad[] = [...policyInfo.policyDefinitions, ...policyInfo.ownedPolicyRules, ...policyInfo.otherPolicyRules, ...policyInfo.ownedRules, ...policyInfo.otherRules];
 
-    // TODO: this deletion does not delete rule definitions in the Policy declaration when there are multiple clients in the Policy
     await deleteOnePolicy(policyId, store, storage, clientId);
 
     try {
