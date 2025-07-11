@@ -28,7 +28,7 @@ The accepted formats are those accepted by the [N3 Parser](https://github.com/rd
 - `application/n-quads`
 - `text/n3`
 
-The body is expected to represent a valid ODRL policy, although some [sanitization](#sanitization-decisions) is applied to ensure minimal validity. 
+The body is expected to represent a valid ODRL policy, although some [sanitization](#sanitization-decisions) is applied to ensure minimal validity. It is possible to POST multiple policies at once, but they have to remain in scope of the client.
 Upon success, the server responds with **status code 201**. 
 Bad requests, possibly due to an improper policy definition, will respond with **status code 400**. 
 When the policy has been validated, but adding it to the storage fails, the response will have **status code 500**.
@@ -119,16 +119,16 @@ The PUT works as a combination of DELETE and POST. It requires a body with the s
 
 The PUT process:
 1. Find information about the policy. If it does not exist, return with a **status code 400** to indicate that you cannot rewrite a nonexistent policy.
-2. Parse and validate the body, with the same procedure used in the POST endpoint. First, we perform the basic sanitization checks. Upon success, extra checks are performed to see if the new definition stays whithin the scope of the client:
+2. Parse and validate the body, with the same procedure used in the POST endpoint. First, we perform the basic sanitization checks. Upon success, extra checks are performed to see if the new definition stays within the scope of the client:
      - Check that the newly defined policy does not define other policies
      - Check that the new policy does not contain any rules that do not belong to the client
      - Check that no unrelated quads to the policy and its rules are added. 
      
     Failed checks will result in a response with **status code 400** and a dedicated message.
 3. Delete the old policy, but keep a copy for a possible rollback. The deletion uses the procedure used in the [DELETE](#deleting-policies) endpoint.
-4. Add the new policy. On success, the server will respond with **status code 200** and a body containing the new policy and its rules (whithin scope of the client). When this does not succeed, a rollback will be set up:
+4. Add the new policy. On success, the server will respond with **status code 200** and a body containing the new policy and its rules (within scope of the client). When this does not succeed, a rollback will be set up:
     - The server will try to reset the state of the policy by adding the old quads. If this succeeds, an internal server error with **status code 500** will indicate that nothing has been rewritten, and the old version is restored.
-    - When the rollback fails, we basically deleted the policy information whithin our reach. An internal server error with **status code 500** will indicate this.
+    - When the rollback fails, we basically deleted the policy information within our reach. An internal server error with **status code 500** will indicate this.
 
 Note that this endpoint uses the POST and DELETE functionality to implement the PUT.
 
@@ -143,7 +143,7 @@ The PATCH process:
     - Performing DELETE queries on rules out of your scope will simply not work, since they are not part of the isolated store.
     - We can easily see exactly when the query goes out of scope by testing the resulting store, separating it in the 5 groups and performing the following checks:
         1. If the resulting store has rules out of the clients' scope (indicated by groups **(2)** and **(5)**), we can abort the update and respond with **status code 400**.
-        2. We can analyze the size of the resulting store. Substracting the amount of quads whithin reach should result in 0, since no other rules may be added. This test will fail when the client inserts any unrelated quads to its own policy. Upon failure, the server responds with **status code 400**.
+        2. We can analyze the size of the resulting store. Substracting the amount of quads within reach should result in 0, since no other rules may be added. This test will fail when the client inserts any unrelated quads to its own policy. Upon failure, the server responds with **status code 400**.
 4. The old definition will be replaced with the updated version. Since no real update function for our storage exists, we delete the old policy and add the resulting store from the query, together with the quads out of scope as collected in step 1. 
 
 Note that any quads in the original policy that could not be collected by the procedure defined in [GET One Policy](#get-one-policy), will not be part of the newly defined policy. 
@@ -158,7 +158,7 @@ The DELETE process:
     * if there are other rules, we cannot delete the policy information as well.
     * if there are no other rules, we can delete the entire policy.
 
-This method has one rather significant issue. When a client wishes to delete a policy, but other clients are still part of it, we will only remove the rules of the client whithin the policy. We will not remove the definitions of those rules in the policy itself, because there is currently no way to do this. A way to deal with this could be updating the store using dedicated DELETE sparql queries, or by introducing a variant of the storage.deleteRule.
+This method has one rather significant issue. When a client wishes to delete a policy, but other clients are still part of it, we will only remove the rules of the client within the policy. We will not remove the definitions of those rules in the policy itself, because there is currently no way to do this. A way to deal with this could be updating the store using dedicated DELETE sparql queries, or by introducing a variant of the storage.deleteRule.
 
 
 ## Implementation details
@@ -173,9 +173,10 @@ Some endpoints allow new policies to be created, or existing policies to be modi
 - Every assigner must match the authenticated client.
 
 Sanitization Limitations
-- It is possible to `POST` a policy with an ID that already exists, or with rules that reuse already existing IDs.
 - There are currently no checks to verify whether a client is sufficiently authorized to create or modify a policy/rule for a specific target.
     * A client should not be in able to alter rights about a target it does not have access to.
+    
+    This issue is currently being solved in [a dedicated PR](https://github.com/SolidLabResearch/user-managed-access/pull/50)
 - There are plenty of other sanitization checks to be considered. 
 
 #### URI encodig decision
@@ -199,3 +200,6 @@ PATCH used to contain a safety hazard. When client A has a certain policy/rule, 
 An extra constraint, disabling clients to PATCH policies it has no rules in, would still enable the client to exploit policies that it has rules in. 
 
 This problem was solved by splitting the policy into the parts where the client has access to, and the parts where it does not. By executing the query only on the parts that the client has access to, it would be easier to analyse the resulting store of the query. If this store has rules that the client does not have access to, they must have been added by the client and the operation gets cancelled. This method is also protected from deleting rules out of our reach.
+
+#### POST checks
+It is now impossible to POST an already existing policy or already existing rules. This means that a policy can nly be POSTED once. If a client wishes to be a part of a policy, it has to do it through a PUT request. If a client is already part of the policy, it can PATCH modifications.

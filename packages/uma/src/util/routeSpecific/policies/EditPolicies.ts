@@ -4,7 +4,7 @@ import { UCRulesStorage } from "@solidlab/ucp";
 import { checkBaseURL, parseBufferToString, quadsToText, retrieveID } from "./PolicyUtil";
 import { QueryEngine } from '@comunica/query-sparql';
 import { BadRequestHttpError, InternalServerError } from "@solid/community-server";
-import { getOnePolicyInfo } from "./GetPolicies";
+import { getPolicyInfo } from "./GetPolicies";
 import { sanitizeRule } from "./CreatePolicies";
 
 export async function editPolicy(request: HttpHandlerRequest, store: Store, storage: UCRulesStorage, clientId: string, baseUrl: string): Promise<HttpHandlerResponse<any>> {
@@ -12,7 +12,7 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
     const policyId = decodeURIComponent(retrieveID(checkBaseURL(request, baseUrl)));
 
     // 1. Retrieve the existing policy info
-    const { policyDefinitions, ownedPolicyRules, otherPolicyRules, ownedRules, otherRules } = getOnePolicyInfo(policyId, store, clientId);
+    const { policyDefinitions, ownedPolicyRules, otherPolicyRules, ownedRules, otherRules } = getPolicyInfo(policyId, store, clientId);
 
     // Cannot update a nonexistent policy
     if (policyDefinitions.length === 0)
@@ -42,7 +42,7 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
     sanitizeRule(policyStore, clientId);
 
     // 3.1 Check that the other rules are unchanged
-    const newState = getOnePolicyInfo(policyId, policyStore, clientId);
+    const newState = getPolicyInfo(policyId, policyStore, clientId);
     if (newState.otherRules.length !== 0 || newState.otherPolicyRules.length !== 0)
         throw new BadRequestHttpError("Update not allowed: attempted to modify rules not owned by client");
 
@@ -66,6 +66,6 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
     }
 
     // 7. Print information within reach
-    const finalState = getOnePolicyInfo(policyId, policyStore, clientId);
+    const finalState = getPolicyInfo(policyId, policyStore, clientId);
     return quadsToText([...finalState.policyDefinitions, ...finalState.ownedPolicyRules, ...finalState.ownedRules]);
 }

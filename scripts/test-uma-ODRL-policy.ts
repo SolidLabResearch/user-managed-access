@@ -4,7 +4,7 @@
  * The purpose of this file is to test the /policies endpoint.
  */
 
-import { policyA, policyB, policyC, badPolicy1, changePolicy1, changePolicy95e, putPolicy95e } from "./util/policyExampels";
+import { policyA, policyB, policyC, badPolicy1, changePolicy1, changePolicy95e, putPolicy95e, putPolicyB } from "./util/policyExampels";
 
 const endpoint = (extra: string = '') => 'http://localhost:4000/uma/policies' + extra;
 const client = (client: string = 'a') => `https://pod.${client}.com/profile/card#me`;
@@ -36,7 +36,7 @@ async function putPolicies() {
     testCode(response.status);
 
     response = await fetch(endpoint(`/${encoded}`), { method: 'PUT', headers: { 'Authorization': client('a'), 'Content-Type': 'text/turtle' }, body: quickBuffer(putPolicy95e) });
-    console.log(`expecting Policy header to mistakenly contain the old policy, and (correctly) the new policies: ${response.status}\n${await response.text()}`);
+    console.log(`expecting Policy header to mistakenly contain the new policies: ${response.status}\n${await response.text()}`);
 
     response = await fetch(endpoint(`/${encoded}`), { headers: { 'Authorization': client('b') } });
     console.log(`expecting to stay the same as before ${policyId95e}`, await response.text());
@@ -156,6 +156,12 @@ async function testDelete() {
     testCode(resText.length, 0, false);
 }
 
+async function furtherSeeding() {
+    // Due to new POST implementation, client B must PUT its own rules into existing policy `policy95e`
+    const response = await fetch(endpoint(`/${encodeURIComponent(policyId95e)}`), { method: 'PUT', headers: { 'Authorization': client('b'), 'Content-Type': 'text/turtle' }, body: quickBuffer(putPolicyB) });
+    console.log(`expecting Policy header to mistakenly contain the new policies: ${response.status}\n${await response.text()}`);
+}
+
 async function deleteAll() {
     const obj = {
         'a': ['http://example.org/usagePolicy1', 'http://example.org/usagePolicy1a', 'urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc'],
@@ -178,6 +184,7 @@ async function main() {
     errorCounter = 0;
     console.log("Testing all implemented Policy Endpoints:\n\n\n");
     await postPolicy();
+    await furtherSeeding();
     console.log("\n\n\n");
     await getAllPolicies();
     console.log("\n\n\n");

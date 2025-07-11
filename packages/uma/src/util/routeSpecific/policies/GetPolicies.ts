@@ -38,7 +38,7 @@ export interface OnePolicy {
 }
 
 // Functional implementation to get one policy
-export function getOnePolicyInfo(policyId: string, store: Store, clientId: string): OnePolicy {
+export function getPolicyInfo(policyId: string, store: Store, clientId: string): OnePolicy {
 
     // 1. Find the rules that this policy defines
     const policyRules: Quad[] = relations.flatMap(relation =>
@@ -98,7 +98,7 @@ export function getOnePolicyInfo(policyId: string, store: Store, clientId: strin
 async function getOnePolicy(policyId: string, store: Store, clientId: string): Promise<HttpHandlerResponse<any>> {
     policyId = decodeURIComponent(policyId);
 
-    const { policyDefinitions, ownedPolicyRules, ownedRules } = getOnePolicyInfo(policyId, store, clientId);
+    const { policyDefinitions, ownedPolicyRules, ownedRules } = getPolicyInfo(policyId, store, clientId);
 
     if (ownedRules.length === 0)
         return {

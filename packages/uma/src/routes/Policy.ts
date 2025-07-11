@@ -49,7 +49,7 @@ export class PolicyRequestHandler extends HttpHandler {
 
         switch (request.method) {
             case 'GET': return getPolicies(request, store, client, this.baseUrl);
-            case 'POST': return addPolicies(request, this.storage, client);
+            case 'POST': return addPolicies(request, store, this.storage, client);
             case 'DELETE': return deletePolicy(request, store, this.storage, client, this.baseUrl);
             case 'PATCH': return editPolicy(request, store, this.storage, client, this.baseUrl);
             case 'PUT': return rewritePolicy(request, store, this.storage, client, this.baseUrl);

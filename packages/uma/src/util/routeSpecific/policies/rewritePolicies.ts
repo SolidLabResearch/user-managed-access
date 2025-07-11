@@ -5,14 +5,14 @@ import { checkBaseURL, parseBodyToStore, quadsToText, relations, retrieveID } fr
 import { Quad, Store } from "n3";
 import { sanitizeRule } from "./CreatePolicies";
 import { deleteOnePolicy } from "./DeletePolicies";
-import { getOnePolicyInfo } from "./GetPolicies";
+import { getPolicyInfo } from "./GetPolicies";
 
 export async function rewritePolicy(request: HttpHandlerRequest, store: Store, storage: UCRulesStorage, clientId: string, baseUrl: string): Promise<HttpHandlerResponse<any>> {
     // Retrieve Policy ID
     const policyId = decodeURIComponent(retrieveID(checkBaseURL(request, baseUrl)));
 
     // 1: Get all reachable policy information
-    const policyInfo = getOnePolicyInfo(policyId, store, clientId);
+    const policyInfo = getPolicyInfo(policyId, store, clientId);
     if (policyInfo.policyDefinitions.length === 0)
         throw new BadRequestHttpError("Patch not allowed: policy does not exist");
 
@@ -25,18 +25,18 @@ export async function rewritePolicy(request: HttpHandlerRequest, store: Store, s
 
     // Extra checks: this newly defined policy should not define other policies
     if (relations.some(relation => parsedPolicy.getQuads(null, relation, null, null).some(quad => quad.subject.id !== policyId)))
-        throw new BadRequestHttpError("Patch not allowed: the request went out of scope");
+        throw new BadRequestHttpError("PUT not allowed: the request went out of scope");
 
     // Extra checks: new policy should not contain out of scope rules
-    const newState = getOnePolicyInfo(policyId, parsedPolicy, clientId);
+    const newState = getPolicyInfo(policyId, parsedPolicy, clientId);
     if (newState.otherRules.length !== 0 || newState.otherPolicyRules.length !== 0)
-        throw new BadRequestHttpError("Patch not allowed: attempted to modify rules not owned by client");
+        throw new BadRequestHttpError("PUT not allowed: attempted to modify rules not owned by client");
 
     // Extra checks: only Policy/Rule changing quads are introduced and removed
     // The only modifications we allow are policy definitions, policy rules that define owned rules and owned rules themselves
     const newQuads = parsedPolicy.getQuads(null, null, null, null);
     if (newQuads.length - newState.ownedRules.length - newState.ownedPolicyRules.length - newState.policyDefinitions.length !== 0)
-        throw new BadRequestHttpError("Patch not allowed: this query introduces quads that have nothing to do with the policy/rules you own");
+        throw new BadRequestHttpError("PUT not allowed: this query introduces quads that have nothing to do with the policy/rules you own");
 
 
     // 3. Delete the old policy information and keep track of the old ones for possible rollback
@@ -61,6 +61,6 @@ export async function rewritePolicy(request: HttpHandlerRequest, store: Store, s
     }
 
     // Delete only what is in your reach
-    const { policyDefinitions, ownedPolicyRules, ownedRules } = getOnePolicyInfo(policyId, parsedPolicy, clientId);
+    const { policyDefinitions, ownedPolicyRules, ownedRules } = getPolicyInfo(policyId, parsedPolicy, clientId);
     return quadsToText([...policyDefinitions, ...ownedPolicyRules, ...ownedRules]);
 }
