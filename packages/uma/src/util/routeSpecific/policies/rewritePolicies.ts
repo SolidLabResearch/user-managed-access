@@ -8,18 +8,19 @@ import { deleteOnePolicy } from "./DeletePolicies";
 import { getOnePolicyInfo } from "./GetPolicies";
 
 export async function rewritePolicy(request: HttpHandlerRequest, store: Store, storage: UCRulesStorage, clientId: string, baseUrl: string): Promise<HttpHandlerResponse<any>> {
-    // 1. Retrieve Policy ID
+    // Retrieve Policy ID
     const policyId = decodeURIComponent(retrieveID(checkBaseURL(request, baseUrl)));
 
-    // 2: Get all reachable policy information
+    // 1: Get all reachable policy information
     const policyInfo = getOnePolicyInfo(policyId, store, clientId);
     if (policyInfo.policyDefinitions.length === 0)
         throw new BadRequestHttpError("Patch not allowed: policy does not exist");
 
-    // 3. Parse the requested policy
+
+    // 2. Parse the requested policy, perform checks
     const parsedPolicy = await parseBodyToStore(request);
 
-    // 4. Sanitization checks (error is thrown when checks fail)
+    // Sanitization checks (error is thrown when checks fail)
     sanitizeRule(parsedPolicy, clientId);
 
     // Extra checks: this newly defined policy should not define other policies
@@ -38,14 +39,14 @@ export async function rewritePolicy(request: HttpHandlerRequest, store: Store, s
         throw new BadRequestHttpError("Patch not allowed: this query introduces quads that have nothing to do with the policy/rules you own");
 
 
-    // 5. Delete the old policy information and keep track of the old ones for possible rollback
+    // 3. Delete the old policy information and keep track of the old ones for possible rollback
     const oldQuads: Quad[] = [...policyInfo.policyDefinitions, ...policyInfo.ownedPolicyRules, ...policyInfo.otherPolicyRules, ...policyInfo.ownedRules, ...policyInfo.otherRules];
 
     // TODO: this deletion does not delete rule definitions in the Policy declaration when there are multiple clients in the Policy
     await deleteOnePolicy(policyId, store, storage, clientId);
 
     try {
-        // 6. Add the new policy information
+        // 4. Add the new policy information
         await storage.addRule(parsedPolicy);
     } catch (error) {
         // If addition fails, try to restore the old quads

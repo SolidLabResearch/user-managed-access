@@ -12,13 +12,14 @@ export async function deletePolicy(request: HttpHandlerRequest, store: Store, st
 
 
 /**
- *  TODO: documentation
- * @param request 
- * @param store 
- * @param storage 
- * @param clientId 
- * @param baseUrl 
- * @returns 
+ * To delete a policy, send a DELETE request to `/uma/policies/<policyId>` with the URL encoded ID of the policy. The DELETE works like this:
+ *  1. Find the rules defined in the policy
+ *  2. Filter the rules that are assigned by the client, and delete them
+ *  3. Find out if there are rules not assigned by the client
+ * if there are other rules, we cannot delete the policy information as well
+ * if there are no other rules, we can delete the entire policy
+ * 
+ * As read in /docs/policy-managament.md
  */
 export async function deleteOnePolicy(policyId: string, store: Store, storage: UCRulesStorage, clientId: string): Promise<HttpHandlerResponse<any>> {
 
