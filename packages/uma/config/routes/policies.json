@@ -7,15 +7,35 @@
             "@id": "urn:uma:default:PolicyRoute",
             "@type": "HttpHandlerRoute",
             "methods": [
-                "GET"
+                "GET", 
+                "POST"
             ],
             "handler": {
                 "@type": "PolicyRequestHandler",
                 "storage": {
                     "@id": "urn:uma:default:RulesStorage"
-                }
+                },
+                "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
             },
             "path": "/uma/policies"
+        },
+        {
+            "@id": "urn:uma:default:OnePolicyRoute",
+            "@type": "HttpHandlerRoute",
+            "methods": [
+                "GET", 
+                "DELETE",
+                "PATCH",
+                "PUT"
+            ],
+            "handler": {
+                "@type": "PolicyRequestHandler",
+                "storage": {
+                    "@id": "urn:uma:default:RulesStorage"
+                },
+                "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
+            },
+            "path": "/uma/policies/{id}"
         }
     ]
 }
