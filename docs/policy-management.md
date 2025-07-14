@@ -186,11 +186,19 @@ Some operations require the client to specify a policy ID in the URL. Since poli
 The current implementation is tested only by the script in `scripts\test-uma-ODRL-policy.ts`. This script tests every implemented endpoint with a designated flow. Since the script initiates with an empty storage, and there is no endpoint or other way to seed it, the first requests must test the POST endpoint. These tests are designed to ensure that the storage is filled. After the POST tests, the access endpoints can be tested. Every endpoint gets tested in this script, which makes sure that the added data is removed. The current testing will be replaced with proper unit tests in the near future.
 
 ## Problems
-- When you have a policy with multiple rules that have different assigners, DELETE on every rule of one assigner will succesfully delete the rule itself, but not the definition of the rule within the policy. This is due to the fact that you can currently only DELETE based on the ID of the rule/policy you want to delete, and you cannot delete the entire policy since other assigners depend on it. Currently, the only problem with this is filling space, since the quads defining deleted rules will not be returned in GET requests.
 - The current [sanitization limitations](#sanitization-decisions) are to be considered
 
 
 ### Solved Problems
+
+#### DELETE fix
+
+##### Problem
+When you have a policy with multiple rules that have different assigners, DELETE on every rule of one assigner will succesfully delete the rule itself, but not the definition of the rule within the policy. This is due to the fact that you can currently only DELETE based on the ID of the rule/policy you want to delete, and you cannot delete the entire policy since other assigners depend on it. Currently, the only problem with this is filling space, since the quads defining deleted rules will not be returned in GET requests.
+
+##### Fix
+We created a new RulesStorage function, made specifically to fix our problem entirely. The function is implemented to delete the rule AND its definition in the policy.
+
 
 #### PATCH fix
 PATCH used to contain a safety hazard. When client A has a certain policy/rule, or even just a certain quad, this could be discovered by an intrusive client B. Client B could simply PATCH an INSERT of a random quad that does NOT belong to its own rules/policies, which can have one of three outcomes:
