@@ -14,7 +14,7 @@ The current implementation supports the following requests:
 
 
 These requests comply with some restrictions:
-- When the URL contains a policy ID, it must be [URI encoded](#uri-encodig-decision).
+- When the URL contains a policy ID, it must be [URI encoded](#uri-encoding-decision).
 - The request must have its `'Authorization'` header set to the clients webID. More on that [later](#authorizationauthentication-decisions).
 
 
@@ -57,7 +57,7 @@ ex:permission odrl:assigner <https://pod.example.com/profile/card#me> .'
 ### Reading policies
 To read policies, two endpoints are implemented:
 - GET `/uma/policies`: get policy information you are authorized to see, for every policy.
-- GET `/uma/policies/<encodedPolicyID>`: get policy information you are authorized to see, for the policy with the specified [URI encoded](#uri-encodig-decision) ID.
+- GET `/uma/policies/<encodedPolicyID>`: get policy information you are authorized to see, for the policy with the specified [URI encoded](#uri-encoding-decision) ID.
 
 #### GET one policy
 The algorithm to GET a single policy will use a procedure to separate the policy into different parts:
@@ -179,7 +179,7 @@ Sanitization Limitations
     This issue is currently being solved in [a dedicated PR](https://github.com/SolidLabResearch/user-managed-access/pull/50)
 - There are plenty of other sanitization checks to be considered. 
 
-#### URI encodig decision
+#### URI encoding decision
 Some operations require the client to specify a policy ID in the URL. Since policy ID's might contain reserved characters (e.g. `/`, `:`, ...), we have chosen to encode them with the builtin [`encodeURIComponent()` function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent). Using this method, reserved characters will be converted to their respective UTF-8 encodings.
 
 ## Testing
@@ -210,4 +210,4 @@ An extra constraint, disabling clients to PATCH policies it has no rules in, wou
 This problem was solved by splitting the policy into the parts where the client has access to, and the parts where it does not. By executing the query only on the parts that the client has access to, it would be easier to analyse the resulting store of the query. If this store has rules that the client does not have access to, they must have been added by the client and the operation gets cancelled. This method is also protected from deleting rules out of our reach.
 
 #### POST checks
-It is now impossible to POST an already existing policy or already existing rules. This means that a policy can nly be POSTED once. If a client wishes to be a part of a policy, it has to do it through a PUT request. If a client is already part of the policy, it can PATCH modifications.
+It is now impossible to POST an already existing policy or already existing rules. This means that a policy can only be POSTED once. If a client wishes to be a part of a policy, it has to do it through a PUT request. If a client is already part of the policy, it can PATCH modifications.
