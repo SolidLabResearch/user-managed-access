@@ -32,7 +32,7 @@ export class MemoryUCRulesStorage implements UCRulesStorage {
 
     public async deleteRuleFromPolicy(ruleID: string, PolicyID: string) {
         // Delete the rule and its definition in the policy
-        this.store.getQuads(namedNode(PolicyID), null, namedNode(ruleID), null).forEach(this.store.delete);
+        this.store.getQuads(namedNode(PolicyID), null, namedNode(ruleID), null).forEach(quad => this.store.delete(quad));
         this.deleteRule(ruleID);
     }
 
