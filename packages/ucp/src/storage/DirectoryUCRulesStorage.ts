@@ -1,34 +1,33 @@
 import { UCRulesStorage } from "./UCRulesStorage";
 import * as path from 'path'
 import * as fs from 'fs'
-import { Store, Writer } from "n3";
-import { parseAsN3Store } from "koreografeye";
+import { Parser, Store, Writer } from 'n3';
 
 export class DirectoryUCRulesStorage implements UCRulesStorage {
-    private directoryPath: string;
-    private addedRulesPath: string;
+    protected directoryPath: string;
+    protected readonly baseIRI: string;
 
     /**
-     * 
+     *
      * @param directoryPath The absolute path to a directory
+     * @param baseIRI The base to use when parsing RDF documents.
      */
-    public constructor(directoryPath: string) {
+    public constructor(directoryPath: string, baseIRI: string) {
         this.directoryPath = path.resolve(directoryPath);
-        console.log(`[${new Date().toISOString()}] - DirectoryUCRulesStore: Path that will be used as source directory for the Usage Control Rules`, this.directoryPath);
         if (!fs.lstatSync(directoryPath).isDirectory()) {
             throw Error(`${directoryPath} does not resolve to a directory`)
         }
-
-        this.addedRulesPath = path.join(this.directoryPath, 'addedRules.ttl');
+        this.baseIRI = baseIRI;
     }
 
     public async getStore(): Promise<Store> {
         const store = new Store()
 
+        const parser = new Parser({ baseIRI: this.baseIRI });
         const files = fs.readdirSync(this.directoryPath).map(file => path.join(this.directoryPath, file))
         for (const file of files) {
-            const fileStore = await parseAsN3Store(file)
-            store.addQuads(fileStore.getQuads(null, null, null, null))
+            const quads = parser.parse((await fs.promises.readFile(file)).toString());
+            store.addQuads(quads);
         }
         return store;
     }
@@ -36,34 +35,8 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
     async deleteRuleFromPolicy(ruleID: string, PolicyID: string) {
         return new Promise<void>(() => { })
     }
-
-
-
-    /**
-     * TEST IMPLEMENTATION - This is just to test the POST :uma/policies endpoint
-     * 
-     * @param rule The quads to be added
-     */
     public async addRule(rule: Store): Promise<void> {
-        const writer = new Writer({ format: 'Turtle' });
-
-        writer.addQuads(rule.getQuads(null, null, null, null));
-
-        const serializedTurtle: string = await new Promise((resolve, reject) => {
-            writer.end((error, result) => {
-                if (error) reject(error);
-                else resolve(result);
-            });
-        });
-
-        // Append or create the file
-        if (!fs.existsSync(this.addedRulesPath)) {
-            fs.writeFileSync(this.addedRulesPath, serializedTurtle);
-        } else {
-            fs.appendFileSync(this.addedRulesPath, '\n' + serializedTurtle);
-        }
-
-        console.log(`[${new Date().toISOString()}] - Added new rule to ${this.addedRulesPath}`);
+        throw Error('not implemented');
     }
     public async getRule(identifier: string): Promise<Store> {
         throw Error('not implemented');
@@ -72,4 +45,3 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
         throw Error('not implemented');
     }
 }
-

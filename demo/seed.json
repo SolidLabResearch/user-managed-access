@@ -1,19 +1,10 @@
 [
   {
-    "email": "alice@example.org",
+    "email": "ruben@example.org",
     "password": "abc123",
     "pods": [{
-      "name": "alice"
+      "name": "ruben"
     }]
-  },
-  {
-    "email": "bob@example.org",
-    "password": "abc123",
-    "pods": [
-      {
-        "name": "bob"
-      }
-    ]
   },
   {
     "email": "demo@example.org",

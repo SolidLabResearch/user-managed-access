@@ -36,7 +36,7 @@
     }
   ],
   "private": true,
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.9.2",
   "engines": {
     "node": ">=20.0",
     "yarn": ">=4.0"
@@ -59,7 +59,6 @@
     "build": "yarn build:ts && yarn build:components",
     "build:ts": "yarn run -T tsc",
     "build:components": "yarn run -T componentsjs-generator -r uma-css -s src/ -c dist/components -i .componentsignore --lenient",
-    "test": "yarn run -T jest --coverage",
     "start:unseeded": "yarn run community-solid-server -m . -c ./config/default.json -a http://localhost:4000/",
     "start": "yarn run community-solid-server -m . -c ./config/default.json --seedConfig ./config/seed.json -a http://localhost:4000/",
     "demo": "yarn run demo:setup && yarn run demo:start",
@@ -68,7 +67,6 @@
   },
   "dependencies": {
     "@solid/community-server": "^7.1.7",
-    "@solidlab/derived-resources-component": "^1.0.2",
     "@solidlab/uma": "workspace:^",
     "@types/n3": "^1.16.4",
     "componentsjs": "^5.5.1",
@@ -76,11 +74,6 @@
     "http-message-signatures": "^1.0.4",
     "jose": "^5.2.2",
     "n3": "^1.17.2"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts)$"
   },
   "lsd:module": "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css",
   "lsd:components": "dist/components/components.jsonld",
