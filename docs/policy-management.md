@@ -158,7 +158,7 @@ The DELETE process:
     * if there are other rules, we cannot delete the policy information as well.
     * if there are no other rules, we can delete the entire policy.
 
-This method has one rather significant issue. When a client wishes to delete a policy, but other clients are still part of it, we will only remove the rules of the client within the policy. We will not remove the definitions of those rules in the policy itself, because there is currently no way to do this. A way to deal with this could be updating the store using dedicated DELETE sparql queries, or by introducing a variant of the storage.deleteRule.
+This method used to have one rather significant issue, as discussed [later](#delete-fix).
 
 
 ## Implementation details
@@ -197,7 +197,7 @@ The current implementation is tested only by the script in `scripts\test-uma-ODR
 When you have a policy with multiple rules that have different assigners, DELETE on every rule of one assigner will succesfully delete the rule itself, but not the definition of the rule within the policy. This is due to the fact that you can currently only DELETE based on the ID of the rule/policy you want to delete, and you cannot delete the entire policy since other assigners depend on it. Currently, the only problem with this is filling space, since the quads defining deleted rules will not be returned in GET requests.
 
 ##### Fix
-We created a new RulesStorage function, made specifically to fix our problem entirely. The function is implemented to delete the rule AND its definition in the policy.
+We created a new RulesStorage function, made specifically to fix our problem entirely. The function is implemented to delete the rule AND its definition in the policy. This solution is still a bit experimental.
 
 
 #### PATCH fix
