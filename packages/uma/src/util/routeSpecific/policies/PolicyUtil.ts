@@ -54,7 +54,7 @@ export async function quadsToText(quads: Quad[]): Promise<HttpHandlerResponse<an
             } else {
                 resolve({
                     status: 200,
-                    headers: { 'content-type': 'text/turtle' },
+                    headers: { 'content-type': 'text/turtle', 'access-control-allow-origin': 'http://localhost:5173' },
                     body: result
                 });
             }

@@ -118,6 +118,7 @@ export async function addPolicies(request: HttpHandlerRequest, store: Store, sto
 
 
     return {
-        status: 201
+        status: 201,
+        headers: { 'access-control-allow-origin': 'http://localhost:5173' }
     }
 }

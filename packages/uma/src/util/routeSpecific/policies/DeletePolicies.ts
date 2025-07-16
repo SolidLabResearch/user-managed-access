@@ -61,6 +61,7 @@ export async function deleteOnePolicy(policyId: string, store: Store, storage: U
 
     // Delete succesful
     return {
-        status: 200
+        status: 200,
+        headers: { 'access-control-allow-origin': 'http://localhost:5173' }
     }
 }

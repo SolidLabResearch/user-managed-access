@@ -31,7 +31,7 @@ export class PolicyRequestHandler extends HttpHandler {
      */
     protected getCredentials(request: HttpHandlerRequest): string {
         const header = request.headers['authorization'];
-        if (typeof header !== 'string') {
+        if (typeof header !== 'string' && request.method !== "OPTIONS") {
             throw new BadRequestHttpError('Missing Authorization header');
         }
         return header;
@@ -53,6 +53,15 @@ export class PolicyRequestHandler extends HttpHandler {
             case 'DELETE': return deletePolicy(request, store, this.storage, client, this.baseUrl);
             case 'PATCH': return editPolicy(request, store, this.storage, client, this.baseUrl);
             case 'PUT': return rewritePolicy(request, store, this.storage, client, this.baseUrl);
+            case 'OPTIONS': return {
+                status: 204,
+                headers: {
+                    // this is only for the url without <encodedId>
+                    'Access-Control-Allow-Origin': 'http://localhost:5173',
+                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+                }
+            }
             default: throw new MethodNotAllowedHttpError();
         }
     }

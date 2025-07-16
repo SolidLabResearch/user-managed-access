@@ -1,7 +1,6 @@
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
 import { Quad, Store } from "n3";
 import { odrlAssigner, relations, namedNode, quadsToText, checkBaseURL, retrieveID } from "./PolicyUtil";
-import { MethodNotAllowedHttpError } from "@solid/community-server";
 
 
 /**
@@ -104,7 +103,7 @@ async function getOnePolicy(policyId: string, store: Store, clientId: string): P
         return {
             status: 204,
             headers: {
-                'content-type': 'text/turtle',
+                'content-type': 'text/turtle', 'access-control-allow-origin': 'http://localhost:5173'
             },
             body: '',
         }
