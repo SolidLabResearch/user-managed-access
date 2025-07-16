@@ -166,3 +166,46 @@ export const putPolicy95e = `
     <http://www.w3.org/ns/odrl/2/action> <http://www.w3.org/ns/odrl/2/delete>;
     <http://www.w3.org/ns/odrl/2/target> <http://example.org/x>.
 `
+
+export const seedingPolicies = (id: string) => `
+@prefix ex: <http://example.org/> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+
+ex:usagePolicy1 a odrl:Agreement .
+ex:usagePolicy1 odrl:permission ex:permission1 .
+ex:permission1 a odrl:Permission .
+ex:permission1 odrl:action odrl:read .
+ex:permission1 odrl:action odrl:write .
+ex:permission1 odrl:target <http://localhost:3000/alice/other/oneFile.txt> .
+ex:permission1 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission1 odrl:assigner <${id}> .
+
+ex:usagePolicy1a a odrl:Agreement .
+ex:usagePolicy1a odrl:permission ex:permission1a .
+ex:permission1a a odrl:Permission .
+ex:permission1a odrl:action odrl:control .
+ex:permission1 odrl:action odrl:append .
+ex:permission1a odrl:target <http://localhost:3000/alice/other/otherFile.txt> .
+ex:permission1a odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission1a odrl:assigner <${id}> .
+
+<urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc> a odrl:Set;
+    dct:description "A is data owner of resource X. ALICE may READ resource X.";
+    odrl:permission <urn:uuid:f5199b0a-d824-45a0-bc08-1caa8d19a001> .
+<urn:uuid:f5199b0a-d824-45a0-bc08-1caa8d19a001> a odrl:Permission;
+    odrl:action odrl:read;
+    odrl:action odrl:append;
+    odrl:action odrl:write;
+    odrl:target ex:x;
+    odrl:assignee ex:alice;
+    odrl:assigner <${id}>.
+
+ex:usagePolicy3 a odrl:Agreement .
+ex:usagePolicy3 odrl:permission ex:permission3 .
+ex:permission3 a odrl:Permission .
+ex:permission3 odrl:action odrl:create .
+ex:permission3 odrl:target <http://localhost:3000/alice/other/resource.txt> .
+ex:permission3 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission3 odrl:assigner <${id}> .
+`

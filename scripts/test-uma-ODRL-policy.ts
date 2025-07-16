@@ -4,7 +4,7 @@
  * The purpose of this file is to test the /policies endpoint.
  */
 
-import { policyA, policyB, policyC, badPolicy1, changePolicy1, changePolicy95e, putPolicy95e, putPolicyB } from "./util/policyExampels";
+import { policyA, policyB, policyC, badPolicy1, changePolicy1, changePolicy95e, putPolicy95e, putPolicyB } from "./util/policyExamples";
 
 const endpoint = (extra: string = '') => 'http://localhost:4000/uma/policies' + extra;
 const client = (client: string = 'a') => `https://pod.${client}.com/profile/card#me`;
