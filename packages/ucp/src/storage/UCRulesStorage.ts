@@ -20,4 +20,7 @@ export interface UCRulesStorage {
      * @returns 
      */
     deleteRule: (identifier: string) => Promise<void>;
+
+    // Experimental endpoint
+    deleteRuleFromPolicy: (ruleID: string, PolicyID: string) => Promise<void>;
 }

@@ -54,10 +54,7 @@
         "eyePath": { "@id": "urn:uma:variables:eyePath" },
         "policies": {
           "@id": "urn:uma:default:RulesStorage",
-          "@type": "DirectoryUCRulesStorage",
-          "directoryPath": {
-            "@id": "urn:uma:variables:policyDir"
-          }
+          "@type": "MemoryUCRulesStorage"
         }
       }
     }

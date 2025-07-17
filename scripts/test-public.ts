@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env -S npx tsx
 
 const publicResource = "http://localhost:3000/alice/profile/card"
 
