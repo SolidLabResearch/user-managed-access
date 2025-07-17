@@ -3,14 +3,14 @@ import { extractQuadsRecursive } from '../util/Util';
 import { UCRulesStorage } from './UCRulesStorage';
 
 export class MemoryUCRulesStorage implements UCRulesStorage {
-    private store: Store;
+    protected store: Store;
 
     public constructor() {
         this.store = new Store();
     }
 
     public async getStore(): Promise<Store> {
-        return this.store;
+        return new Store(this.store);
     }
 
 

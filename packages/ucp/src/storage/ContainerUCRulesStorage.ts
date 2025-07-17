@@ -1,15 +1,18 @@
-import { Store } from "n3";
+import { Store, Writer } from 'n3';
 import { UCRulesStorage } from "./UCRulesStorage";
 import { isRDFContentType, rdfToStore, storeToString, turtleStringToStore } from "../util/Conversion";
 import { extractQuadsRecursive } from "../util/Util";
 
 export type RequestInfo = string | Request;
 
+// TODO: undo the container creation part again
 export class ContainerUCRulesStorage implements UCRulesStorage {
-    private containerURL: string;
-    private fetch: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>;
+    protected readonly containerURL: string;
+    protected readonly fetch: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>;
     // The resource that will be used to store the additional triples that will be added through this store
-    private extraDataUrl?: string;
+    protected extraDataUrl?: string;
+    // Check if the container already exists if this is false and create it if it is not
+    protected containerExists = false;
 
     /**
      *
@@ -22,6 +25,7 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
     }
 
     public async getStore(): Promise<Store> {
+        // TODO: can use last-modified date/etag or something to cache store?
         const store = new Store()
         const documents = await this.getDocuments();
         for (const childStore of Object.values(documents)) {
@@ -31,15 +35,34 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
     }
 
     public async addRule(rule: Store): Promise<void> {
+        if (rule.size === 0) {
+            return;
+        }
+        await this.verifyContainer();
         const ruleString = storeToString(rule);
-        const response = await this.fetch(this.extraDataUrl || this.containerURL,{
-            method: this.extraDataUrl ? 'PUT' : 'POST',
-            headers: { 'content-type': 'text/turtle' },
-            body: ruleString
-        })
-        if (response.status !== 201) {
+
+        let response = this.extraDataUrl ?
+          await fetch(this.extraDataUrl, {
+            method: 'PATCH',
+            headers: { 'content-type': 'text/n3' },
+            body: `
+                @prefix solid: <http://www.w3.org/ns/solid/terms#>.
+                
+                _:rename a solid:InsertDeletePatch;
+                  solid:inserts {
+                    ${ruleString}
+                  }.`,
+            }) :
+          // TODO: always just use PATCH, generate UUID on this side, will make many things easier
+          await this.fetch(this.containerURL,{
+              method: 'POST',
+              headers: { 'content-type': 'text/turtle' },
+              body: ruleString
+          });
+        if (response.status >= 400) {
+            // TODO: better logging format
             console.log(ruleString);
-            throw Error("Above rule could not be added to the store")
+            throw Error(`Above rule could not be added to the store ${response.status} ${await response.text()}`);
         }
         this.extraDataUrl = response.headers.get('location') as string;
     }
@@ -56,8 +79,13 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
     }
 
     public async removeData(data: Store): Promise<void> {
+        if (data.size === 0) {
+            return;
+        }
+        await this.verifyContainer();
         const documents = await this.getDocuments();
         // Find documents with matches, remove the triples and update the resource
+        // TODO: instead: still find the documents, but use patch to update them to prevent conflicts
         for (const [ url, store ] of Object.entries(documents)) {
             let updated = false;
             for (const quad of data) {
@@ -85,45 +113,55 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
      */
     protected async getDocuments(): Promise<Record<string, Store>> {
         const result: Record<string, Store> = {};
-        const container = await readLdpRDFResource(this.fetch, this.containerURL);
+        const container = await this.readLdpRDFResource(this.containerURL);
         const children = container.getObjects(this.containerURL, "http://www.w3.org/ns/ldp#contains", null).map(value => value.value)
         for (const childURL of children) {
             try {
-                result[childURL] = await readLdpRDFResource(this.fetch, childURL);
+                result[childURL] = await this.readLdpRDFResource(childURL);
             } catch (e) {
                 console.log(`${childURL} is not an RDF resource`);
             }
         }
         return result;
     }
-}
 
-export async function readLdpRDFResource(fetch: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>, resourceURL: string): Promise<Store> {
-    const containerResponse = await fetch(resourceURL, { headers: { 'accept': 'text/turtle' } });
+    protected async verifyContainer(): Promise<void> {
+        if (this.containerExists) {
+            return;
+        }
 
-    if (containerResponse.status !== 200) {
-        throw new Error(`Resource not found: ${resourceURL}`);
+        const response = await fetch(this.containerURL);
+        if (response.status < 400) {
+            this.containerExists = true;
+            return;
+        }
+        if (response.status === 404) {
+            const createResponse = await this.fetch(
+              this.containerURL,
+              { method: 'PUT', headers: { 'content-type': 'text/turtle' } }
+            );
+            if (createResponse.status !== 201) {
+                throw new Error(`Unable to create ${this.containerURL}: ${await response.text()}`)
+            }
+            this.containerExists = true;
+        }
+
+        throw new Error(`Unable to access ${this.containerURL}: ${await response.text()}`);
     }
-    
-    if (containerResponse.headers.get('content-type') !== 'text/turtle') { // note: should be all kinds of RDF, not only turtle
-        throw new Error('Works only on rdf data');
+
+    protected async readLdpRDFResource(resourceURL: string): Promise<Store> {
+        await this.verifyContainer();
+        const containerResponse = await this.fetch(resourceURL, { headers: { 'accept': 'text/turtle' } });
+
+        // TODO: here and other places: in case of 404 create the container
+        if (containerResponse.status !== 200) {
+            throw new Error(`Resource not found: ${resourceURL}`);
+        }
+
+        if (containerResponse.headers.get('content-type') !== 'text/turtle') { // note: should be all kinds of RDF, not only turtle
+            throw new Error('Works only on rdf data');
+        }
+        const text = await containerResponse.text();
+        return await turtleStringToStore(text, resourceURL);
     }
-    const text = await containerResponse.text();
-    return await turtleStringToStore(text, resourceURL);
 }
-
-
-// export async function readLdpRDFResource(fetch: (input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>, resourceURL: string): Promise<Store> {
-//     const response = await fetch(resourceURL);
-
-//     if (response.status !== 200) {
-//         throw new Error(`Resource not found: ${resourceURL}`);
-//     }
-    
-//     const contentType = response.headers.get('content-type')
-//     if (!contentType || !await isRDFContentType(contentType)) { // note: should be all kinds of RDF, not only turtle
-//         throw new Error('Works only on rdf data');
-//     }
-    
-//     return await rdfToStore(response, resourceURL);
-// }

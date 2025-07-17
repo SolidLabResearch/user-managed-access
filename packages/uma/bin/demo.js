@@ -16,7 +16,7 @@ const launch = async () => {
   variables['urn:uma:variables:baseUrl'] = baseUrl;
 
   // variables['urn:uma:variables:policyDir'] = path.join(rootDir, './config/rules/policy');
-  variables['urn:uma:variables:policyContainer'] = 'http://localhost:3000/ruben/settings/policies/';
+  variables['urn:uma:variables:policyContainer'] = 'http://localhost:3000/settings/policies/';
   variables['urn:uma:variables:eyePath'] = 'eye';
 
   const configPath = path.join(rootDir, './config/demo.json');

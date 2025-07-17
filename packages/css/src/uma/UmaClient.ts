@@ -1,3 +1,4 @@
+import { KeyValueStorage, NotFoundHttpError, ResourceIdentifier, ResourceSet } from '@solid/community-server';
 import {
   AccessMap,
   getLoggerFor,
@@ -5,12 +6,13 @@ import {
   InternalServerError,
   isContainerIdentifier,
   joinUrl,
-  type KeyValueStorage,
-  type ResourceIdentifier
+  SingleThreaded
 } from '@solid/community-server';
 import type { ResourceDescription } from '@solidlab/uma';
+import { once, EventEmitter } from 'events';
 import { createRemoteJWKSet, decodeJwt, JWTPayload, jwtVerify, JWTVerifyOptions } from 'jose';
 import type { Fetcher } from '../util/fetch/Fetcher';
+import { promises } from 'node:timers';
 
 export interface Claims {
   [key: string]: unknown;
@@ -65,27 +67,37 @@ const algMap = {
 }
 
 /**
- * Client interface for the UMA AS
+ * Client interface for the UMA AS.
+ *
+ * This class uses an EventEmitter and an in-memory map to keep track of registration progress,
+ * so does not work with worker threads.
  */
-export class UmaClient {
+export class UmaClient implements SingleThreaded {
   protected readonly logger = getLoggerFor(this);
+
+  // Keeps track of resources that are being registered to prevent duplicate registration calls.
+  protected readonly inProgressResources: Set<string> = new Set();
+  // Used to notify when registration finished for a resource. The event will be the identifier of the resource.
+  protected readonly registerEmitter: EventEmitter = new EventEmitter();
 
   /**
    * @param umaIdStore - Key/value store containing the resource path -> UMA ID bindings.
    * @param fetcher - Used to perform requests targeting the AS.
    * @param identifierStrategy - Utility functions based on the path configuration of the server.
+   * @param resourceSet - Will be used to verify existence of resources.
    * @param options - JWT verification options.
-   * @param retryDelay - How long to wait, in ms, before retrying adding the ldp:contains relation to a resource.
-   *                     This can be necessary if a resource is being registered
-   *                     while its parent has not yet been registered.
    */
   constructor(
-    protected umaIdStore: KeyValueStorage<string, string>,
-    protected fetcher: Fetcher,
-    protected identifierStrategy: IdentifierStrategy,
-    protected options: UmaVerificationOptions = {},
-    protected retryDelay = 30 * 1000,
-  ) {}
+    protected readonly umaIdStore: KeyValueStorage<string, string>,
+    protected readonly fetcher: Fetcher,
+    protected readonly identifierStrategy: IdentifierStrategy,
+    protected readonly resourceSet: ResourceSet,
+    protected readonly options: UmaVerificationOptions = {},
+  ) {
+    // This number can potentially get very big when seeding a bunch of pods.
+    // This is not really an issue, but it is still preferable to not have a warning printed.
+    this.registerEmitter.setMaxListeners(20);
+  }
 
   /**
    * Method to fetch a ticket from the Permission Registration endpoint of the UMA Authorization Service.
@@ -106,7 +118,28 @@ export class UmaClient {
 
     const body = [];
     for (const [ target, modes ] of permissions.entrySets()) {
-      const umaId = await this.umaIdStore.get(target.path);
+      let umaId = await this.umaIdStore.get(target.path);
+      if (!umaId && this.inProgressResources.has(target.path)) {
+        // Wait for the resource to finish registration if it is still being registered, and there is no UMA ID yet.
+        // Time out after 2s to prevent getting stuck in case something goes wrong during registration.
+        const timeoutPromise = promises.setTimeout(2000, async () => {
+          throw new InternalServerError(`Unable to finish registration for ${target.path}.`)
+        });
+        await Promise.race([timeoutPromise, once(this.registerEmitter, target.path)]);
+        umaId = await this.umaIdStore.get(target.path);
+      }
+      if (!umaId) {
+        // Somehow, this resource was not registered yet while it does exist.
+        // This can be a consequence of adding resources in the wrong way (e.g., copying files),
+        // or other special resources, such as derived resources.
+        if (await this.resourceSet.hasResource(target)) {
+          await this.registerResource(target, issuer);
+          umaId = await this.umaIdStore.get(target.path);
+        } else {
+          throw new NotFoundHttpError();
+        }
+      }
+      // If at this point, there is still no registered ID, there is probably an issue with the resource.
       if (!umaId) {
         throw new InternalServerError(`Unable to request ticket: no UMA ID found for ${target.path}`);
       }
@@ -252,8 +285,31 @@ export class UmaClient {
     return configuration;
   }
 
-  public async createResource(resource: ResourceIdentifier, issuer: string): Promise<void> {
-    const { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
+  /**
+   * Updates the UMA registration for the given resource on the given issuer.
+   * This either registers a new UMA identifier or updates an existing one,
+   * depending on if it already exists.
+   * For containers, the resource_defaults will be registered,
+   * for all resources, the resource_relations with the parent container will be registered.
+   * For the latter, it is possible that the parent container is not registered yet,
+   * for example, in the case of seeding multiple resources simultaneously.
+   * In that case the registration will be done immediately,
+   * and updated with the relations once the parent registration is finished.
+   */
+  public async registerResource(resource: ResourceIdentifier, issuer: string): Promise<void> {
+    if (this.inProgressResources.has(resource.path)) {
+      // It is possible a resource is still being registered when an updated registration is already requested.
+      // To prevent duplicate registrations of the same resource,
+      // the next call will only happen when the first one is finished.
+      await once(this.registerEmitter, resource.path);
+      return this.registerResource(resource, issuer);
+    }
+    this.inProgressResources.add(resource.path);
+    let { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
+    const knownUmaId = await this.umaIdStore.get(resource.path);
+    if (knownUmaId) {
+      endpoint = joinUrl(endpoint, knownUmaId);
+    }
 
     const description: ResourceDescription = {
       name: resource.path,
@@ -269,22 +325,37 @@ export class UmaClient {
     if (isContainerIdentifier(resource)) {
       description.resource_defaults = { 'http://www.w3.org/ns/ldp#contains': description.resource_scopes };
     }
-    let parentError = false;
+
+    // This function can potentially cause multiple asynchronous calls to be required.
+    // These will be stored in this array so they can be executed simultaneously.
+    const promises: Promise<void>[] = [];
     if (!this.identifierStrategy.isRootContainer(resource)) {
-      const parentId = await this.umaIdStore.get(this.identifierStrategy.getParentContainer(resource).path);
+      const parentIdentifier = this.identifierStrategy.getParentContainer(resource);
+      const parentId = await this.umaIdStore.get(parentIdentifier.path);
       if (parentId) {
-        description.resource_relations = { '^http://www.w3.org/ns/ldp#contains': [ parentId ] };
+        description.resource_relations = { '@reverse': { 'http://www.w3.org/ns/ldp#contains': [ parentId ] } };
       } else {
-        parentError = true;
-        this.logger.warn(`Unable to register parent relationship of ${resource.path} due to missing parent ID.`);
+        this.logger.warn(`Unable to register parent relationship of ${
+          resource.path} due to missing parent ID. Waiting for parent registration.`);
+
+        promises.push(
+          once(this.registerEmitter, parentIdentifier.path)
+            .then(() => this.registerResource(resource, issuer)),
+        );
+        // It is possible the parent is not yet being registered.
+        // We need to force a registration in such a case, otherwise the above event will never be fired.
+        if (!this.inProgressResources.has(parentIdentifier.path)) {
+          promises.push(this.registerResource(parentIdentifier, issuer));
+        }
       }
     }
 
-    this.logger.info(`Creating resource registration for <${resource.path}> at <${endpoint}>`);
+    this.logger.info(
+      `${knownUmaId ? 'Updating' : 'Creating'} resource registration for <${resource.path}> at <${endpoint}>`,
+    );
 
-    const request = {
-      url: endpoint,
-      method: 'POST',
+    const request: RequestInit = {
+      method: knownUmaId ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -292,112 +363,51 @@ export class UmaClient {
       body: JSON.stringify(description),
     };
 
-    // do not await - registration happens in background to cope with errors etc.
-    this.fetcher.fetch(endpoint, request).then(async resp => {
-      if (resp.status !== 201) {
-        throw new Error(`Resource registration request failed. ${await resp.text()}`);
+    const fetchPromise = this.fetcher.fetch(endpoint, request).then(async resp => {
+      if (knownUmaId) {
+        if (resp.status !== 200) {
+          throw new InternalServerError(`Resource update request failed. ${await resp.text()}`);
+        }
+      } else {
+        if (resp.status !== 201) {
+          throw new InternalServerError(`Resource registration request failed. ${await resp.text()}`);
+        }
+
+        const { _id: umaId } = await resp.json();
+
+        if (!isString(umaId)) {
+          throw new InternalServerError('Unexpected response from UMA server; no UMA id received.');
+        }
+
+        await this.umaIdStore.set(resource.path, umaId);
+        this.logger.info(`Registered resource ${resource.path} with UMA ID ${umaId}`);
       }
-
-      const { _id: umaId } = await resp.json();
-
-      if (!umaId || typeof umaId !== 'string') {
-        throw new Error('Unexpected response from UMA server; no UMA id received.');
-      }
-
-      await this.umaIdStore.set(resource.path, umaId);
-      this.logger.info(`Registered resource ${resource.path} with UMA ID ${umaId}`);
-      if (parentError) { {
-        await this.updateParentId(resource, umaId, description, endpoint, true);
-      }}
-    }).catch(error => {
-      // TODO: Do something useful on error
-      this.logger.warn(
-        `Something went wrong during UMA resource registration to create ${resource.path}: ${(error as Error).message}`
-      );
+      // Indicate this resource finished registration
+      this.inProgressResources.delete(resource.path);
+      this.registerEmitter.emit(resource.path);
     });
+
+    // Execute all the required promises.
+    promises.push(fetchPromise);
+    await Promise.all(promises);
   }
 
   /**
-   * Updates the registration at the AS to include the ldp:contains parent relation.
-   *
-   * It is possible that at the time of registration,
-   * the UMA ID of the parent is not yet known.
-   * This can happen if the registration call of the parent is not yet completed
-   * by the time the call for the child happens.
-   * This can happen in the case of pod seeding, for example.
-   *
-   * @param resource - Resource for which to update the registration.
-   * @param umaId - The UMA ID of the resource.
-   * @param description - The resource description of the resource.
-   * @param endpoint - The general resource registration endpoint of the AS.
-   * @param retry - If the server should retry the update once, after a delay, in case this attempt fails.
+   * Deletes the UMA registration for the given resource from the given issuer.
    */
-  protected async updateParentId(
-    resource: ResourceIdentifier,
-    umaId: string,
-    description: ResourceDescription,
-    endpoint: string,
-    retry: boolean
-  ): Promise<void> {
-    const parentId = await this.umaIdStore.get(this.identifierStrategy.getParentContainer(resource).path);
-    if (!parentId) {
-      if (!retry) {
-        this.logger.warn(`Parent ID for ${resource.path} is not known. Relation will not be registered.`);
-        return;
-      }
-      this.logger.warn(
-        `Parent ID for ${resource.path} is not known. Starting timer to retry once in ${this.retryDelay/1000}s.`
-      );
-      setTimeout(async (): Promise<void> => {
-        this.updateParentId(resource, umaId, description, endpoint, false).catch((error) => {
-          this.logger.warn(
-            `Something went wrong updating the UMA registration of ${resource.path}: ${(error as Error).message}`
-          );
-        });
-      }, this.retryDelay);
-      return;
-    }
-
-    description.resource_relations = { '^http://www.w3.org/ns/ldp#contains': [ parentId ] };
-    const updateRequest = {
-      url: joinUrl(endpoint, encodeURIComponent(umaId)),
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(description),
-    };
-    const response = await this.fetcher.fetch(updateRequest.url, updateRequest);
-    if (response.status === 200) {
-      this.logger.info(`Successfully updated ${resource.path} registration with parent ID.`);
-    } else {
-      this.logger.error(`Resource update for ${resource.path} parent ID request failed. ${await response.text()}`);
-    }
-  }
-
   public async deleteResource(resource: ResourceIdentifier, issuer: string): Promise<void> {
     const { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
 
-    this.logger.info(`Deleting resource registration for <${resource.path}> at <${endpoint}>`);
-
     const umaId = await this.umaIdStore.get(resource.path);
-    const url = `${endpoint}/${umaId}`;
+    if (!umaId) {
+      console.error('Trying to remove UMA registration that is not known:', resource.path);
+      return;
+    }
+    const url = joinUrl(endpoint, umaId);
 
-    const request = {
-      url,
-      method: 'DELETE',
-      headers: {}
-    };
+    this.logger.info(`Deleting resource registration for <${resource.path}> at <${url}>`);
 
-    // do not await - registration happens in background to cope with errors etc.
-    this.fetcher.fetch(endpoint, request).then(async _resp => {
-      if (!umaId) throw new Error('Trying to delete unknown/unregistered resource; no UMA id found.');
-
-      await this.fetcher.fetch(url, request);
-    }).catch(error => {
-      // TODO: Do something useful on error
-      this.logger.warn(
-        `Something went wrong during UMA resource registration to delete ${resource.path}: ${(error as Error).message}`
-      );
-    });
+    await this.fetcher.fetch(url, { method: 'DELETE' });
   }
 }
 

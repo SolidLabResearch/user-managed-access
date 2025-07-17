@@ -1,7 +1,6 @@
 #!/usr/bin/env ts-node
 
 import { fetch } from 'cross-fetch'
-import { setTimeout } from 'node:timers/promises';
 
 const collectedResource = "http://localhost:3000/alice/public/"
 const slug = "resource.txt";
@@ -82,11 +81,6 @@ async function main() {
 
   console.log(`= Status: ${tokenResponse.status}\n`);
 
-  // This is a consequence of registration happening out of band.
-  // We might want some way to be able to wait on this
-  console.log(`=== Waiting 500ms to allow for resource registration\n`);
-  await setTimeout(500);
-
   // Stuff below copied from old registration script as that one would not work anymore
   console.log(`=== POST to <${collectedResource}> with slug '${slug}': "${body}"\n`)
 
@@ -98,10 +92,6 @@ async function main() {
 
   console.log(`= Status: ${createResponse.status}\n`);
   console.log('\n');
-
-  // See above
-  console.log(`=== Waiting 500ms to allow for resource registration\n`);
-  await setTimeout(500);
 
   console.log(`=== GET <${collectedResource + slug}>\n`);
 

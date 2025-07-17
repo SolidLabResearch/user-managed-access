@@ -29,7 +29,7 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
 
     public async getStore(): Promise<Store> {
         if (this.filesRead) {
-            return this.store;
+            return new Store(this.store);
         }
 
         const parser = new Parser({ baseIRI: this.baseIRI });
@@ -39,7 +39,7 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
             this.store.addQuads(quads);
         }
         this.filesRead = true;
-        return this.store;
+        return new Store(this.store);
     }
 
 

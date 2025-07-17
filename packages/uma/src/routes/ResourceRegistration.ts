@@ -8,9 +8,10 @@ import {
   NotFoundHttpError,
   UnauthorizedHttpError,
   UnsupportedMediaTypeHttpError,
+  XSD,
 } from '@solid/community-server';
 import { ODRL, ODRL_P, RDF, UCRulesStorage } from '@solidlab/ucp';
-import { DataFactory as DF, NamedNode, Quad_Object, Quad_Subject, Store } from 'n3';
+import { DataFactory as DF, NamedNode, Quad, Quad_Subject, Store, Writer } from 'n3';
 import { randomUUID } from 'node:crypto';
 import {
   HttpHandler,
@@ -22,10 +23,14 @@ import { extractRequestSigner, verifyRequest } from '../util/HttpMessageSignatur
 import { reType } from '../util/ReType';
 import { ResourceDescription } from '../views/ResourceDescription';
 
+// Utility literals used to store collection metadata.
+const TRUE = DF.literal('true', DF.namedNode(`${XSD.namespace}boolean`));
+const FALSE = DF.literal('false', DF.namedNode(`${XSD.namespace}boolean`));
+
 /**
- * Relation between a collection source and one of its parts.
+ * The necessary metadata to describe an asset collection based on a relation.
  */
-type RelationEntry = { relation: NamedNode, source: NamedNode, part: NamedNode };
+export type CollectionMetadata = { relation: NamedNode, source: NamedNode, reverse: boolean };
 
 /**
  * A ResourceRegistrationRequestHandler is tasked with implementing
@@ -47,7 +52,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     super();
   }
 
-  async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
+  public async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
     const signer = await extractRequestSigner(request);
 
     // TODO: check if signer is actually the correct one
@@ -64,7 +69,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     }
   }
 
-  private async handlePost(request: HttpHandlerRequest): Promise<HttpHandlerResponse> {
+  protected async handlePost(request: HttpHandlerRequest): Promise<HttpHandlerResponse> {
     const { body } = request;
 
     try {
@@ -87,12 +92,9 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
       resource = randomUUID();
       this.logger.warn('No resource name was provided so a random identifier was generated.');
     }
-    await this.resourceStore.set(resource, body);
 
-    this.logger.info(`Registered resource ${resource}.`);
-
-    // Store the new relations
-    await this.updateRelations(resource, body);
+    // Set the resource metadata
+    await this.setResourceMetadata(resource, body);
 
     return ({
       status: 201,
@@ -103,7 +105,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     });
   }
 
-  private async handlePut({ body, headers, parameters }: HttpHandlerRequest): Promise<HttpHandlerResponse> {
+  protected async handlePut({ body, headers, parameters }: HttpHandlerRequest): Promise<HttpHandlerResponse> {
     if (typeof parameters?.id !== 'string') throw new Error('URI for PUT operation should include an id.');
 
     if (!await this.resourceStore.has(parameters.id)) {
@@ -121,13 +123,8 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
       throw new BadRequestHttpError(`Request has bad syntax: ${createErrorMessage(e)}`);
     }
 
-    // Keep track of the previous description so we know which relations need to change
-    const previousDescription = await this.resourceStore.get(parameters.id);
-
-    await this.resourceStore.set(parameters.id, body);
-    this.logger.info(`Updated resource ${parameters.id}.`);
-
-    await this.updateRelations(parameters.id, body, previousDescription);
+    // Update the resource metadata
+    await this.setResourceMetadata(parameters.id, body);
 
     return ({
       status: 200,
@@ -139,7 +136,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     });
   }
 
-  private async handleDelete({ parameters }: HttpHandlerRequest): Promise<HttpHandlerResponse> {
+  protected async handleDelete({ parameters }: HttpHandlerRequest): Promise<HttpHandlerResponse> {
     if (typeof parameters?.id !== 'string') throw new Error('URI for DELETE operation should include an id.');
 
     if (!await this.resourceStore.delete(parameters.id)) {
@@ -153,64 +150,174 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
   }
 
   /**
-   * Updates the stored relations in the policy storage based on the given input.
-   * @param id - UMA ID of the resource that changes.
+   * Updates all asset collection and relation metadata for the given resource based on an updated description.
+   * @param id - The identifier of the resource.
    * @param description - The new {@link ResourceDescription} for the resource.
-   * @param previous - The previous {@link ResourceDescription}, in case the resource was already registered previously.
    */
-  protected async updateRelations(
+  protected async setResourceMetadata(id: string, description: ResourceDescription): Promise<void> {
+    const policyStore = await this.policies.getStore();
+    const collectionQuads = await this.updateCollections(policyStore, id, description);
+    const relationQuads = await this.updateRelations(policyStore, id, description);
+    const addQuads = [ ...collectionQuads.add, ...relationQuads.add ];
+    if (addQuads.length > 0) {
+      await this.policies.addRule(new Store([...collectionQuads.add, ...relationQuads.add]));
+    }
+    const removeQuads = [ ...collectionQuads.remove, ...relationQuads.remove ];
+    if (removeQuads.length > 0) {
+      await this.policies.removeData(new Store([...collectionQuads.remove, ...relationQuads.remove]));
+    }
+
+    // Store the new UMA ID (or update the contents of the existing one)
+    // Note that we only do this after generating and updating the relation metadata,
+    // as errors could be thrown there.
+    await this.resourceStore.set(id, description);
+    this.logger.info(`Updated registration for ${id}.`);
+  }
+
+  /**
+   * Updates the existing asset collection metadata, based on the new resource description.
+   *
+   * @param policyStore - RDF store that contains all the know collection metadata.
+   * @param id - The identifier of the resource.
+   * @param description - The new {@link ResourceDescription} for the resource.
+   * @param previous - The previous {@link ResourceDescription}, in case this is an update.
+   */
+  protected async updateCollections(
+    policyStore: Store,
     id: string,
     description: ResourceDescription,
     previous?: ResourceDescription
-  ): Promise<void> {
-    const add: Record<string, RelationEntry> = this.toRelationEntries(id, description);
-    const remove: Record<string, RelationEntry> = this.toRelationEntries(id, previous);
+  ): Promise<{ add: Quad[], remove: Quad[] }> {
+    const add: Record<string, CollectionMetadata> = this.getCollectionMetadata('resource_defaults', description, id);
+    const remove: Record<string, CollectionMetadata> = this.getCollectionMetadata('resource_defaults', previous, id);
     this.filterRelationEntries(add, remove);
 
-    const policyStore = await this.policies.getStore();
-    await this.policies.addRule(this.entriesToStore(Object.values(add), policyStore));
-    await this.policies.removeData(this.entriesToStore(Object.values(remove), policyStore));
+    // Add new collection triples
+    const addQuads: Quad[] = [];
+    for (const [ key, entry ] of Object.entries(add)) {
+      const collections = this.findCollectionIds(entry, policyStore);
+      if (collections.length > 1) {
+        this.logger.error(
+          `Found multiple collections for ${JSON.stringify(entry)}: ${collections.map((col) => col.value)}`
+        );
+      }
+      // Ignore collections that already exist
+      if (collections.length > 0) {
+        delete add[key];
+      } else {
+        addQuads.push(...this.generateCollectionTriples(entry));
+      }
+    }
+
+    // Remove old collection triples if the collections are empty.
+    const removeQuads: Quad[] = [];
+    for (const entry of Object.values(remove)) {
+      const collections = this.findCollectionIds(entry, policyStore);
+      for (const collection of collections) {
+        // Make sure that collections that need to be removed are empty
+        if (policyStore.countQuads(null, ODRL.terms.partOf, collection, null) > 0) {
+          throw new ConflictHttpError(`Unable to remove collection ${collection.value} as it is not empty.`);
+        }
+        removeQuads.push(...this.generateCollectionTriples(entry, collection));
+      }
+    }
+
+    return {
+      add: addQuads,
+      remove: removeQuads,
+    };
   }
 
   /**
-   * Creates a unique key based on the {@link RelationEntry} values.
+   * Updates the relations to asset collections for the given resource.
+   *
+   * @param policyStore - RDF store that contains all the know collection metadata.
+   * @param id - The identifier of the resource.
+   * @param description - The new {@link ResourceDescription} for the resource.
+   * @param previous - The previous {@link ResourceDescription}, in case this is an update.
    */
-  protected getRelationKey(entry: RelationEntry): string {
-    return `${entry.source} ${entry.relation} ${entry.part}`;
+  protected async updateRelations(
+    policyStore: Store,
+    id: string,
+    description: ResourceDescription,
+    previous?: ResourceDescription
+  ): Promise<{ add: Quad[], remove: Quad[] }> {
+    const add: Record<string, CollectionMetadata> = this.getCollectionMetadata('resource_relations', description, id);
+    const remove: Record<string, CollectionMetadata> = this.getCollectionMetadata('resource_relations', previous, id);
+    this.filterRelationEntries(add, remove);
+
+    const part = DF.namedNode(id);
+    return {
+      add: this.generatePartOfTriples(part, Object.values(add), policyStore),
+      remove: this.generatePartOfTriples(part, Object.values(remove), policyStore),
+    };
   }
 
   /**
-   * Converts the `resource_relation` fields to {@link RelationEntry} objects.
-   * The keys of the object are generated with the `getRelationKey` function,
-   * resulting in a unique, but non-random, key for every value.
-   * @param id - UMA ID of the resource.
-   * @param description - {@link ResourceDescription} to analyze, if there is one.
+   * Extract the relation metadata found in a resource description for the given field.
+   * @param field - One of the two fields that can contain relation metadata.
+   * @param description - The description to extract the info from.
+   * @param id - The identifier of the resource. This is only relevant for the `resource_defaults` field.
    */
-  protected toRelationEntries(id: string, description?: ResourceDescription): Record<string, RelationEntry> {
-    if (!description?.resource_relations) {
+  protected getCollectionMetadata(
+    field: 'resource_defaults' | 'resource_relations',
+    description?: ResourceDescription,
+    id?: string,
+  ): Record<string, CollectionMetadata> {
+    if (!description?.[field]) {
       return {};
     }
 
-    const result: Record<string, RelationEntry> = {};
-    for (let [ relation, targets ] of Object.entries(description.resource_relations)) {
-      if (!targets || targets.length === 0) {
+    const result: { normal: NodeJS.Dict<string[]>, reverse: NodeJS.Dict<string[]> } = {
+      normal: { ...description[field] } as NodeJS.Dict<string[]>,
+      reverse: description[field]['@reverse'] as NodeJS.Dict<string[]> ?? {}
+    }
+    delete result.normal['@reverse'];
+
+    const sourceId = field === 'resource_defaults' ? id : undefined;
+    return {
+      // Note that resource_relations interpret relations in the opposite way of resource_defaults,
+      // which is why we use the opposite @reverse value here
+      ...this.entriesToCollectionMetadata(result.normal, field === 'resource_relations', sourceId),
+      ...this.entriesToCollectionMetadata(result.reverse, field === 'resource_defaults', sourceId),
+    };
+  }
+
+  /**
+   * Converts resource_defaults/resource_relations entries to {@link CollectionMetadata entries}.
+   * @param entries - The key/value object as described for the corresponding field.
+   * @param reverse - If these are reverse relations (aka, found in the @reverse block of the description).
+   * @param id - The identifier of the resource.
+   *             Only add this for `resource_defaults` entries as this will be used as the source when present.
+   */
+  protected entriesToCollectionMetadata(
+    entries: NodeJS.Dict<string[]>,
+    reverse: boolean,
+    id?: string
+  ): Record<string, CollectionMetadata> {
+    const result: Record<string, CollectionMetadata> = {};
+    for (const [ relation, value ] of Object.entries(entries)) {
+      if (!value || value.length === 0) {
         continue;
       }
-      const reverse = relation.startsWith('^');
-      if (reverse) {
-        relation = relation.slice(1);
-      }
       const relationNode = DF.namedNode(relation);
-      for (const target of targets) {
-        const entry: RelationEntry = {
+      for (const source of id ? [ id ] : value) {
+        const entry: CollectionMetadata = {
           relation: relationNode,
-          part: DF.namedNode(reverse ? id : target),
-          source: DF.namedNode(reverse ? target : id),
+          source: DF.namedNode(source),
+          reverse,
         };
         result[this.getRelationKey(entry)] = entry;
       }
     }
     return result;
+  }
+
+  /**
+   * Creates a unique key based on the {@link CollectionMetadata} values.
+   */
+  protected getRelationKey(entry: CollectionMetadata): string {
+    return `${entry.source.value}-${entry.relation.value}-${entry.reverse}`;
   }
 
   /**
@@ -221,8 +328,8 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
    * It is assumed that matching values have the same keys.
    */
   protected filterRelationEntries(
-    record1: Record<string, RelationEntry> = {},
-    record2: Record<string, RelationEntry> = {},
+    record1: Record<string, CollectionMetadata> = {},
+    record2: Record<string, CollectionMetadata> = {},
   ): void {
     for (const key of Object.keys(record1)) {
       if (record2[key]) {
@@ -234,59 +341,61 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
 
   /**
    * Converts the given entries into triples to add or remove to/from the policy store.
-   * @param entries - {@link RelationEntry} objects to parse.
+   * @param part - The identifier of the part that needs to be added to collections.
+   * @param entries - {@link CollectionMetadata} objects to parse.
    * @param policyStore - {@link Store} with the relevant triples to update.
    */
-  protected entriesToStore(entries: RelationEntry[], policyStore: Store): Store {
-    const store = new Store();
+  protected generatePartOfTriples(part: NamedNode, entries: CollectionMetadata[], policyStore: Store): Quad[] {
+    const quads: Quad[] = [];
     for (const entry of entries) {
       const collectionIds = this.findCollectionIds(entry, policyStore);
       if (collectionIds.length === 0) {
-        const collectionId = DF.namedNode(randomUUID());
-        store.addQuad(DF.quad(collectionId, RDF.terms.type, ODRL.terms.AssetCollection));
-        store.addQuad(DF.quad(collectionId, ODRL.terms.source, entry.source));
-        store.addQuad(DF.quad(collectionId, ODRL_P.terms.relation, entry.relation));
-        collectionIds.push(collectionId);
-        this.logger.info(`Creating new AssetCollection ${collectionId.value} with source ${
-          entry.source.value} and relation ${entry.relation.value}`);
+        throw new BadRequestHttpError(`Registering resource with relation ${entry.relation.value} to ${
+          entry.source.value} while there is no matching collection.`);
       }
-      collectionIds.push(...this.findRecursiveCollectionIds(entry.source, policyStore));
 
       // for (const collectionId of collectionIds) {
-      //   store.addQuad(DF.quad(entry.part, ODRL.terms.partOf, collectionId));
+      //   quads.push(DF.quad(part, ODRL.terms.partOf, collectionId));
       // }
       // TODO: the above code is correct, but the code below is currently needed because of a bug in the ODRL evaluator
       //       https://github.com/SolidLabResearch/ODRL-Evaluator/issues/8
-      store.addQuad(DF.quad(entry.part, ODRL.terms.partOf, entry.source));
+      quads.push(DF.quad(part, ODRL.terms.partOf, entry.source));
     }
-    return store;
+    return quads;
   }
 
   /**
    * Finds the identifiers of the collection(s) in the given {@link Store}
-   * that match the requirements of the given {@link RelationEntry}.
-   * @param entry - Relevant {@link RelationEntry}.
+   * that match the requirements of the given {@link CollectionMetadata}.
+   * @param entry - Relevant {@link CollectionMetadata}.
    * @param data - {@link Store} in which to find the matching triples.
    */
-  protected findCollectionIds(entry: RelationEntry, data: Store): Quad_Subject[] {
+  protected findCollectionIds(entry: CollectionMetadata, data: Store): Quad_Subject[] {
     const sourceMatches = data.getSubjects(ODRL.terms.source, entry.source, null);
-    return sourceMatches.filter((subject): boolean =>
+    const relationMatches = sourceMatches.filter((subject): boolean =>
       data.has(DF.quad(subject, ODRL_P.terms.relation, entry.relation)));
+    return relationMatches.filter((subject): boolean =>
+      data.has(this.getReverseQuad(subject, entry.reverse)));
   }
 
   /**
-   * Finds all collections that contain `part`,
-   * or recursively contain the source of those collections.
-   * @param part - Collection part.
-   * @param data - {@link Store} in which to find the matching triples.
+   * Generates all the triples necessary for an asset collection based on a relation.
+   * If no ID is provided for the collection, a new one will be minted.
    */
-  protected findRecursiveCollectionIds(part: Quad_Object, data: Store): Quad_Subject[] {
-    const collectionIds = data.getObjects(part, ODRL.terms.partOf, null);
-    const collectionSources = collectionIds.flatMap(
-      (collectionId) => data.getObjects(collectionId, ODRL.terms.source, null));
-    return [
-      ...collectionIds,
-      ...collectionSources.flatMap((collectionSource) => this.findRecursiveCollectionIds(collectionSource, data)),
-    ].filter((id): boolean => id.termType !== 'Literal') as Quad_Subject[];
+  protected generateCollectionTriples(entry: CollectionMetadata, id?: Quad_Subject): Quad[] {
+    const result: Quad[] = [];
+    const collectionId = id ?? DF.namedNode(`collection:${randomUUID()}`);
+    result.push(DF.quad(collectionId, RDF.terms.type, ODRL.terms.AssetCollection));
+    result.push(DF.quad(collectionId, ODRL.terms.source, entry.source));
+    result.push(DF.quad(collectionId, ODRL_P.terms.relation, entry.relation));
+    result.push(this.getReverseQuad(collectionId, entry.reverse))
+    return result;
+  }
+
+  /**
+   * Generates the necessary quad for a collection to indicate if the relation should be interpreted in reverse or not.
+   */
+  protected getReverseQuad(collectionId: Quad_Subject, reverse: boolean): Quad {
+    return DF.quad(collectionId, ODRL_P.terms.reverse, reverse ? TRUE : FALSE);
   }
 }

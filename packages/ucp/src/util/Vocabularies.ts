@@ -137,6 +137,7 @@ export const ODRL = createVocabulary(
 export const ODRL_P = createVocabulary(
   'https://w3id.org/force/odrl3proposal#',
   'relation',
+  'reverse',
 );
 
 export const XSD = createVocabulary(
