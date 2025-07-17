@@ -178,7 +178,7 @@ ex:permission1 a odrl:Permission .
 ex:permission1 odrl:action odrl:read .
 ex:permission1 odrl:action odrl:write .
 ex:permission1 odrl:target <http://localhost:3000/alice/other/oneFile.txt> .
-ex:permission1 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission1 odrl:assignee <https://some.other.subject/profile/card#me> .
 ex:permission1 odrl:assigner <${id}> .
 
 ex:usagePolicy1a a odrl:Agreement .
@@ -187,7 +187,8 @@ ex:permission1a a odrl:Permission .
 ex:permission1a odrl:action odrl:control .
 ex:permission1 odrl:action odrl:append .
 ex:permission1a odrl:target <http://localhost:3000/alice/other/otherFile.txt> .
-ex:permission1a odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission1a odrl:assignee <https://some.other.subject/profile/card#me> .
+ex:permission1a odrl:assignee <https://another.random.subject/profile/card#me> .
 ex:permission1a odrl:assigner <${id}> .
 
 <urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc> a odrl:Set;
@@ -206,6 +207,16 @@ ex:usagePolicy3 odrl:permission ex:permission3 .
 ex:permission3 a odrl:Permission .
 ex:permission3 odrl:action odrl:create .
 ex:permission3 odrl:target <http://localhost:3000/alice/other/resource.txt> .
-ex:permission3 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission3 odrl:assignee <https://assignee/profile/card#me> .
 ex:permission3 odrl:assigner <${id}> .
+
+ex:usagePolicy3 odrl:permission ex:permission3b .
+ex:permission3b a odrl:Permission .
+ex:permission3b odrl:action odrl:create .
+ex:permission3b odrl:action odrl:read .
+ex:permission3b odrl:action odrl:write .
+ex:permission3b odrl:action odrl:control .
+ex:permission3b odrl:target <http://localhost:3000/alice/other/resource.txt> .
+ex:permission3b odrl:assigner <${id}> .
+
 `

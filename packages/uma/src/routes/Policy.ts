@@ -5,7 +5,8 @@ import { getPolicies } from "../util/routeSpecific/policies/GetPolicies";
 import { addPolicies } from "../util/routeSpecific/policies/CreatePolicies";
 import { deletePolicy } from "../util/routeSpecific/policies/DeletePolicies";
 import { editPolicy } from "../util/routeSpecific/policies/EditPolicies";
-import { rewritePolicy } from "../util/routeSpecific/policies/rewritePolicies";
+import { rewritePolicy } from "../util/routeSpecific/policies/RewritePolicies";
+import { policyOptions } from "../util/routeSpecific/policies/PolicyOptions";
 
 /**
  * Endpoint to handle policies, this implementation gives all policies that have the
@@ -53,15 +54,7 @@ export class PolicyRequestHandler extends HttpHandler {
             case 'DELETE': return deletePolicy(request, store, this.storage, client, this.baseUrl);
             case 'PATCH': return editPolicy(request, store, this.storage, client, this.baseUrl);
             case 'PUT': return rewritePolicy(request, store, this.storage, client, this.baseUrl);
-            case 'OPTIONS': return {
-                status: 204,
-                headers: {
-                    // this is only for the url without <encodedId>
-                    'Access-Control-Allow-Origin': 'http://localhost:5173',
-                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-                }
-            }
+            case 'OPTIONS': return policyOptions(request, this.baseUrl);
             default: throw new MethodNotAllowedHttpError();
         }
     }
