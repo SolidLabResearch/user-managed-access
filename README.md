@@ -34,6 +34,9 @@ You can then execute the following flows:
 As we are still in the progress of documenting everything,
 the above scripts are the best way to learn about how everything works.
 
+A more extensive getting started guide can be found
+in [documentation/getting-started.md](documentation/getting-started.md).
+
 ## Demonstration
 
 Instead of running `yarn start`, you can run `yarn start:demo` to start the server with an alternative configuration.
