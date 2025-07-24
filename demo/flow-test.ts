@@ -40,7 +40,7 @@ const terms = {
   }
 }
 
-const policyContainer = 'http://localhost:3000/ruben/settings/policies/';
+const policyContainer = 'http://localhost:3000/settings/policies/';
 
 async function main() {
 

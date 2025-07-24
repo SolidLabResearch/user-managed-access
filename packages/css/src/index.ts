@@ -10,6 +10,7 @@ export * from './http/output/metadata/UmaTicketMetadataWriter';
 export * from './identity/interaction/account/util/AccountSettings';
 export * from './identity/interaction/account/util/UmaAccountStore';
 
+export * from './init/EmptyContainerInitializer';
 export * from './init/UmaSeededAccountInitializer';
 
 export * from './server/middleware/JwksHandler';
