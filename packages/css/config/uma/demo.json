@@ -1,0 +1,40 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Initializes the policy container. Preferably this would be a variable/CLI param. Eventually a more secure solution is needed.",
+      "@id": "urn:solid-server:uma:PolicyContainerInitializer",
+      "@type": "EmptyContainerInitializer",
+      "baseUrl": { "@id": "urn:solid-server:default:variable:baseUrl" },
+      "container": "/settings/policies/",
+      "store": { "@id": "urn:solid-server:default:ResourceStore" }
+    },
+
+    {
+      "comment": "Should be in the PrimaryParallelInitializer, but that one actually has an issue where it stops working if one handler fails. Should be fixed in CSS.",
+      "@id": "urn:solid-server:default:PrimarySequenceInitializer",
+      "@type": "SequenceHandler",
+      "handlers": [
+        { "@id": "urn:solid-server:uma:PolicyContainerInitializer" }
+      ]
+    },
+
+    {
+      "comment": "Allow full access to the policies container.",
+      "@id": "urn:solid-server:default:PathBasedReader",
+      "@type": "PathBasedReader",
+      "paths": [
+        {
+          "PathBasedReader:_paths_key": "^/settings/policies/",
+          "PathBasedReader:_paths_value": {
+            "@type": "AllStaticReader",
+            "allow": true
+          }
+        }
+      ]
+    }
+  ]
+}
