@@ -105,7 +105,7 @@ async function umaFetch(input: string | URL | globalThis.Request, init?: Request
 describe('A demo server setup', (): void => {
   let umaApp: App;
   let cssApp: App;
-  const policyContainer = `http://localhost:${cssPort}/ruben/settings/policies/`;
+  const policyContainer = `http://localhost:${cssPort}/settings/policies/`;
 
   beforeAll(async(): Promise<void> => {
     setGlobalLoggerFactory(new WinstonLoggerFactory('off'));
@@ -124,7 +124,10 @@ describe('A demo server setup', (): void => {
     cssApp = await instantiateFromConfig(
       'urn:solid-server:default:App',
       // Not using the demo config as that one writes to disk, this is the same but in memory
-      path.join(__dirname, '../../packages/css/config/default.json'),
+      [
+        path.join(__dirname, '../../packages/css/config/default.json'),
+        path.join(__dirname, '../../packages/css/config/uma/demo.json'),
+      ],
       {
         ...getDefaultCssVariables(cssPort),
         'urn:solid-server:uma:variable:AuthorizationServer': `http://localhost:${umaPort}/`,
@@ -149,7 +152,8 @@ describe('A demo server setup', (): void => {
                    odrl:permission ex:permission .
     ex:permission a odrl:Permission ;
                   odrl:action odrl:create, odrl:append ;
-                  odrl:target <http://localhost:${cssPort}/ruben/medical/> ,
+                  odrl:target <http://localhost:${cssPort}/ruben/> ,
+                              <http://localhost:${cssPort}/ruben/medical/> ,
                               <http://localhost:${cssPort}/ruben/medical/smartwatch.ttl> ,
                               <http://localhost:${cssPort}/ruben/private/> ,
                               <http://localhost:${cssPort}/ruben/private/data> ;
@@ -157,8 +161,8 @@ describe('A demo server setup', (): void => {
                   odrl:assigner <${terms.agents.ruben}> .
     `;
 
-    // Create policies container
-    let response = await fetch(`http://localhost:${cssPort}/ruben/settings/policies/policy`, {
+    // Create policy
+    let response = await fetch(`http://localhost:${cssPort}/settings/policies/policy`, {
       method: 'PUT',
       headers: { 'content-type': 'text/turtle' },
       body: policy,
