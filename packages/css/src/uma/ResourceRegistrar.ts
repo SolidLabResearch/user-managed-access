@@ -18,7 +18,7 @@ export class ResourceRegistrar extends StaticHandler {
 
     store.on(AS.Create, async (resource: ResourceIdentifier): Promise<void> => {
       for (const owner of await this.findOwners(resource))  {
-        this.umaClient.createResource(resource, await this.findIssuer(owner)).catch((err: Error) => {
+        this.umaClient.registerResource(resource, await this.findIssuer(owner)).catch((err: Error) => {
           this.logger.error(`Unable to register resource ${resource.path}: ${createErrorMessage(err)}`);
         });
       }
