@@ -29,6 +29,18 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
     }
     const query = parseBufferToString(request.body);
 
+    console.log(`
+        POLICY INFORMATION
+        ${ownedPolicyRules}
+        ${ownedRules}
+        ${policyDefinitions}
+
+        QUERY: 
+        ${query}
+    `)
+
+
+
     // 3. Execute the query on the part of the policy that lays within reach
     const policyStore = new Store([...policyDefinitions, ...ownedPolicyRules, ...ownedRules]);
     const initialQuads = policyStore.getQuads(null, null, null, null);

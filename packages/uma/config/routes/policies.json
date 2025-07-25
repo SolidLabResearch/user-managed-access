@@ -16,7 +16,34 @@
                 "storage": {
                     "@id": "urn:uma:default:RulesStorage"
                 },
-                "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
+                "baseUrl": { "@id": "urn:uma:variables:baseUrl" },
+                "corsHandler": {
+                    "comment": "Adds all the necessary CORS headers.",
+                    "@id": "urn:uma:default:CorsHandler",
+                    "@type": "CorsHandler",
+                    "options_methods": [
+                        "GET",
+                        "HEAD",
+                        "OPTIONS",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE"
+                    ],
+                    "options_credentials": true,
+                    "options_preflightContinue": false,
+                    "options_exposedHeaders": [
+                        "Allow",
+                        "ETag",
+                        "Last-Modified",
+                        "Link",
+                        "Location",
+                        "Updates-Via",
+                        "Www-Authenticate",
+                        "Authorization",
+                        "Content-Type"
+                    ]
+                }
             },
             "path": "/uma/policies"
         },
@@ -27,14 +54,42 @@
                 "GET", 
                 "DELETE",
                 "PATCH",
-                "PUT"
+                "PUT",
+                "OPTIONS"
             ],
             "handler": {
                 "@type": "PolicyRequestHandler",
                 "storage": {
                     "@id": "urn:uma:default:RulesStorage"
                 },
-                "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
+                "baseUrl": { "@id": "urn:uma:variables:baseUrl" },
+                "corsHandler":  {
+                    "comment": "Adds all the necessary CORS headers.",
+                    "@id": "urn:uma:default:CorsHandler",
+                    "@type": "CorsHandler",
+                    "options_methods": [
+                        "GET",
+                        "HEAD",
+                        "OPTIONS",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE"
+                    ],
+                    "options_credentials": true,
+                    "options_preflightContinue": false,
+                    "options_exposedHeaders": [
+                        "Allow",
+                        "ETag",
+                        "Last-Modified",
+                        "Link",
+                        "Location",
+                        "Updates-Via",
+                        "Www-Authenticate",
+                        "Authorization",
+                        "Content-Type"
+                    ]
+                }
             },
             "path": "/uma/policies/{id}"
         }

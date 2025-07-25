@@ -1,6 +1,6 @@
 import { UCRulesStorage } from "@solidlab/ucp";
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
-import { BadRequestHttpError, InternalServerError } from "@solid/community-server";
+import { BadRequestHttpError, InternalServerError, NotFoundHttpError } from "@solid/community-server";
 import { checkBaseURL, parseBodyToStore, quadsToText, relations, retrieveID } from "./PolicyUtil";
 import { Quad, Store } from "n3";
 import { sanitizeRule } from "./CreatePolicies";
@@ -14,7 +14,7 @@ export async function rewritePolicy(request: HttpHandlerRequest, store: Store, s
     // 1: Get all reachable policy information
     const policyInfo = getPolicyInfo(policyId, store, clientId);
     if (policyInfo.policyDefinitions.length === 0)
-        throw new BadRequestHttpError("Patch not allowed: policy does not exist");
+        throw new NotFoundHttpError("Patch not allowed: policy does not exist");
 
 
     // 2. Parse the requested policy, perform checks

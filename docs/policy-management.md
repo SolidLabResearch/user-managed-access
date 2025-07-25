@@ -155,7 +155,7 @@ The DELETE process:
 1. Find the rules defined in the policy.
 2. Filter the rules that are assigned by the client, and delete them.
 3. Find out if there are rules not assigned by the client.
-    * if there are other rules, we cannot delete the policy information as well.
+    * if there are other rules, we cannot delete the policy information as well. We delete the rule and its definition triple in the policy.
     * if there are no other rules, we can delete the entire policy.
 
 This method used to have one rather significant issue, as discussed [later](#delete-fix).
@@ -183,7 +183,7 @@ Sanitization Limitations
 Some operations require the client to specify a policy ID in the URL. Since policy ID's might contain reserved characters (e.g. `/`, `:`, ...), we have chosen to encode them with the builtin [`encodeURIComponent()` function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent). Using this method, reserved characters will be converted to their respective UTF-8 encodings.
 
 ## Testing
-The current implementation is tested only by the script in `scripts\test-uma-ODRL-policy.ts`. This script tests every implemented endpoint with a designated flow. Since the script initiates with an empty storage, and there is no endpoint or other way to seed it, the first requests must test the POST endpoint. These tests are designed to ensure that the storage is filled. After the POST tests, the access endpoints can be tested. Every endpoint gets tested in this script, which makes sure that the added data is removed. The current testing will be replaced with proper unit tests in the near future.
+The current implementation is tested only by the script in `scripts\test-uma-ODRL-policy.ts`. This script tests every implemented endpoint with a designated flow. Since the script initiates with an empty storage, and there is no endpoint or other way to seed it, the first requests must test the POST endpoint. These tests are designed to ensure that the storage is filled. After the POST tests, the access endpoints can be tested. Every endpoint gets tested in this script, which makes sure that the added data is removed. The current testing will be replaced with proper unit tests and integration tests in the near future.
 
 ## Problems
 - The current [sanitization limitations](#sanitization-decisions) are to be considered
