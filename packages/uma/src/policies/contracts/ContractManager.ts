@@ -25,8 +25,6 @@ export class ContractManager {
     }
 
     createContract(perms: Permission[]): ODRLContract {
-        console.log('Creating Contract', JSON.stringify(perms, null, 2))
-
         // todo: un-mock this!!!
         type Pair = { action: string, target: string };
         const permissionPairs: Pair[] = perms.flatMap(

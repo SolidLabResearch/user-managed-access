@@ -5,15 +5,6 @@ import { Parser, Writer, Store } from 'n3';
 import { randomUUID } from 'crypto';
 import chalk from 'chalk'
 
-import * as jsonld from 'jsonld';
-
-import vc from '@digitalcredentials/vc';
-
-// Required to set up a suite instance with private key
-import {Ed25519VerificationKey2020} from
-  '@digitalcredentials/ed25519-verification-key-2020';
-import {Ed25519Signature2020} from '@digitalcredentials/ed25519-signature-2020';
-
 
 
 const parser = new Parser();

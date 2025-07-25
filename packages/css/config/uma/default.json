@@ -8,6 +8,7 @@
     "uma-css:config/uma/overrides/authorization-handler.json",
     "uma-css:config/uma/overrides/authorizer.json",
     "uma-css:config/uma/overrides/jwks.json",
+    "uma-css:config/uma/overrides/modes.json",
     "uma-css:config/uma/overrides/token-extractor.json",
     "uma-css:config/uma/overrides/www-auth.json",
 
