@@ -6,19 +6,20 @@
     {
       "@id": "urn:uma:default:ResourceRegistrationHandler",
       "@type": "ResourceRegistrationRequestHandler",
-      "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
+      "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
+      "policies": { "@id": "urn:uma:default:RulesStorage" }
     },
     {
       "@id": "urn:uma:default:ResourceRegistrationRoute",
       "@type": "HttpHandlerRoute",
       "methods": [ "POST" ],
       "handler": { "@id": "urn:uma:default:ResourceRegistrationHandler" },
-      "path": "/uma/resources"
+      "path": "/uma/resources/"
     },
     {
       "@id": "urn:uma:default:ResourceRegistrationOpsRoute",
       "@type": "HttpHandlerRoute",
-      "methods": [ "DELETE" ],
+      "methods": [ "PUT", "DELETE" ],
       "handler": { "@id": "urn:uma:default:ResourceRegistrationHandler" },
       "path": "/uma/resources/{id}"
     }
