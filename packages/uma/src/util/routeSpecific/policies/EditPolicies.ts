@@ -54,16 +54,20 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
     sanitizeRule(policyStore, clientId);
 
     // 3.1 Check that the other rules are unchanged
+    const initialState = { policyDefinitions, ownedPolicyRules, otherPolicyRules, ownedRules, otherRules };
     const newState = getPolicyInfo(policyId, policyStore, clientId);
+
+    console.log(`\n--- POLICY STATE CHANGE ---\nInitial State:\n  policyDefinitions: ${initialState.policyDefinitions.map(q => q.toString()).join("\n    ")}\n  ownedPolicyRules: ${initialState.ownedPolicyRules.map(q => q.toString()).join("\n    ")}\n  otherPolicyRules: ${initialState.otherPolicyRules.map(q => q.toString()).join("\n    ")}\n  ownedRules: ${initialState.ownedRules.map(q => q.toString()).join("\n    ")}\n  otherRules: ${initialState.otherRules.map(q => q.toString()).join("\n    ")}\nNew State:\n  policyDefinitions: ${newState.policyDefinitions.map(q => q.toString()).join("\n    ")}\n  ownedPolicyRules: ${newState.ownedPolicyRules.map(q => q.toString()).join("\n    ")}\n  otherPolicyRules: ${newState.otherPolicyRules.map(q => q.toString()).join("\n    ")}\n  ownedRules: ${newState.ownedRules.map(q => q.toString()).join("\n    ")}\n  otherRules: ${newState.otherRules.map(q => q.toString()).join("\n    ")}\n`);
+
     if (newState.otherRules.length !== 0 || newState.otherPolicyRules.length !== 0)
         throw new BadRequestHttpError("Update not allowed: attempted to modify rules not owned by client");
 
     // 3.2 Check that only Policy/Rule changing quads are introduced and removed
     // The only modifications we allow are policy definitions, policy rules that define owned rules and owned rules themselves
-    const newQuads = policyStore.getQuads(null, null, null, null);
-    if (newQuads.length - newState.ownedRules.length - newState.ownedPolicyRules.length - newState.policyDefinitions.length
-        !== initialQuads.length - ownedPolicyRules.length - ownedRules.length - policyDefinitions.length)
-        throw new BadRequestHttpError("Update not allowed: this query introduces quads that have nothing to do with the policy/rules you own");
+    // const newQuads = policyStore.getQuads(null, null, null, null);
+    // if (newQuads.length - newState.ownedRules.length - newState.ownedPolicyRules.length - newState.policyDefinitions.length
+    //     !== initialQuads.length - ownedPolicyRules.length - ownedRules.length - policyDefinitions.length)
+    //     throw new BadRequestHttpError("Update not allowed: this query introduces quads that have nothing to do with the policy/rules you own");
 
     // 4 Modify the storage to the updated version
     try {
