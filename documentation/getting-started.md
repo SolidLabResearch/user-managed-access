@@ -28,6 +28,7 @@ so some information might change depending on which version and branch you're us
 - [Getting started](#getting-started)
   * [Starting the server](#starting-the-server)
   * [Authenticating the Resource Server](#authenticating-the-resource-server)
+  * [Locating the Authorization Server](#locating-the-authorization-server)
   * [Resource registration](#resource-registration)
     + [About identifiers](#about-identifiers)
   * [Resource access](#resource-access)
@@ -72,6 +73,16 @@ seen at <http://localhost:3000/.well-known/openid-configuration>.
 The RS uses that same key to sign its messages as described in the RFC,
 using the [http-message-signatures](https://www.npmjs.com/package/http-message-signatures) library.
 This is done for every HTTP request the RS sends to the AS in the following sections.
+
+## Locating the Authorization Server
+
+To be able to communicate with it, the RS needs to know where to find the AS.
+The current implementation of the RS knows this through server configuration.
+This can be seen in the startup script in the [RS package.json](../packages/css/package.json)
+when looking at the `start` script.
+It uses the CLI parameter `-a http://localhost:4000/` to inform the RS where it can find the relevant AS,
+which internally sets the Components.js variable `urn:solid-server:uma:variable:AuthorizationServer`
+to the provided value.
 
 ## Resource registration
 
@@ -212,15 +223,18 @@ To make the request, the client performs a POST with the following JSON body:
 }
 ```
 The `claim_token_format` explains to the AS how the `claim_token` should be interpreted.
-In this case, this is a custom format designed for this server.
+In this case, this is a custom format designed for this server,
+where the token is a URL-encoded WebID.
 
 #### Claim security
 
 In the above body, the claim token format is a string representing a WebID.
 No actual authentication or verification takes place here,
 meaning anyone can insert any WebID they want.
-This allows for easy testing and examples,
-but will be changed to an actual safe method, such as an OIDC ID token, in the future.
+This is great for quickly testing things out,
+but less good for security and testing actual authentication.
+The AS also supports OIDC tokens as defined in the [Solid OIDC specification](https://solid.github.io/solid-oidc/).
+In that case, the `claim_token_format` should be `http://openid.net/specs/openid-connect-core-1_0.html#IDToken`.
 
 ### Generate token
 
