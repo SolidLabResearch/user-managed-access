@@ -1,8 +1,8 @@
 import * as readline from 'readline';
-import { seedingPolicies, seedingPolicies2 } from './util/policyExamples';
+import { seedingPolicies, seedingPolicies2, seedingPolicies3 } from './util/policyExamples';
 
 async function seedForOneClient(id: string) {
-    await fetch("http://localhost:4000/uma/policies", { method: 'POST', headers: { 'Authorization': id, 'Content-Type': 'text/turtle' }, body: Buffer.from(seedingPolicies2(id), 'utf-8') });
+    await fetch("http://localhost:4000/uma/policies", { method: 'POST', headers: { 'Authorization': id, 'Content-Type': 'text/turtle' }, body: Buffer.from(seedingPolicies3(id), 'utf-8') });
 }
 
 async function deleteForOneClient(id: string) {

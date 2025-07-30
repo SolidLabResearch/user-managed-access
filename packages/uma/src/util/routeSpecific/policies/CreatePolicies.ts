@@ -67,7 +67,7 @@ export async function addPolicies(request: HttpHandlerRequest, store: Store, sto
 
             TOTAL = ${parsedPolicy.getQuads(null, null, null, null).length}
             `)
-        // None of these policies should already exist
+        // None of the policies in the request should already exist
         if ([...existingInfo.policyDefinitions, ...existingInfo.ownedPolicyRules, ...existingInfo.otherPolicyRules,
         ...existingInfo.ownedRules, ...existingInfo.otherRules].length > 0) {
             console.log('TEST: ALREADY EXISTS')

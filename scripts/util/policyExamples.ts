@@ -14,7 +14,7 @@ ex:permission1 odrl:assigner <https://pod.a.com/profile/card#me> .
 ex:usagePolicy1a a odrl:Agreement .
 ex:usagePolicy1a odrl:permission ex:permission1a .
 ex:permission1a a odrl:Permission .
-ex:permission1a odrl:action odrl:create .
+ex:permission1a odrl:action odrl:read .
 ex:permission1a odrl:target <http://localhost:3000/alice/other/resource.txt> .
 ex:permission1a odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
 ex:permission1a odrl:assigner <https://pod.a.com/profile/card#me> .
@@ -43,7 +43,7 @@ ex:permission2 odrl:assigner <https://pod.b.com/profile/card#me> .
 ex:usagePolicy2a a odrl:Agreement .
 ex:usagePolicy2a odrl:permission ex:permission2 .
 ex:permission2a a odrl:Permission .
-ex:permission2a odrl:action odrl:create .
+ex:permission2a odrl:action odrl:write .
 ex:permission2a odrl:target <http://localhost:3000/alice/other/> .
 ex:permission2a odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
 ex:permission2a odrl:assigner <https://pod.b.com/profile/card#me> .
@@ -205,7 +205,7 @@ ex:permission1a odrl:assigner <${id}> .
 ex:usagePolicy3 a odrl:Agreement .
 ex:usagePolicy3 odrl:permission ex:permission3 .
 ex:permission3 a odrl:Permission .
-ex:permission3 odrl:action odrl:create .
+ex:permission3 odrl:action odrl:control .
 ex:permission3 odrl:target <http://localhost:3000/alice/other/resource.txt> .
 ex:permission3 odrl:assignee <https://assignee/profile/card#me> .
 ex:permission3 odrl:assigner <${id}> .
@@ -327,3 +327,158 @@ ex:permission3b-control odrl:action odrl:control .
 ex:permission3b-control odrl:target <http://localhost:3000/alice/other/resource.txt> .
 ex:permission3b-control odrl:assigner <${id}> .
 `
+export const seedingPolicies3 = (id: string) => `
+@prefix ex: <http://example.org/> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+
+ex:usagePolicy1 a odrl:Agreement .
+ex:usagePolicy1 odrl:permission ex:permission1-read .
+ex:permission1-read a odrl:Permission .
+ex:permission1-read odrl:action odrl:read .
+ex:permission1-read odrl:target <http://localhost:3000/alice/file.txt> .
+ex:permission1-read odrl:assignee <https://some.other.subject/profile/card#me> .
+ex:permission1-read odrl:assigner <${id}> .
+
+ex:usagePolicy1 odrl:permission ex:permission1-write .
+ex:permission1-write a odrl:Permission .
+ex:permission1-write odrl:action odrl:write .
+ex:permission1-write odrl:target <http://localhost:3000/alice/file.txt> .
+ex:permission1-write odrl:assignee <https://some.other.subject/profile/card#me> .
+ex:permission1-write odrl:assigner <${id}> .
+
+ex:usagePolicy1 odrl:permission ex:permission1-append .
+ex:permission1-append a odrl:Permission .
+ex:permission1-append odrl:action odrl:append .
+ex:permission1-append odrl:target <http://localhost:3000/alice/file.txt> .
+ex:permission1-append odrl:assignee <https://some.other.subject/profile/card#me> .
+ex:permission1-append odrl:assigner <${id}> .
+
+ex:usagePolicy1a a odrl:Agreement .
+ex:usagePolicy1a odrl:permission ex:permission1a-control-1 .
+ex:permission1a-control-1 a odrl:Permission .
+ex:permission1a-control-1 odrl:action odrl:control .
+ex:permission1a-control-1 odrl:target <http://localhost:3000/alice/other/otherFile.txt> .
+ex:permission1a-control-1 odrl:assignee <https://some.other.subject/profile/card#me> .
+ex:permission1a-control-1 odrl:assigner <${id}> .
+
+ex:usagePolicy1a odrl:permission ex:permission1a-control-2 .
+ex:permission1a-control-2 a odrl:Permission .
+ex:permission1a-control-2 odrl:action odrl:control .
+ex:permission1a-control-2 odrl:target <http://localhost:3000/alice/other/otherFile.txt> .
+ex:permission1a-control-2 odrl:assignee <https://another.random.subject/profile/card#me> .
+ex:permission1a-control-2 odrl:assigner <${id}> .
+
+<urn:uuid:policy-read> a odrl:Set;
+    dct:description "A is data owner of resource X. ALICE may READ resource X.";
+    odrl:permission <urn:uuid:perm-read> .
+<urn:uuid:perm-read> a odrl:Permission;
+    odrl:action odrl:read;
+    odrl:target ex:x;
+    odrl:assignee ex:alice;
+    odrl:assigner <${id}> .
+
+<urn:uuid:policy-append> a odrl:Set;
+    odrl:permission <urn:uuid:perm-append> .
+<urn:uuid:perm-append> a odrl:Permission;
+    odrl:action odrl:append;
+    odrl:target ex:x;
+    odrl:assignee ex:alice;
+    odrl:assigner <${id}> .
+
+<urn:uuid:policy-write> a odrl:Set;
+    odrl:permission <urn:uuid:perm-write> .
+<urn:uuid:perm-write> a odrl:Permission;
+    odrl:action odrl:write;
+    odrl:target ex:x;
+    odrl:assignee ex:alice;
+    odrl:assigner <${id}> .
+
+ex:usagePolicy3 a odrl:Agreement .
+ex:usagePolicy3 odrl:permission ex:permission3-create .
+ex:permission3-create a odrl:Permission .
+ex:permission3-create odrl:action odrl:write .
+ex:permission3-create odrl:target <http://localhost:3000/alice/other/resource.txt> .
+ex:permission3-create odrl:assignee <https://assignee/profile/card#me> .
+ex:permission3-create odrl:assigner <${id}> .
+
+ex:usagePolicy3 odrl:permission ex:permission3b-create .
+ex:permission3b-create a odrl:Permission .
+ex:permission3b-create odrl:action odrl:read .
+ex:permission3b-create odrl:target <http://localhost:3000/alice/other/resource.txt> .
+ex:permission3b-create odrl:assigner <${id}> .
+
+ex:usagePolicy3 odrl:permission ex:permission3b-read .
+ex:permission3b-read a odrl:Permission .
+ex:permission3b-read odrl:action odrl:read .
+ex:permission3b-read odrl:target <http://localhost:3000/alice/other/resource.txt> .
+ex:permission3b-read odrl:assigner <${id}> .
+
+ex:usagePolicy3 odrl:permission ex:permission3b-read .
+ex:permission3b-read a odrl:Permission .
+ex:permission3b-read odrl:action odrl:read .
+ex:permission3b-read odrl:target <http://localhost:3000/alice/other/resource.txt> .
+ex:permission3b-read odrl:assigner <${id}> .
+
+
+ex:usagePolicy3 odrl:permission ex:permission3b-write .
+ex:permission3b-write a odrl:Permission .
+ex:permission3b-write odrl:action odrl:write .
+ex:permission3b-write odrl:target <http://localhost:3000/alice/other/resource.txt> .
+ex:permission3b-write odrl:assigner <${id}> .
+ex:permission3b-write odrl:assignee <https://solidweb.me/Test-Pod-2/profile/card#me> .
+
+
+ex:usagePolicy3 odrl:permission ex:permission3b-control .
+ex:permission3b-control a odrl:Permission .
+ex:permission3b-control odrl:action odrl:control .
+ex:permission3b-control odrl:target <http://localhost:3000/alice/other/resource.txt> .
+ex:permission3b-control odrl:assigner <${id}> .
+`
+
+export const seedTestFetcher = `
+@prefix ex: <http://example.org/>.
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@base <http://localhost:3000/> .
+
+
+ex:usagePolicy1 a odrl:Agreement .
+ex:usagePolicy1 odrl:permission ex:permission1 .
+ex:permission1 a odrl:Permission .
+ex:permission1 odrl:action odrl:modify .
+ex:permission1 odrl:target <alice/other/resource.txt> .
+ex:permission1 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission1 odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+ex:usagePolicy1a a odrl:Agreement .
+ex:usagePolicy1a odrl:permission ex:permission1a .
+ex:permission1a a odrl:Permission .
+ex:permission1a odrl:action odrl:create .
+ex:permission1a odrl:target <alice/other/resource.txt> .
+ex:permission1a odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission1a odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+ex:usagePolicy2 a odrl:Agreement .
+ex:usagePolicy2 odrl:permission ex:permission2a .
+ex:permission2 a odrl:Permission .
+ex:permission2 odrl:action odrl:modify .
+ex:permission2 odrl:target <alice/other/> .
+ex:permission2 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission2 odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+ex:usagePolicy2a a odrl:Agreement .
+ex:usagePolicy2a odrl:permission ex:permission2 .
+ex:permission2a a odrl:Permission .
+ex:permission2a odrl:action odrl:create .
+ex:permission2a odrl:target <alice/other/> .
+ex:permission2a odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission2a odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+
+ex:usagePolicy3 a odrl:Agreement .
+ex:usagePolicy3 odrl:permission ex:permission3 .
+ex:permission3 a odrl:Permission .
+ex:permission3 odrl:action odrl:read .
+ex:permission3 odrl:target <alice/other/resource.txt> .
+ex:permission3 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission3 odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .`
