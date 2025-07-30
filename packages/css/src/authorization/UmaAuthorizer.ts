@@ -1,5 +1,5 @@
-import { 
-  Authorizer, createErrorMessage, ForbiddenHttpError, getLoggerFor, UnauthorizedHttpError
+import {
+  Authorizer, createErrorMessage, ForbiddenHttpError, getLoggerFor, InternalServerError, UnauthorizedHttpError
 } from '@solid/community-server';
 import type { AccessMap, AuthorizerInput } from '@solid/community-server';
 import { OwnerUtil } from '../util/OwnerUtil';
@@ -30,7 +30,7 @@ export class UmaAuthorizer extends Authorizer {
    */
   public constructor(
     protected authorizer: Authorizer,
-    protected ownerUtil: OwnerUtil, 
+    protected ownerUtil: OwnerUtil,
     protected umaClient: UmaClient,
   ) {
     super();
@@ -38,17 +38,17 @@ export class UmaAuthorizer extends Authorizer {
 
   public async handle(input: AuthorizerInput): Promise<void> {
     try {
-      
+
       // Try authorizer
       await this.authorizer.handleSafe(input);
     } catch (error: unknown) {
 
       // Unless 403/403 throw original error
       if (!UnauthorizedHttpError.isInstance(error) && !ForbiddenHttpError.isInstance(error)) throw error;
-      
+
       // Request UMA ticket
       const authHeader = await this.requestTicket(input.requestedModes);
-      
+
       // Add auth header to error metadata if private
       if (authHeader) {
         error.metadata.add(WWW_AUTH, literal(authHeader));
@@ -65,14 +65,14 @@ export class UmaAuthorizer extends Authorizer {
     const owner = await this.ownerUtil.findCommonOwner(requestedModes.keys());
     const issuer = await this.ownerUtil.findIssuer(owner);
 
-    if (!issuer) throw new Error(`No UMA authorization server found for ${owner}.`);
+    if (!issuer) throw new InternalServerError(`No UMA authorization server found for ${owner}.`);
 
     try {
       const ticket = await this.umaClient.fetchTicket(requestedModes, issuer);
       return ticket ? `UMA realm="solid", as_uri="${issuer}", ticket="${ticket}"` : undefined;
     } catch (e) {
       this.logger.error(`Error while requesting UMA header: ${(e as Error).message}`);
-      throw new Error('Error while requesting UMA header.');
+      throw new InternalServerError(`Error while requesting UMA header: ${(e as Error).message}.`);
     }
   }
 }

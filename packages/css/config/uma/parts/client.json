@@ -14,7 +14,9 @@
       },
       "fetcher": {
         "@id": "urn:solid-server:default:UmaFetcher"
-      }
+      },
+      "identifierStrategy": { "@id": "urn:solid-server:default:IdentifierStrategy" },
+      "resourceSet": { "@id": "urn:solid-server:default:CachedResourceSet" }
     }
   ]
 }
