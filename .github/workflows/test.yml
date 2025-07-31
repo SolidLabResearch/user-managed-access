@@ -1,0 +1,57 @@
+
+name: Test
+
+on:
+  push:
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+
+  build:
+
+    runs-on: ${{ matrix.operating-system }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system:
+          - ubuntu-latest
+          # logtalk-actions/setup-swi-prolog@master does not work with windows, so a different solution would be required
+          # - windows-latest
+        node-version:
+          - 20.x
+          - 22.x
+          - 24.x
+
+    steps:
+
+      - name: Install prolog
+        uses: logtalk-actions/setup-swi-prolog@master
+
+      - name: Clone EYE repo
+        uses: actions/checkout@v4
+        with:
+          repository: eyereasoner/eye
+
+      - name: Build EYE
+        run: bash install.sh --prefix=$HOME/.local # This folder is available on $PATH already
+
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Enable Node.js Corepack
+        run: corepack enable
+
+      - name: Yarn install
+        run: yarn install
+
+      - name: Test
+        run: yarn test

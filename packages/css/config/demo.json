@@ -5,7 +5,6 @@
   ],
   "import": [
     "uma-css:config/default.json",
-    "uma-css:config/derived.json",
     "css:config/storage/backend/data-accessors/file.json"
   ],
   "@graph": [

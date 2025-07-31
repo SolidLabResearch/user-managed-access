@@ -20,4 +20,11 @@ export interface UCRulesStorage {
      * @returns 
      */
     deleteRule: (identifier: string) => Promise<void>;
+
+    /**
+     * Delete a Usage Control Rule with its reference from the storage
+     * @param identifier 
+     * @returns 
+     */
+    deleteRuleFromPolicy: (ruleID: string, PolicyID: string) => Promise<void>;
 }
