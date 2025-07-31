@@ -118,7 +118,7 @@ A PUT completely replaces the policy within the scope of the client.
 The PUT works as a combination of DELETE and POST. It requires a body with the same content type as the [POST request](#creating-policies). This body will be interpreted as the requested policy with some rules.
 
 The PUT process:
-1. Find information about the policy. If it does not exist, return with a **status code 400** to indicate that you cannot rewrite a nonexistent policy.
+1. Find information about the policy. If it does not exist, return with a **status code 404** to indicate that you cannot rewrite a nonexistent policy.
 2. Parse and validate the body, with the same procedure used in the POST endpoint. First, we perform the basic sanitization checks. Upon success, extra checks are performed to see if the new definition stays within the scope of the client:
      - Check that the newly defined policy does not define other policies
      - Check that the new policy does not contain any rules that do not belong to the client
@@ -143,7 +143,7 @@ The PATCH process:
     - Performing DELETE queries on rules out of your scope will simply not work, since they are not part of the isolated store.
     - We can easily see exactly when the query goes out of scope by testing the resulting store, separating it in the 5 groups and performing the following checks:
         1. If the resulting store has rules out of the clients' scope (indicated by groups **(2)** and **(5)**), we can abort the update and respond with **status code 400**.
-        2. We can analyze the size of the resulting store. Substracting the amount of quads within reach should result in 0, since no other rules may be added. This test will fail when the client inserts any unrelated quads to its own policy. Upon failure, the server responds with **status code 400**.
+        2. We can analyze the size of the resulting store. Substracting the amount of quads within reach should result in 0, since no other rules may be added. This test will fail when the client inserts/deletes any unrelated quads to its own policy. Upon failure, the server responds with **status code 400**.
 4. The old definition will be replaced with the updated version. Since no real update function for our storage exists, we delete the old policy and add the resulting store from the query, together with the quads out of scope as collected in step 1. 
 
 Note that any quads in the original policy that could not be collected by the procedure defined in [GET One Policy](#get-one-policy), will not be part of the newly defined policy. 
@@ -155,8 +155,8 @@ The DELETE process:
 1. Find the rules defined in the policy.
 2. Filter the rules that are assigned by the client, and delete them.
 3. Find out if there are rules not assigned by the client.
-    * if there are other rules, we cannot delete the policy information as well. We delete the rule and its definition triple in the policy.
-    * if there are no other rules, we can delete the entire policy.
+    * If there are other rules, we cannot delete the policy information as well. We delete the rule and its definition triple in the policy.
+    * If there are no other rules, we can delete the entire policy.
 
 This method used to have one rather significant issue, as discussed [later](#delete-fix).
 

@@ -51,50 +51,16 @@ export async function addPolicies(request: HttpHandlerRequest, store: Store, sto
     const totalQuads: Quad[] = [];
     if ([...newPolicies].some(id => {
         const existingInfo = getPolicyInfo(id, store, clientId);
-        console.log(`
-            INITIAL POLICY ${id}
-            
-            POLICY ITSELF - ${existingInfo.policyDefinitions.length}
-                ${existingInfo.policyDefinitions}
-                ${existingInfo.ownedPolicyRules}
-                ${existingInfo.otherPolicyRules}
-            
-            OWNED RULES - ${existingInfo.ownedRules.length}
-                ${existingInfo.ownedRules.length}
-            
-            OTHER RULES - ${existingInfo.otherRules.length}
-                ${existingInfo.otherRules}
-
-            TOTAL = ${parsedPolicy.getQuads(null, null, null, null).length}
-            `)
         // None of the policies in the request should already exist
         if ([...existingInfo.policyDefinitions, ...existingInfo.ownedPolicyRules, ...existingInfo.otherPolicyRules,
         ...existingInfo.ownedRules, ...existingInfo.otherRules].length > 0) {
-            console.log('TEST: ALREADY EXISTS')
             return true;
         }
 
         const { policyDefinitions, ownedPolicyRules, otherPolicyRules, ownedRules, otherRules } = getPolicyInfo(id, parsedPolicy, clientId);
 
-        console.log(`
-            TEST FOR POLICY ${id}
-            
-            POLICY ITSELF - ${policyDefinitions.length}
-                ${policyDefinitions}
-                ${ownedPolicyRules}
-                ${otherPolicyRules}
-            
-            OWNED RULES - ${ownedRules.length}
-                ${ownedRules}
-            
-            OTHER RULES - ${otherRules.length}
-                ${otherRules}
-
-            TOTAL = ${parsedPolicy.getQuads(null, null, null, null).length}
-            `)
         // The policies may not declare rules out of scope
         if (otherRules.length !== 0 || otherPolicyRules.length !== 0) {
-            console.log("TEST: out of scope")
             return true;
         }
 

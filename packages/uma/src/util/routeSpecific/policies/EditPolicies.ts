@@ -29,17 +29,6 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
     }
     const query = parseBufferToString(request.body);
 
-    console.log(`
-        POLICY INFORMATION
-        ${ownedPolicyRules}
-        ${ownedRules}
-        ${policyDefinitions}
-
-        QUERY: 
-        ${query}
-    `)
-
-
 
     // 3. Execute the query on the part of the policy that lays within reach
     const policyStore = new Store([...policyDefinitions, ...ownedPolicyRules, ...ownedRules]);
@@ -56,8 +45,6 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
     // 3.1 Check that the other rules are unchanged
     const initialState = { policyDefinitions, ownedPolicyRules, otherPolicyRules, ownedRules, otherRules };
     const newState = getPolicyInfo(policyId, policyStore, clientId);
-
-    console.log(`\n--- POLICY STATE CHANGE ---\nInitial State:\n  policyDefinitions: ${initialState.policyDefinitions.map(q => q.toString()).join("\n    ")}\n  ownedPolicyRules: ${initialState.ownedPolicyRules.map(q => q.toString()).join("\n    ")}\n  otherPolicyRules: ${initialState.otherPolicyRules.map(q => q.toString()).join("\n    ")}\n  ownedRules: ${initialState.ownedRules.map(q => q.toString()).join("\n    ")}\n  otherRules: ${initialState.otherRules.map(q => q.toString()).join("\n    ")}\nNew State:\n  policyDefinitions: ${newState.policyDefinitions.map(q => q.toString()).join("\n    ")}\n  ownedPolicyRules: ${newState.ownedPolicyRules.map(q => q.toString()).join("\n    ")}\n  otherPolicyRules: ${newState.otherPolicyRules.map(q => q.toString()).join("\n    ")}\n  ownedRules: ${newState.ownedRules.map(q => q.toString()).join("\n    ")}\n  otherRules: ${newState.otherRules.map(q => q.toString()).join("\n    ")}\n`);
 
     if (newState.otherRules.length !== 0 || newState.otherPolicyRules.length !== 0)
         throw new BadRequestHttpError("Update not allowed: attempted to modify rules not owned by client");
