@@ -1,4 +1,4 @@
-import { Store } from "n3";
+import { Store, Writer } from "n3";
 import { HttpHandlerRequest, HttpHandlerResponse } from "../../http/models/HttpHandler";
 import { UCRulesStorage } from "@solidlab/ucp";
 import { checkBaseURL, parseBufferToString, quadsToText, retrieveID } from "./PolicyUtil";
@@ -64,11 +64,9 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
 
     // 3.2 Check that only Policy/Rule changing quads are introduced and removed
     // The only modifications we allow are policy definitions, policy rules that define owned rules and owned rules themselves
-    // const newQuads = policyStore.getQuads(null, null, null, null);
-    // if (newQuads.length - newState.ownedRules.length - newState.ownedPolicyRules.length - newState.policyDefinitions.length
-    //     !== initialQuads.length - ownedPolicyRules.length - ownedRules.length - policyDefinitions.length)
-    //     throw new BadRequestHttpError("Update not allowed: this query introduces quads that have nothing to do with the policy/rules you own");
-
+    const newQuads = policyStore.getQuads(null, null, null, null);
+    if (newQuads.length - newState.ownedRules.length - newState.ownedPolicyRules.length - newState.policyDefinitions.length !== 0)
+        throw new BadRequestHttpError("Update not allowed: this query changes quads that have nothing to do with the policy/rules you own");
     // 4 Modify the storage to the updated version
     try {
         // Since no update function is available, we need to remove the old one and set the updated one
