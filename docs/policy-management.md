@@ -186,7 +186,8 @@ Some operations require the client to specify a policy ID in the URL. Since poli
 The current implementation is tested only by the script in `scripts\test-uma-ODRL-policy.ts`. This script tests every implemented endpoint with a designated flow. Since the script initiates with an empty storage, and there is no endpoint or other way to seed it, the first requests must test the POST endpoint. These tests are designed to ensure that the storage is filled. After the POST tests, the access endpoints can be tested. Every endpoint gets tested in this script, which makes sure that the added data is removed. The current testing will be replaced with proper unit tests and integration tests in the near future.
 
 ## Problems
-- The current [sanitization limitations](#sanitization-decisions) are to be considered
+- The current [sanitization limitations](#sanitization-decisions) are to be considered.
+- Fix CORS handling: the project configuration must be extended to the `/policies` endpoint.
 
 
 ### Solved Problems
