@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node16",
-    //
+    "types": [ "vitest/globals" ],
     "declaration": true,
     "isolatedModules": true,
     "inlineSourceMap": true,
@@ -20,6 +20,5 @@
     "downlevelIteration": true,
   },
   "include": ["src"],
-  "exclude": ["node_modules",  "**/*.test.ts"]
+  "exclude": ["node_modules"]
 }
-
