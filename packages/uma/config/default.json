@@ -26,6 +26,23 @@
   ],
   "@graph": [
     {
+      "comment": "This is the entry point to the application. It can be used to both start and stop the server.",
+      "@id": "urn:uma:default:App",
+      "@type": "App",
+      "initializer": { "@id": "urn:uma:default:NodeHttpServer" },
+      "finalizer": {
+        "@id": "urn:uma:default:Finalizer",
+        "@type": "SequenceHandler",
+        "handlers": [
+          {
+            "comment": "Provides handler to shut down the server",
+            "@type": "FinalizableHandler",
+            "finalizable": { "@id": "urn:uma:default:NodeHttpServer" }
+          }
+        ]
+      }
+    },
+    {
       "@id": "urn:uma:default:NodeHttpServer",
       "@type": "ServerInitializer",
       "port": {
@@ -89,28 +106,44 @@
         "@id": "urm:uma:default:JsonHttpErrorHandler",
         "@type": "JsonHttpErrorHandler",
         "handler": {
-          "@id": "urm:uma:default:JsonFormHttpHandler",
-          "@type": "JsonFormHttpHandler",
-          "handler": {
-            "@id": "urn:uma:default:RoutedHttpRequestHandler",
-            "@type": "RoutedHttpRequestHandler",
-            "routes": [
-              { "@id": "urn:uma:default:UmaConfigRoute" },
-              { "@id": "urn:uma:default:JwksRoute" },
-              { "@id": "urn:uma:default:TokenRoute" },
-              { "@id": "urn:uma:default:PolicyRoute" },
-              { "@id": "urn:uma:default:PermissionRegistrationRoute" },
-              { "@id": "urn:uma:default:ResourceRegistrationRoute" },
-              { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
-              { "@id": "urn:uma:default:IntrospectionRoute" },
-              { "@id": "urn:uma:default:LogRoute" },
-              { "@id": "urn:uma:default:VCRoute" },
-              { "@id": "urn:uma:default:ContractRoute" }
-            ],
-            "defaultHandler": {
-              "@type": "DefaultRequestHandler"
+          "@id": "urm:uma:default:RouteHandler",
+          "@type": "WaterfallHandler",
+          "handlers": [
+            {
+              "comment": "Handles all JSON and form encoded input/output.",
+              "@id": "urm:uma:default:JsonFormHttpHandler",
+              "@type": "JsonFormHttpHandler",
+              "handler": {
+                "@id": "urn:uma:default:JsonRoutedHttpRequestHandler",
+                "@type": "RoutedHttpRequestHandler",
+                "routes": [
+                  { "@id": "urn:uma:default:UmaConfigRoute" },
+                  { "@id": "urn:uma:default:JwksRoute" },
+                  { "@id": "urn:uma:default:TokenRoute" },
+                  { "@id": "urn:uma:default:PermissionRegistrationRoute" },
+                  { "@id": "urn:uma:default:ResourceRegistrationRoute" },
+                  { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
+                  { "@id": "urn:uma:default:IntrospectionRoute" }
+                ]
+              }
+            },
+            {
+              "comment": "Handles all remaining output. These handlers have to handle input/output parsing themselves. TODO: At some point we want more generic conneg.",
+              "@id": "urn:uma:default:RawRoutedHttpRequestHandler",
+              "@type": "RoutedHttpRequestHandler",
+              "routes": [
+                { "@id": "urn:uma:default:ContractRoute" },
+                { "@id": "urn:uma:default:LogRoute" },
+                { "@id": "urn:uma:default:VCRoute" },
+                { "@id": "urn:uma:default:PolicyRoute" },
+                { "@id": "urn:uma:default:OnePolicyRoute"}
+              ]
+            },
+            {
+              "@type": "StaticThrowHandler",
+              "error": { "@type": "NotFoundHttpError" }
             }
-          }
+          ]
         }
       }
     },

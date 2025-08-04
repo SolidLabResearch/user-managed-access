@@ -165,14 +165,21 @@ export class ContractNegotiator extends BaseNegotiator {
     // todo: fix instantiated from url
     // contract['http://www.w3.org/ns/prov#wasDerivedFrom'] = [ 'urn:ucp:be-gov:policy:d81b8118-af99-4ab3-b2a7-63f8477b6386 ']
     // TODO: test-private error: this container does not exist and unauth does not have append perms
-    const instantiatedPolicyContainer = 'http://localhost:3000/ruben/settings/policies/instantiated/';
-    const policyCreationResponse = await fetch(instantiatedPolicyContainer, {
-      method: 'POST',
-      headers: { 'content-type': 'application/ld+json' },
-      body: JSON.stringify(contract, null, 2)
-    });
+    try {
+      const instantiatedPolicyContainer = 'http://localhost:3000/ruben/settings/policies/instantiated/';
+      const policyCreationResponse = await fetch(instantiatedPolicyContainer, {
+        method: 'POST',
+        headers: { 'content-type': 'application/ld+json' },
+        body: JSON.stringify(contract, null, 2)
+      });
 
-    if (policyCreationResponse.status !== 201) { this.logger.warn('Adding a policy did not succeed...') }
+      if (policyCreationResponse.status !== 201) {
+        this.logger.warn(`Adding the contract to the instantiated policies failed: ${
+          policyCreationResponse.status} - ${await policyCreationResponse.text()}`);
+      }
+    } catch (error: unknown) {
+      this.logger.warn(`Adding the contract to the instantiated policies failed: ${createErrorMessage(error)}`);
+    }
 
     // TODO:: dynamic contract link to stored signed contract.
     // If needed we can always embed here directly into the return JSON

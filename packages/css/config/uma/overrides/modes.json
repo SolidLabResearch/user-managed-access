@@ -1,0 +1,31 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Replace the account seeder with the UMA version so the AS is taken into account.",
+      "@id": "urn:solid-server:override:ModesExtractor",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:ModesExtractor"
+      },
+      "overrideParameters": {
+        "@type": "CachedHandler",
+        "source": {
+          "@id": "urn:uma:default:AuxiliaryModesExtractor",
+          "@type": "AuxiliaryModesExtractor",
+          "source": {
+            "comment": "Checks if an operation on a resource requires permissions on intermediate resources (such as newly created parent containers).",
+            "@type": "IntermediateCreateExtractor",
+            "resourceSet": { "@id": "urn:solid-server:default:CachedResourceSet" },
+            "strategy": { "@id": "urn:solid-server:default:IdentifierStrategy" },
+            "source": { "@id": "urn:solid-server:default:HttpModesExtractor" }
+          },
+          "auxiliaryStrategy": { "@id": "urn:solid-server:default:AuxiliaryStrategy" }
+        }
+      }
+    }
+  ]
+}

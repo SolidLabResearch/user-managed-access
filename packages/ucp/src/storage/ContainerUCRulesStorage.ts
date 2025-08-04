@@ -18,6 +18,9 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
         console.log(`[${new Date().toISOString()}] - ContainerUCRulesStore: LDP Container that will be used as source for the Usage Control Rules`, this.containerURL);
         this.fetch = customFetch ?? fetch;
     }
+    async deleteRuleFromPolicy(ruleID: string, PolicyID: string){
+        return new Promise<void>(() => {})
+    }
 
     public async getStore(): Promise<Store> {
         const store = new Store()
