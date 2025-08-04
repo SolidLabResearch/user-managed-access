@@ -2,8 +2,6 @@
 In this document we describe the *policy adminstration endpoint*.
 It contains the methods to describe how to create, read, update and delete policies.
 
-
-
 ## Supported endpoints
 The current implementation supports the following requests:
 - [`GET`](#reading-policies) to both `uma/policies` and `uma/policies/<encodedPolicyID>`
@@ -103,7 +101,7 @@ This is not done with the procedure from the GET One Policy endpoint, because us
 An example request would look like this:
 ```curl
 curl --location 'http://localhost:4000/uma/policies' \
---header 'Authorization: https://pod.aexample.com/profile/card#me'
+--header 'Authorization: https://pod.example.com/profile/card#me'
 ```
 
 The response is similar to the GET One Policy response, but for every policy *owned* by the client.
