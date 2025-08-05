@@ -14,11 +14,18 @@
         "overrideParameter": { "@id": "WaterfallHandler:_handlers" },
         "overrideTarget": 0,
         "overrideValue": {
-          "@id": "urn:solid-server:default:JwksHandler",
-          "@type": "JwksHandler",
-          "path": "/.well-known/jwks.json",
-          "generator": {
-            "@id": "urn:solid-server:default:JwkGenerator"
+          "@id": "urn:solid-server:default:JwksRouterHandler",
+          "@type": "RouterHandler",
+          "baseUrl": { "@id": "urn:solid-server:default:variable:baseUrl" },
+          "targetExtractor": { "@id": "urn:solid-server:default:TargetExtractor" },
+          "allowedPathNames": [ "^/.well-known/jwks.json" ],
+          "allowedMethods": [ "HEAD", "GET" ],
+          "handler": {
+            "@id": "urn:solid-server:default:JwksHandler",
+            "@type": "JwksHandler",
+            "generator": {
+              "@id": "urn:solid-server:default:JwkGenerator"
+            }
           }
         }
       }]
