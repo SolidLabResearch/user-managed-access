@@ -53,14 +53,14 @@ describe('A server setup', (): void => {
   });
 
   describe('using ODRL authorization', (): void => {
-    const privateResource = `http://localhost:${cssPort}/alice/private/resource.txt`;
+    const collectionResource = `http://localhost:${cssPort}/alice/resource.txt`;
     let wwwAuthenticateHeader: string;
     let ticket: string;
     let tokenEndpoint: string;
     let jsonResponse: { access_token: string, token_type: string };
 
     it('RS: sends a WWW-Authenticate response when access is private.', async(): Promise<void> => {
-      const noTokenResponse = await fetch(privateResource, {
+      const noTokenResponse = await fetch(collectionResource, {
         method: 'PUT',
         body: 'Some text ...' ,
       });
@@ -122,7 +122,7 @@ describe('A server setup', (): void => {
     });
 
     it('RS: provides access when receiving a valid token.', async(): Promise<void> => {
-      const response = await fetch(privateResource, {
+      const response = await fetch(collectionResource, {
         method: 'PUT',
         headers: { 'Authorization': `${jsonResponse.token_type} ${jsonResponse.access_token}` },
         body: 'Some text ...' ,
