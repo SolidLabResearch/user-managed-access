@@ -68,8 +68,7 @@ Throughout this guide, there are several instances where the RS has to send an H
 The AS needs some way to verify if the request comes from the RS.
 The current implementation makes use of [HTTP signatures](https://datatracker.ietf.org/doc/html/rfc9421).
 To enable this, the RS needs to expose a [JSON Web Key](https://datatracker.ietf.org/doc/html/rfc7517).
-This key can be found at the `jwks_uri` API of OpenID configuration of the RS,
-seen at <http://localhost:3000/.well-known/openid-configuration>.
+This key can be found at <http://localhost:3000/.well-known/jwks.json>.
 The RS uses that same key to sign its messages as described in the RFC,
 using the [http-message-signatures](https://www.npmjs.com/package/http-message-signatures) library.
 This is done for every HTTP request the RS sends to the AS in the following sections.
