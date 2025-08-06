@@ -15,8 +15,7 @@
         "@type": "UmaTokenExtractor",
         "client": { "@id": "urn:solid-server:default:UmaClient" },
         "targetExtractor": { "@id": "urn:solid-server:default:TargetExtractor" },
-        "ownerUtil": { "@id": "urn:solid-server:default:OwnerUtil" },
-        "introspect": false
+        "ownerUtil": { "@id": "urn:solid-server:default:OwnerUtil" }
       }
     }
   ]

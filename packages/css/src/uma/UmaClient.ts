@@ -226,41 +226,6 @@ export class UmaClient implements SingleThreaded {
   }
 
   /**
-   * Validates & parses JWT access token
-   * @param {string} token - the JWT access token
-   * @return {UmaToken}
-   */
-  public async verifyOpaqueToken(token: string, issuer: string): Promise<UmaClaims> {
-    let config: UmaConfig;
-
-    try {
-      config = await this.fetchUmaConfig(issuer);
-    } catch (error: unknown) {
-      const message = `Error verifying UMA access token: ${(error as Error).message}`;
-      this.logger.warn(message);
-      throw new Error(message);
-    }
-
-    const res = await this.fetcher.fetch(config.introspection_endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json',
-      },
-      body: `token_type_hint=access_token&token=${token}`,
-    });
-
-    if (res.status >= 400) {
-      throw new Error(`Unable to introspect UMA RPT for Authorization Server '${config.issuer}'`);
-    }
-
-    const jwt = await res.json();
-    if (!('active' in jwt) || jwt.active !== 'true') throw new Error(`The provided UMA RPT is not active.`);
-
-    return await this.verifyTokenData(jwt, config.issuer, config.jwks_uri);
-  }
-
-  /**
    * Fetch UMA Configuration of AS
    * @param {string} issuer - Base URL of the UMA AS
    * @return {Promise<UmaConfig>} - UMA Configuration
