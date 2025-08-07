@@ -54,21 +54,6 @@ const REQUIRED_METADATA = [
   'resource_registration_endpoint'
 ];
 
-const algMap = {
-  'ES256': { name: 'ECDSA', namedCurve: 'P-256', hash: 'SHA-256' },
-  'ES384': { name: 'ECDSA', namedCurve: 'P-384', hash: 'SHA-384' },
-  'ES512': { name: 'ECDSA', namedCurve: 'P-512', hash: 'SHA-512' },
-  'HS256': { name: 'HMAC', hash: 'SHA-256' },
-  'HS384': { name: 'HMAC', hash: 'SHA-384' },
-  'HS512': { name: 'HMAC', hash: 'SHA-512' },
-  'PS256': { name: 'RSASSA-PSS', hash: 'SHA-256' },
-  'PS384': { name: 'RSASSA-PSS', hash: 'SHA-384' },
-  'PS512': { name: 'RSASSA-PSS', hash: 'SHA-512' },
-  'RS256': { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-  'RS384': { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-384' },
-  'RS512': { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-512' },
-}
-
 /**
  * Client interface for the UMA AS.
  *
@@ -125,7 +110,7 @@ export class UmaClient implements SingleThreaded {
       if (!umaId && this.inProgressResources.has(target.path)) {
         // Wait for the resource to finish registration if it is still being registered, and there is no UMA ID yet.
         // Time out after 2s to prevent getting stuck in case something goes wrong during registration.
-        const timeoutPromise = promises.setTimeout(2000, async () => {
+        const timeoutPromise = promises.setTimeout(2000, '').then(() => {
           throw new InternalServerError(`Unable to finish registration for ${target.path}.`)
         });
         await Promise.race([timeoutPromise, once(this.registerEmitter, target.path)]);
@@ -204,8 +189,8 @@ export class UmaClient implements SingleThreaded {
 
   /**
    * Validates & parses JWT access token
-   * @param {string} token - the JWT access token
-   * @return {UmaToken}
+   * @param token - the JWT access token
+   * @param validIssuers - issuers that are allowed to issue a token
    */
   public async verifyJwtToken(token: string, validIssuers: string[]): Promise<UmaClaims> {
     let config: UmaConfig;
@@ -403,8 +388,7 @@ export class UmaClient implements SingleThreaded {
 
     const umaId = await this.umaIdStore.get(resource.path);
     if (!umaId) {
-      console.error('Trying to remove UMA registration that is not known:', resource.path);
-      return;
+      throw new Error(`Trying to remove UMA registration that is not known: ${resource.path}`);
     }
     const url = joinUrl(endpoint, umaId);
 
