@@ -9,6 +9,9 @@ export default defineConfig({
     coverage: {
       enabled: true,
     },
+    chaiConfig: {
+      truncateThreshold: 0,
+    },
     hookTimeout: 60000,
     testTimeout: 60000,
   },
