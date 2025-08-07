@@ -8,7 +8,7 @@
       "comment": "Listens to the activities emitted by the MonitoringStore.",
       "@id": "urn:solid-server:default:ResourceRegistrar",
       "@type": "ResourceRegistrar",
-      "store": {
+      "emitter": {
         "@id": "urn:solid-server:default:ResourceStore"
       },
       "ownerUtil": {

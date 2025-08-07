@@ -58,24 +58,6 @@ export class IntrospectionHandler extends HttpHandler {
       this.logger.warn(`Token introspection failed: ${e}`)
       throw new BadRequestHttpError('Invalid request body.');
     }
-
-
-    // Opaque token left-overs - ask Wouter?
-
-    // try {
-    //   const opaqueToken = new URLSearchParams(request.body).get('token');
-    //   if (!opaqueToken) throw new Error ();
-
-    //   const jwt = this.opaqueToJwt(opaqueToken);
-    //   return {
-    //     headers: {'content-type': 'application/json'},
-    //     status: 200,
-    //     body: jwt,
-    //   };
-    // } catch (e) {
-    //   throw new BadRequestHttpError('Invalid request body.');
-    // }
-
   }
 
 
@@ -86,13 +68,4 @@ export class IntrospectionHandler extends HttpHandler {
     token.active = true
     return token
   }
-
-  // todo: check with Wouter what the goal here is? Since the Opaque Token Factory is not used atm?
-  private async opaqueToJwt(opaque: string): Promise<SerializedToken> {
-    const token = await this.tokenStore.get(opaque);
-    if (!token) throw new Error('Token not found.');
-
-    return this.jwtTokenFactory.serialize({ ...token, active: true } as AccessToken);
-  }
-
 }

@@ -52,9 +52,8 @@ export class SignedFetcher implements Fetcher {
       ...init ?? {},
       url,
       method: init?.method ?? 'GET',
-      headers: {} as Record<string, string>
-    }
-    ;
+      headers: {} as Record<string, string>,
+    };
     new Headers(init?.headers).forEach((value, key) => request.headers[key] = value);
     request.headers['Authorization'] = `HttpSig cred="${this.baseUrl}"`;
 
