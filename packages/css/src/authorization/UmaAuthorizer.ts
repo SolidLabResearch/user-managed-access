@@ -12,10 +12,10 @@ export const WWW_AUTH = namedNode('urn:css:http:headers:www-authenticate');
 
 /**
  * Authorizer that bases its decision on that of another Authorizer.
- * It discovers the relevant UMA Authorization Server for the requeste resource(s),
+ * It discovers the relevant UMA Authorization Server for the requested resource(s),
  * and checks whether that server protects the resource or whether it is public.
  * If the resource is not public and access is not granted by the other Authorizer,
- * the UmaAuthorizer includes a UMA Permission Ticket in the resulting error.
+ * the UmaAuthorizer includes an UMA Permission Ticket in the resulting error.
  */
 export class UmaAuthorizer extends Authorizer {
   protected readonly logger = getLoggerFor(this);
@@ -23,7 +23,7 @@ export class UmaAuthorizer extends Authorizer {
   /**
    * The UmaAuthorizer bases its decisions on those of another {@link Authorizer}.
    * It uses an {@link OwnerUtil} to retrieve the relevant UMA issuer,
-   * and an {@link UmaCLient} to communicate with that issuer.
+   * and an {@link UmaClient} to communicate with that issuer.
    * @param authorizer - {@link Authorizer} that makes the main decision.
    * @param ownerUtil - {@link OwnerUtil} that links resources to owners and issuers.
    * @param umaClient - {@link UmaClient} that communicates with UMA issuers.
