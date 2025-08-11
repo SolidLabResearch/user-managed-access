@@ -1,8 +1,6 @@
 import type { Quad } from '@rdfjs/types';
-import { Store, Writer } from 'n3';
+import { Parser, Store, Writer } from 'n3';
 import { randomUUID } from 'node:crypto';
-import path from 'node:path';
-import { storeToString, turtleStringToStore } from '../util/Conversion';
 import { extractQuadsRecursive } from '../util/Util';
 import { UCRulesStorage } from './UCRulesStorage';
 
@@ -15,8 +13,8 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
     protected readonly extraDataUrl: string;
 
     /**
-     *
-     * @param containerURL The URL to an LDP container
+     * @param containerURL - The URL to an LDP container
+     * @param customFetch - Fetch function to use for requests. Default to builtin fetch.
      */
     public constructor(
       containerURL: string,
@@ -24,7 +22,10 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
     ) {
         this.containerURL = containerURL;
         this.fetch = customFetch ?? fetch;
-        this.extraDataUrl = path.posix.join(containerURL, randomUUID());
+        if (!containerURL.endsWith('/')) {
+          throw new Error(`Invalid container URL ${containerURL}: URL does not end with a slash`);
+        }
+        this.extraDataUrl = containerURL + randomUUID();
     }
 
     public async getStore(): Promise<Store> {
@@ -41,9 +42,9 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
         if (rule.size === 0) {
             return;
         }
-        const ruleString = storeToString(rule);
+        const ruleString = new Writer().quadsToString(rule.getQuads(null, null, null, null));
 
-        let response = await fetch(this.extraDataUrl, {
+        let response = await this.fetch(this.extraDataUrl, {
             method: 'PATCH',
             headers: { 'content-type': 'text/n3' },
             body: `
@@ -55,15 +56,14 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
                   }.`,
             });
         if (response.status >= 400) {
-            throw Error(`Could not add rule to the storage ${response.status} ${await response.text()}`);
+            throw Error(`Could not add rule to the storage: ${response.status} - ${await response.text()}`);
         }
     }
 
     public async getRule(identifier: string): Promise<Store> {
         // would be better if there was a cache <ruleID, ldp:resource>
         const allRules = await this.getStore()
-        const rule = extractQuadsRecursive(allRules, identifier);
-        return rule
+        return extractQuadsRecursive(allRules, identifier);
     }
 
     public async deleteRule(identifier: string): Promise<void> {
@@ -86,7 +86,7 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
             }
             if (matches.length > 0) {
                 const response = await this.fetch(url, {
-                    method: 'PUT',
+                    method: 'PATCH',
                     headers: { 'content-type': 'text/n3' },
                     body: `
                 @prefix solid: <http://www.w3.org/ns/solid/terms#>.
@@ -122,23 +122,23 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
     }
 
     protected async readLdpRDFResource(resourceURL: string): Promise<Store> {
-        const containerResponse = await this.fetch(resourceURL, { headers: { 'accept': 'text/turtle' } });
+        const response = await this.fetch(resourceURL, { headers: { 'accept': 'text/turtle' } });
 
-        if (containerResponse.status === 404) {
+        if (response.status === 404) {
             return new Store();
         }
 
-        if (containerResponse.status !== 200) {
-            throw new Error(`Unable to acces policy container ${resourceURL}: ${
-                containerResponse.status} - ${await containerResponse.text()}`);
+        if (response.status !== 200) {
+            throw new Error(`Unable to access policy resource ${resourceURL}: ${
+                response.status} - ${await response.text()}`);
         }
 
-        const contentType = containerResponse.headers.get('content-type');
+        const contentType = response.headers.get('content-type');
         // TODO: support non-turtle formats
         if (contentType !== 'text/turtle') {
             throw new Error(`Only turtle serialization is supported, received ${contentType}`);
         }
-        const text = await containerResponse.text();
-        return await turtleStringToStore(text, resourceURL);
+        const text = await response.text();
+        return new Store(new Parser({ baseIRI: resourceURL }).parse(text));
     }
 }

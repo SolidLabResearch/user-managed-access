@@ -9,6 +9,5 @@ export * from './policy/ODRL'
 export * from './policy/UsageControlPolicy'
 
 // util
-export * from './util/Conversion'
 export * from './util/Util'
 export * from './util/Vocabularies'
