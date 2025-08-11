@@ -1,7 +1,7 @@
-import { Store } from 'n3';
+import { Parser, Store } from 'n3';
 import { MemoryUCRulesStorage } from '../../../src/storage/MemoryUCRulesStorage'
-import { turtleStringToStore } from '../../../src/util/Conversion';
 import "jest-rdf";
+
 describe('A MemoryUCRulesStorage', () => {
     let storage: MemoryUCRulesStorage;
     const policyString = `
@@ -17,58 +17,51 @@ describe('A MemoryUCRulesStorage', () => {
 
     beforeEach(async () => {
         storage = new MemoryUCRulesStorage();
-        policy = await turtleStringToStore(policyString)
+        policy = new Store(new Parser().parse(policyString));
     })
 
-    describe('when getting all rules', () => {
-        it('returns an empty N3 Store when no rules are added.', async () => {
-            const store = await storage.getStore();
-            expect(store.size).toBe(0);
-        })
+    it('returns an empty N3 Store when no rules are added.', async () => {
+        const store = await storage.getStore();
+        expect(store.size).toBe(0);
+    });
 
-        it('returns every triple that was added to the storage.', async () => {
-            await storage.addRule(policy);
-            const store = await storage.getStore();
-            expect(store).toBeRdfIsomorphic(policy);
-        })
+    it('returns every triple that was added to the storage.', async () => {
+        await expect(storage.addRule(policy)).resolves.toBeUndefined();
+        const store = await storage.getStore();
+        expect(store).toBeRdfIsomorphic(policy);
+    });
+
+    it('returns empty N3 store when no such rule is present.', async () => {
+        const store = await storage.getRule(ruleIRI);
+        expect(store.size).toBe(0);
+    });
+
+    it('returns the whole graph starting from the identifier given (thus also a rule).', async () => {
+        await storage.addRule(policy);
+        const store = await storage.getRule(ruleIRI);
+        expect(store.size).toBe(5);
+    });
+
+    it('deleting an empty storage does nothing.', async () => {
+        await expect(storage.deleteRule(ruleIRI)).resolves.toBeUndefined();
     })
 
-    describe('when adding a rule', () => {
-        it('successfully adds a rule.', async () => {
-            // should actually look into the store of the class. Can't do that right now
-            const result = await storage.addRule(policy)
-            expect(result).toBeUndefined();
-        })
-    })
+    it('successfully deletes a rule.', async () => {
+        await expect(storage.addRule(policy)).resolves.toBeUndefined();
+        await expect(storage.deleteRule(ruleIRI)).resolves.toBeUndefined();
+        const ruleStore = await storage.getRule(ruleIRI);
+        expect(ruleStore.size).toBe(0);
+        const store = await storage.getStore();
+        expect(store.size).toBe(2)
+    });
 
-    describe('when getting a rule', () => {
-        it('returns empty N3 store when no such rule is present.', async () => {
-            const store = await storage.getRule(ruleIRI);
-            expect(store.size === 0);
-        })
-
-        it('returns the whole graph starting from the identifier given (thus also a rule).', async () => {
-            await storage.addRule(policy)
-            const store = await storage.getRule(ruleIRI);
-            expect(store.size).toBe(5)
-        })
-    })
-
-    describe('when deleting a rule', () => {
-        // as I can not look into the store, this gets a little ugly. Reason being, I use other methods from the storage class to check correct behaviour of delete.
-        it('deleleting an empty storage does nothing.', async () => {
-            // tho it runs and doesn't error.
-            const result = await storage.deleteRule(ruleIRI);
-            expect(result).toBeUndefined();
-        })
-
-        it('successfully deletes a rule.', async () => {
-            await storage.addRule(policy);
-            await storage.deleteRule(ruleIRI);
-            const ruleStore = await storage.getRule(ruleIRI);
-            expect(ruleStore.size === 0);
-            const store = await storage.getStore();
-            expect(store.size).toBe(2)
-        })
-    })
-})
+    it('can delete specific triples.', async(): Promise<void> => {
+        await expect(storage.addRule(policy)).resolves.toBeUndefined();
+        const data = new Parser().parse(
+          '<http://example.org/1705937573496#permission> <http://www.w3.org/ns/odrl/2/assigner> <https://pod.woutslabbinck.com/profile/card#me>.',
+        );
+        await expect(storage.removeData(new Store(data))).resolves.toBeUndefined();
+        const store = await storage.getStore();
+        expect(store.size).toBe(6);
+    });
+});
