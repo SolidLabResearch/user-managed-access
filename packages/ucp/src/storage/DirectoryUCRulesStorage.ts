@@ -1,3 +1,4 @@
+import { extractQuadsRecursive } from '../util/Util';
 import { UCRulesStorage } from "./UCRulesStorage";
 import * as path from 'path'
 import * as fs from 'fs'
@@ -20,7 +21,7 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
       protected readonly directoryPath: string,
       protected readonly baseIRI: string,
     ) {
-        this.directoryPath = path.resolve(directoryPath);
+        this.directoryPath = directoryPath;
         if (!fs.lstatSync(directoryPath).isDirectory()) {
             throw Error(`${directoryPath} does not resolve to a directory`)
         }
@@ -33,7 +34,7 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
         }
 
         const parser = new Parser({ baseIRI: this.baseIRI });
-        const files = fs.readdirSync(this.directoryPath).map(file => path.join(this.directoryPath, file))
+        const files = (await fs.promises.readdir(this.directoryPath)).map(file => path.join(this.directoryPath, file))
         for (const file of files) {
             const quads = parser.parse((await fs.promises.readFile(file)).toString());
             this.store.addQuads(quads);
@@ -49,11 +50,14 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
 
 
     public async removeData(data: Store): Promise<void> {
+        // Make sure the files have been read into memory
+        await this.getStore();
         this.store.removeQuads(data.getQuads(null, null, null, null));
     }
 
     public async getRule(identifier: string): Promise<Store> {
-        throw Error('not implemented');
+      const allRules = await this.getStore()
+      return extractQuadsRecursive(allRules, identifier);
     }
     public async deleteRule(identifier: string): Promise<void> {
         throw Error('not implemented');
