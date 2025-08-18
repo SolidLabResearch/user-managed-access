@@ -168,7 +168,7 @@ This example updates the target of this policy. It is important to explicitly in
 
 #### PATCH
 
-A PATCH request will update the specified policy. The request expects a body with content type [`application/sparql-query`](https://www.w3.org/TR/rdf-sparql-query/). The INSERT and DELETE properties can be used to modify the requested policy. These modifications can only be applied to parts of the policy within the client's scope.
+A PATCH request will update the specified policy. The request expects a body with content type [`application/sparql-update`](https://www.w3.org/TR/sparql11-update/). The INSERT and DELETE properties can be used to modify the requested policy. These modifications can only be applied to parts of the policy within the client's scope.
 
 The PATCH process:
 
