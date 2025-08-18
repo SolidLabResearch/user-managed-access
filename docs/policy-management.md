@@ -89,7 +89,6 @@ If the client has viable information about this policy, the server would respond
     <http://www.w3.org/ns/odrl/2/target> <http://localhost:3000/alice/other/resource.txt>;
     <http://www.w3.org/ns/odrl/2/assignee> <https://example.pod.knows.idlab.ugent.be/profile/card#me>;
     <http://www.w3.org/ns/odrl/2/assigner> <https://pod.example.com/profile/card#me>.
-
 ```
 
 #### GET all polices
@@ -129,6 +128,29 @@ The PUT process:
     - When the rollback fails, we basically deleted the policy information within our reach. An internal server error with **status code 500** will indicate this.
 
 Note that this endpoint uses the POST and DELETE functionality to implement the PUT.
+
+##### Example
+
+This example updates the policy previously created, `http://example.org/usagePolicy`, by the client `https://pod.example.com/profile/card#me`.
+
+```curl
+curl -X PUT --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2FusagePolicy' \
+--header 'Authorization: https://pod.example.com/profile/card#me' \
+--header 'Content-Type: text/turtle' \
+--data-raw '@prefix ex: <http://example.org/>.
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix dct: <http://purl.org/dc/terms/>.
+
+ex:usagePolicy a odrl:Agreement .
+ex:usagePolicy odrl:permission ex:permission .
+ex:permission a odrl:Permission .
+ex:permission odrl:action odrl:read .
+ex:permission odrl:target <http://localhost:3000/alice/other/new_resource.txt> .
+ex:permission odrl:assignee <https://example.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission odrl:assigner <https://pod.example.com/profile/card#me> .'
+```
+
+This example updates the target of this policy. It is important to explicitly include `-X PUT`, as curl will otherwise default to a POST request, which is invalid for this endpoint.
 
 #### PATCH
 A PATCH request will update the specified policy. The request expects a body with content type [`application/sparql-query`](https://www.w3.org/TR/rdf-sparql-query/). The INSERT and DELETE properties can be used to modify the requested policy. These modifications can only be applied to parts of the policy within the client's scope.

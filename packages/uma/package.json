@@ -60,11 +60,11 @@
     "demo": "node bin/demo.js"
   },
   "dependencies": {
+    "@comunica/query-sparql": "^2.9.0",
     "@httpland/authorization-parser": "^1.1.0",
     "@solid/access-token-verifier": "^1.2.0",
     "@solid/community-server": "^7.1.7",
     "@solidlab/ucp": "workspace:^",
-    "@comunica/query-sparql": "^2.9.0",
     "@types/n3": "^1.16.4",
     "componentsjs": "^5.5.1",
     "get-jwks": "^9.0.1",
