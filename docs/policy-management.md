@@ -31,7 +31,7 @@ Upon success, the server responds with **status code 201**.
 Bad requests, possibly due to an improper policy definition, will respond with **status code 400**. 
 When the policy has been validated, but adding it to the storage fails, the response will have **status code 500**.
 
-#### Example Request
+#### Example POST Request
 This example creates a policy `http://example.org/usagePolicy` for client `https://pod.example.com/profile/card#me:`
 ```curl
 curl --location 'http://localhost:4000/uma/policies' \
@@ -129,7 +129,7 @@ The PUT process:
 
 Note that this endpoint uses the POST and DELETE functionality to implement the PUT.
 
-##### Example
+##### Example PUT Request
 
 This example updates the policy previously created, `http://example.org/usagePolicy`, by the client `https://pod.example.com/profile/card#me`.
 
@@ -180,6 +180,14 @@ The DELETE process:
 
 This method used to have one rather significant issue, as discussed [later](#delete-fix).
 
+##### Example DELETE Request
+
+In order to delete the policy created and updated above, this simple request would do the job:
+
+```curl
+curl -X DELETE --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2FusagePolicy' \
+--header 'Authorization: https://pod.example.com/profile/card#me'
+```
 
 ## Implementation details
 
