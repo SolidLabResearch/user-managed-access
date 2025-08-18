@@ -90,7 +90,7 @@ curl --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2Fu
 
 If the client has viable information about this policy, the server would respond with the information about the policy:
 
-```curl
+```ttl
 <http://example.org/usagePolicy> a <http://www.w3.org/ns/odrl/2/Agreement>;
     <http://www.w3.org/ns/odrl/2/permission> <http://example.org/permission>.
 <http://example.org/permission> a <http://www.w3.org/ns/odrl/2/Permission>;
@@ -246,7 +246,7 @@ Sanitization Limitations
 
 - There are currently no checks to verify whether a client is sufficiently authorized to create or modify a policy/rule for a specific target.
 
-    A client should not be in able to alter rights about a target it does not have access to.
+    - A client should not be in able to alter rights about a target it does not have access to.
 
     This issue is currently being solved in [a dedicated PR](https://github.com/SolidLabResearch/user-managed-access/pull/50)
 
