@@ -36,7 +36,7 @@ export async function editPolicy(request: HttpHandlerRequest, store: Store, stor
     try {
         await new QueryEngine().queryVoid(query, { sources: [policyStore] });
     } catch (error) {
-        throw new BadRequestHttpError("Query could not be executed:", error);
+        throw new BadRequestHttpError(`Query could not be executed ${error}`);
     }
 
     // Sanitization
