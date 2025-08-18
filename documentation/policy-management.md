@@ -245,11 +245,7 @@ Some endpoints allow new policies to be created, or existing policies to be modi
 Sanitization Limitations
 
 - There are currently no checks to verify whether a client is sufficiently authorized to create or modify a policy/rule for a specific target.
-
     - A client should not be in able to alter rights about a target it does not have access to.
-
-    This issue is currently being solved in [a dedicated PR](https://github.com/SolidLabResearch/user-managed-access/pull/50)
-
 - There are plenty of other sanitization checks to be considered.
 
 ### URI encoding decision
