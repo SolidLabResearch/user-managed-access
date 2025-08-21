@@ -1,6 +1,6 @@
 import { ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM }
   from '@solid/access-token-verifier/dist/constant/ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM';
-import { getLoggerFor } from '@solid/community-server';
+import { getLoggerFor, joinUrl } from '@solid/community-server';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 
 // eslint-disable no-unused-vars
@@ -59,13 +59,13 @@ export class ConfigRequestHandler extends HttpHandler {
    */
   public getConfig(): UmaConfiguration {
     return {
-      jwks_uri: `${this.baseUrl}/keys`,
-      token_endpoint: `${this.baseUrl}/token`,
+      jwks_uri: joinUrl(this.baseUrl, 'keys'),
+      token_endpoint: joinUrl(this.baseUrl, 'token'),
       grant_types_supported: ['urn:ietf:params:oauth:grant-type:uma-ticket'],
-      issuer: `${this.baseUrl}`,
-      permission_endpoint: `${this.baseUrl}/ticket`,
-      introspection_endpoint: `${this.baseUrl}/introspect`,
-      resource_registration_endpoint: `${this.baseUrl}/resources/`,
+      issuer: this.baseUrl,
+      permission_endpoint: joinUrl(this.baseUrl, 'ticket'),
+      introspection_endpoint: joinUrl(this.baseUrl, 'introspect'),
+      resource_registration_endpoint: joinUrl(this.baseUrl, 'resources/'),
       uma_profiles_supported: ['http://openid.net/specs/openid-connect-core-1_0.html#IDToken'],
       dpop_signing_alg_values_supported: [...ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM],
       response_types_supported: [ResponseType.Token],

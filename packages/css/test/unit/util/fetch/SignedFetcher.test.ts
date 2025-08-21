@@ -29,7 +29,7 @@ describe('SignedFetcher', (): void => {
       alg: 'ES256',
       getPrivateKey: vi.fn().mockResolvedValue(jwk),
       getPublicKey: vi.fn(),
-    }
+    };
 
     source = {
       fetch: vi.fn().mockResolvedValue('result'),

@@ -1,10 +1,7 @@
 import { BadRequestHttpError, getLoggerFor, KeyValueStorage, UnauthorizedHttpError } from '@solid/community-server';
 import { AccessToken } from '../tokens/AccessToken';
-import { JwtTokenFactory } from '../tokens/JwtTokenFactory';
-import { SerializedToken } from '../tokens/TokenFactory';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 import { verifyRequest } from '../util/HttpMessageSignatures';
-import { jwtDecrypt } from 'jose';
 
 
 type IntrospectionResponse = {
@@ -29,24 +26,22 @@ export class IntrospectionHandler extends HttpHandler {
    * Creates an introspection handler for tokens in the given token store.
    *
    * @param tokenStore - The store containing the tokens.
-   * @param jwtTokenFactory - The factory with which to produce JWT representations of the tokens.
    */
   constructor(
     private readonly tokenStore: KeyValueStorage<string, AccessToken>,
-    private readonly jwtTokenFactory: JwtTokenFactory,
   ) {
     super();
   }
 
-  async handle({request}: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
+  public async handle({request}: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
     if (!await verifyRequest(request)) throw new UnauthorizedHttpError();
 
-    if (!request.body /*|| !(request.body instanceof Object) */) { // todo: why was the object check here??
+    if (!request.body) {
       throw new BadRequestHttpError('Missing request body.');
     }
 
-    const token = new URLSearchParams(request.body as Record<string, string>).get('token');
     try {
+      const token = new URLSearchParams(request.body as Record<string, string>).get('token');
       if(!token) throw new Error('could not extract token from request body')
       const unsignedToken = await this.processJWTToken(token)
       return {
@@ -55,17 +50,17 @@ export class IntrospectionHandler extends HttpHandler {
       };
     } catch (e) {
       // Todo: The JwtTokenFactory DOES NOT STORE THE TOKEN IN THE TOKENSTORE IN A WAY WE CAN RETRIEVE HERE! How to fix?
-      this.logger.warn(`Token introspection failed: ${e}`)
+      this.logger.warn(`Token introspection failed: ${e}`);
       throw new BadRequestHttpError('Invalid request body.');
     }
   }
 
-
-  private async processJWTToken(signedJWT: string): Promise<IntrospectionResponse> {
-    this.logger.info(JSON.stringify(this.tokenStore.entries().next(), null, 2))
-    const token = (await this.tokenStore.get(signedJWT)) as IntrospectionResponse;
+  protected async processJWTToken(signedJWT: string): Promise<IntrospectionResponse> {
+    const token = await this.tokenStore.get(signedJWT);
     if (!token) throw new Error('Token not found.');
-    token.active = true
-    return token
+    return {
+      active: true,
+      ...token,
+    };
   }
 }

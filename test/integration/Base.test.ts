@@ -66,7 +66,7 @@ describe('A server setup', (): void => {
       });
 
       expect(noTokenResponse.status).toBe(401);
-      wwwAuthenticateHeader = noTokenResponse.headers.get('WWW-Authenticate');
+      wwwAuthenticateHeader = noTokenResponse.headers.get('WWW-Authenticate')!;
       expect(typeof wwwAuthenticateHeader).toBe('string');
     });
 
