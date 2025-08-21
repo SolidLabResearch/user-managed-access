@@ -53,10 +53,14 @@ export class JwtVerifier implements Verifier {
       await jwtVerify(credential.token, Object.assign(jwk, { type: 'JWK' }));
     }
 
-    for (const claim of Object.keys(claims)) if (!this.allowedClaims.includes(claim)) {
-      if (this.errorOnExtraClaims) throw new Error(`Claim '${claim}' not allowed.`);
+    for (const claim of Object.keys(claims)) {
+      if (!this.allowedClaims.includes(claim)) {
+        if (this.errorOnExtraClaims) {
+          throw new Error(`Claim '${claim}' not allowed.`);
+        }
 
-      delete claims[claim];
+        delete claims[claim];
+      }
     }
 
     this.logger.debug(`Returning discovered claims: ${JSON.stringify(claims)}`)

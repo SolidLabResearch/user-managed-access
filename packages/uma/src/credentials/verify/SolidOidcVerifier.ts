@@ -1,4 +1,4 @@
-import { getLoggerFor } from '@solid/community-server';
+import { BadRequestHttpError, getLoggerFor } from '@solid/community-server';
 import { Verifier } from './Verifier';
 import { ClaimSet } from '../ClaimSet';
 import { Credential } from "../Credential";
@@ -18,7 +18,7 @@ export class SolidOidcVerifier implements Verifier {
   public async verify(credential: Credential): Promise<ClaimSet> {
     this.logger.debug(`Verifying credential ${JSON.stringify(credential)}`);
     if (credential.format !== OIDC) {
-      throw new Error(`Token format ${credential.format} does not match this processor's format.`);
+      throw new BadRequestHttpError(`Token format ${credential.format} does not match this processor's format.`);
     }
 
     try {
@@ -35,7 +35,7 @@ export class SolidOidcVerifier implements Verifier {
       const message = `Error verifying OIDC ID Token: ${(error as Error).message}`;
 
       this.logger.debug(message);
-      throw new Error(message);
+      throw new BadRequestHttpError(message);
     }
   }
 }

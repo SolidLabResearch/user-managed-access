@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    // "@tsconfig/node16/tsconfig.json"
+    "lib": ["es2021"],
+    "module": "node16",
+    "target": "es2021",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node16",
+    "types": [ "vitest/globals" ],
+    "declaration": true,
+    "isolatedModules": true,
+    "inlineSourceMap": true,
+    "preserveConstEnums": true,
+    "outDir": "dist",
+    "noImplicitAny": true,
+    "experimentalDecorators": true,
+    "downlevelIteration": true,
+  },
+  "include": [
+    "."
+  ]
+}

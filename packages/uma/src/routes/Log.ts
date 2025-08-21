@@ -2,12 +2,6 @@ import { getLoggerFor, serializeQuads } from '@solid/community-server';
 import { getOperationLogger } from '../logging/OperationLogger';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 
-
-export type LogMessage = {
-  id: string,
-  message: string,
-}
-
 /**
  * An HttpHandler used for returning the logs
  * stored in the UMA Authorization Service.
@@ -15,7 +9,7 @@ export type LogMessage = {
 export class LogRequestHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
-  operationLogger = getOperationLogger()
+  protected readonly operationLogger = getOperationLogger()
 
   /**
   * An HttpHandler used for returning the configuration
@@ -32,7 +26,7 @@ export class LogRequestHandler extends HttpHandler {
    * @param {HttpHandlerContext} context - an irrelevant incoming context
    * @return {Observable<HttpHandlerResponse>} - the mock response
    */
-  async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
+  public async handle(context: HttpHandlerContext): Promise<HttpHandlerResponse> {
     this.logger.info(`Received log access request at '${context.request.url}'`);
 
     return {
@@ -46,7 +40,7 @@ export class LogRequestHandler extends HttpHandler {
    * Returns UMA Configuration for the AS
    * @return {UmaConfiguration} - AS Configuration
    */
-  async getLogMessages(): Promise<string> {
+  protected async getLogMessages(): Promise<string> {
     let messages = this.operationLogger.getLogEntries(null);
     let serializedStream = serializeQuads(messages, 'application/trig')
     return await streamToString(serializedStream) as string
