@@ -1,0 +1,31 @@
+{
+    "@context": [
+        "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+    ],
+    "@graph": [
+        {
+            "@id": "urn:uma:default:AccessRequestRoute",
+            "@type": "HttpHandlerRoute",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "handler": {
+                "@type": "AccessRequestHandler"
+            },
+            "path": "/uma/requests"
+        },
+        {
+            "@id": "urn:uma:default:OneAccessRequestRoute",
+            "@type": "HttpHandlerRoute",
+            "methods": [
+                "GET",
+                "PATCH"
+            ],
+            "handler": {
+                "@type": "AccessRequestHandler"
+            },
+            "path": "/uma/requests/{id}"
+        }
+    ]
+}

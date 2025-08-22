@@ -42,6 +42,7 @@ export * from './routes/Log';
 export * from './routes/VC';
 export * from './routes/Contract';
 export * from './routes/Policy';
+export * from './routes/AccessRequest';
 
 // Tickets
 export * from './ticketing/Ticket';
@@ -81,3 +82,4 @@ export * from './util/routeSpecific/policies/EditPolicies';
 export * from './util/routeSpecific/policies/RewritePolicies';
 export * from './util/routeSpecific/policies/DeletePolicies';
 export * from './util/routeSpecific/policies/PolicyOptions';
+export * from './util/routeSpecific/requests/CreateAccessRequests';

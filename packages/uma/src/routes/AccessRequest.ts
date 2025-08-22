@@ -1,5 +1,8 @@
 import { BadRequestHttpError, getLoggerFor, MethodNotAllowedHttpError } from "@solid/community-server";
 import { HttpHandler , HttpHandlerContext, HttpHandlerRequest, HttpHandlerResponse} from "../util/http/models/HttpHandler";
+import { createAccessRequests } from "../util/routeSpecific/requests/CreateAccessRequests";
+import { getAccessRequests } from "../util/routeSpecific/requests/GetAccessRequests";
+import { updateAccessRequests } from "../util/routeSpecific/requests/UpdateAccessRequests";
 
 /**
  * Endpoint to handle access requests
@@ -30,12 +33,14 @@ export class AccessRequestHandler extends HttpHandler {
     }
 
     public async handle({ request }: HttpHandlerContext) : Promise<HttpHandlerResponse<any>> {
-        this.logger.info(`Received access request-grants request`)
+        this.logger.info(`Received access request-grants request`);
+
+        const client = this.getCredentials(request);
 
         switch (request.method) {
-            case 'GET': return new Promise(() => {});
-            case 'POST': return new Promise(() => {});
-            case 'PATCH': return new Promise(() => {});
+            case 'GET': return getAccessRequests(request, client);
+            case 'POST': return createAccessRequests(request, client);
+            case 'PATCH': return updateAccessRequests(request, client);
             default: throw new MethodNotAllowedHttpError();
         }
     }
