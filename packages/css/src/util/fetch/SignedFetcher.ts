@@ -57,7 +57,11 @@ export class SignedFetcher implements Fetcher {
     new Headers(init?.headers).forEach((value, key) => request.headers[key] = value);
     request.headers['Authorization'] = `HttpSig cred="${this.baseUrl}"`;
 
-    const signed = await httpbis.signMessage({ key, paramValues: { keyid: 'TODO' } }, request);
+    const signed = await httpbis.signMessage({
+      key,
+      fields: [ '@target-uri', '@method' ],
+      paramValues: { keyid: 'TODO' }
+    }, request);
 
     return await this.fetcher.fetch(url, signed);
   }
