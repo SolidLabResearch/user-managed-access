@@ -8,6 +8,7 @@ export default defineConfig({
     include: [ '**/test/(unit|integration)/**/*.test.ts' ],
     coverage: {
       enabled: true,
+      include: [ 'packages/**/src/**' ]
     },
     chaiConfig: {
       truncateThreshold: 0,
