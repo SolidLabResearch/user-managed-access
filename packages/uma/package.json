@@ -42,9 +42,7 @@
   "types": "./dist/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
-    ".": {
-      "require": "./dist/index.js"
-    }
+    ".": "./dist/index.js"
   },
   "files": [
     ".componentsignore",
