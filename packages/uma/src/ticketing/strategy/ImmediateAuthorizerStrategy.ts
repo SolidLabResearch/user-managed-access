@@ -15,11 +15,11 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
   protected readonly logger = getLoggerFor(this);
 
   constructor(
-    private authorizer: Authorizer,
+    protected authorizer: Authorizer,
   ) {}
 
   /** @inheritdoc */
-  async initializeTicket(permissions: Permission[]): Promise<Ticket> {
+  public async initializeTicket(permissions: Permission[]): Promise<Ticket> {
     this.logger.info(`Initializing ticket. ${JSON.stringify(permissions)}`)
 
     return ({
@@ -30,7 +30,7 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
   }
 
   /** @inheritdoc */
-  async validateClaims(ticket: Ticket, claims: ClaimSet): Promise<Ticket> {
+  public async validateClaims(ticket: Ticket, claims: ClaimSet): Promise<Ticket> {
     this.logger.info(`Validating claims. ${JSON.stringify({ ticket, claims })}`);
 
     for (const key of Object.keys(claims)) {
@@ -41,7 +41,7 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
   }
 
   /** @inheritdoc */
-  async resolveTicket(ticket: Ticket): Promise<Result<Permission[], Requirements[]>> {
+  public async resolveTicket(ticket: Ticket): Promise<Result<Permission[], Requirements[]>> {
     this.logger.info(`Resolving ticket. ${JSON.stringify(ticket)}`);
 
     const permissions = await this.calculatePermissions(ticket);
@@ -51,7 +51,7 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
     return Success(permissions);
   }
 
-  private async calculatePermissions(ticket: Ticket): Promise<Permission[]> {
+  protected async calculatePermissions(ticket: Ticket): Promise<Permission[]> {
     return (await this.authorizer.permissions(ticket.provided, ticket.permissions)).filter(
       permission => permission.resource_scopes.length > 0
     );

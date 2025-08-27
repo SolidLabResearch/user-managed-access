@@ -23,13 +23,13 @@ import { serializePolicyInstantiation } from '../logging/OperationSerializer';
  */
 export class BaseNegotiator implements Negotiator {
   protected readonly logger = getLoggerFor(this);
-  operationLogger = getOperationLogger();
+  protected readonly operationLogger = getOperationLogger();
 
   /**
    * Construct a new Negotiator
    * @param verifier - The Verifier used to verify Claims of incoming Credentials.
    * @param ticketStore - A KeyValueStorage to track Tickets.
-   * @param ticketManager - The strategy describing the life cycle of a Ticket.
+   * @param ticketingStrategy - The strategy describing the life cycle of a Ticket.
    * @param tokenFactory - A factory for minting Access Tokens.
    */
   public constructor(
@@ -41,10 +41,6 @@ export class BaseNegotiator implements Negotiator {
 
   /**
    * Performs UMA grant negotiation.
-   *
-   * @param {TokenRequest} body - request body
-   * @param {HttpHandlerContext} context - request context
-   * @return {Promise<TokenResponse>} tokens - yielded tokens
    */
   public async negotiate(input: DialogInput): Promise<DialogOutput> {
     reType(input, DialogInput);

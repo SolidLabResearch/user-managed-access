@@ -3,15 +3,14 @@ import {
   ConflictHttpError,
   createErrorMessage,
   getLoggerFor,
+  InternalServerError,
   KeyValueStorage,
   MethodNotAllowedHttpError,
   NotFoundHttpError,
   UnauthorizedHttpError,
-  UnsupportedMediaTypeHttpError,
-  XSD,
 } from '@solid/community-server';
 import { ODRL, ODRL_P, OWL, RDF, UCRulesStorage } from '@solidlab/ucp';
-import { DataFactory as DF, NamedNode, Quad, Quad_Object, Quad_Subject, Store, Writer } from 'n3';
+import { DataFactory as DF, NamedNode, Quad, Quad_Object, Quad_Subject, Store } from 'n3';
 import { randomUUID } from 'node:crypto';
 import {
   HttpHandler,
@@ -61,7 +60,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
       case 'POST': return this.handlePost(request);
       case 'PUT': return this.handlePut(request);
       case 'DELETE': return this.handleDelete(request);
-      default: throw new MethodNotAllowedHttpError();
+      default: throw new MethodNotAllowedHttpError([ request.method ]);
     }
   }
 
@@ -101,15 +100,13 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     });
   }
 
-  protected async handlePut({ body, headers, parameters }: HttpHandlerRequest): Promise<HttpHandlerResponse> {
-    if (typeof parameters?.id !== 'string') throw new Error('URI for PUT operation should include an id.');
+  protected async handlePut({ body, parameters }: HttpHandlerRequest): Promise<HttpHandlerResponse> {
+    if (typeof parameters?.id !== 'string') {
+      throw new InternalServerError('URI for PUT operation should include an id.');
+    }
 
     if (!await this.resourceStore.has(parameters.id)) {
       throw new NotFoundHttpError();
-    }
-
-    if (headers['content-type'] !== 'application/json') {
-      throw new UnsupportedMediaTypeHttpError('Only Media Type "application/json" is supported for this route.');
     }
 
     try {
@@ -124,18 +121,19 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
 
     return ({
       status: 200,
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
+      body: {
         _id: parameters.id,
         user_access_policy_uri: 'TODO: implement policy UI',
-      }),
+      },
     });
   }
 
   protected async handleDelete({ parameters }: HttpHandlerRequest): Promise<HttpHandlerResponse> {
-    if (typeof parameters?.id !== 'string') throw new Error('URI for DELETE operation should include an id.');
+    if (typeof parameters?.id !== 'string') {
+      throw new InternalServerError('URI for DELETE operation should include an id.');
+    }
 
-    if (!await this.resourceStore.delete(parameters.id)) {
+    if (!await this.resourceStore.has(parameters.id)) {
       throw new NotFoundHttpError('Registration to be deleted does not exist (id unknown).');
     }
 

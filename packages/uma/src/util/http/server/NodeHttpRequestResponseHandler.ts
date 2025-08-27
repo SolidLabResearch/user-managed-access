@@ -38,7 +38,7 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
     if (!requestStream.method) {
       // No request method was received, this path is technically impossible to reach
       this.logger.warn('No method received');
-      throw new Error('method of the request cannot be null or undefined.');
+      throw new BadRequestHttpError('method of the request cannot be null or undefined.');
     }
 
     const urlObject: URL = new URL((await this.targetExtractor.handleSafe({ request: requestStream })).path);

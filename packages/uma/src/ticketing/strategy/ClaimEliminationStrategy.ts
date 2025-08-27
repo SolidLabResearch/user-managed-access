@@ -17,11 +17,11 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
   protected readonly logger = getLoggerFor(this);
 
   constructor(
-    private authorizer: Authorizer,
+    protected authorizer: Authorizer,
   ) {}
 
   /** @inheritdoc */
-  async initializeTicket(permissions: Permission[]): Promise<Ticket> {
+  public async initializeTicket(permissions: Permission[]): Promise<Ticket> {
     this.logger.info(`Initializing ticket. ${JSON.stringify(permissions)}`)
 
     return ({
@@ -31,12 +31,12 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
     });
   }
 
-  private async calculateRequiredClaims(permissions: Permission[]): Promise<Requirements[]> {
+  protected async calculateRequiredClaims(permissions: Permission[]): Promise<Requirements[]> {
     return this.authorizer.credentials(permissions);
   }
 
   /** @inheritdoc */
-  async validateClaims(ticket: Ticket, claims: ClaimSet): Promise<Ticket> {
+  public async validateClaims(ticket: Ticket, claims: ClaimSet): Promise<Ticket> {
     this.logger.debug(`Validating claims. ${JSON.stringify({ ticket, claims })}`);
 
     for (const key of Object.keys(claims)) {
@@ -55,7 +55,7 @@ export class ClaimEliminationStrategy implements TicketingStrategy {
   }
 
   /** @inheritdoc {@link TicketingStrategy.resolveTicket} */
-  async resolveTicket(ticket: Ticket): Promise<Result<Permission[], Requirements[]>> {
+  public async resolveTicket(ticket: Ticket): Promise<Result<Permission[], Requirements[]>> {
     this.logger.debug(`Resolving ticket. ${JSON.stringify(ticket)}`);
 
     return ticket.required.some(req => Object.keys(req).length === 0)

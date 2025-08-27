@@ -9,8 +9,7 @@
       "methods": [ "POST" ],
       "handler": {
         "@type": "IntrospectionHandler",
-        "tokenStore": { "@id": "urn:uma:default:TokenStore" },
-        "jwtTokenFactory": { "@id": "urn:uma:default:TokenFactory" }
+        "tokenFactory": { "@id": "urn:uma:default:TokenFactory" }
       },
       "path": "/uma/introspect"
     }

@@ -1,4 +1,4 @@
-import { BadRequestHttpError, ForbiddenHttpError, getLoggerFor } from '@solid/community-server';
+import { BadRequestHttpError, getLoggerFor } from '@solid/community-server';
 import { DialogInput } from '../dialog/Input';
 import { Negotiator } from '../dialog/Negotiator';
 import { NeedInfoError } from '../errors/NeedInfoError';
@@ -28,9 +28,7 @@ export class TokenRequestHandler extends HttpHandler {
     }
 
     if (params['grant_type'] !== 'urn:ietf:params:oauth:grant-type:uma-ticket') {
-      throw new BadRequestHttpError(
-        `Expected 'grant_type' to be set to 'urn:ietf:params:oauth:grant-type:uma-ticket'
-      `);
+      throw new BadRequestHttpError(`Expected 'grant_type' to be set to 'urn:ietf:params:oauth:grant-type:uma-ticket'`);
     }
 
     try {

@@ -2,10 +2,9 @@ import { getLoggerFor, KeyValueStorage } from '@solid/community-server';
 import { ResourceDescription } from '../../views/ResourceDescription';
 import { Authorizer } from './Authorizer';
 import { Permission } from '../../views/Permission';
-import { Requirements, type ClaimVerifier } from '../../credentials/Requirements';
+import { Requirements } from '../../credentials/Requirements';
 import { ClaimSet } from '../../credentials/ClaimSet';
 
-const NO_RESOURCE = Symbol();
 const namespace = (resource: string) => new URL(resource).pathname.split('/')?.[2] ?? '';
 
 /**
@@ -39,8 +38,8 @@ export class NamespacedAuthorizer implements Authorizer {
     const ns = query[0].resource_id ? await this.findNamespace(query[0].resource_id) : undefined;
 
     // Check namespaces of other resources
-    for (const permission of query) {
-      if ((permission.resource_id ? namespace(permission.resource_id) : undefined) !== ns) {
+    for (let i = 1; i < query.length; ++i) {
+      if ((query[i].resource_id ? await this.findNamespace(query[i].resource_id) : undefined) !== ns) {
         this.logger.warn(`Cannot calculate permissions over multiple namespaces at once.`);
         return [];
       }
@@ -64,8 +63,8 @@ export class NamespacedAuthorizer implements Authorizer {
     const ns = await this.findNamespace(permissions[0].resource_id);
 
     // Check namespaces of other resources
-    for (const permission of permissions) {
-      if (namespace(permission.resource_id) !== ns) {
+    for (let i = 1; i < permissions.length; ++i) {
+      if (await this.findNamespace(permissions[i].resource_id) !== ns) {
         this.logger.warn(`Cannot calculate credentials over multiple namespaces at once.`);
         return [];
       }

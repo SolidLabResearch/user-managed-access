@@ -21,14 +21,13 @@ import { DialogOutput } from './Output';
 export class ContractNegotiator extends BaseNegotiator {
   protected readonly logger = getLoggerFor(this);
 
-  // protected readonly operationLogger = getOperationLogger();
   protected readonly contractManager = new ContractManager();
 
   /**
    * Construct a new Negotiator
    * @param verifier - The Verifier used to verify Claims of incoming Credentials.
    * @param ticketStore - A KeyValueStore to track Tickets.
-   * @param ticketManager - The strategy describing the life cycle of a Ticket.
+   * @param ticketingStrategy - The strategy describing the life cycle of a Ticket.
    * @param tokenFactory - A factory for minting Access Tokens.
    */
   public constructor(
@@ -43,15 +42,15 @@ export class ContractNegotiator extends BaseNegotiator {
 
   /**
    * Performs UMA grant negotiation.
-   *
-   * @param {TokenRequest} body - request body
-   * @param {HttpHandlerContext} context - request context
-   * @return {Promise<TokenResponse>} tokens - yielded tokens
    */
   public async negotiate(input: DialogInput): Promise<DialogOutput> {
     reType(input, DialogInput);
-    if (!input.permissions && input.permission?.length)
-      input.permissions = input.permission.map(p => processRequestPermission(p))
+    if (!input.permissions && input.permission?.length) {
+      input = {
+        ...input,
+        permissions: input.permission.map(p => processRequestPermission(p)),
+      };
+    }
     this.logger.debug(`Input. ${JSON.stringify(input)}`);
     // Create or retrieve ticket
     const ticket = await this.getTicket(input);
@@ -170,7 +169,7 @@ export class ContractNegotiator extends BaseNegotiator {
       const policyCreationResponse = await fetch(instantiatedPolicyContainer, {
         method: 'POST',
         headers: { 'content-type': 'application/ld+json' },
-        body: JSON.stringify(contract, null, 2)
+        body: JSON.stringify(contract),
       });
 
       if (policyCreationResponse.status !== 201) {

@@ -14,8 +14,7 @@ export class WebIdAuthorizer implements Authorizer {
   /**
    * Creates a PublicNamespaceAuthorizer with the given public namespaces.
    *
-   * @param namespaces - A list of namespaces that should be publicly accessible.
-   * @param authorizer - The Authorizer to use for other resources.
+   * @param webids - The WebIDs that can be used.
    */
   constructor(
     protected webids: string[],
@@ -44,7 +43,7 @@ export class WebIdAuthorizer implements Authorizer {
     if (query && !Object.keys(query).includes(WEBID)) return [];
 
     return [{
-      [WEBID]: async (webid) => typeof webid ===  'string' && this.webids.includes(webid),
+      [WEBID]: async (webid) => typeof webid === 'string' && this.webids.includes(webid),
     }];
   }
 }

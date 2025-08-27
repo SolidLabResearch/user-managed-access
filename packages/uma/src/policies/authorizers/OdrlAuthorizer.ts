@@ -1,6 +1,13 @@
-import { createVocabulary, DC, getLoggerFor, RDF } from '@solid/community-server';
+import {
+  BadRequestHttpError,
+  createVocabulary,
+  DC,
+  getLoggerFor,
+  NotImplementedHttpError,
+  RDF
+} from '@solid/community-server';
 import { basicPolicy, ODRL, UCPPolicy, UCRulesStorage } from '@solidlab/ucp';
-import { DataFactory, Literal, NamedNode, Quad_Subject, Store, Writer } from 'n3';
+import { DataFactory, Literal, NamedNode, Quad_Subject, Store } from 'n3';
 import { EyeReasoner, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator'
 import { WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
@@ -62,19 +69,17 @@ export class OdrlAuthorizer implements Authorizer {
 
         // prepare sotw
         const sotw = new Store();
-        sotw.add(quad(namedNode('http://example.com/request/currentTime'), namedNode('http://purl.org/dc/terms/issued'), literal(new Date().toISOString(), namedNode("http://www.w3.org/2001/XMLSchema#dateTime"))));
+        sotw.add(quad(
+          namedNode('http://example.com/request/currentTime'),
+          namedNode('http://purl.org/dc/terms/issued'),
+          literal(new Date().toISOString(), namedNode("http://www.w3.org/2001/XMLSchema#dateTime"))),
+        );
 
         const subject = typeof claims[WEBID] === 'string' ? claims[WEBID] : 'urn:solidlab:uma:id:anonymous';
 
-
         for (const {resource_id, resource_scopes} of query) {
-            if (!resource_id) {
-                this.logger.warn('The OdrlAuthorizer can only calculate permissions for explicit resources.');
-                continue;
-            }
-
             grantedPermissions[resource_id] = [];
-            const actions = resource_scopes ? transformActionsCssToOdrl(resource_scopes) : ["http://www.w3.org/ns/odrl/2/use"]
+            const actions = transformActionsCssToOdrl(resource_scopes);
             for (const action of actions) {
                 this.logger.info(`Evaluating Request [S R AR]: [${subject} ${resource_id} ${action}]`);
                 const requestPolicy: UCPPolicy = {
@@ -119,7 +124,7 @@ export class OdrlAuthorizer implements Authorizer {
     }
 
     public async credentials(permissions: Permission[], query?: Requirements | undefined): Promise<Requirements[]> {
-        throw new Error("Method not implemented.");
+        throw new NotImplementedHttpError('Method not implemented.');
     }
 
 }
@@ -141,7 +146,13 @@ function transformActionsCssToOdrl(actions: string[]): string[] {
 
     // in UMAPermissionReader, only the last part of the URN will be used, divided by a colon
     // again, see CSS package
-    return actions.map(action => scopeCssToOdrl.get(action)!);
+    return actions.map(action => {
+      const result = scopeCssToOdrl.get(action);
+      if (!result) {
+        throw new BadRequestHttpError(`Unsupported action ${action}`);
+      }
+      return result;
+    });
 }
 /**
  * Transform ODRL Actions to equivalent Actions enforced by the Community Solid Server
