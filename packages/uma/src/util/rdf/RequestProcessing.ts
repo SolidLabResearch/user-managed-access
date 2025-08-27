@@ -1,6 +1,9 @@
-import { ClaimSet } from "../../credentials/ClaimSet";
-import { convertStringOrJsonLdIdentifierToString, ODRLPermission, StringOrJsonLdIdentifier } from "../../views/Contract";
-import { Permission } from "../../views/Permission";
+import {
+  convertStringOrJsonLdIdentifierToString,
+  ODRLPermission,
+  StringOrJsonLdIdentifier
+} from '../../views/Contract';
+import { Permission } from '../../views/Permission';
 
 export function switchODRLandCSSPermission(permission: string): string {
     if(permission.startsWith("urn:example:css:modes:")) {
@@ -10,7 +13,6 @@ export function switchODRLandCSSPermission(permission: string): string {
     } else {
         throw new Error(`Permission ${permission} not recognized`)
     }
-
 }
 
 export function processRequestPermission(permission: ODRLPermission): Permission {
@@ -20,9 +22,4 @@ export function processRequestPermission(permission: ODRLPermission): Permission
     const resource_scopes = [ switchODRLandCSSPermission(action) ]
 
     return { resource_id, resource_scopes }
-}
-
-export function extractRequestClaims(permission: ODRLPermission): ClaimSet {
-
-    return {}
 }

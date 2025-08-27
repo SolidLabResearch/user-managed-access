@@ -30,7 +30,7 @@ export class JsonFormHttpHandler extends HttpHandler<HttpHandlerContext<Buffer>,
   }
 
   public async canHandle(context: HttpHandlerContext<Buffer>): Promise<void> {
-    let body: unknown | undefined;
+    let body: unknown;
     if (context.request.body) {
       const contentType = parseContentType(context.request.headers['content-type']);
       if (contentType.value === APPLICATION_X_WWW_FORM_URLENCODED) {

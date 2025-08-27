@@ -23,8 +23,8 @@ export class TicketRequestHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
   constructor(
-    private readonly ticketingStrategy: TicketingStrategy,
-    private readonly ticketStore: KeyValueStorage<string, Ticket>,
+    protected readonly ticketingStrategy: TicketingStrategy,
+    protected readonly ticketStore: KeyValueStorage<string, Ticket>,
   ) {
     super();
   }

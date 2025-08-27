@@ -6,4 +6,4 @@ export interface Ticket {
   permissions: Permission[],
   required: Requirements[],
   provided: ClaimSet,
-};
+}

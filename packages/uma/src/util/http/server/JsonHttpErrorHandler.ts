@@ -58,7 +58,7 @@ export class JsonHttpErrorHandler extends HttpHandler<HttpHandlerContext<Buffer>
     super();
   }
 
-  async handle(context: HttpHandlerContext<Buffer>): Promise<HttpHandlerResponse<Buffer>> {
+  public async handle(context: HttpHandlerContext<Buffer>): Promise<HttpHandlerResponse<Buffer>> {
     try {
       return await this.handler.handleSafe(context);
     } catch (error) {
