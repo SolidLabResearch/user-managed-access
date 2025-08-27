@@ -288,7 +288,7 @@ export class UmaClient implements SingleThreaded {
     let { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
     const knownUmaId = await this.umaIdStore.get(resource.path);
     if (knownUmaId) {
-      endpoint = joinUrl(endpoint, knownUmaId);
+      endpoint = joinUrl(endpoint, encodeURIComponent(knownUmaId));
     }
 
     const description: ResourceDescription = {
