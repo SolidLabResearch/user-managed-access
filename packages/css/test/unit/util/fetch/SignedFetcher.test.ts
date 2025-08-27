@@ -29,7 +29,7 @@ describe('SignedFetcher', (): void => {
       alg: 'ES256',
       getPrivateKey: vi.fn().mockResolvedValue(jwk),
       getPublicKey: vi.fn(),
-    }
+    };
 
     source = {
       fetch: vi.fn().mockResolvedValue('result'),
@@ -42,7 +42,11 @@ describe('SignedFetcher', (): void => {
     await expect(fetcher.fetch('http://example.com', { method: 'DELETE', headers: { accept: 'text/turtle' } })).resolves.toBe('result');
     expect(signMessage).toHaveBeenCalledTimes(1);
     expect(signMessage).toHaveBeenLastCalledWith(
-      { key: expect.objectContaining({ alg: 'ES256', id: 'kid' }), paramValues: { keyid: 'TODO' }},
+      {
+        key: expect.objectContaining({ alg: 'ES256', id: 'kid' }),
+        fields: [ '@target-uri', '@method' ],
+        paramValues: { keyid: 'TODO' }
+      },
       {
         url: 'http://example.com',
         method: 'DELETE',
