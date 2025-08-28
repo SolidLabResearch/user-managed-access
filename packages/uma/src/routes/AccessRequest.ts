@@ -1,8 +1,7 @@
 import { BadRequestHttpError, getLoggerFor, MethodNotAllowedHttpError } from "@solid/community-server";
 import { HttpHandler , HttpHandlerContext, HttpHandlerRequest, HttpHandlerResponse} from "../util/http/models/HttpHandler";
-import { createAccessRequests } from "../util/routeSpecific/requests/CreateAccessRequests";
-import { getAccessRequests } from "../util/routeSpecific/requests/GetAccessRequests";
-import { updateAccessRequests } from "../util/routeSpecific/requests/UpdateAccessRequests";
+import { AccessRequestController } from "../util/routeSpecific/requests/controller/AccessRequestController";
+import { MemoryAccessRequestStorage } from "../util/routeSpecific/requests/storage/MemoryAccessRequestStorage";
 
 /**
  * Endpoint to handle access requests
@@ -10,6 +9,9 @@ import { updateAccessRequests } from "../util/routeSpecific/requests/UpdateAcces
 export class AccessRequestHandler extends HttpHandler {
 
     protected readonly logger = getLoggerFor(this);
+    protected readonly controller = new AccessRequestController(
+        new MemoryAccessRequestStorage()
+    );
 
     constructor() {
         super();
@@ -38,11 +40,51 @@ export class AccessRequestHandler extends HttpHandler {
         const client = this.getCredentials(request);
 
         switch (request.method) {
-            case 'GET': return getAccessRequests(request, client);
-            case 'POST': return createAccessRequests(request, client);
-            case 'PATCH': return updateAccessRequests(request, client);
+            case 'GET': return this.getAccessRequests(client);
+            case 'POST': return this.addAccessRequest(request.body);
+            case 'PATCH': return this.updateAccessRequest(request.body);
+            case 'DELETE': return this.deleteAccessRequest(request.body);
             default: throw new MethodNotAllowedHttpError();
         }
+    }
+
+    private async getAccessRequests(client: string): Promise<HttpHandlerResponse<string>> {
+        const result = await this.controller.getAccessRequests(client);
+        return {
+            body: result,
+            headers: {},
+            status: 200,
+        };
+    }
+
+    private async addAccessRequest(data: string | unknown): Promise<HttpHandlerResponse<void>> {
+        if (typeof data === "string") this.controller.addAccessRequest(data);
+        return {
+            body: undefined,
+            headers: {},
+            status: 200
+        };
+    }
+
+    // ! At this point, there is no query validation to check whether an updateQuery doesn't delete, and vice versa.
+    // ! This could be a potential security risk if not accounted for
+
+    private async updateAccessRequest(query: string | unknown): Promise<HttpHandlerResponse<void>> {
+        if (typeof query === "string") this.controller.updateAccessRequest(query);
+        return {
+            body: undefined,
+            headers: {},
+            status: 200
+        };
+    }
+
+    private async deleteAccessRequest(query: string | unknown): Promise<HttpHandlerResponse<void>> {
+        if (typeof query === "string") this.controller.deleteAccessRequest(query);
+        return {
+            body: undefined,
+            headers: {},
+            status: 200
+        };
     }
 
 }
