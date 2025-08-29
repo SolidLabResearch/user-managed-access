@@ -43,7 +43,7 @@ export class AccessRequestHandler extends HttpHandler {
             case 'GET': return this.getAccessRequests(client);
             case 'POST': return this.addAccessRequest(request.body);
             case 'PATCH': return this.updateAccessRequest(request.body);
-            case 'DELETE': return this.deleteAccessRequest(request.body);
+            case 'DELETE': return this.deleteAccessRequest(client, request.body);
             default: throw new MethodNotAllowedHttpError();
         }
     }
@@ -62,7 +62,7 @@ export class AccessRequestHandler extends HttpHandler {
         return {
             body: undefined,
             headers: {},
-            status: 200
+            status: 201
         };
     }
 
@@ -78,8 +78,8 @@ export class AccessRequestHandler extends HttpHandler {
         };
     }
 
-    private async deleteAccessRequest(query: string | unknown): Promise<HttpHandlerResponse<void>> {
-        if (typeof query === "string") this.controller.deleteAccessRequest(query);
+    private async deleteAccessRequest(requestingPartyId: string, requestedTarget: string | unknown): Promise<HttpHandlerResponse<void>> {
+        if (typeof requestedTarget === "string") this.controller.deleteAccessRequest(requestingPartyId, requestedTarget);
         return {
             body: undefined,
             headers: {},

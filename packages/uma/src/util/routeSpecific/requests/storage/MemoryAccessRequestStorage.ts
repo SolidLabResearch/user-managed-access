@@ -28,7 +28,19 @@ export class MemoryAccessRequestStorage implements AccessRequestStorage {
     // ! There is no query validation to check whether the received queries are of the right type
     // ! This is a potential security risk
 
-    public async deleteAccessRequest(query: string): Promise<void> {
+    public async deleteAccessRequest(requestingPartyId: string, requestedTarget: string): Promise<void> {
+        const query = `
+            PREFIX sotw: <https://w3id.org/force/sotw#>
+
+            DELETE {
+                ?request ?predicate ?value.
+            } WHERE {
+                ?request ?predicate ?value ;
+                        sotw:requestingParty <${requestingPartyId}> ;
+                        sotw:requestedTarget <${requestedTarget}> .
+            }
+        `
+        
         try {
             await new QueryEngine().queryVoid(query, { sources: [this.getStore()] });
         } catch {

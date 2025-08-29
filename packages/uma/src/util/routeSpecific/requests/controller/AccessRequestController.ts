@@ -9,7 +9,7 @@ export class AccessRequestController {
     }
 
     private parseTurtle(data: string): void {
-        const parser = new Parser()
+        const parser = new Parser();
         parser.parse(data, {
             onQuad: (_, quad) => { if (quad) this.store.getStore().addQuad(quad); }
         });
@@ -41,7 +41,7 @@ export class AccessRequestController {
         await this.store.updateAccessRequest(query);
     }
 
-    public async deleteAccessRequest(query: string): Promise<void> {
-        await this.store.deleteAccessRequest(query);
+    public async deleteAccessRequest(requestingPartyId: string, requestedTarget: string): Promise<void> {
+        await this.store.deleteAccessRequest(requestingPartyId, requestedTarget);
     }
 }

@@ -12,21 +12,22 @@ export interface AccessRequestStorage {
 
     /**
      * Get an Access Request from the storage
-     * @param identifier
+     * @param requestingPartyId
      * @returns
      */
     getAccessRequest: (requestingPartyId: string) => Promise<Store>;
 
     /**
      * Delete an Access request from the storage
-     * @param identifier
+     * @param requestingPartyId
+     * @param requestedTarget
      * @returns
      */
-    deleteAccessRequest: (query: string) => Promise<void>;
+    deleteAccessRequest: (requestingPartyId: string, requestedTarget: string) => Promise<void>;
 
     /**
      * Update an Access Request from the storage
-     * @param request
+     * @param query
      * @returns
      */
     updateAccessRequest: (query: string) => Promise<void>;
