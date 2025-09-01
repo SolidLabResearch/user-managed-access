@@ -82,4 +82,5 @@ export * from './util/routeSpecific/policies/EditPolicies';
 export * from './util/routeSpecific/policies/RewritePolicies';
 export * from './util/routeSpecific/policies/DeletePolicies';
 export * from './util/routeSpecific/policies/PolicyOptions';
-export * from './util/routeSpecific/requests/CreateAccessRequests';
+export * from './util/routeSpecific/requests/storage/AccessRequestStorage';
+export * from './util/routeSpecific/requests/storage/MemoryAccessRequestStorage';

@@ -4,27 +4,34 @@
     ],
     "@graph": [
         {
+            "@id": "urn:uma:default:MemoryAccessRequestStorage",
+            "@type": "MemoryAccessRequestStorage"
+        },
+        {
+            "@id": "urn:uma:default:AccessRequestHandler",
+            "@type": "AccessRequestHandler",
+            "baseUrl": { "@id": "urn:uma:variables:baseUrl" },
+            "storage": { "@id": "urn:uma:default:MemoryAccessRequestStorage" }
+        },
+        {
             "@id": "urn:uma:default:AccessRequestRoute",
             "@type": "HttpHandlerRoute",
             "methods": [
                 "GET",
-                "POST"
+                "POST",
+                "OPTIONS"
             ],
-            "handler": {
-                "@type": "AccessRequestHandler"
-            },
+            "handler": { "@id": "urn:uma:default:AccessRequestHandler" },
             "path": "/uma/requests"
         },
         {
             "@id": "urn:uma:default:OneAccessRequestRoute",
             "@type": "HttpHandlerRoute",
             "methods": [
-                "GET",
+                "OPTIONS",
                 "PATCH"
             ],
-            "handler": {
-                "@type": "AccessRequestHandler"
-            },
+            "handler": { "@id": "urn:uma:default:AccessRequestHandler" },
             "path": "/uma/requests/{id}"
         }
     ]

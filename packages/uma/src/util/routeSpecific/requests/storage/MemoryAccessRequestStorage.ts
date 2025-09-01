@@ -28,31 +28,12 @@ export class MemoryAccessRequestStorage implements AccessRequestStorage {
     // ! There is no query validation to check whether the received queries are of the right type
     // ! This is a potential security risk
 
-    public async deleteAccessRequest(requestingPartyId: string, requestedTarget: string): Promise<void> {
-        const query = `
-            PREFIX sotw: <https://w3id.org/force/sotw#>
-
-            DELETE {
-                ?request ?predicate ?value.
-            } WHERE {
-                ?request ?predicate ?value ;
-                        sotw:requestingParty <${requestingPartyId}> ;
-                        sotw:requestedTarget <${requestedTarget}> .
-            }
-        `
-        
+    public async updateAccessRequest(query: string): Promise<void> {        
         try {
             await new QueryEngine().queryVoid(query, { sources: [this.getStore()] });
-        } catch {
-            throw new Error("Something went wrong during the processing of the query");
-        }
-    }
-
-    public async updateAccessRequest(query: string): Promise<void> {
-        try {
-            await new QueryEngine().queryVoid(query, { sources: [this.getStore()] });
-        } catch {
-            throw new Error("Something went wrong during the processing of the query");
+        } catch (error) {
+            // throw new Error("Something went wrong during the processing of the query");
+            throw error;
         }
     }
 }

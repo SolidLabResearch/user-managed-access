@@ -1,20 +1,23 @@
 import { BadRequestHttpError, getLoggerFor, MethodNotAllowedHttpError } from "@solid/community-server";
 import { HttpHandler , HttpHandlerContext, HttpHandlerRequest, HttpHandlerResponse} from "../util/http/models/HttpHandler";
 import { AccessRequestController } from "../util/routeSpecific/requests/controller/AccessRequestController";
-import { MemoryAccessRequestStorage } from "../util/routeSpecific/requests/storage/MemoryAccessRequestStorage";
+import { AccessRequestStorage } from "../util/routeSpecific/requests/storage/AccessRequestStorage";
 
 /**
  * Endpoint to handle access requests
+ * TODO: check how CORS handling should be done
  */
 export class AccessRequestHandler extends HttpHandler {
 
     protected readonly logger = getLoggerFor(this);
-    protected readonly controller = new AccessRequestController(
-        new MemoryAccessRequestStorage()
-    );
+    protected readonly controller;
 
-    constructor() {
+    constructor(
+        storage: AccessRequestStorage,
+        protected readonly baseUrl: string
+    ) {
         super();
+        this.controller = new AccessRequestController(storage);
     }
 
     /**
@@ -28,23 +31,52 @@ export class AccessRequestHandler extends HttpHandler {
      */
     protected getCredentials(request: HttpHandlerRequest): string {
         const header = request.headers['authorization'];
+        
         if (typeof header !== 'string' && request.method !== "OPTIONS") {
             throw new BadRequestHttpError('Missing Authorization header');
         }
+
         return header;
     }
 
-    public async handle({ request }: HttpHandlerContext) : Promise<HttpHandlerResponse<any>> {
+    public async handle(context: HttpHandlerContext) : Promise<HttpHandlerResponse<any>> {
         this.logger.info(`Received access request-grants request`);
+        try {
+            if (context.request.method === 'OPTIONS')
+                return this.handleOptionsRequest();
+            return await this.routeRequest(context);
+        } catch (error: any) {
+            return {
+                status: error.status ?? 500,
+                body: error.message ?? 'Internal Server Error',
+                headers: {
+                    'access-control-allow-origin': '*',
+                    'access-control-allow-methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+                    'access-control-allow-headers': 'Content-Type, Authorization',
+                }
+            }
+        }
+    }
 
+    private async routeRequest({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
         const client = this.getCredentials(request);
 
         switch (request.method) {
-            case 'GET': return this.getAccessRequests(client);
-            case 'POST': return this.addAccessRequest(request.body);
-            case 'PATCH': return this.updateAccessRequest(request.body);
-            case 'DELETE': return this.deleteAccessRequest(client, request.body);
+            case 'GET': return await this.getAccessRequests(client);
+            case 'POST': return await this.addAccessRequest(request.body);
+            case 'PATCH': return await this.updateAccessRequest(request.body, request.url);
             default: throw new MethodNotAllowedHttpError();
+        }
+    }
+
+    private async handleOptionsRequest(): Promise<HttpHandlerResponse<void>> {
+        return {
+            status: 204,
+            headers: {
+                'access-control-allow-origin': '*',
+                'access-control-allow-methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+                'access-control-allow-headers': 'Content-Type, Authorization',
+            }
         }
     }
 
@@ -52,39 +84,31 @@ export class AccessRequestHandler extends HttpHandler {
         const result = await this.controller.getAccessRequests(client);
         return {
             body: result,
-            headers: {},
-            status: 200,
+            headers: { 'access-control-allow-origin': '*' },
+            status: 200, // succesfull answer
         };
     }
 
-    private async addAccessRequest(data: string | unknown): Promise<HttpHandlerResponse<void>> {
-        if (typeof data === "string") this.controller.addAccessRequest(data);
+    private async addAccessRequest(data: string | unknown): Promise<HttpHandlerResponse<any>> {
+        if (data) await this.controller.addAccessRequest(data.toString());
         return {
-            body: undefined,
-            headers: {},
-            status: 201
+            headers: { 'access-control-allow-origin': '*' },
+            status: 201 // Sucessfull creation
         };
     }
 
-    // ! At this point, there is no query validation to check whether an updateQuery doesn't delete, and vice versa.
-    // ! This could be a potential security risk if not accounted for
+    private async updateAccessRequest(query: string | unknown, requestURL: URL): Promise<HttpHandlerResponse<any>> {
+        const emptyQuery = !query;
+        const correctBaseUrl = requestURL.toString().slice(0, this.baseUrl.length) === this.baseUrl
 
-    private async updateAccessRequest(query: string | unknown): Promise<HttpHandlerResponse<void>> {
-        if (typeof query === "string") this.controller.updateAccessRequest(query);
-        return {
-            body: undefined,
-            headers: {},
-            status: 200
-        };
-    }
+        if (emptyQuery || !correctBaseUrl) throw new MethodNotAllowedHttpError();
 
-    private async deleteAccessRequest(requestingPartyId: string, requestedTarget: string | unknown): Promise<HttpHandlerResponse<void>> {
-        if (typeof requestedTarget === "string") this.controller.deleteAccessRequest(requestingPartyId, requestedTarget);
+        const accessRequestId = decodeURIComponent(requestURL.toString().slice(this.baseUrl.length + "/requests/".length)); // this is ugly
+        await this.controller.updateAccessRequest(query!.toString(), accessRequestId);
         return {
-            body: undefined,
-            headers: {},
-            status: 200
-        };
+            headers: { 'access-control-allow-origin': '*' },
+            status: 204
+        }
     }
 
 }
