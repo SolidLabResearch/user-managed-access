@@ -56,7 +56,7 @@ export abstract class BaseHandler extends HttpHandler {
             body: body,
             headers: {
                 ...headers,
-                'access-control-allow-origin': '*/*',
+                'access-control-allow-origin': '*',
                 'access-control-allow-methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
                 'access-control-allow-headers': 'authorization, content-type'
             }
@@ -113,7 +113,7 @@ export abstract class BaseHandler extends HttpHandler {
 
     private async handlePost(request: HttpHandlerRequest<string>, clientID: string): Promise<HttpHandlerResponse<void>> {
         if (!request.body) throw new BadRequestHttpError();
-        const { status } = await this.controller.addEntity(request.body, clientID);
+        const { status } = await this.controller.addEntity(request.body.toString(), clientID);
         return this.addCORSHeaders({
             status: status
         });
