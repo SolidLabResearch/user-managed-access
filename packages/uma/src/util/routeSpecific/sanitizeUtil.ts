@@ -4,3 +4,11 @@ import { Store } from "n3";
 export const noAlreadyDefinedSubjects = (store: Store, newStore: Store): boolean =>
     newStore.getSubjects(null, null, null)
         .every((subject) => store.countQuads(subject, null, null, null) === 0);
+
+export class ConflictError extends Error {
+    constructor() { super(`Resource already exists`); }
+}
+
+export class SanitizationError extends Error {
+    constructor(reason: string) { super(`Sanitization failed: ${reason}`); }
+}
