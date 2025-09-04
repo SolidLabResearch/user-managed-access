@@ -1,3 +1,4 @@
+import { Store, Writer } from 'n3';
 import { parse, stringify } from 'node:querystring';
 
 /**
@@ -33,4 +34,19 @@ export function jsonToForm(json: unknown): string {
  */
 export function isPrimitive(val: unknown): val is string | number | boolean {
   return typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean';
+}
+
+/**
+ * Write an N3 store to a string (in turtle format)
+ */
+export async function writeStore(store: Store): Promise<string> {
+  const writer = new Writer({ format: 'text/turtle' });
+  writer.addQuads(store.getQuads(null, null, null, null));
+
+  return new Promise<string>((resolve, reject) => {
+    writer.end((error, result) => {
+      if (error) reject(error);
+      else resolve(result);
+    });
+  });
 }
