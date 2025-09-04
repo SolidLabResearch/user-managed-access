@@ -44,41 +44,22 @@ export abstract class BaseHandler extends HttpHandler {
     }
 
     /**
-     * Append CORS headers to response
-     * TODO: Check CORS handling with Joachim
-     * @param response response containing a body, status and headers
-     * @returns the same response with CORS headers appended
-     */
-    private addCORSHeaders(response: HttpHandlerResponse<any>): HttpHandlerResponse<any> {
-        const { status, body, headers } = response;
-        return {
-            status: status,
-            body: body,
-            headers: {
-                ...headers,
-                'access-control-allow-origin': '*',
-                'access-control-allow-methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-                'access-control-allow-headers': 'authorization, content-type'
-            }
-        }
-    }
-
-    /**
      * Handle simple OPTIONS request to any of the specified endpoints on this handler
      * @param request OPTIONS request to be handled
      * @returns a simple 204 with CORS headers
      */
     private async handleOptions(): Promise<HttpHandlerResponse<any>> {
         const result = { status: 204 };
-        return this.addCORSHeaders(result);
+        return result;
     }
 
     private async handleSingleGet(entityID: string, clientID: string): Promise<HttpHandlerResponse<string>> {
         const { message, status } = await this.controller.getEntity(entityID, clientID);
-        return this.addCORSHeaders({
+
+        return {
             status: status,
             body: message
-        });
+        };
     }
 
     private async handlePatch(request: HttpHandlerRequest<string>, entityID: string, clientID: string): Promise<HttpHandlerResponse<void>> {
@@ -91,31 +72,34 @@ export abstract class BaseHandler extends HttpHandler {
             else throw new BadRequestHttpError();
         } else status = (await this.controller.patchEntity(entityID, request.body, clientID)).status;
 
-        return this.addCORSHeaders({
+        return {
             status: status
-        });
+        };
     }
 
     private async handleDelete(entityID: string, clientID: string): Promise<HttpHandlerResponse<void>> {
         const { status } = await this.controller.deleteEntity(entityID, clientID);
-        return this.addCORSHeaders({
+
+        return {
             status: status
-        });
+        };
     }
 
     private async handleGet(clientID: string): Promise<HttpHandlerResponse<string>> {
         const { status, message } = await this.controller.getEntities(clientID);
-        return this.addCORSHeaders({
+
+        return {
             status: status,
-            body: message,
-        });
+            body: message
+        };
     }
 
     private async handlePost(request: HttpHandlerRequest<string>, clientID: string): Promise<HttpHandlerResponse<void>> {
         if (!request.body) throw new BadRequestHttpError();
         const { status } = await this.controller.addEntity(request.body.toString(), clientID);
-        return this.addCORSHeaders({
+
+        return {
             status: status
-        });
+        };
     }
 }
