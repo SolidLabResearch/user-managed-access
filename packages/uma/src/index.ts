@@ -43,6 +43,7 @@ export * from './routes/VC';
 export * from './routes/Contract';
 export * from './routes/Policy';
 export * from './routes/AccessRequest';
+export * from './routes/BaseHandler';
 
 // Tickets
 export * from './ticketing/Ticket';
@@ -84,3 +85,8 @@ export * from './util/routeSpecific/policies/DeletePolicies';
 export * from './util/routeSpecific/policies/PolicyOptions';
 export * from './util/routeSpecific/requests/storage/AccessRequestStorage';
 export * from './util/routeSpecific/requests/storage/MemoryAccessRequestStorage';
+
+// Controllers
+export * from './controller/BaseController';
+export * from './controller/AccessRequestController';
+export * from './controller/PolicyRequestController';
