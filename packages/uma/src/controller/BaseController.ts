@@ -7,7 +7,7 @@ import { noAlreadyDefinedSubjects } from "../util/routeSpecific/sanitizeUtil";
 /**
  * Controller class for Policy & Access Request endpoints
  */
-export class BaseController {
+export abstract class BaseController {
     constructor(
         protected readonly store: UCRulesStorage,
         protected readonly conflictMessage: string,
