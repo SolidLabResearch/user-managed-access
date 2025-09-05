@@ -2,11 +2,11 @@
 
 This document describes the *access request administration endpoint*.
 It contains the methods to describe how to create, read, update and delete access requests.
-Example cURL-requests are provided for ease of use (inspired by the workflow in the first part of [this file](https://github.com/bramcomyn/loama/blob/feat/odrl/documentation/access_grants_vs_dsnp.md)).
+Example cURL-requests are provided for ease of use.
 
 The general flow of access requests and grants looks like this:
 
-![Access requests and grants flow](./figures/access_grants_requests_fsm.png).
+![Access requests and grants flow](./figures/access_grants_requests_fsm.png)
 
 The document makes use of these parties and identifiers:
 
@@ -23,7 +23,7 @@ The current implementation supports the following requests to the `uma/requests`
 
 - [**GET**](#reading-access-requests)
 - [**POST**](#creating-access-requests)
-- [**PATCH**](#updating-access-requests)
+- [**PATCH**](#managing-access-requests)
 - [**DELETE**](#deleting-access-requests)
 
 ## Creating access requests
@@ -38,7 +38,7 @@ The accepted formats are those accepted by the [N3 Parser](https://github.com/rd
 - `application/n-quads`
 - `text/n3`
 
-The body is expected to represent a valid ODRL access reques.
+The body is expected to represent a valid ODRL access request.
 No sanitization is currently applied.
 Upon success, the server responds with **status code 201**.
 Bad requests, possibly due to improper access request definition, will respond with **status code 400** (to be implemented) <!-- TODO: implement -->
@@ -82,7 +82,9 @@ curl -X GET --location 'http://localhost:4000/uma/requests' \
 --header 'Authorization: https://example.pod.knows.idlab.ugent.be/profile/card#me'
 ```
 
-## Updating access requests
+## Managing access requests
+
+The RO can accept or deny the access requests, which is done by updating the status triple.
 
 Updating policies can be done through a **PATCH** request.
 The body must hold the content type `application/json`.
