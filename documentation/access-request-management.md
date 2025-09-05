@@ -2,7 +2,7 @@
 
 This document describes the *access request administration endpoint*.
 It contains the methods to describe how to create, read, update and delete access requests.
-Example cURL-requests are provided for ease of use (inspired by the workflow in the first part of [this file](https://github.com/bramcomyn/loama/blob/feat/odrl/documentation/access_grants_vs_dsnp.md)).
+Example cURL-requests are provided for ease of use.
 
 The general flow of access requests and grants looks like this:
 
