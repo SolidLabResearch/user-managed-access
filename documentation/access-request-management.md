@@ -38,7 +38,7 @@ The accepted formats are those accepted by the [N3 Parser](https://github.com/rd
 - `application/n-quads`
 - `text/n3`
 
-The body is expected to represent a valid ODRL access reques.
+The body is expected to represent a valid ODRL access request.
 No sanitization is currently applied.
 Upon success, the server responds with **status code 201**.
 Bad requests, possibly due to improper access request definition, will respond with **status code 400** (to be implemented) <!-- TODO: implement -->
