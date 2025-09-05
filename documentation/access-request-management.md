@@ -6,7 +6,7 @@ Example cURL-requests are provided for ease of use.
 
 The general flow of access requests and grants looks like this:
 
-![Access requests and grants flow](./figures/access_grants_requests_fsm.png).
+![Access requests and grants flow](./figures/access_grants_requests_fsm.png)
 
 The document makes use of these parties and identifiers:
 
