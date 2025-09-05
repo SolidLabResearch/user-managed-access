@@ -19,7 +19,7 @@ The examples provided below make use of `text/turtle` and `application/sparql-up
 
 ## Supported endpoints
 
-The current implementation supports the following requests to the `uma/requests` endpoint
+The current implementation supports the following requests to the `uma/requests` and `/uma/requests/:id` endpoints
 
 - [**GET**](#reading-access-requests)
 - [**POST**](#creating-access-requests)
@@ -66,6 +66,7 @@ ex:request a sotw:EvaluationRequest ;
       sotw:requestedAction odrl:read ;
       sotw:requestingParty <https://example.pod.knows.idlab.ugent.be/profile/card#me> ;
       ex:requestStatus ex:requested .
+      odrl:uid ex:request;
 '
 ```
 
@@ -83,31 +84,26 @@ curl -X GET --location 'http://localhost:4000/uma/requests' \
 
 ## Updating access requests
 
-Updating policies can be done through a **PATC** request.
-The body must hold the content type `application/sparql-update`.
-The query can use the **DELETE/INSERT** statement to update properties of the access request.
+Updating policies can be done through a **PATCH** request.
+The body must hold the content type `application/json`.
 The example below shows how to update the access request's status from `requested` to `accepted`:
 
 ```shell-session
-curl -X PATCH --location 'http://localhost:3000/' \
+curl -X PATCH --location 'http://localhost:4000/uma/rquests/:id' \
 --header 'Authorization: https://example.pod.knows.idlab.ugent.be/profile/card#me' \
---header 'Content-Type: application/sparql-update' \
---data-raw '
-PREFIX ex: <https://example.org/>
-PREFIX sotw: <https://w3id.org/force/sotw#>
-
-DELETE {
-    ?request ex:requestStatus ex:requested .
-} INSERT {
-    ?request ex:requestStatus ex:accepted . # change to `ex:denied` in order to deny
-} WHERE {
-    ?request sotw:requestedTarget <http://localhost:3000/resources/resource.txt> .
-}'
+--header 'Content-Type: application/json' \
+--data-raw '{ "status": "accepted" }' # can be changed to `denied` too.
 ```
 
 ## Deleting access requests
 
-<!-- TODO: figure out -->
+By making a simple **DELETE** request on the `/uma/requests/:id` endpoint, an access request can be deleted.
+The id should be sufficiently encoded in the URL.
+
+```shell-session
+curl -X DELETE --location 'http://localhost:4000/uma/requests/:id' \
+--header 'Authorization: https://example.pod.knows.idlab.ugent.be/profile/card#me' \
+```
 
 ## Future work
 
@@ -122,9 +118,3 @@ The **DELETE** endpoint is not described in the file mentioned, but is simply ad
 There is no coupling between the target resource and the resource owner at this moment.
 Future implementations should make it in such way that the resource owner can fetch access requests concerning their resources.
 This will require a change in the way the **GET** requests are being handled now, as they currently return only access requests where the client is the requesting party.
-
-### Authorization checking
-
-Currently, there is no check for authorization from the requested party.
-A simple WebID check in the `Authorization` header should be enough to illustrate the principle.
-Besides that, **PATCH** requests should have some check of the SPARQL query in order to check its validity and structure.
