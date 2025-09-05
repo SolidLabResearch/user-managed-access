@@ -1,8 +1,19 @@
 import { v4 as uuid } from 'uuid';
 import { Store } from "n3";
 import { queryEngine } from ".";
-import { getLoggerFor } from '@solid/community-server';
 
+/**
+ * Update a policy in the store, provided that the client is its assigner.
+ *
+ * This function checks whether the given client is recorded as assigner
+ * before applying the provided update. If the client is not the assigner,
+ * the function simply returns without applying changes.
+ *
+ * @param store the store to update
+ * @param _entityID identifier of the policy entity (unused here)
+ * @param clientID identifier of the client attempting the update
+ * @param query update to apply if the client is the assigner
+ */
 export const sanitizePatchPolicy = async (
     store: Store,
     _entityID: string,
@@ -18,6 +29,18 @@ export const sanitizePatchPolicy = async (
 // ! link between target and resource owner is not always included through a policy
 // ! there should be some endpoint or link in the store that allows for this discovery
 // ! currently, this patch will not work!
+/**
+ * Construct an update for modifying the status of a request.
+ *
+ * The update replaces the request’s status with a new one,
+ * provided the client is the assigner of a policy targeting
+ * the requested resource.
+ *
+ * @param entityID identifier of the request
+ * @param clientID identifier of the client attempting the patch
+ * @param patchInformation new status value ("accepted", "denied")
+ * @returns a query string
+ */
 const patchRequestQuery = (entityID: string, clientID: string, patchInformation: string) => `
     PREFIX ex: <http://example.org/> 
     PREFIX sotw: <https://w3id.org/force/sotw#>
@@ -40,6 +63,19 @@ const patchRequestQuery = (entityID: string, clientID: string, patchInformation:
 
 // ! doesn't check if there is already an existing policy between these entities for the same resource
 // TODO: include that check
+/**
+ * Construct an insertion that creates a new policy
+ * based on an accepted request.
+ *
+ * A new policy and permission are inserted into the store,
+ * linking the requesting party with the requested target and action.
+ *
+ * @param entityID identifier of the request
+ * @param policy identifier for the new policy
+ * @param permission identifier for the new permission
+ * @param assigner identifier of the client granting the policy
+ * @returns a query string
+ */
 const createPolicyFromRequestQuery = (
     entityID: string,
     policy: string,
@@ -69,6 +105,19 @@ const createPolicyFromRequestQuery = (
     }
 `;
 
+/**
+ * Update the status of a request in the store, and optionally
+ * create a new policy if the request is accepted.
+ *
+ * Only "accepted" and "denied" statuses are allowed.
+ * If "accepted", a new policy and permission are inserted
+ * linking the client to the requested target and action.
+ *
+ * @param store the store to update
+ * @param entityID identifier of the request
+ * @param clientID identifier of the client performing the update
+ * @param patchInformation new status ("accepted" or "denied")
+ */
 export const sanitizePatchRequest = async (
     store: Store,
     entityID: string,

@@ -1,6 +1,17 @@
 import { Store } from "n3";
 import { queryEngine } from ".";
 
+/**
+ * Run a query against a store and collect the matching subgraphs.
+ * 
+ * For each set of variable bindings, this function extracts all triples
+ * where the bound terms appear as subjects, then groups them into a result store.
+ * 
+ * @param store the source store to query
+ * @param query the query string to execute
+ * @param vars list of variable names that must be present in the result
+ * @returns a store containing the merged results of all matching subgraphs
+ */
 const sanitizeGet = async (
     store: Store,
     query: string,
@@ -37,6 +48,14 @@ const sanitizeGet = async (
     });
 }
 
+/**
+ * Build a query to retrieve a single policy and its permissions
+ * by matching both the policy ID and the client’s role as assigner or assignee.
+ * 
+ * @param policyID identifier of the policy
+ * @param clientID identifier of the client (assigner or assignee)
+ * @returns a query string
+ */
 const getPolicyQuery = (policyID: string, clientID: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
     
@@ -55,9 +74,24 @@ const getPolicyQuery = (policyID: string, clientID: string) => `
     }
 `;
 
+/**
+ * Retrieve a single policy and its permissions.
+ * 
+ * @param store the source store
+ * @param policyID identifier of the policy
+ * @param clientID identifier of the client (assigner or assignee)
+ * @returns a store containing the policy and its permissions
+ */
 export const sanitizeGetPolicy = (store: Store, policyID: string, clientID: string) =>
     sanitizeGet(store, getPolicyQuery(policyID, clientID), ['policy', 'perm']);
 
+/**
+ * Build a query to retrieve all policies for a given client.
+ * A client may act as assigner or assignee.
+ * 
+ * @param clientID identifier of the client
+ * @returns a query string
+ */
 const getPoliciesQuery = (clientID: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
     
@@ -75,12 +109,29 @@ const getPoliciesQuery = (clientID: string) => `
     }
 `;
 
+/**
+ * Retrieve all policies for a given client.
+ * 
+ * @param store the source store
+ * @param clientID identifier of the client
+ * @returns a store containing all policies and their permissions
+ */
 export const sanitizeGetPolicies = (store: Store, clientID: string) =>
     sanitizeGet(store, getPoliciesQuery(clientID), ['policy', 'perm']);
 
 // ! There is not necessarily a link between resource owner and resource through a policy
 // ! Currently, only the requests where the client is requesting party will be given,
 // ! for requested targets that aren't included in some policy already.
+
+/**
+ * Build a query to retrieve a single request,
+ * provided that the client is either the requesting party
+ * or the assigner of a policy targeting the same resource.
+ * 
+ * @param requestID identifier of the request
+ * @param clientID identifier of the client
+ * @returns a query string
+ */
 const getRequestQuery = (requestID: string, clientID: string) => `
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
@@ -102,9 +153,25 @@ const getRequestQuery = (requestID: string, clientID: string) => `
     }
 `;
 
+/**
+ * Retrieve a single request by ID,
+ * if the client is the requesting party or assigner of the target.
+ * 
+ * @param store the source store
+ * @param requestID identifier of the request
+ * @param clientID identifier of the client
+ * @returns a store containing the request
+ */
 export const sanitizeGetRequest = (store: Store, requestID: string, clientID: string) =>
     sanitizeGet(store, getRequestQuery(requestID, clientID), ['req']);
 
+/**
+ * Build a query to retrieve all requests for a client,
+ * either as requesting party or as assigner of the requested target.
+ * 
+ * @param clientID identifier of the client
+ * @returns a query string
+ */
 const getRequestsQuery = (clientID: string) => `
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
@@ -125,5 +192,13 @@ const getRequestsQuery = (clientID: string) => `
     }
 `;
 
+/**
+ * Retrieve all requests for a client,
+ * either as requesting party or as assigner of the requested targets.
+ * 
+ * @param store the source store
+ * @param clientID identifier of the client
+ * @returns a store containing the requests
+ */
 export const sanitizeGetRequests = (store: Store, clientID: string) =>
     sanitizeGet(store, getRequestsQuery(clientID), ['req']);
