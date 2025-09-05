@@ -16,6 +16,23 @@ The document makes use of these parties and identifiers:
 - **Requesting Party**: `https://example.pod.knows.idlab.ugent.be/profile/card#me`
 
 The examples provided below make use of `text/turtle` and `application/sparql-update` messages.
+The access request used in the examples below looks like this:
+
+```turtle
+@prefix sotw: <https://w3id.org/force/sotw#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix ex: <http://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:request a sotw:EvaluationRequest ;
+      sotw:requestedTarget <http://localhost:3000/resources/resource.txt> ;
+      sotw:requestedAction odrl:read ;
+      sotw:requestingParty <https://example.pod.knows.idlab.ugent.be/profile/card#me> ;
+      ex:requestStatus ex:requested ;
+      odrl:uid ex:request.
+```
 
 ## Supported endpoints
 
@@ -74,7 +91,6 @@ ex:request a sotw:EvaluationRequest ;
 
 To read policies, a single endpoint is currently implemented.
 This endpoint currently returns the list of access requests where the WebID provided in the `Authorization` header is marked as the requesting party.
-[See also](#coupling-of-target-to-ros).
 An example request to this endpoint is:
 
 ```shell-session
@@ -97,6 +113,9 @@ curl -X PATCH --location 'http://localhost:4000/uma/rquests/:id' \
 --data-raw '{ "status": "accepted" }' # can be changed to `denied` too.
 ```
 
+Once an access request's status has been changed from `requested` to `accepted`, the backend will automatically create a new policy including the correct rules to allow the RP access to the resource.
+After this, the RP will be able to use the resource following the UMA protocol.
+
 ## Deleting access requests
 
 By making a simple **DELETE** request on the `/uma/requests/:id` endpoint, an access request can be deleted.
@@ -111,12 +130,5 @@ curl -X DELETE --location 'http://localhost:4000/uma/requests/:id' \
 
 ### Discrepancies between [earlier descriptions](https://github.com/bramcomyn/loama/blob/feat/odrl/documentation/access_grants_vs_dsnp.md) and this implementation
 
-The current implementation is not entirely as explained in [this file](https://github.com/bramcomyn/loama/blob/feat/odrl/documentation/access_grants_vs_dsnp.md).
-In order to comply with what is explained there, there should be a unique identifier to each access request in the AS, as well as a new endpoint.
-The **DELETE** endpoint is not described in the file mentioned, but is simply added because it was possible to do so.
-
-### Coupling of target to ROs
-
-There is no coupling between the target resource and the resource owner at this moment.
-Future implementations should make it in such way that the resource owner can fetch access requests concerning their resources.
-This will require a change in the way the **GET** requests are being handled now, as they currently return only access requests where the client is the requesting party.
+This file counts as authorative resource for the access request management.
+Other documentation should point to this file as the latest and correct documentation.
