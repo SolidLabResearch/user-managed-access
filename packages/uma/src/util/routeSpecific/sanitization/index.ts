@@ -1,7 +1,7 @@
-export * from './post-sanitization';
-export * from './delete-sanitization';
-export * from './get-sanitization';
-export * from './patch-sanitization';
+export * from './postSanitization';
+export * from './deleteSanitization';
+export * from './getSanitization';
+export * from './patchSanitization';
 
 import { QueryEngine } from '@comunica/query-sparql';
 export const queryEngine = new QueryEngine();
