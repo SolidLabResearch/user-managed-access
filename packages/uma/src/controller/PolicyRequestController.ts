@@ -8,6 +8,9 @@ import {
     sanitizePostPolicy 
 } from "../util/routeSpecific/sanitization";
 
+/**
+ * Controller for routes concerning policies and related rules
+ */
 export class PolicyController extends BaseController {
     constructor(
         store: UCRulesStorage

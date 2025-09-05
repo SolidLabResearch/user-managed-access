@@ -8,6 +8,9 @@ import {
     sanitizePostRequest 
 } from "../util/routeSpecific/sanitization";
 
+/**
+ * Controller for routes concerning access requests
+ */
 export class AccessRequestController extends BaseController {
     constructor(
         store: UCRulesStorage,
