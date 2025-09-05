@@ -1,7 +1,7 @@
 import { BadRequestHttpError, getLoggerFor, MethodNotAllowedHttpError } from "@solid/community-server";
 import { BaseController } from "../controller/BaseController";
 import { HttpHandler, HttpHandlerContext, HttpHandlerRequest, HttpHandlerResponse } from "../util/http/models/HttpHandler";
-import { getAuthorizationHeader } from "../util/routeSpecific/middlewareUtil";
+import { verifyHttpCredentials } from "../util/routeSpecific/middlewareUtil";
 
 /**
  * Base handler for policy and access request endpoints
@@ -25,20 +25,20 @@ export abstract class BaseHandler extends HttpHandler {
         if (request.method === 'OPTIONS')
             return this.handleOptions();
 
-        const client = getAuthorizationHeader(request);
+        const credentials = verifyHttpCredentials(request);
 
         if (request.parameters?.id) {
             switch (request.method) {
-                case 'GET': return this.handleSingleGet(request.parameters.id, client);
-                case 'PATCH': return this.handlePatch(request as HttpHandlerRequest<string>, request.parameters.id, client);
-                case 'DELETE': return this.handleDelete(request.parameters.id, client);
-                default: throw new BadRequestHttpError();
+                case 'GET': return this.handleSingleGet(request.parameters.id, credentials);
+                case 'PATCH': return this.handlePatch(request as HttpHandlerRequest<string>, request.parameters.id, credentials);
+                case 'DELETE': return this.handleDelete(request.parameters.id, credentials);
+                default: throw new MethodNotAllowedHttpError();
             }
         } else {
             switch (request.method) {
-                case 'GET': return this.handleGet(client);
-                case 'POST': return this.handlePost(request as HttpHandlerRequest<string>, client);
-                default: throw new BadRequestHttpError();
+                case 'GET': return this.handleGet(credentials);
+                case 'POST': return this.handlePost(request as HttpHandlerRequest<string>, credentials);
+                default: throw new MethodNotAllowedHttpError();
             }
         }
     }
