@@ -37,7 +37,7 @@ When the policy has been validated, but adding it to the storage fails, the resp
 
 #### Example POST Request
 
-This example creates a policy `http://example.org/usagePolicy` for client `https://pod.example.com/profile/card#me:`
+This example creates a policy `http://example.org/policy` for client `https://pod.example.com/profile/card#me:`
 
 ```curl
 curl --location 'http://localhost:4000/uma/policies' \
@@ -47,13 +47,14 @@ curl --location 'http://localhost:4000/uma/policies' \
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix dct: <http://purl.org/dc/terms/>.
 
-ex:usagePolicy a odrl:Agreement .
-ex:usagePolicy odrl:permission ex:permission .
-ex:permission a odrl:Permission .
-ex:permission odrl:action odrl:read .
-ex:permission odrl:target <http://localhost:3000/alice/other/resource.txt> .
-ex:permission odrl:assignee <https://example.pod.knows.idlab.ugent.be/profile/card#me> .
-ex:permission odrl:assigner <https://pod.example.com/profile/card#me> .'
+ex:policy a odrl:Agreement ;
+               odrl:uid ex:policy ;
+               odrl:permission ex:permission .
+ex:permission a odrl:Permission ;
+              odrl:action odrl:read ;
+              odrl:target <http://localhost:3000/alice/other/resource.txt> ;
+              odrl:assignee <https://example.pod.knows.idlab.ugent.be/profile/card#me> ;
+              odrl:assigner <https://pod.example.com/profile/card#me> .'
 ```
 
 ### Reading policies
@@ -81,17 +82,17 @@ The GET endpoint for one policy will call this procedure, processes groups **(1)
 If group **(1)** is not empty, it will respond with **status code 200** and returns the information in the body with `Content-type: text/turtle`.
 If group **(1)** is empty, it will respond with **status code 204** and an empty body.
 
-An example request to get policy `http://example.org/usagePolicy` for the client with webID `https://pod.example.com/profile/card#me` looks like this:
+An example request to get policy `http://example.org/policy` for the client with webID `https://pod.example.com/profile/card#me` looks like this:
 
 ```curl
-curl --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2FusagePolicy' \
+curl --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2Fpolicy' \
 --header 'Authorization: https://pod.example.com/profile/card#me'
 ```
 
 If the client has viable information about this policy, the server would respond with the information about the policy:
 
 ```ttl
-<http://example.org/usagePolicy> a <http://www.w3.org/ns/odrl/2/Agreement>;
+<http://example.org/policy> a <http://www.w3.org/ns/odrl/2/Agreement>;
     <http://www.w3.org/ns/odrl/2/permission> <http://example.org/permission>.
 <http://example.org/permission> a <http://www.w3.org/ns/odrl/2/Permission>;
     <http://www.w3.org/ns/odrl/2/action> <http://www.w3.org/ns/odrl/2/read>;
@@ -145,23 +146,24 @@ Note that this endpoint uses the POST and DELETE functionality to implement the 
 
 ##### Example PUT Request
 
-This example updates the policy previously created, `http://example.org/usagePolicy`, by the client `https://pod.example.com/profile/card#me`.
+This example updates the policy previously created, `http://example.org/policy`, by the client `https://pod.example.com/profile/card#me`.
 
 ```curl
-curl -X PUT --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2FusagePolicy' \
+curl -X PUT --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2Fpolicy' \
 --header 'Authorization: https://pod.example.com/profile/card#me' \
 --header 'Content-Type: text/turtle' \
 --data-raw '@prefix ex: <http://example.org/>.
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix dct: <http://purl.org/dc/terms/>.
 
-ex:usagePolicy a odrl:Agreement .
-ex:usagePolicy odrl:permission ex:permission .
-ex:permission a odrl:Permission .
-ex:permission odrl:action odrl:read .
-ex:permission odrl:target <http://localhost:3000/alice/other/new_resource.txt> .
-ex:permission odrl:assignee <https://example.pod.knows.idlab.ugent.be/profile/card#me> .
-ex:permission odrl:assigner <https://pod.example.com/profile/card#me> .'
+ex:policy a odrl:Agreement ;
+              odrl:permission ex:permission ;
+              odrl:uid ex:policy .
+ex:permission a odrl:Permission ;
+              odrl:action odrl:read ;
+              odrl:target <http://localhost:3000/alice/other/new_resource.txt> ;
+              odrl:assignee <https://example.pod.knows.idlab.ugent.be/profile/card#me> ;
+              odrl:assigner <https://pod.example.com/profile/card#me> .'
 ```
 
 This example updates the target of this policy. It is important to explicitly include `-X PUT`, as curl will otherwise default to a POST request, which is invalid for this endpoint.
@@ -191,7 +193,7 @@ Note that any quads in the original policy that could not be collected by the pr
 The example below illustrates how policies can be changed using a PATCH request. We notice that the content type has changed to `application/sparql-query`.
 
 ```curl
-curl -X PATCH --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2FusagePolicy' \
+curl -X PATCH --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2Fpolicy' \
 --header 'Authorization: https://pod.example.com/profile/card#me' \
 --header 'Content-Type: application/sparql-update' \
 --data-raw 'PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
@@ -224,7 +226,7 @@ This method used to have one rather significant issue, as discussed [later](#del
 In order to delete the policy created and updated above, this simple request would do the job:
 
 ```curl
-curl -X DELETE --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2FusagePolicy' \
+curl -X DELETE --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2Fpolicy' \
 --header 'Authorization: https://pod.example.com/profile/card#me'
 ```
 
