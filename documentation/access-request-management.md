@@ -83,7 +83,7 @@ curl -X GET --location 'http://localhost:4000/uma/requests' \
 
 ## Updating access requests
 
-Updating policies can be done through a **PATC** request.
+Updating policies can be done through a **PATCH** request.
 The body must hold the content type `application/sparql-update`.
 The query can use the **DELETE/INSERT** statement to update properties of the access request.
 The example below shows how to update the access request's status from `requested` to `accepted`:
