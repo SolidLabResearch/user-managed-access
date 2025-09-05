@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { Store } from "n3";
-import { queryEngine } from ".";
+import {queryEngine} from './index';
 
 /**
  * Update a policy in the store, provided that the client is its assigner.

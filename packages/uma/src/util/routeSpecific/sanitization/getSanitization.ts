@@ -1,5 +1,5 @@
 import { Store } from "n3";
-import { queryEngine } from ".";
+import {queryEngine} from './index';
 
 /**
  * Run a query against a store and collect the matching subgraphs.

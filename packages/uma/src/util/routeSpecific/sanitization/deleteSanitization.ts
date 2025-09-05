@@ -1,5 +1,5 @@
 import { Store } from "n3"
-import { queryEngine } from ".";
+import {queryEngine} from './index';
 
 /**
  * Executes a DELETE query against the given store.

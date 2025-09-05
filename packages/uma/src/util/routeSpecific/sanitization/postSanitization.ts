@@ -1,5 +1,5 @@
 import { Store } from "n3";
-import { queryEngine } from ".";
+import {queryEngine} from './index';
 import { SanitizationError } from "../sanitizeUtil";
 
 /**
