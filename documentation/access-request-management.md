@@ -81,7 +81,9 @@ curl -X GET --location 'http://localhost:4000/uma/requests' \
 --header 'Authorization: https://example.pod.knows.idlab.ugent.be/profile/card#me'
 ```
 
-## Updating access requests
+## Managing access requests
+
+The RO can accept or deny the access requests, which is done by updating the status triple.
 
 Updating policies can be done through a **PATCH** request.
 The body must hold the content type `application/sparql-update`.
