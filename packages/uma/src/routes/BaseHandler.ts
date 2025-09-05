@@ -71,7 +71,7 @@ export abstract class BaseHandler extends HttpHandler {
             if (body.status) status = (await this.controller.patchEntity(entityID, body.status, clientID, false)).status;
             else throw new BadRequestHttpError();
         } else status = (await this.controller.patchEntity(entityID, request.body, clientID)).status;
-
+        
         return {
             status: status
         };

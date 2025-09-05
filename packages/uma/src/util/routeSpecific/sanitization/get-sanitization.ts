@@ -78,6 +78,9 @@ const getPoliciesQuery = (clientID: string) => `
 export const sanitizeGetPolicies = (store: Store, clientID: string) =>
     sanitizeGet(store, getPoliciesQuery(clientID), ['policy', 'perm']);
 
+// ! There is not necessarily a link between resource owner and resource through a policy
+// ! Currently, only the requests where the client is requesting party will be given,
+// ! for requested targets that aren't included in some policy already.
 const getRequestQuery = (requestID: string, clientID: string) => `
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>

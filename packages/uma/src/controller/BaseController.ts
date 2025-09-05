@@ -3,11 +3,14 @@ import { Store } from "n3";
 import { writeStore } from "../util/ConvertUtil";
 import { parseStringAsN3Store } from 'koreografeye';
 import { noAlreadyDefinedSubjects } from "../util/routeSpecific/sanitizeUtil";
+import { getLoggerFor } from "@solid/community-server";
 
 /**
  * Controller class for Policy & Access Request endpoints
  */
 export abstract class BaseController {
+    private readonly logger = getLoggerFor(this);
+    
     constructor(
         protected readonly store: UCRulesStorage,
         protected readonly conflictMessage: string,
@@ -58,6 +61,7 @@ export abstract class BaseController {
 
     public async patchEntity(entityID: string, patchInformation: string, clientID: string, isolate: boolean = true): Promise<{ status: number }> {
         let store: Store;
+        
         if (isolate) { // requires isolating all information about the entity provided, as e.g. the patchinformation has a query to be executed
             store = await this.sanitizeGet(await this.store.getStore(), entityID, clientID);
             (await this.store.getStore()).removeQuads(store.getQuads(null, null, null, null));
