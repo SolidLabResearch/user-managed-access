@@ -4,6 +4,7 @@ import {
   createErrorMessage,
   getLoggerFor,
   InternalServerError,
+  joinUrl,
   KeyValueStorage,
   MethodNotAllowedHttpError,
   NotFoundHttpError,
@@ -93,6 +94,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
 
     return ({
       status: 201,
+      headers: { location: `${joinUrl(request.url.href, encodeURIComponent(resource))}` },
       body: {
         _id: resource,
         user_access_policy_uri: 'TODO: implement policy UI',

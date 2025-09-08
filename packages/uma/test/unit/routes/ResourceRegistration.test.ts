@@ -1,5 +1,6 @@
 import 'jest-rdf';
 import {
+  joinUrl,
   KeyValueStorage,
   MethodNotAllowedHttpError,
   NotFoundHttpError,
@@ -96,6 +97,7 @@ describe('ResourceRegistration', (): void => {
     it('registers the resource using the name as identifier.', async(): Promise<void> => {
       await expect(handler.handle(input)).resolves.toEqual({
         status: 201,
+        headers: { location: `http://example.com/foo/name` },
         body: { _id: 'name', user_access_policy_uri: 'TODO: implement policy UI' },
       });
       expect(resourceStore.set).toHaveBeenCalledTimes(1);
@@ -109,6 +111,7 @@ describe('ResourceRegistration', (): void => {
       input.request.body!.resource_defaults = { pred: [ 'scope' ], '@reverse': { 'rPred': [ 'otherScope' ]}};
       await expect(handler.handle(input)).resolves.toEqual({
         status: 201,
+        headers: { location: `http://example.com/foo/name` },
         body: { _id: 'name', user_access_policy_uri: 'TODO: implement policy UI' },
       });
       expect(policies.addRule).toHaveBeenCalledTimes(1);
@@ -144,6 +147,7 @@ describe('ResourceRegistration', (): void => {
       input.request.body!.name = 'entry';
       await expect(handler.handle(input)).resolves.toEqual({
         status: 201,
+        headers: { location: `http://example.com/foo/entry` },
         body: { _id: 'entry', user_access_policy_uri: 'TODO: implement policy UI' },
       });
       expect(policies.addRule).toHaveBeenCalledTimes(1);

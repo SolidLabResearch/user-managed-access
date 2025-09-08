@@ -115,8 +115,8 @@ in the relevant policies that determine access.
 The Solid identifier of the resource is irrelevant,
 and not even known by the AS.
 If the request is successful,
-the AS responds with a 201 status code.
-The location header contains the new identifier.
+the AS responds with a 201 status code and the UMA identifier in the body.
+The location header contains the URL needed to update the registration.
 The RS stores this identifier, linked to the Solid identifier, for future use.
 
 ### About identifiers
