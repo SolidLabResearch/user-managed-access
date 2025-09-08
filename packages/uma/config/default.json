@@ -55,7 +55,7 @@
           "@id": "urn:uma:default:HandlerServerConfigurator",
           "@type": "HandlerServerConfigurator",
           "handler": {
-            "@id": "urn:uma:default:NodeHttpRequestResponseHandler"
+            "@id": "urn:uma:default:HttpHandler"
           }
         }
       }
