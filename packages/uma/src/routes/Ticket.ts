@@ -12,6 +12,7 @@ import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/ht
 import { verifyRequest } from '../util/HttpMessageSignatures';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
+import { ResourceDescription } from '../views/ResourceDescription';
 
 /**
  * A TicketRequestHandler is tasked with implementing
@@ -25,6 +26,7 @@ export class TicketRequestHandler extends HttpHandler {
   constructor(
     protected readonly ticketingStrategy: TicketingStrategy,
     protected readonly ticketStore: KeyValueStorage<string, Ticket>,
+    protected readonly resourceStore: KeyValueStorage<string, ResourceDescription>,
   ) {
     super();
   }
@@ -38,6 +40,19 @@ export class TicketRequestHandler extends HttpHandler {
     } catch (e) {
       this.logger.warn(`Syntax error: ${createErrorMessage(e)}, ${request.body}`);
       throw new BadRequestHttpError(`Request has bad syntax: ${createErrorMessage(e)}`);
+    }
+
+    for (const { resource_id } of request.body) {
+      // https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-federated-authz-2.0.html#rfc.section.4.3
+      if (!await this.resourceStore.has(resource_id)) {
+        return {
+          status: 400,
+          body: {
+            error: 'invalid_resource_id',
+            error_description: `Unknown UMA ID ${resource_id}`,
+          }
+        }
+      }
     }
 
     const ticket = await this.ticketingStrategy.initializeTicket(request.body);
