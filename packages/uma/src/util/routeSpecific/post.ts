@@ -53,10 +53,10 @@ const executePost = async (
  * Build a query to retrieve a newly posted policy,
  * ensuring that the client is the assigner of its permission.
  *
- * @param clientID identifier of the client
+ * @param resourceOwner identifier of the client
  * @returns a query string
  */
-const buildPolicyCreationQuery = (clientID: string) => `
+const buildPolicyCreationQuery = (resourceOwner: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
     PREFIX dct: <http://purl.org/dc/terms/>
 
@@ -70,7 +70,7 @@ const buildPolicyCreationQuery = (clientID: string) => `
            odrl:action ?action ;
            odrl:target ?target ;
            odrl:assignee ?assignee ;
-           odrl:assigner <${clientID}> .
+           odrl:assigner <${resourceOwner}> .
     }
 `;
 
@@ -81,22 +81,22 @@ const buildPolicyCreationQuery = (clientID: string) => `
  * and that the client is the assigner of its permission.
  *
  * @param store the source store
- * @param clientID identifier of the client (assigner)
+ * @param resourceOwner identifier of the client (assigner)
  * @returns the validated policy as a store
  * @throws {SanitizationError} if zero or more than one policy matches
  */
-export const postPolicy = (store: Store, clientID: string) =>
-    executePost(store, buildPolicyCreationQuery(clientID), ["p", "r"]);
+export const postPolicy = (store: Store, resourceOwner: string) =>
+    executePost(store, buildPolicyCreationQuery(resourceOwner), ["p", "r"]);
 
 /**
  * Build a query to retrieve a newly posted request,
  * ensuring it has correct status and is linked to the client
  * as the requesting party.
  *
- * @param clientID identifier of the client
+ * @param requestingParty identifier of the client
  * @returns a query string
  */
-const buildAccessRequestCreationQuery = (clientID: string) => `
+const buildAccessRequestCreationQuery = (requestingParty: string) => `
     PREFIX ex: <http://example.org/>
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX dcterms: <http://purl.org/dc/terms/>
@@ -107,7 +107,7 @@ const buildAccessRequestCreationQuery = (clientID: string) => `
            dcterms:issued ?date ;
            sotw:requestedTarget ?target ;
            sotw:requestedAction ?action ;
-           sotw:requestingParty <${clientID}> ;
+           sotw:requestingParty <${requestingParty}> ;
            ex:requestStatus ex:requested .
     }
 `;
@@ -119,12 +119,12 @@ const buildAccessRequestCreationQuery = (clientID: string) => `
  * is issued, and is linked to the given client as requesting party.
  *
  * @param store the source store
- * @param clientID identifier of the client
+ * @param resourceOwner identifier of the client
  * @returns the validated request as a store
  * @throws {SanitizationError} if zero or more than one request matches
  */
-export const postAccessRequest = (store: Store, clientID: string) =>
-    executePost(store, buildAccessRequestCreationQuery(clientID), ["r"]);
+export const postAccessRequest = (store: Store, resourceOwner: string) =>
+    executePost(store, buildAccessRequestCreationQuery(resourceOwner), ["r"]);
 
 /**
  * Check whether all subjects in the new store

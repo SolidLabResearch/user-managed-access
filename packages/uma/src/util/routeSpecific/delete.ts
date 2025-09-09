@@ -22,10 +22,10 @@ const executeDelete = async (
  * to the provided `clientID`.
  * 
  * @param policyID ID of the policy to delete
- * @param clientID ID of the resource owner (assigner) who owns the policy
+ * @param resourceOwner ID of the resource owner (assigner) who owns the policy
  * @returns a DELETE query string
  */
-const buildPolicyDeletionQuery = (policyID: string, clientID: string) => `
+const buildPolicyDeletionQuery = (policyID: string, resourceOwner: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
     DELETE {
@@ -35,7 +35,7 @@ const buildPolicyDeletionQuery = (policyID: string, clientID: string) => `
         ?policy a odrl:Agreement ;
                 odrl:permission ?permission ;
                 odrl:uid <${policyID}> .
-        ?permission odrl:assigner <${clientID}> .
+        ?permission odrl:assigner <${resourceOwner}> .
 
         ?policy ?policyPredicate ?policyObject .
         ?permission ?permissionPredicate ?permissionObject .
@@ -47,11 +47,11 @@ const buildPolicyDeletionQuery = (policyID: string, clientID: string) => `
  * 
  * @param store store containing the policies
  * @param policyID ID of the policy to delete
- * @param clientID ID of the resource owner (assigner) responsible for the policy
+ * @param resourceOwner ID of the resource owner (assigner) responsible for the policy
  * @returns a promise resolving when deletion is completed
  */
-export const deletePolicy = (store: Store, policyID: string, clientID: string) =>
-    executeDelete(store, buildPolicyDeletionQuery(policyID, clientID));
+export const deletePolicy = (store: Store, policyID: string, resourceOwner: string) =>
+    executeDelete(store, buildPolicyDeletionQuery(policyID, resourceOwner));
 
 /**
  * Build a query that deletes an access request and its related triples.
@@ -61,10 +61,10 @@ export const deletePolicy = (store: Store, policyID: string, clientID: string) =
  * - The request targets a resource assigned to `clientID` via an ODRL agreement.
  * 
  * @param requestID ID of the access request to delete
- * @param clientID ID of the requesting party or resource owner
+ * @param requestingPartyOrResourceowner ID of the requesting party or resource owner
  * @returns a DELETE query string
  */
-const buildAccessRequestDeletionQuery = (requestID: string, clientID: string) => `
+const buildAccessRequestDeletionQuery = (requestID: string, requestingPartyOrResourceowner: string) => `
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
@@ -74,7 +74,7 @@ const buildAccessRequestDeletionQuery = (requestID: string, clientID: string) =>
         ?req odrl:uid <${requestID}> ;
              ?p ?o .
         {
-            ?req sotw:requestingParty <${clientID}> .
+            ?req sotw:requestingParty <${requestingPartyOrResourceowner}> .
         } 
         UNION
         {
@@ -82,7 +82,7 @@ const buildAccessRequestDeletionQuery = (requestID: string, clientID: string) =>
             ?pol a odrl:Agreement ;
                  odrl:permission ?per .
             ?per odrl:target ?target ;
-                 odrl:assigner <${clientID}> .
+                 odrl:assigner <${requestingPartyOrResourceowner}> .
         }
     }
 `;
@@ -96,8 +96,8 @@ const buildAccessRequestDeletionQuery = (requestID: string, clientID: string) =>
  * 
  * @param store store containing the requests
  * @param requestID ID of the request to delete
- * @param clientID ID of the requesting party or resource owner
+ * @param requestingPartyOrResourceOwner ID of the requesting party or resource owner
  * @returns a promise resolving when deletion is completed
  */
-export const deleteAccessRequest = (store: Store, requestID: string, clientID: string) =>
-    executeDelete(store, buildAccessRequestDeletionQuery(requestID, clientID));
+export const deleteAccessRequest = (store: Store, requestID: string, requestingPartyOrResourceOwner: string) =>
+    executeDelete(store, buildAccessRequestDeletionQuery(requestID, requestingPartyOrResourceOwner));

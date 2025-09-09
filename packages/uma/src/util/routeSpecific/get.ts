@@ -53,10 +53,10 @@ const executeGet = async (
  * by matching both the policy ID and the client’s role as assigner or assignee.
  * 
  * @param policyID identifier of the policy
- * @param clientID identifier of the client (assigner or assignee)
+ * @param assigneeOrAssigner identifier of the client (assigner or assignee)
  * @returns a query string
  */
-const buildPolicyRetrievalQuery = (policyID: string, clientID: string) => `
+const buildPolicyRetrievalQuery = (policyID: string, assigneeOrAssigner: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
     
     SELECT DISTINCT ?policy ?perm
@@ -65,11 +65,11 @@ const buildPolicyRetrievalQuery = (policyID: string, clientID: string) => `
                 odrl:uid <${policyID}> ;
                 odrl:permission ?perm .
         {
-            ?perm odrl:assigner <${clientID}> .
+            ?perm odrl:assigner <${assigneeOrAssigner}> .
         }
         UNION
         {
-            ?perm odrl:assignee <${clientID}> .
+            ?perm odrl:assignee <${assigneeOrAssigner}> .
         }
     }
 `;
@@ -79,20 +79,20 @@ const buildPolicyRetrievalQuery = (policyID: string, clientID: string) => `
  * 
  * @param store the source store
  * @param policyID identifier of the policy
- * @param clientID identifier of the client (assigner or assignee)
+ * @param assigneeOrAssigner identifier of the client (assigner or assignee)
  * @returns a store containing the policy and its permissions
  */
-export const getPolicy = (store: Store, policyID: string, clientID: string) =>
-    executeGet(store, buildPolicyRetrievalQuery(policyID, clientID), ['policy', 'perm']);
+export const getPolicy = (store: Store, policyID: string, assigneeOrAssigner: string) =>
+    executeGet(store, buildPolicyRetrievalQuery(policyID, assigneeOrAssigner), ['policy', 'perm']);
 
 /**
  * Build a query to retrieve all policies for a given client.
  * A client may act as assigner or assignee.
  * 
- * @param clientID identifier of the client
+ * @param assigneeOrAssigner identifier of the client
  * @returns a query string
  */
-const buildPoliciesRetrievalQuery = (clientID: string) => `
+const buildPoliciesRetrievalQuery = (assigneeOrAssigner: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
     
     SELECT DISTINCT ?policy ?perm
@@ -100,11 +100,11 @@ const buildPoliciesRetrievalQuery = (clientID: string) => `
         ?policy a odrl:Agreement ;
                 odrl:permission ?perm .
         {
-            ?perm odrl:assigner <${clientID}> .
+            ?perm odrl:assigner <${assigneeOrAssigner}> .
         }
         UNION
         {
-            ?perm odrl:assignee <${clientID}> .
+            ?perm odrl:assignee <${assigneeOrAssigner}> .
         }
     }
 `;
@@ -113,11 +113,11 @@ const buildPoliciesRetrievalQuery = (clientID: string) => `
  * Retrieve all policies for a given client.
  * 
  * @param store the source store
- * @param clientID identifier of the client
+ * @param assigneeOrAssigner identifier of the client
  * @returns a store containing all policies and their permissions
  */
-export const getPolicies = (store: Store, clientID: string) =>
-    executeGet(store, buildPoliciesRetrievalQuery(clientID), ['policy', 'perm']);
+export const getPolicies = (store: Store, assigneeOrAssigner: string) =>
+    executeGet(store, buildPoliciesRetrievalQuery(assigneeOrAssigner), ['policy', 'perm']);
 
 // ! There is not necessarily a link between resource owner and resource through a policy
 // ! Currently, only the requests where the client is requesting party will be given,
@@ -129,10 +129,10 @@ export const getPolicies = (store: Store, clientID: string) =>
  * or the assigner of a policy targeting the same resource.
  * 
  * @param requestID identifier of the request
- * @param clientID identifier of the client
+ * @param requestingPartyOrResourceOwner identifier of the client
  * @returns a query string
  */
-const buildAccessRequestRetrievalQuery = (requestID: string, clientID: string) => `
+const buildAccessRequestRetrievalQuery = (requestID: string, requestingPartyOrResourceOwner: string) => `
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
@@ -140,7 +140,7 @@ const buildAccessRequestRetrievalQuery = (requestID: string, clientID: string) =
     WHERE {
         ?req odrl:uid <${requestID}> .
         {
-            ?req sotw:requestingParty <${clientID}> .
+            ?req sotw:requestingParty <${requestingPartyOrResourceOwner}> .
         } 
         UNION
         {
@@ -148,7 +148,7 @@ const buildAccessRequestRetrievalQuery = (requestID: string, clientID: string) =
             ?pol a odrl:Agreement ;
                  odrl:permission ?per .
             ?per odrl:target ?target ;
-                 odrl:assigner <${clientID}> .
+                 odrl:assigner <${requestingPartyOrResourceOwner}> .
         }
     }
 `;
@@ -159,27 +159,27 @@ const buildAccessRequestRetrievalQuery = (requestID: string, clientID: string) =
  * 
  * @param store the source store
  * @param requestID identifier of the request
- * @param clientID identifier of the client
+ * @param requestingPartyOrResourceOwner identifier of the client
  * @returns a store containing the request
  */
-export const getAccessRequest = (store: Store, requestID: string, clientID: string) =>
-    executeGet(store, buildAccessRequestRetrievalQuery(requestID, clientID), ['req']);
+export const getAccessRequest = (store: Store, requestID: string, requestingPartyOrResourceOwner: string) =>
+    executeGet(store, buildAccessRequestRetrievalQuery(requestID, requestingPartyOrResourceOwner), ['req']);
 
 /**
  * Build a query to retrieve all requests for a client,
  * either as requesting party or as assigner of the requested target.
  * 
- * @param clientID identifier of the client
+ * @param requestingPartyOrResourceOwner identifier of the client
  * @returns a query string
  */
-const buildAccessRequestsRetrievalQuery = (clientID: string) => `
+const buildAccessRequestsRetrievalQuery = (requestingPartyOrResourceOwner: string) => `
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
     SELECT DISTINCT ?req
     WHERE {
         {
-            ?req sotw:requestingParty <${clientID}> .
+            ?req sotw:requestingParty <${requestingPartyOrResourceOwner}> .
         } 
         UNION
         {
@@ -187,7 +187,7 @@ const buildAccessRequestsRetrievalQuery = (clientID: string) => `
             ?pol a odrl:Agreement ;
                  odrl:permission ?per .
             ?per odrl:target ?target ;
-                 odrl:assigner <${clientID}> .
+                 odrl:assigner <${requestingPartyOrResourceOwner}> .
         }
     }
 `;
@@ -197,8 +197,8 @@ const buildAccessRequestsRetrievalQuery = (clientID: string) => `
  * either as requesting party or as assigner of the requested targets.
  * 
  * @param store the source store
- * @param clientID identifier of the client
+ * @param requestingPartyOrResourceOwner identifier of the client
  * @returns a store containing the requests
  */
-export const getAccessRequests = (store: Store, clientID: string) =>
-    executeGet(store, buildAccessRequestsRetrievalQuery(clientID), ['req']);
+export const getAccessRequests = (store: Store, requestingPartyOrResourceOwner: string) =>
+    executeGet(store, buildAccessRequestsRetrievalQuery(requestingPartyOrResourceOwner), ['req']);
