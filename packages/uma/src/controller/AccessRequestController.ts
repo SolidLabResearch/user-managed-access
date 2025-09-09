@@ -22,7 +22,7 @@ export class AccessRequestController extends BaseController {
             sanitizeDeleteRequest,
             sanitizeGetRequests,
             sanitizeGetRequest,
-            sanitizePatchRequest
+            sanitizePatchRequest,
         );
     }
 }

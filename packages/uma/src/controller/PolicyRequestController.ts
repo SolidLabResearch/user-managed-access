@@ -22,7 +22,7 @@ export class PolicyController extends BaseController {
             sanitizeDeletePolicy,
             sanitizeGetPolicies,
             sanitizeGetPolicy,
-            sanitizePatchPolicy
+            sanitizePatchPolicy,
         );
     }
 }

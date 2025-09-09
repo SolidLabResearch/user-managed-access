@@ -12,6 +12,7 @@ import { verifyHttpCredentials } from "../util/routeSpecific/middlewareUtil";
  * Supported methods:
  *  - **GET** `/:id`    -  retrieve a single policy (including its rules) or access request 
  *  - **PATCH** `/:id`  -  patch a policy (and rules) or access request
+ *  - **PUT** `/:id`    - rewrite a policy (and rules) or access request
  *  - **DELETE** `/:id` -  delete policy or access request
  *  - **GET** `/`   -   retrieve all policies (including their rules) or access requests
  *  - **POST** `/`  -   create new policy or access request
@@ -52,6 +53,7 @@ export abstract class BaseHandler extends HttpHandler {
             switch (request.method) {
                 case 'GET': return this.handleSingleGet(request.parameters.id, credentials);
                 case 'PATCH': return this.handlePatch(request as HttpHandlerRequest<string>, request.parameters.id, credentials);
+                case 'PUT': return this.handlePut(request as HttpHandlerRequest<string>, request.parameters.id, credentials);
                 case 'DELETE': return this.handleDelete(request.parameters.id, credentials);
                 default: throw new MethodNotAllowedHttpError();
             }
@@ -111,6 +113,22 @@ export abstract class BaseHandler extends HttpHandler {
             else throw new BadRequestHttpError();
         } else status = (await this.controller.patchEntity(entityID, request.body, clientID)).status;
         
+        return {
+            status: status
+        };
+    }
+
+    /**
+     * Rewrite a single policy (including rules) or access request identified by `entityID`.
+     * 
+     * @param entityID ID pointing to the policy or access request
+     * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
+     * @returns a response with status 204 upon success
+     */
+    private async handlePut(request: HttpHandlerRequest<string>, entityID: string, clientID: string): Promise<HttpHandlerResponse<void>> {
+        if (!request.body) throw new BadRequestHttpError();
+        const { status } = await this.controller.putEntity(request.body.toString(), entityID, clientID);
+
         return {
             status: status
         };

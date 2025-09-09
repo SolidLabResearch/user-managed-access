@@ -127,4 +127,31 @@ export abstract class BaseController {
 
         return { status: 204 };
     }
+
+    /**
+     * Apply a PUT to a single policy or access request identified by `entityID`µ.
+     * 
+     * Currently, this is only implemented for policies.
+     * The {@link BaseHandler} should never call this function for access requests routes, as it isn't configured in the componentsjs file.
+     * 
+     * @param data RDF data in Turtle/N3 format representing a policy or acccess request
+     * @param entityID ID pointing to the policy or access request
+     * @param clientID ID pointing to the resource owner (RO) or requesting party making the put
+     * @returns a status code:
+     *          - 204 if put was successful
+     */
+    public async putEntity(data: string, entityID: string, clientID: string): Promise<{ status: number }> {
+        // check if this entity is already defined in the store
+        const getResult = await this.getEntity(entityID, clientID);
+        if (getResult.status !== 200) return { status: 404 };
+
+        // parse the entity through a POST request and check the results
+        const store = await parseStringAsN3Store(data);
+        const sanitizedStore = await this.sanitizePost(store, clientID);
+
+        // delete the old rule and insert the new
+        await this.deleteEntity(entityID, clientID);
+        await this.store.addRule(sanitizedStore);
+        return { status: 204 };
+    }
 }

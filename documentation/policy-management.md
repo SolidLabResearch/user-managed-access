@@ -32,7 +32,7 @@ The accepted formats are those accepted by the [N3 Parser](https://github.com/rd
 
 The body is expected to represent a valid ODRL policy, although some [sanitization](#sanitization-decisions) is applied to ensure minimal validity. It is possible to POST multiple policies at once, but they have to remain in scope of the client.
 Upon success, the server responds with **status code 201**.
-Bad requests, possibly due to an improper policy definition, will respond with **status code 400**.
+Bad requests, possibly due to an improper policy definition, will respond with **status code 400 or 409**.
 When the policy has been validated, but adding it to the storage fails, the response will have **status code 500**.
 
 #### Example POST Request
@@ -64,23 +64,10 @@ To read policies, two endpoints are implemented:
 - GET `/uma/policies`: get policy information you are authorized to see, for every policy.
 - GET `/uma/policies/<encodedPolicyID>`: get policy information you are authorized to see, for the policy with the specified [URI encoded](#uri-encoding-decision) ID.
 
+These endpoints returen both the policies (and related rules) where the user is identified as the assigner and assignee.
+Applications should be aware of this and should make sure the distinction is made where necessary.
+
 #### GET one policy
-
-The algorithm to GET a single policy will use a procedure to separate the policy into different parts:
-
-1. Policy Quads
-    - Some quads in the policy define rules. Their general form looks like `<policyID> <relation> <ruleID> .`. These quads are split into rules owned by the client **(1)**, and those owned by another client **(2)**.
-    - Other quads define other parts about the policy. These quads are set into a group of `policy definitions` **(3)**.
-2. Rule Quads
-    - Owned rule quads are those where the client as an assigner **(4)**.
-    - Other rule quads are owned by other clients **(5)**.
-
-The procedure returns an object containing these five groups. Note that the information is discovered through a **depth 1** algorithm, which can not handle `Duty` constructions.
-The same procedure is also used in other endpoints, in cases where it is also important what groups **(2)** and **(5)** contain, which is why we also return these.
-
-The GET endpoint for one policy will call this procedure, processes groups **(1)**, **(3)** and **(4)**.
-If group **(1)** is not empty, it will respond with **status code 200** and returns the information in the body with `Content-type: text/turtle`.
-If group **(1)** is empty, it will respond with **status code 204** and an empty body.
 
 An example request to get policy `http://example.org/policy` for the client with webID `https://pod.example.com/profile/card#me` looks like this:
 
@@ -103,19 +90,12 @@ If the client has viable information about this policy, the server would respond
 
 #### GET all polices
 
-The current implementation iterates over every quad in the policy that defines a rule, performing a lookup to see if the client is the assigner.
-Only then, additional information about the policy AND the rule will be collected, once again only with **depth 1**. The information about the policy will be filtered, because you shouldn't be in able to see the rule definitions of another client.
-
-This is not done with the procedure from the GET One Policy endpoint, because using it over every policy would be quite exhaustive.
-
 An example request would look like this:
 
 ```curl
 curl --location 'http://localhost:4000/uma/policies' \
 --header 'Authorization: https://pod.example.com/profile/card#me'
 ```
-
-The response is similar to the GET One Policy response, but for every policy *owned* by the client.
 
 ### Updating policies
 
@@ -138,11 +118,8 @@ The PUT process:
     Failed checks will result in a response with **status code 400** and a dedicated message.
 3. Delete the old policy, but keep a copy for a possible rollback. The deletion uses the procedure used in the [DELETE](#deleting-policies) endpoint.
 
-4. Add the new policy. On success, the server will respond with **status code 200** and a body containing the new policy and its rules (within scope of the client). When this does not succeed, a rollback will be set up:
-    - The server will try to reset the state of the policy by adding the old quads. If this succeeds, an internal server error with **status code 500** will indicate that nothing has been rewritten, and the old version is restored.
-    - When the rollback fails, we basically deleted the policy information within our reach. An internal server error with **status code 500** will indicate this.
-
-Note that this endpoint uses the POST and DELETE functionality to implement the PUT.
+4. Add the new policy. On success, the server will respond with **status code 204** .
+Upon failure, the server will respond with a 5xx error status.
 
 ##### Example PUT Request
 
@@ -170,23 +147,13 @@ This example updates the target of this policy. It is important to explicitly in
 
 #### PATCH
 
-A PATCH request will update the specified policy. The request expects a body with content type [`application/sparql-update`](https://www.w3.org/TR/sparql11-update/). The INSERT and DELETE properties can be used to modify the requested policy. These modifications can only be applied to parts of the policy within the client's scope.
+A PATCH request will update the policy and its related rules using a SPARQL update query.
+The `content-type` header must be set to `application/sparql-update`.
 
-The PATCH process:
-
-1. Collect all information about the existing policy with the procedure explained in the [GET One Policy endpoint](#get-one-policy). If the policy does not exist, the server responds with **status code 400**. In the current implementation, we have chosen that the client cannot PATCH a policy in which it has no rules. Doing so will also result in a response with **status code 400**.
-
-2. The content type of the body gets validated. The content-type must be set to `application/sparql-query`. Any other type will result in a response with **status code 400**.
-
-3. We use the policy information to create a store which only contains groups **(1)**, **(3)** and **(4)** as explained [above](#get-one-policy). This will serve as an isolated store, on which we can execute the update query. This implementation has its advantages:
-    - We do not need to validate the sparql query, since we execute it on an isolated store.
-    - Performing DELETE queries on rules out of your scope will simply not work, since they are not part of the isolated store.
-    - We can easily see exactly when the query goes out of scope by testing the resulting store, separating it in the 5 groups and performing the following checks:
-        1. If the resulting store has rules out of the clients' scope (indicated by groups **(2)** and **(5)**), we can abort the update and respond with **status code 400**.
-        2. We can analyze the size of the resulting store. Substracting the amount of quads within reach should result in 0, since no other rules may be added. This test will fail when the client inserts/deletes any unrelated quads to its own policy. Upon failure, the server responds with **status code 400**.
-4. The old definition will be replaced with the updated version. Since no real update function for our storage exists, we delete the old policy and add the resulting store from the query, together with the quads out of scope as collected in step 1.
-
-Note that any quads in the original policy that could not be collected by the procedure defined in [GET One Policy](#get-one-policy), will not be part of the newly defined policy.
+The policy will be isolated from the store before executing the query, to make sure no other quads are affected.
+In addition, the user's credentials are checked to make sure they are the resource owner for the resource targeted in the policy.
+After this, the query can be executed.
+To make sure the policy remains a valid policy, the policy is isolated and checked again before inserting the modified store back in the store.
 
 ##### Example PATCH request
 
@@ -210,16 +177,7 @@ DELETE {
 ### Deleting policies
 
 To delete a policy, send a DELETE request to `/uma/policies/<encodedPolicyID>` with the URI encoded ID of the policy.
-
-The DELETE process:
-
-1. Find the rules defined in the policy.
-2. Filter the rules that are assigned by the client, and delete them.
-3. Find out if there are rules not assigned by the client.
-    - If there are other rules, we cannot delete the policy information as well. We delete the rule and its definition triple in the policy.
-    - If there are no other rules, we can delete the entire policy.
-
-This method used to have one rather significant issue, as discussed [later](#delete-fix).
+The deletion is handled by performing a simple `DELETE WHERE` SPARQL query.
 
 #### Example DELETE Request
 
@@ -261,7 +219,6 @@ The current implementation is tested only by the script in `scripts\test-uma-ODR
 ## TODO
 
 - The current [sanitization limitations](#sanitization-decisions) are to be considered.
-- Fix CORS handling: the project configuration must be extended to the `/policies` endpoint.
 - Implement Unit Tests
 - ...
 
