@@ -1,12 +1,12 @@
 import { UCRulesStorage } from "@solidlab/ucp";
 import { BaseController } from "./BaseController";
 import { 
-    sanitizeDeleteRequest, 
-    sanitizeGetRequest, 
-    sanitizeGetRequests, 
-    sanitizePatchRequest, 
-    sanitizePostRequest 
-} from "../util/routeSpecific/sanitization";
+    deleteAccessRequest, 
+    getAccessRequest, 
+    getAccessRequests, 
+    patchAccessRequest, 
+    postAccessRequest 
+} from "../util/routeSpecific";
 
 /**
  * Controller for routes concerning access requests
@@ -18,11 +18,11 @@ export class AccessRequestController extends BaseController {
         super(
             store,
             'Already existing requests found',
-            sanitizePostRequest,
-            sanitizeDeleteRequest,
-            sanitizeGetRequests,
-            sanitizeGetRequest,
-            sanitizePatchRequest,
+            postAccessRequest,
+            deleteAccessRequest,
+            getAccessRequests,
+            getAccessRequest,
+            patchAccessRequest,
         );
     }
 }

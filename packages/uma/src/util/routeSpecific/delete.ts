@@ -8,7 +8,7 @@ import {queryEngine} from './index';
  * @param query DELETE query string to be executed
  * @returns a promise resolving when the deletion is completed
  */
-const sanitizeDelete = async (
+const executeDelete = async (
     store: Store,
     query: string,
 ): Promise<void> => {
@@ -25,7 +25,7 @@ const sanitizeDelete = async (
  * @param clientID ID of the resource owner (assigner) who owns the policy
  * @returns a DELETE query string
  */
-const deletePolicyQuery = (policyID: string, clientID: string) => `
+const buildPolicyDeletionQuery = (policyID: string, clientID: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
     DELETE {
@@ -50,8 +50,8 @@ const deletePolicyQuery = (policyID: string, clientID: string) => `
  * @param clientID ID of the resource owner (assigner) responsible for the policy
  * @returns a promise resolving when deletion is completed
  */
-export const sanitizeDeletePolicy = (store: Store, policyID: string, clientID: string) =>
-    sanitizeDelete(store, deletePolicyQuery(policyID, clientID));
+export const deletePolicy = (store: Store, policyID: string, clientID: string) =>
+    executeDelete(store, buildPolicyDeletionQuery(policyID, clientID));
 
 /**
  * Build a query that deletes an access request and its related triples.
@@ -64,7 +64,7 @@ export const sanitizeDeletePolicy = (store: Store, policyID: string, clientID: s
  * @param clientID ID of the requesting party or resource owner
  * @returns a DELETE query string
  */
-const deleteRequestQuery = (requestID: string, clientID: string) => `
+const buildAccessRequestDeletionQuery = (requestID: string, clientID: string) => `
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
@@ -99,5 +99,5 @@ const deleteRequestQuery = (requestID: string, clientID: string) => `
  * @param clientID ID of the requesting party or resource owner
  * @returns a promise resolving when deletion is completed
  */
-export const sanitizeDeleteRequest = (store: Store, requestID: string, clientID: string) =>
-    sanitizeDelete(store, deleteRequestQuery(requestID, clientID));
+export const deleteAccessRequest = (store: Store, requestID: string, clientID: string) =>
+    executeDelete(store, buildAccessRequestDeletionQuery(requestID, clientID));

@@ -12,7 +12,7 @@ import {queryEngine} from './index';
  * @param vars list of variable names that must be present in the result
  * @returns a store containing the merged results of all matching subgraphs
  */
-const sanitizeGet = async (
+const executeGet = async (
     store: Store,
     query: string,
     vars: string[]
@@ -56,7 +56,7 @@ const sanitizeGet = async (
  * @param clientID identifier of the client (assigner or assignee)
  * @returns a query string
  */
-const getPolicyQuery = (policyID: string, clientID: string) => `
+const buildPolicyRetrievalQuery = (policyID: string, clientID: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
     
     SELECT DISTINCT ?policy ?perm
@@ -82,8 +82,8 @@ const getPolicyQuery = (policyID: string, clientID: string) => `
  * @param clientID identifier of the client (assigner or assignee)
  * @returns a store containing the policy and its permissions
  */
-export const sanitizeGetPolicy = (store: Store, policyID: string, clientID: string) =>
-    sanitizeGet(store, getPolicyQuery(policyID, clientID), ['policy', 'perm']);
+export const getPolicy = (store: Store, policyID: string, clientID: string) =>
+    executeGet(store, buildPolicyRetrievalQuery(policyID, clientID), ['policy', 'perm']);
 
 /**
  * Build a query to retrieve all policies for a given client.
@@ -92,7 +92,7 @@ export const sanitizeGetPolicy = (store: Store, policyID: string, clientID: stri
  * @param clientID identifier of the client
  * @returns a query string
  */
-const getPoliciesQuery = (clientID: string) => `
+const buildPoliciesRetrievalQuery = (clientID: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
     
     SELECT DISTINCT ?policy ?perm
@@ -116,8 +116,8 @@ const getPoliciesQuery = (clientID: string) => `
  * @param clientID identifier of the client
  * @returns a store containing all policies and their permissions
  */
-export const sanitizeGetPolicies = (store: Store, clientID: string) =>
-    sanitizeGet(store, getPoliciesQuery(clientID), ['policy', 'perm']);
+export const getPolicies = (store: Store, clientID: string) =>
+    executeGet(store, buildPoliciesRetrievalQuery(clientID), ['policy', 'perm']);
 
 // ! There is not necessarily a link between resource owner and resource through a policy
 // ! Currently, only the requests where the client is requesting party will be given,
@@ -132,7 +132,7 @@ export const sanitizeGetPolicies = (store: Store, clientID: string) =>
  * @param clientID identifier of the client
  * @returns a query string
  */
-const getRequestQuery = (requestID: string, clientID: string) => `
+const buildAccessRequestRetrievalQuery = (requestID: string, clientID: string) => `
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
@@ -162,8 +162,8 @@ const getRequestQuery = (requestID: string, clientID: string) => `
  * @param clientID identifier of the client
  * @returns a store containing the request
  */
-export const sanitizeGetRequest = (store: Store, requestID: string, clientID: string) =>
-    sanitizeGet(store, getRequestQuery(requestID, clientID), ['req']);
+export const getAccessRequest = (store: Store, requestID: string, clientID: string) =>
+    executeGet(store, buildAccessRequestRetrievalQuery(requestID, clientID), ['req']);
 
 /**
  * Build a query to retrieve all requests for a client,
@@ -172,7 +172,7 @@ export const sanitizeGetRequest = (store: Store, requestID: string, clientID: st
  * @param clientID identifier of the client
  * @returns a query string
  */
-const getRequestsQuery = (clientID: string) => `
+const buildAccessRequestsRetrievalQuery = (clientID: string) => `
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
@@ -200,5 +200,5 @@ const getRequestsQuery = (clientID: string) => `
  * @param clientID identifier of the client
  * @returns a store containing the requests
  */
-export const sanitizeGetRequests = (store: Store, clientID: string) =>
-    sanitizeGet(store, getRequestsQuery(clientID), ['req']);
+export const getAccessRequests = (store: Store, clientID: string) =>
+    executeGet(store, buildAccessRequestsRetrievalQuery(clientID), ['req']);

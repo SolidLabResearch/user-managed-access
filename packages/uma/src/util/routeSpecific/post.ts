@@ -1,6 +1,6 @@
 import { Store } from "n3";
 import {queryEngine} from './index';
-import { SanitizationError } from "../sanitizeUtil";
+import { SanitizationError } from "./sanitizeUtil";
 
 /**
  * Run a query against the store and extract exactly one matching subgraph.
@@ -15,7 +15,7 @@ import { SanitizationError } from "../sanitizeUtil";
  * @returns a store containing exactly one matching subgraph
  * @throws {SanitizationError} if zero or more than one entity is found
  */
-const sanitizePost = async (
+const executePost = async (
     store: Store,
     query: string,
     vars: string[]
@@ -56,7 +56,7 @@ const sanitizePost = async (
  * @param clientID identifier of the client
  * @returns a query string
  */
-const postPolicyQuery = (clientID: string) => `
+const buildPolicyCreationQuery = (clientID: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
     PREFIX dct: <http://purl.org/dc/terms/>
 
@@ -85,8 +85,8 @@ const postPolicyQuery = (clientID: string) => `
  * @returns the validated policy as a store
  * @throws {SanitizationError} if zero or more than one policy matches
  */
-export const sanitizePostPolicy = (store: Store, clientID: string) =>
-    sanitizePost(store, postPolicyQuery(clientID), ["p", "r"]);
+export const postPolicy = (store: Store, clientID: string) =>
+    executePost(store, buildPolicyCreationQuery(clientID), ["p", "r"]);
 
 /**
  * Build a query to retrieve a newly posted request,
@@ -96,7 +96,7 @@ export const sanitizePostPolicy = (store: Store, clientID: string) =>
  * @param clientID identifier of the client
  * @returns a query string
  */
-const postRequestQuery = (clientID: string) => `
+const buildAccessRequestCreationQuery = (clientID: string) => `
     PREFIX ex: <http://example.org/>
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX dcterms: <http://purl.org/dc/terms/>
@@ -123,8 +123,8 @@ const postRequestQuery = (clientID: string) => `
  * @returns the validated request as a store
  * @throws {SanitizationError} if zero or more than one request matches
  */
-export const sanitizePostRequest = (store: Store, clientID: string) =>
-    sanitizePost(store, postRequestQuery(clientID), ["r"]);
+export const postAccessRequest = (store: Store, clientID: string) =>
+    executePost(store, buildAccessRequestCreationQuery(clientID), ["r"]);
 
 /**
  * Check whether all subjects in the new store

@@ -14,7 +14,7 @@ import {queryEngine} from './index';
  * @param clientID identifier of the client attempting the update
  * @param query update to apply if the client is the assigner
  */
-export const sanitizePatchPolicy = async (
+export const patchPolicy = async (
     store: Store,
     _entityID: string,
     clientID: string,
@@ -41,7 +41,7 @@ export const sanitizePatchPolicy = async (
  * @param patchInformation new status value ("accepted", "denied")
  * @returns a query string
  */
-const patchRequestQuery = (entityID: string, clientID: string, patchInformation: string) => `
+const buildAccessRequestModificationQuery = (entityID: string, clientID: string, patchInformation: string) => `
     PREFIX ex: <http://example.org/> 
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
@@ -76,7 +76,7 @@ const patchRequestQuery = (entityID: string, clientID: string, patchInformation:
  * @param assigner identifier of the client granting the policy
  * @returns a query string
  */
-const createPolicyFromRequestQuery = (
+const buildPolicyCreationFromAccessRequestQuery = (
     entityID: string,
     policy: string,
     permission: string,
@@ -118,18 +118,18 @@ const createPolicyFromRequestQuery = (
  * @param clientID identifier of the client performing the update
  * @param patchInformation new status ("accepted" or "denied")
  */
-export const sanitizePatchRequest = async (
+export const patchAccessRequest = async (
     store: Store,
     entityID: string,
     clientID: string,
     patchInformation: string
 ) => {
     if (!['accepted', 'denied'].includes(patchInformation)) return ; // ? perhaps throw an error?
-    const patchQuery = patchRequestQuery(entityID, clientID, patchInformation);
+    const patchQuery = buildAccessRequestModificationQuery(entityID, clientID, patchInformation);
     await queryEngine.queryVoid(patchQuery, { sources: [store] });
 
     if (patchInformation === 'accepted') {
-        const newPolicyQuery = createPolicyFromRequestQuery(entityID, uuid(), uuid(), clientID);
+        const newPolicyQuery = buildPolicyCreationFromAccessRequestQuery(entityID, uuid(), uuid(), clientID);
         await queryEngine.queryVoid(newPolicyQuery, { sources: [store] });
     }
 }
