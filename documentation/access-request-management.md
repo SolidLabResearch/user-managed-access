@@ -126,6 +126,15 @@ curl -X DELETE --location 'http://localhost:4000/uma/requests/:id' \
 --header 'Authorization: https://example.pod.knows.idlab.ugent.be/profile/card#me' \
 ```
 
+## Important Notes
+
+### Undefined behavior for **PATCH/DELETE** request
+
+Upon the first **PATCH** request which changes an access request's status from `requested` to `accepted` a new policy and permission are created.
+When a new **PATCH** request would change the status to denied, nothing is currently done with the policy.
+Even when the access request would be deleted, the backend currently doesn't do anything to the policy.
+This is undefined behavior and should be treated as such.
+
 ## Future work
 
 ### Discrepancies between [earlier descriptions](https://github.com/bramcomyn/loama/blob/feat/odrl/documentation/access_grants_vs_dsnp.md) and this implementation
