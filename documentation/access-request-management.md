@@ -134,6 +134,7 @@ Upon the first **PATCH** request which changes an access request's status from `
 When a new **PATCH** request would change the status to denied, nothing is currently done with the policy.
 Even when the access request would be deleted, the backend currently doesn't do anything to the policy.
 This is undefined behavior and should be treated as such.
+This works in both directions: if the policy is changed in some way, nothing is changed to the access request either.
 
 ## Future work
 
