@@ -1,7 +1,7 @@
 import {UserManagedAccessFetcher} from "./util/UMA-client";
 
 const resource = "http://localhost:3000/alice/other/resource.txt"
-const claim_token = "https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me"
+const claim_token = "https://example.org/pods/resource-owner/profile/card#me"
 const claim_token_format = 'urn:solidlab:uma:claims:formats:webid'
 const fetcher = new UserManagedAccessFetcher({token:claim_token, token_format: claim_token_format});
 

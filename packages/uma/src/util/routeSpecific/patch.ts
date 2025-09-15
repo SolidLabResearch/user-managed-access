@@ -57,7 +57,7 @@ const buildAccessRequestModificationQuery = (entityID: string, resourceOwner: st
         ?pol a odrl:Agreement ;
              odrl:permission ?perm .
         ?perm odrl:target ?target ;
-              odrl:assigner <${resourceOwner}> .
+             odrl:assigner <${resourceOwner}> .
     }
 `;
 
@@ -70,14 +70,14 @@ const buildAccessRequestModificationQuery = (entityID: string, resourceOwner: st
  * A new policy and permission are inserted into the store,
  * linking the requesting party with the requested target and action.
  *
- * @param entityID identifier of the request
+ * @param accessRequestID identifier of the request
  * @param policy identifier for the new policy
  * @param permission identifier for the new permission
  * @param resourceOwner identifier of the client granting the policy
  * @returns a query string
  */
 const buildPolicyCreationFromAccessRequestQuery = (
-    entityID: string,
+    accessRequestID: string,
     policy: string,
     permission: string,
     resourceOwner: string,
@@ -97,7 +97,7 @@ const buildPolicyCreationFromAccessRequestQuery = (
                         odrl:assigner <${resourceOwner}> .
     } WHERE {
         ?req a sotw:EvaluationRequest ;
-             odrl:uid <${entityID}> ;
+             odrl:uid <${accessRequestID}> ;
              sotw:requestingParty ?requestingParty ;
              sotw:requestedTarget ?target ;
              sotw:requestedAction ?action ;
@@ -114,22 +114,22 @@ const buildPolicyCreationFromAccessRequestQuery = (
  * linking the client to the requested target and action.
  *
  * @param store the store to update
- * @param entityID identifier of the request
+ * @param accessRequestID identifier of the request
  * @param resourceOwner identifier of the client performing the update
  * @param patchInformation new status ("accepted" or "denied")
  */
 export const patchAccessRequest = async (
     store: Store,
-    entityID: string,
+    accessRequestID: string,
     resourceOwner: string,
     patchInformation: string
 ) => {
     if (!['accepted', 'denied'].includes(patchInformation)) return ; // ? perhaps throw an error?
-    const patchQuery = buildAccessRequestModificationQuery(entityID, resourceOwner, patchInformation);
+    const patchQuery = buildAccessRequestModificationQuery(accessRequestID, resourceOwner, patchInformation);
     await queryEngine.queryVoid(patchQuery, { sources: [store] });
 
     if (patchInformation === 'accepted') {
-        const newPolicyQuery = buildPolicyCreationFromAccessRequestQuery(entityID, uuid(), uuid(), resourceOwner);
+        const newPolicyQuery = buildPolicyCreationFromAccessRequestQuery(accessRequestID, uuid(), uuid(), resourceOwner);
         await queryEngine.queryVoid(newPolicyQuery, { sources: [store] });
     }
 }

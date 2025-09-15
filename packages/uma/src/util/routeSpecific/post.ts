@@ -41,10 +41,11 @@ const executePost = async (
         if (valid) results.push(subsStore);
     });
 
-    return new Promise<Store>((resolve, rejects) => {
+    return new Promise<Store>((resolve, _rejects) => {
         bindings.on('end', () => {
-            if (results.length !== 1) rejects(new SanitizationError(`too many or too few entities defined`));
-            else resolve(results[0]);
+            const result: Store = new Store();
+            results.forEach((store) => result.addAll(store));
+            resolve(store);
         });
     });
 };
@@ -58,9 +59,8 @@ const executePost = async (
  */
 const buildPolicyCreationQuery = (resourceOwner: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
-    PREFIX dct: <http://purl.org/dc/terms/>
 
-    SELECT ?p ?r
+    SELECT DISTINCT ?p ?r
     WHERE {
         ?p a odrl:Agreement ;
            odrl:permission ?r ;
@@ -100,6 +100,7 @@ const buildAccessRequestCreationQuery = (requestingParty: string) => `
     PREFIX ex: <http://example.org/>
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX dcterms: <http://purl.org/dc/terms/>
+    PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
     SELECT ?r
     WHERE {
@@ -108,7 +109,8 @@ const buildAccessRequestCreationQuery = (requestingParty: string) => `
            sotw:requestedTarget ?target ;
            sotw:requestedAction ?action ;
            sotw:requestingParty <${requestingParty}> ;
-           ex:requestStatus ex:requested .
+           ex:requestStatus ex:requested ;
+           odrl:uid ?r .
     }
 `;
 
