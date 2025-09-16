@@ -10,16 +10,16 @@ import {queryEngine} from './index';
  * the function simply returns without applying changes.
  *
  * @param store the store to update
- * @param _entityID identifier of the policy entity (unused here)
+ * @param _policyID identifier of the policy entity (unused here)
  * @param resourceOwner identifier of the client attempting the update
  * @param query update to apply if the client is the assigner
  */
 export const patchPolicy = async (
     store: Store,
-    _entityID: string,
+    _policyID: string,
     resourceOwner: string,
     query: string
-) =>  {
+) => {
     // check ownership of resource -- is client assigner?
     const isOwner = store.countQuads(null, "http://www.w3.org/ns/odrl/2/assigner", resourceOwner, null) === 1;
     if (!isOwner) return ; // ? shouldn't this throw an error -- drawback would be information leakage

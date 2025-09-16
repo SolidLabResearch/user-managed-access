@@ -104,18 +104,16 @@ export abstract class BaseHandler extends HttpHandler {
      * @throws BadRequestHttpError if request body is missing or invalid
      */
     private async handlePatch(request: HttpHandlerRequest<string>, entityID: string, clientID: string): Promise<HttpHandlerResponse<void>> {
-        let status = 500;
+        let response = { status: 204, message: '' };
 
         if (!request.body) throw new BadRequestHttpError();
         if (this.patchContentType === 'application/json') {
             const body = JSON.parse(request.body);
-            if (body.status) status = (await this.controller.patchEntity(entityID, body.status, clientID, false)).status;
+            if (body.status) response = (await this.controller.patchEntity(entityID, body.status, clientID, false));
             else throw new BadRequestHttpError();
-        } else status = (await this.controller.patchEntity(entityID, request.body, clientID)).status;
+        } else response = (await this.controller.patchEntity(entityID, request.body, clientID));
         
-        return {
-            status: status
-        };
+        return response;
     }
 
     /**

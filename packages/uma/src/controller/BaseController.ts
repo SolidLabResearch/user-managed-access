@@ -3,12 +3,16 @@ import { Store } from "n3";
 import { writeStore } from "../util/ConvertUtil";
 import { parseStringAsN3Store } from 'koreografeye';
 import { noAlreadyDefinedSubjects } from "../util/routeSpecific/sanitizeUtil";
+import { getLoggerFor } from "@solid/community-server";
 
 /**
  * Controller class for Policy & Access Request endpoints.
  * Handles the logic for manipulating policies or access requests.
  */
 export abstract class BaseController {
+
+    private readonly logger = getLoggerFor(this);
+    
     constructor(
         protected readonly store: UCRulesStorage,
         protected readonly conflictMessage: string,
@@ -106,26 +110,34 @@ export abstract class BaseController {
      * @returns a status code:
      *          - 204 if patching was successful
      */
-    public async patchEntity(entityID: string, patchInformation: string, clientID: string, isolate: boolean = true): Promise<{ status: number }> {
+    public async patchEntity(entityID: string, patchInformation: string, clientID: string, isolate: boolean = true): Promise<{ status: number, message: string }> {
+        let response = { status: 204, message: '' };
         let store: Store;
         
         if (isolate) { // requires isolating all information about the entity provided, as e.g. the patchinformation has a query to be executed
             store = await this.sanitizeGet(await this.store.getStore(), entityID, clientID);
             (await this.store.getStore()).removeQuads(store.getQuads(null, null, null, null));
+            this.logger.info(patchInformation);
+            this.logger.info(await writeStore(store));
         } else store = await this.store.getStore();
 
-        await this.sanitizePatch(store, entityID, clientID, patchInformation);
+        try {
+            await this.sanitizePatch(store, entityID, clientID, patchInformation);
+        } catch (e) {
+            response = { status: 500, message: e.message };
+        }
 
         if (isolate) {
             // isolate all information about the store again, because queries could insert information
             // * bonus: filters out extra quads
             // ! drawback: PATCH may still be used to DELETE all information about the entity
             // TODO: check if PATCH is smth we want for all resources, make patchEntity optional otherwise
-            store = await this.sanitizeGet(store, entityID, clientID);
+            store = await this.sanitizeGet(store, entityID, clientID) || store;
+            this.logger.info(await writeStore(store));
             (await this.store.getStore()).addAll(store);
         }
 
-        return { status: 204 };
+        return response;
     }
 
     /**

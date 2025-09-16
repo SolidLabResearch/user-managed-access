@@ -1,19 +1,16 @@
 import { Store } from "n3";
 import {queryEngine} from './index';
-import { SanitizationError } from "./sanitizeUtil";
 
 /**
  * Run a query against the store and extract exactly one matching subgraph.
  *
  * For each result binding, a sub-store is created containing all triples
- * where the bound terms appear as subjects. If multiple or no results are found,
- * the function rejects with a {@link SanitizationError}.
+ * where the bound terms appear as subjects.
  *
  * @param store the source store to query
  * @param query the query string to execute
  * @param vars list of variables that must be present in the result
  * @returns a store containing exactly one matching subgraph
- * @throws {SanitizationError} if zero or more than one entity is found
  */
 const executePost = async (
     store: Store,
@@ -83,7 +80,6 @@ const buildPolicyCreationQuery = (resourceOwner: string) => `
  * @param store the source store
  * @param resourceOwner identifier of the client (assigner)
  * @returns the validated policy as a store
- * @throws {SanitizationError} if zero or more than one policy matches
  */
 export const postPolicy = (store: Store, resourceOwner: string) =>
     executePost(store, buildPolicyCreationQuery(resourceOwner), ["p", "r"]);
@@ -121,12 +117,11 @@ const buildAccessRequestCreationQuery = (requestingParty: string) => `
  * is issued, and is linked to the given client as requesting party.
  *
  * @param store the source store
- * @param resourceOwner identifier of the client
+ * @param requestingParty identifier of the client
  * @returns the validated request as a store
- * @throws {SanitizationError} if zero or more than one request matches
  */
-export const postAccessRequest = (store: Store, resourceOwner: string) =>
-    executePost(store, buildAccessRequestCreationQuery(resourceOwner), ["r"]);
+export const postAccessRequest = (store: Store, requestingParty: string) =>
+    executePost(store, buildAccessRequestCreationQuery(requestingParty), ["r"]);
 
 /**
  * Check whether all subjects in the new store

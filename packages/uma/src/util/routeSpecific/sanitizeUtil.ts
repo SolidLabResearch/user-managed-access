@@ -8,7 +8,3 @@ export const noAlreadyDefinedSubjects = (store: Store, newStore: Store): boolean
 export class ConflictError extends Error {
     constructor() { super(`Resource already exists`); }
 }
-
-export class SanitizationError extends Error {
-    constructor(reason: string) { super(`Sanitization failed: ${reason}`); }
-}
