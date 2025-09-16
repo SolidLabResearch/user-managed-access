@@ -116,23 +116,22 @@ export const getPolicies = (store: Store, resourceOwner: string) =>
  * provided that the client is either the requesting party
  * or the assigner of a policy targeting the same resource.
  * 
- * @param accessRequestID identifier of the request
+ * @param requestID identifier of the request
  * @param requestingPartyOrResourceOwner identifier of the client
  * @returns a query string
  */
-const buildAccessRequestRetrievalQuery = (accessRequestID: string, requestingPartyOrResourceOwner: string) => `
+const buildAccessRequestRetrievalQuery = (requestID: string, requestingPartyOrResourceOwner: string) => `
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
     SELECT DISTINCT ?req
     WHERE {
-        ?req odrl:uid <${accessRequestID}> .
         {
-            ?req sotw:requestingParty <${requestingPartyOrResourceOwner}> .
+            <${requestID}> sotw:requestingParty <${requestingPartyOrResourceOwner}> .
         } 
         UNION
         {
-            ?req sotw:requestedTarget ?target .
+            <${requestID}> sotw:requestedTarget ?target .
             ?pol a odrl:Agreement ;
                  odrl:permission ?per .
             ?per odrl:target ?target ;

@@ -38,11 +38,12 @@ const executePost = async (
         if (valid) results.push(subsStore);
     });
 
-    return new Promise<Store>((resolve, _rejects) => {
+    return new Promise<Store>((resolve, rejects) => {
         bindings.on('end', () => {
             const result: Store = new Store();
             results.forEach((store) => result.addAll(store));
-            resolve(store);
+            if (results.length === 0) rejects('failed to create');
+            else resolve(store);
         });
     });
 };
@@ -105,8 +106,7 @@ const buildAccessRequestCreationQuery = (requestingParty: string) => `
            sotw:requestedTarget ?target ;
            sotw:requestedAction ?action ;
            sotw:requestingParty <${requestingParty}> ;
-           ex:requestStatus ex:requested ;
-           odrl:uid ?r .
+           ex:requestStatus ex:requested .
     }
 `;
 

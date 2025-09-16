@@ -69,16 +69,15 @@ const buildAccessRequestDeletionQuery = (requestID: string, requestingPartyOrRes
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
     DELETE {
-        ?req ?p ?o
+        <${requestID}> ?p ?o
     } WHERE {
-        ?req odrl:uid <${requestID}> ;
-             ?p ?o .
+        <${requestID}> ?p ?o .
         {
-            ?req sotw:requestingParty <${requestingPartyOrResourceowner}> .
+            <${requestID}> sotw:requestingParty <${requestingPartyOrResourceowner}> .
         } 
         UNION
         {
-            ?req sotw:requestedTarget ?target .
+            <${requestID}> sotw:requestedTarget ?target .
             ?pol a odrl:Agreement ;
                  odrl:permission ?per .
             ?per odrl:target ?target ;

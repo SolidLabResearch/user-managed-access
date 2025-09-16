@@ -30,8 +30,7 @@ ex:request a sotw:EvaluationRequest ;
       sotw:requestedTarget <http://localhost:3000/resources/resource.txt> ;
       sotw:requestedAction odrl:read ;
       sotw:requestingParty <https://example.pod.knows.idlab.ugent.be/profile/card#me> ;
-      ex:requestStatus ex:requested ;
-      odrl:uid ex:request.
+      ex:requestStatus ex:requested .
 ```
 
 ## Supported endpoints
@@ -83,7 +82,6 @@ ex:request a sotw:EvaluationRequest ;
       sotw:requestedAction odrl:read ;
       sotw:requestingParty <https://example.pod.knows.idlab.ugent.be/profile/card#me> ;
       ex:requestStatus ex:requested .
-      odrl:uid ex:request;
 '
 ```
 
