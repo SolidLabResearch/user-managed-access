@@ -36,24 +36,23 @@ export const patchPolicy = async (
  * provided the client is the assigner of a policy targeting
  * the requested resource.
  *
- * @param entityID identifier of the request
+ * @param requestID identifier of the request
  * @param resourceOwner identifier of the client attempting the patch
  * @param patchInformation new status value ("accepted", "denied")
  * @returns a query string
  */
-const buildAccessRequestModificationQuery = (entityID: string, resourceOwner: string, patchInformation: string) => `
+const buildAccessRequestModificationQuery = (requestID: string, resourceOwner: string, patchInformation: string) => `
     PREFIX ex: <http://example.org/> 
     PREFIX sotw: <https://w3id.org/force/sotw#>
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
     DELETE {
-        ?req ex:requestStatus ex:requested .
+        <${requestID}> ex:requestStatus ex:requested .
     } INSERT {
-        ?req ex:requestStatus ex:${patchInformation} .
+        <${requestID}> ex:requestStatus ex:${patchInformation} .
     } WHERE {
-        ?req a sotw:EvaluationRequest ;
-             sotw:requestedTarget ?target ;
-             odrl:uid <${entityID}> .
+        <${requestID}> a sotw:EvaluationRequest ;
+             sotw:requestedTarget ?target .
         ?pol a odrl:Agreement ;
              odrl:permission ?perm .
         ?perm odrl:target ?target ;
@@ -70,14 +69,14 @@ const buildAccessRequestModificationQuery = (entityID: string, resourceOwner: st
  * A new policy and permission are inserted into the store,
  * linking the requesting party with the requested target and action.
  *
- * @param accessRequestID identifier of the request
+ * @param requestID identifier of the request
  * @param policy identifier for the new policy
  * @param permission identifier for the new permission
  * @param resourceOwner identifier of the client granting the policy
  * @returns a query string
  */
 const buildPolicyCreationFromAccessRequestQuery = (
-    accessRequestID: string,
+    requestID: string,
     policy: string,
     permission: string,
     resourceOwner: string,
@@ -96,8 +95,7 @@ const buildPolicyCreationFromAccessRequestQuery = (
                         odrl:assignee ?requestingParty ;
                         odrl:assigner <${resourceOwner}> .
     } WHERE {
-        ?req a sotw:EvaluationRequest ;
-             odrl:uid <${accessRequestID}> ;
+        <${requestID}> a sotw:EvaluationRequest ;
              sotw:requestingParty ?requestingParty ;
              sotw:requestedTarget ?target ;
              sotw:requestedAction ?action ;

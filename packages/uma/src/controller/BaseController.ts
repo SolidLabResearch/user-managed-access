@@ -117,8 +117,6 @@ export abstract class BaseController {
         if (isolate) { // requires isolating all information about the entity provided, as e.g. the patchinformation has a query to be executed
             store = await this.sanitizeGet(await this.store.getStore(), entityID, clientID);
             (await this.store.getStore()).removeQuads(store.getQuads(null, null, null, null));
-            this.logger.info(patchInformation);
-            this.logger.info(await writeStore(store));
         } else store = await this.store.getStore();
 
         try {
@@ -133,7 +131,6 @@ export abstract class BaseController {
             // ! drawback: PATCH may still be used to DELETE all information about the entity
             // TODO: check if PATCH is smth we want for all resources, make patchEntity optional otherwise
             store = await this.sanitizeGet(store, entityID, clientID) || store;
-            this.logger.info(await writeStore(store));
             (await this.store.getStore()).addAll(store);
         }
 

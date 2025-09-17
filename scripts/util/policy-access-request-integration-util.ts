@@ -61,11 +61,11 @@ export const ACCESS_REQUEST = (resourceURL: string, requestingParty: string) => 
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 ex:request a sotw:EvaluationRequest ;
+      dcterms:issued "${new Date().toISOString()}"^^xsd:datetime ;
       sotw:requestedTarget <${resourceURL}> ;
       sotw:requestedAction odrl:read ;
       sotw:requestingParty <${requestingParty}> ;
-      ex:requestStatus ex:requested ;
-      odrl:uid ex:request.
+      ex:requestStatus ex:requested .
 `;
 
 export const accessRequestID = 'http://example.org/request';

@@ -154,7 +154,7 @@ const first = async (): Promise<Result> => {
         await readResource(REQUESTING_PARTY);
         await deleteAccesRequest(RESOURCE_OWNER);
     } catch (failed) {
-        return failed(failed.error);
+        return fail(failed.error);
     }
 
     await teardown();
