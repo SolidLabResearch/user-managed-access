@@ -87,7 +87,6 @@ export abstract class BaseController {
                 this.store.addRule(sanitizedStore);
             else return { status: 409 }; // conflict
         } catch (e) {
-            this.logger.info(e.toString());
             return { status: parseInt(e.message, 10) }; // the message of this error will contain the reason this query failed
         }
 
@@ -127,8 +126,6 @@ export abstract class BaseController {
         if (isolate) { // requires isolating all information about the entity provided, as e.g. the patchinformation has a query to be executed
             store = await this.sanitizeGet(await this.store.getStore(), entityID, clientID);
             (await this.store.getStore()).removeQuads(store.getQuads(null, null, null, null));
-            this.logger.info(`\n${await writeStore(store)}`);
-            this.logger.info(patchInformation);
         } else store = await this.store.getStore();
 
         try {
@@ -142,7 +139,6 @@ export abstract class BaseController {
             // * bonus: filters out extra quads
             // ! drawback: PATCH may still be used to DELETE all information about the entity
             // TODO: check if PATCH is smth we want for all resources, make patchEntity optional otherwise
-            this.logger.info(`\n${await writeStore(store)}`);
             store = await this.sanitizeGet(store, entityID, clientID) || store;
             (await this.store.getStore()).addAll(store);
         }
