@@ -21,9 +21,9 @@ export const patchPolicy = async (
     query: string
 ) => {
     // check ownership of resource -- is client assigner?
-    const isOwner = store.countQuads(null, "http://www.w3.org/ns/odrl/2/assigner", resourceOwner, null) === 1;
-    if (!isOwner) return ; // ? shouldn't this throw an error -- drawback would be information leakage
-    else await queryEngine.queryVoid(query, { sources: [store] });
+    const isOwner = store.countQuads(null, "http://www.w3.org/ns/odrl/2/assigner", resourceOwner, null) !== 0;
+    if (!isOwner) throw new PatchError(403, "resource owner doesn't match") ; // ? shouldn't this throw an error -- drawback would be information leakage
+    else await queryEngine.queryVoid(query.toString(), { sources: [store] });
 }
 
 // ! link between target and resource owner is not always included through a policy
@@ -53,8 +53,7 @@ const buildAccessRequestModificationQuery = (requestID: string, resourceOwner: s
     } WHERE {
         <${requestID}> a sotw:EvaluationRequest ;
              sotw:requestedTarget ?target .
-        ?pol a odrl:Agreement ;
-             odrl:permission ?perm .
+        ?pol odrl:permission ?perm .
         ?perm odrl:target ?target ;
              odrl:assigner <${resourceOwner}> .
     }
@@ -129,5 +128,11 @@ export const patchAccessRequest = async (
     if (patchInformation === 'accepted') {
         const newPolicyQuery = buildPolicyCreationFromAccessRequestQuery(accessRequestID, uuid(), uuid(), resourceOwner);
         await queryEngine.queryVoid(newPolicyQuery, { sources: [store] });
+    }
+}
+
+export class PatchError extends Error {
+    constructor(readonly status: number, message: string) {
+        super(message);
     }
 }

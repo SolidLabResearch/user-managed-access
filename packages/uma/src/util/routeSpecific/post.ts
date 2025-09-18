@@ -60,9 +60,15 @@ const buildPolicyCreationQuery = (resourceOwner: string) => `
 
     SELECT DISTINCT ?p ?r
     WHERE {
-        ?p a odrl:Agreement ;
-           odrl:permission ?r ;
-           odrl:uid ?p .
+        {
+            ?p a odrl:Agreement ;
+               odrl:permission ?r ;
+               odrl:uid ?p .
+        } UNION {
+            ?p a odrl:Set ;
+               odrl:permission ?r ;
+               odrl:uid ?p .
+        }
 
         ?r a odrl:Permission ;
            odrl:action ?action ;
@@ -82,8 +88,14 @@ const buildPolicyCreationQuery = (resourceOwner: string) => `
  * @param resourceOwner identifier of the client (assigner)
  * @returns the validated policy as a store
  */
-export const postPolicy = (store: Store, resourceOwner: string) =>
-    executePost(store, buildPolicyCreationQuery(resourceOwner), ["p", "r"]);
+export const postPolicy = async (store: Store, resourceOwner: string): Promise<Store> => {
+    const isOwner = store.countQuads(null, 'http://www.w3.org/ns/odrl/2/assigner', resourceOwner, null) !== 0;
+    if (!isOwner) throw new Error('403');
+    
+    const result = await executePost(store, buildPolicyCreationQuery(resourceOwner), ["p", "r"]);
+    
+    return result;
+}
 
 /**
  * Build a query to retrieve a newly posted request,

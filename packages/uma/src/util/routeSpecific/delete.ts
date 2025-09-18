@@ -32,10 +32,15 @@ const buildPolicyDeletionQuery = (policyID: string, resourceOwner: string) => `
         ?policy ?policyPredicate ?policyObject .
         ?permission ?permissionPredicate ?permissionObject .
     } WHERE {
-        ?policy a odrl:Agreement ;
-                odrl:permission ?permission ;
+        ?policy odrl:permission ?permission ;
                 odrl:uid <${policyID}> .
         ?permission odrl:assigner <${resourceOwner}> .
+
+        {
+            ?policy a odrl:Agreement .
+        } UNION {
+            ?policy a odrl:Set .
+        }
 
         ?policy ?policyPredicate ?policyObject .
         ?permission ?permissionPredicate ?permissionObject .

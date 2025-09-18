@@ -125,8 +125,8 @@ async function testDelete() {
     testCode(response.status, 204, false);
 
     response = await fetch(endpoint(`/${encodedPolicyId}`), { method: 'DELETE', headers: { 'Authorization': client('a') } });
-    console.log(`expecting status 200: ${response.status}\n`);
-    testCode(response.status, 200, false);
+    console.log(`expecting status 204: ${response.status}\n`);
+    testCode(response.status, 204, false);
 
     console.log('testing if the policy is deleted for client a, but not for client b\n');
     response = await fetch(endpoint(`/${encodedPolicyId}`), { headers: { 'Authorization': client('a') } });
@@ -140,8 +140,8 @@ async function testDelete() {
 
     console.log('now we delete the policy for client b. It should delete the rules AND the policy information');
     response = await fetch(endpoint(`/${encodedPolicyId}`), { method: 'DELETE', headers: { 'Authorization': client('b') } });
-    console.log(`expecting status 200: ${response.status}`);
-    testCode(response.status, 200, false);
+    console.log(`expecting status 204: ${response.status}`);
+    testCode(response.status, 204, false);
     response = await fetch(endpoint(`/${encodedPolicyId}`), { headers: { 'Authorization': client('a') } });
     resText = await response.text();
     console.log(`expecting an empty body, the policy should be deleted for client a: ${resText}`);

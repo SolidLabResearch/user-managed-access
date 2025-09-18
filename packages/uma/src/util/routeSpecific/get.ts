@@ -61,12 +61,18 @@ const buildPolicyRetrievalQuery = (policyID: string, resourceOwner: string) => `
     
     SELECT DISTINCT ?policy ?perm
     WHERE {
-        ?policy a odrl:Agreement ;
-                odrl:uid <${policyID}> ;
+        ?policy odrl:uid <${policyID}> ;
                 odrl:permission ?perm .
         ?perm odrl:assigner <${resourceOwner}> .
+
+        {
+            ?policy a odrl:Agreement .
+        } UNION {
+            ?policy a odrl:Set .
+        }
     }
 `;
+
 
 /**
  * Retrieve a single policy and its permissions.
@@ -91,9 +97,14 @@ const buildPoliciesRetrievalQuery = (resourceOwner: string) => `
     
     SELECT DISTINCT ?policy ?perm
     WHERE {
-        ?policy a odrl:Agreement ;
-                odrl:permission ?perm .
+        ?policy odrl:permission ?perm .
         ?perm odrl:assigner <${resourceOwner}> .
+
+        {
+            ?policy a odrl:Agreement .
+        } UNION {
+            ?policy a odrl:Set .
+        }
     }
 `;
 

@@ -31,13 +31,18 @@ export abstract class BaseController {
      *          or an empty body with status 404 if nothing was found
      */
     private async get(sanitizeGet: Function): Promise<{ message: string, status: number }> {
-        const store = await sanitizeGet();
-        const message = store.size > 0
-            ? await writeStore(store)
-            : '';
+        try {
+            const store = await sanitizeGet();
+            
+            const message = store.size > 0
+                ? await writeStore(store)
+                : '';
 
-        const status = message === '' ? 404 : 200;
-        return { message, status };
+            const status = 200;
+            return { message, status };
+        } catch (_e) {
+            return { message: '', status: 200 }
+        }
     }
 
     /**
@@ -75,11 +80,16 @@ export abstract class BaseController {
      */
     public async addEntity(data: string, clientID: string): Promise<{ status: number }> {
         const store = await parseStringAsN3Store(data);
-        const sanitizedStore = await this.sanitizePost(store, clientID);
-
-        if (noAlreadyDefinedSubjects(await this.store.getStore(), sanitizedStore))
-            this.store.addRule(sanitizedStore);
-        else return { status: 409 }; // conflict
+        
+        try {
+            const sanitizedStore = await this.sanitizePost(store, clientID);
+            if (noAlreadyDefinedSubjects(await this.store.getStore(), sanitizedStore))
+                this.store.addRule(sanitizedStore);
+            else return { status: 409 }; // conflict
+        } catch (e) {
+            this.logger.info(e.toString());
+            return { status: parseInt(e.message, 10) }; // the message of this error will contain the reason this query failed
+        }
 
         return { status: 201 }; // success
     }
@@ -117,12 +127,14 @@ export abstract class BaseController {
         if (isolate) { // requires isolating all information about the entity provided, as e.g. the patchinformation has a query to be executed
             store = await this.sanitizeGet(await this.store.getStore(), entityID, clientID);
             (await this.store.getStore()).removeQuads(store.getQuads(null, null, null, null));
+            this.logger.info(`\n${await writeStore(store)}`);
+            this.logger.info(patchInformation);
         } else store = await this.store.getStore();
 
         try {
             await this.sanitizePatch(store, entityID, clientID, patchInformation);
         } catch (e) {
-            response = { status: 500, message: e.message };
+            response = { status: e.status || 500, message: e.message };
         }
 
         if (isolate) {
@@ -130,6 +142,7 @@ export abstract class BaseController {
             // * bonus: filters out extra quads
             // ! drawback: PATCH may still be used to DELETE all information about the entity
             // TODO: check if PATCH is smth we want for all resources, make patchEntity optional otherwise
+            this.logger.info(`\n${await writeStore(store)}`);
             store = await this.sanitizeGet(store, entityID, clientID) || store;
             (await this.store.getStore()).addAll(store);
         }
