@@ -382,7 +382,7 @@ export class UmaClient implements SingleThreaded {
     if (!umaId) {
       throw new Error(`Trying to remove UMA registration that is not known: ${resource.path}`);
     }
-    const url = joinUrl(endpoint, umaId);
+    const url = joinUrl(endpoint, encodeURIComponent(umaId));
 
     this.logger.info(`Deleting resource registration for <${resource.path}> at <${url}>`);
 
