@@ -4,39 +4,39 @@
     ],
     "@graph": [
         {
+            "@id": "urn:uma:default:PolicyController",
+            "@type": "PolicyController",
+            "store": { "@id": "urn:uma:default:RulesStorage" }
+        },
+        {
+            "@id": "urn:uma:default:PolicyHandler",
+            "@type": "BaseHandler",
+            "controller": { "@id": "urn:uma:default:PolicyController" },
+            "handleLogMessage": "received policy request",
+            "patchContentType": "application/sparql-update" 
+        },
+        {
             "@id": "urn:uma:default:PolicyRoute",
             "@type": "HttpHandlerRoute",
             "methods": [
-                "GET", 
+                "GET",
                 "POST",
                 "OPTIONS"
             ],
-            "handler": {
-                "@type": "PolicyRequestHandler",
-                "storage": {
-                    "@id": "urn:uma:default:RulesStorage"
-                },
-                "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
-            },
+            "handler": { "@id": "urn:uma:default:PolicyHandler" },
             "path": "/uma/policies"
         },
         {
             "@id": "urn:uma:default:OnePolicyRoute",
             "@type": "HttpHandlerRoute",
             "methods": [
-                "GET", 
-                "DELETE",
+                "OPTIONS",
                 "PATCH",
-                "PUT",
-                "OPTIONS"
+                "GET",
+                "DELETE",
+                "PUT"
             ],
-            "handler": {
-                "@type": "PolicyRequestHandler",
-                "storage": {
-                    "@id": "urn:uma:default:RulesStorage"
-                },
-                "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
-            },
+            "handler": { "@id": "urn:uma:default:PolicyHandler" },
             "path": "/uma/policies/{id}"
         }
     ]

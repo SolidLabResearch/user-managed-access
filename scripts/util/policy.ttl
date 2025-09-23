@@ -1,0 +1,38 @@
+@prefix ex: <http://example.org/> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+ex:setupPolicy1 a odrl:Agreement ;
+                odrl:permission ex:setupPermission1 ;
+                odrl:uid ex:setupPolicy1 .
+ex:setupPermission1 a odrl:Permission ;
+               odrl:action odrl:modify ;
+               odrl:target <http://localhost:3000/alice/other/resource.txt> ;
+               odrl:assignee <https://example.org/pods/resource-owner/profile/card#me> ;
+               odrl:assigner <https://example.org/pods/resource-owner/profile/card#me> .
+
+ex:setupPolicy1a a odrl:Agreement ;
+                 odrl:permission ex:setupPermission1a ;
+                 odrl:uid ex:setupPolicy1a .
+ex:setupPermission1a a odrl:Permission ;
+                odrl:action odrl:create ;
+                odrl:target <http://localhost:3000/alice/other/resource.txt> ;
+                odrl:assignee <https://example.org/pods/resource-owner/profile/card#me> ;
+                odrl:assigner <https://example.org/pods/resource-owner/profile/card#me> .
+
+ex:setupPolicy2 a odrl:Agreement ;
+                odrl:permission ex:setupPermission2a ;
+                odrl:uid ex:setupPolicy2 .
+ex:setupPermission2 a odrl:Permission ;
+               odrl:action odrl:modify ;
+               odrl:target <http://localhost:3000/alice/other/> ;
+               odrl:assignee <https://example.org/pods/resource-owner/profile/card#me> ;
+               odrl:assigner <https://example.org/pods/resource-owner/profile/card#me> .
+
+ex:setupPolicy2a a odrl:Agreement ;
+                 odrl:permission ex:setupPermission2a ;
+                 odrl:uid ex:setupPolicy2a .
+ex:setupPermission2a a odrl:Permission ;
+                odrl:action odrl:create ;
+                odrl:target <http://localhost:3000/alice/other/> ;
+                odrl:assignee <https://example.org/pods/resource-owner/profile/card#me> ;
+                odrl:assigner <https://example.org/pods/resource-owner/profile/card#me> .

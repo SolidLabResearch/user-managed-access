@@ -17,6 +17,7 @@
     "sai-uma:config/routes/log.json",
     "sai-uma:config/routes/vc.json",
     "sai-uma:config/routes/policies.json",
+    "sai-uma:config/routes/accessrequests.json",
     "sai-uma:config/routes/contract.json",
     "sai-uma:config/tickets/storage/default.json",
     "sai-uma:config/tickets/strategy/immediate-authorizer.json",
@@ -56,7 +57,7 @@
           "@id": "urn:uma:default:HandlerServerConfigurator",
           "@type": "HandlerServerConfigurator",
           "handler": {
-            "@id": "urn:uma:default:NodeHttpRequestResponseHandler"
+            "@id": "urn:uma:default:HttpHandler"
           }
         }
       }
@@ -136,7 +137,9 @@
                 { "@id": "urn:uma:default:LogRoute" },
                 { "@id": "urn:uma:default:VCRoute" },
                 { "@id": "urn:uma:default:PolicyRoute" },
-                { "@id": "urn:uma:default:OnePolicyRoute"}
+                { "@id": "urn:uma:default:OnePolicyRoute"},
+                { "@id": "urn:uma:default:AccessRequestRoute" },
+                { "@id": "urn:uma:default:OneAccessRequestRoute" }
               ]
             },
             {

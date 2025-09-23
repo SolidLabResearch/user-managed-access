@@ -41,7 +41,7 @@ export * from './routes/Config';
 export * from './routes/Log';
 export * from './routes/VC';
 export * from './routes/Contract';
-export * from './routes/Policy';
+export * from './routes/BaseHandler';
 
 // Tickets
 export * from './ticketing/Ticket';
@@ -74,10 +74,8 @@ export * from './util/ConvertUtil';
 export * from './util/HttpMessageSignatures';
 export * from './util/Result';
 export * from './util/ReType';
-export * from './util/routeSpecific/policies/PolicyUtil';
-export * from './util/routeSpecific/policies/CreatePolicies';
-export * from './util/routeSpecific/policies/GetPolicies';
-export * from './util/routeSpecific/policies/EditPolicies';
-export * from './util/routeSpecific/policies/RewritePolicies';
-export * from './util/routeSpecific/policies/DeletePolicies';
-export * from './util/routeSpecific/policies/PolicyOptions';
+
+// Controllers
+export * from './controller/BaseController';
+export * from './controller/AccessRequestController';
+export * from './controller/PolicyRequestController';
