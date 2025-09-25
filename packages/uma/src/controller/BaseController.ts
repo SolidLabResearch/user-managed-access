@@ -78,19 +78,19 @@ export abstract class BaseController {
      *          - 201 if creation was successful
      *          - 409 if a conflict occurred (duplicate subject)
      */
-    public async addEntity(data: string, clientID: string): Promise<{ status: number }> {
+    public async addEntity(data: string, clientID: string): Promise<{ status: number, message:string }> {
         const store = await parseStringAsN3Store(data);
         
         try {
             const sanitizedStore = await this.sanitizePost(store, clientID);
             if (noAlreadyDefinedSubjects(await this.store.getStore(), sanitizedStore))
                 this.store.addRule(sanitizedStore);
-            else return { status: 409 }; // conflict
-        } catch (e) {
-            return { status: parseInt(e.message, 10) }; // the message of this error will contain the reason this query failed
+            else return { status: 409, message: ''  }; // conflict
+        } catch (e) {          
+            return { status: e.statusCode || 500, message: e.message }; // the message of this error will contain the reason this query failed
         }
 
-        return { status: 201 }; // success
+        return { status: 201, message: ''  }; // success
     }
 
     /**
@@ -147,10 +147,9 @@ export abstract class BaseController {
     }
 
     /**
-     * Apply a PUT to a single policy or access request identified by `entityID`µ.
+     * Apply a PUT to a single policy or access request identified by `entityID`.
      * 
      * Currently, this is only implemented for policies.
-     * The {@link BaseHandler} should never call this function for access requests routes, as it isn't configured in the componentsjs file.
      * 
      * @param data RDF data in Turtle/N3 format representing a policy or acccess request
      * @param entityID ID pointing to the policy or access request

@@ -103,5 +103,7 @@ const buildAccessRequestDeletionQuery = (requestID: string, requestingPartyOrRes
  * @param requestingPartyOrResourceOwner ID of the requesting party or resource owner
  * @returns a promise resolving when deletion is completed
  */
-export const deleteAccessRequest = (store: Store, requestID: string, requestingPartyOrResourceOwner: string) =>
-    executeDelete(store, buildAccessRequestDeletionQuery(requestID, requestingPartyOrResourceOwner));
+export const deleteAccessRequest = async (store: Store, requestID: string, requestingPartyOrResourceOwner: string): Promise<void> => {
+    await executeDelete(store, buildAccessRequestDeletionQuery(requestID, requestingPartyOrResourceOwner));
+
+}

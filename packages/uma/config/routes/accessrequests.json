@@ -33,7 +33,8 @@
                 "OPTIONS",
                 "PATCH",
                 "GET",
-                "DELETE"
+                "DELETE", 
+                "PUT"
             ],
             "handler": { "@id": "urn:uma:default:AccessRequestHandler" },
             "path": "/uma/requests/{id}"

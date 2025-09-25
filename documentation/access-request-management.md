@@ -10,7 +10,7 @@ The general flow of access requests and grants looks like this:
 
 The document makes use of these parties and identifiers:
 
-- **Resource Owner**: `https://pod.harrypodder.org/profile/card#me`
+- **Resource Owner**: `https://pod.example.com/profile/card#me`
 - **Authorization Server**: `http://localhost:4000`
 - **Resource Server**: `http://localhost:3000/resources`
 - **Requesting Party**: `https://example.pod.knows.idlab.ugent.be/profile/card#me`
@@ -21,10 +21,7 @@ The access request used in the examples below looks like this:
 ```turtle
 @prefix sotw: <https://w3id.org/force/sotw#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix dct: <http://purl.org/dc/terms/> .
 @prefix ex: <http://example.org/> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 ex:request a sotw:EvaluationRequest ;
       sotw:requestedTarget <http://localhost:3000/resources/resource.txt> ;
@@ -70,19 +67,16 @@ curl --location 'http://localhost:4000/uma/requests' \
 --header 'Content-Type: text/turtle' \
 --data-raw '
 @prefix sotw: <https://w3id.org/force/sotw#> .
-@prefix odrl: <https://www.w3.org/ns/odrl/2/> .
-@prefix dcterms: <https://purl.org/dc/terms/> .
-@prefix dct: <https://purl.org/dc/terms/> .
-@prefix ex: <https://example.org/> .
-@prefix xsd: <https://www.w3.org/2001/XMLSchema#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ex: <http://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 ex:request a sotw:EvaluationRequest ;
-      dcterms:issued "2025-08-21T11:24:34.999Z"^^xsd:datetime ;
       sotw:requestedTarget <http://localhost:3000/resources/resource.txt> ;
-      sotw:requestedAction odrl:read ;
+      sotw:requestedAction odrl:write ;
       sotw:requestingParty <https://example.pod.knows.idlab.ugent.be/profile/card#me> ;
-      ex:requestStatus ex:requested .
-'
+      ex:requestStatus ex:requested .'
 ```
 
 ## Reading access requests
@@ -105,8 +99,8 @@ The body must hold the content type `application/json`.
 The example below shows how to update the access request's status from `requested` to `accepted`:
 
 ```shell-session
-curl -X PATCH --location 'http://localhost:4000/uma/rquests/:id' \
---header 'Authorization: https://example.pod.knows.idlab.ugent.be/profile/card#me' \
+curl -X PATCH --location 'http://localhost:4000/uma/requests/http%3A%2F%2Fexample.org%2Frequest' \
+--header 'Authorization: https://pod.example.com/profile/card#me' \
 --header 'Content-Type: application/json' \
 --data-raw '{ "status": "accepted" }' # can be changed to `denied` too.
 ```
@@ -116,13 +110,11 @@ After this, the RP will be able to use the resource following the UMA protocol.
 
 ## Deleting access requests
 
-By making a simple **DELETE** request on the `/uma/requests/:id` endpoint, an access request can be deleted.
-The id should be sufficiently encoded in the URL.
+Currently, access requests cannot be deleted. The reason being that it from a governance decision a decision need to be made who is allowed to delete it.
 
-```shell-session
-curl -X DELETE --location 'http://localhost:4000/uma/requests/:id' \
---header 'Authorization: https://example.pod.knows.idlab.ugent.be/profile/card#me' \
-```
+Is it the requesting party? Or is it the resource owner?
+From the start. It makes more sense for the RP. However, if the RO made a decision, it does not make sense that the RP can remove this.
+
 
 ## Important Notes
 

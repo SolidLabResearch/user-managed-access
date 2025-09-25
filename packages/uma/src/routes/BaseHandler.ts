@@ -170,12 +170,13 @@ export abstract class BaseHandler extends HttpHandler {
      * @returns a response with status code 201 if successful, 409 if conflict occurred, or error otherwise
      * @throws BadRequestHttpError if request body is missing
      */
-    private async handlePost(request: HttpHandlerRequest<string>, clientID: string): Promise<HttpHandlerResponse<void>> {
+    private async handlePost(request: HttpHandlerRequest<string>, clientID: string): Promise<HttpHandlerResponse<string>> {
         if (!request.body) throw new BadRequestHttpError();
-        const { status } = await this.controller.addEntity(request.body.toString(), clientID);
+        const { status, message } = await this.controller.addEntity(request.body.toString(), clientID);
 
         return {
-            status: status
+            status: status,
+            body: message
         };
     }
 }

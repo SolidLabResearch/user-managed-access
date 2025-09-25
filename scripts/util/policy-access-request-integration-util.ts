@@ -52,7 +52,7 @@ ex:setupPermission3 a odrl:Permission ;
                odrl:assigner <${resourceOwner}> .
 `;
 
-export const ACCESS_REQUEST = (resourceURL: string, requestingParty: string) => `
+export const ACCESS_REQUEST = (accessRequestID: string, resourceURL: string, requestingParty: string) => `
 @prefix sotw: <https://w3id.org/force/sotw#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -60,12 +60,9 @@ export const ACCESS_REQUEST = (resourceURL: string, requestingParty: string) => 
 @prefix ex: <http://example.org/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-ex:request a sotw:EvaluationRequest ;
-      dcterms:issued "${new Date().toISOString()}"^^xsd:datetime ;
+<${accessRequestID}> a sotw:EvaluationRequest ;
       sotw:requestedTarget <${resourceURL}> ;
       sotw:requestedAction odrl:read ;
       sotw:requestingParty <${requestingParty}> ;
       ex:requestStatus ex:requested .
 `;
-
-export const accessRequestID = 'http://example.org/request';

@@ -10,8 +10,9 @@
 
 import { parseStringAsN3Store } from 'koreografeye';
 import logger from './util/logger';
-import { ACCESS_REQUEST, accessRequestID, SETUP_POLICIES } from './util/policy-access-request-integration-util';
+import { ACCESS_REQUEST, SETUP_POLICIES } from './util/policy-access-request-integration-util';
 import { UserManagedAccessFetcher } from './util/UMA-client';
+import { randomUUID } from 'crypto';
 
 // --- Testing configurations ---
 
@@ -29,7 +30,7 @@ const CONTENT = "some text";
 
 // --- Testing types and basic success/failure functions ---
 
-type Result = 
+type Result =
     | { status: 'Ok' }
     | { status: 'Err'; error: string };
 
@@ -41,12 +42,12 @@ const fail = async (reason?: string): Promise<Result> => ({ status: 'Err', error
 const setup = async (): Promise<Result> => {
     const response = await fetch(
         POLICY_URL, {
-            method: 'POST',
-            headers: {
-                'authorization': RESOURCE_OWNER,
-                'content-type': 'text/turtle'
-            }, body: SETUP_POLICIES(RESOURCE_PARENT, RESOURCE, RESOURCE_OWNER)
-        }
+        method: 'POST',
+        headers: {
+            'authorization': RESOURCE_OWNER,
+            'content-type': 'text/turtle'
+        }, body: SETUP_POLICIES(RESOURCE_PARENT, RESOURCE, RESOURCE_OWNER)
+    }
     );
 
     const umaClientResponse = await new UserManagedAccessFetcher({
@@ -64,16 +65,16 @@ const setup = async (): Promise<Result> => {
 const teardown = async (): Promise<Result> => {
     const policies = await fetch(
         POLICY_URL, {
-            method: 'GET',
-            headers: {
-                'authorization': RESOURCE_OWNER
-            }
+        method: 'GET',
+        headers: {
+            'authorization': RESOURCE_OWNER
         }
+    }
     );
 
     const store = await parseStringAsN3Store(await policies.text());
     const policyIDs = store.getSubjects(null, "http://www.w3.org/ns/odrl/2/Agreement", null).map((subject) => subject.id);
-    
+
     await Promise.all(policyIDs.map((policyID) =>
         fetch(`${POLICY_URL}/${encodeURIComponent(policyID)}`, { method: 'DELETE', headers: { 'authorization': RESOURCE_OWNER } })
     ));
@@ -86,51 +87,51 @@ const sleep = async (ms: number): Promise<void> =>
 
 // --- Testing helper functions ---
 
-const createAccessRequest = async (clientID: string): Promise<Result> => {
+const createAccessRequest = async (clientID: string, accessRequestID: string): Promise<Result> => {
     const response = await fetch(
         ACCESS_REQUEST_URL, {
-            method: 'POST',
-            headers: {
-                'authorization': clientID,
-                'content-type': 'text/turtle'
-            }, body: ACCESS_REQUEST(RESOURCE, clientID),
-        }
+        method: 'POST',
+        headers: {
+            'authorization': clientID,
+            'content-type': 'text/turtle'
+        }, body: ACCESS_REQUEST(accessRequestID, RESOURCE, clientID),
+    }
     );
 
     if (response.status === 201) return success();
     else throw await fail(`failed to create access request: ${response.status}`);
 };
 
-const updateAccessRequest = async (clientID: string, status: 'accepted' | 'denied'): Promise<Result> => {
+const updateAccessRequest = async (clientID: string, accessRequestID: string, status: 'accepted' | 'denied'): Promise<Result> => {
     const response = await fetch(
         `${ACCESS_REQUEST_URL}/${encodeURIComponent(accessRequestID)}`, {
-            method: 'PATCH',
-            headers: {
-                'authorization': clientID,
-                'content-type': 'application/json'
-            }, body: JSON.stringify({ status: status })
-        }
+        method: 'PATCH',
+        headers: {
+            'authorization': clientID,
+            'content-type': 'application/json'
+        }, body: JSON.stringify({ status: status })
+    }
     );
 
     if (response.status === 204) return success();
     else throw await fail(`failed to update request status tp ${status}: ${response.status}`);
 };
 
-const acceptAccessRequest = async (clientID: string): Promise<Result> => updateAccessRequest(clientID, 'accepted');
-const denyAccessRequest = async (clientID: string): Promise<Result> => updateAccessRequest(clientID, 'denied');
+const acceptAccessRequest = async (clientID: string, accessRequestID: string): Promise<Result> => updateAccessRequest(clientID, accessRequestID, 'accepted');
+const denyAccessRequest = async (clientID: string, accessRequestID: string): Promise<Result> => updateAccessRequest(clientID, accessRequestID, 'denied');
 
-const deleteAccesRequest = async (clientID: string): Promise<Result> => {
+const deleteAccesRequest = async (clientID: string, accessRequestID: string): Promise<Result> => {
     const response = await fetch(
         `${ACCESS_REQUEST_URL}/${encodeURIComponent(accessRequestID)}`, {
-            method: 'DELETE',
-            headers: {
-                'authorization': clientID
-            }
+        method: 'DELETE',
+        headers: {
+            'authorization': clientID
         }
+    }
     );
 
-    if (response.status === 204) return success();
-    else throw await fail(`failed to delete access request: ${response.status}`);
+    if (response.status === 403) return success();
+    else throw await fail(`nobody is allowed to delete an access request: ${response.status}`);
 };
 
 const readResource = async (clientID: string): Promise<Result> => {
@@ -146,29 +147,35 @@ const readResource = async (clientID: string): Promise<Result> => {
 // --- Define tests ----
 
 const first = async (): Promise<Result> => {
+    let toReturn = success();
+    let accessRequestID = "https://example.org/request#" + randomUUID()
     await setup();
 
     try {
-        await createAccessRequest(REQUESTING_PARTY);
-        await acceptAccessRequest(RESOURCE_OWNER);
+        await createAccessRequest(REQUESTING_PARTY, accessRequestID);
+        await acceptAccessRequest(RESOURCE_OWNER, accessRequestID);
         await readResource(REQUESTING_PARTY);
-        await deleteAccesRequest(RESOURCE_OWNER);
+        await deleteAccesRequest(RESOURCE_OWNER, accessRequestID);
     } catch (failed) {
-        return fail(failed.error);
+        toReturn = fail(failed.error);
     }
 
     await teardown();
-    return success();
+    return toReturn;
 }
 
 const second = async (): Promise<Result> => {
+    let toReturn = success();
+    let accessRequestID = "https://example.org/request#" + randomUUID()
+
     await setup();
 
+
     try {
-        await createAccessRequest(REQUESTING_PARTY);
-        await denyAccessRequest(RESOURCE_OWNER);
+        await createAccessRequest(REQUESTING_PARTY, accessRequestID);
+        await denyAccessRequest(RESOURCE_OWNER, accessRequestID);
     } catch (failed) {
-        return fail(failed.error);
+        toReturn = fail(failed.error);
     }
 
     try {
@@ -179,47 +186,50 @@ const second = async (): Promise<Result> => {
     }
 
     try {
-        await deleteAccesRequest(RESOURCE_OWNER);
+        await deleteAccesRequest(RESOURCE_OWNER, accessRequestID);
     } catch (failed) {
-        return fail(failed.error);
+        toReturn = fail(failed.error);
     }
 
     await teardown();
-    return success();
+    return toReturn
 };
 
 const third = async (): Promise<Result> => {
+    let toReturn = success();
+    let accessRequestID = "https://example.org/request#" + randomUUID()
+
     await setup();
 
     try {
-        await createAccessRequest(REQUESTING_PARTY);
+        await createAccessRequest(REQUESTING_PARTY, accessRequestID);
     } catch (failed) {
-        return fail(failed.error);
+        toReturn = fail(failed.error);
     }
 
     try {
-        if (await success() === await acceptAccessRequest(REQUESTING_PARTY))
+        if (await success() === await acceptAccessRequest(REQUESTING_PARTY, accessRequestID))
             return fail(`should not be able to allow access`);
     } catch (_failed) {
         // this should fail and throw
     }
 
     try {
-        await deleteAccesRequest(RESOURCE_OWNER);
+        await deleteAccesRequest(RESOURCE_OWNER, accessRequestID);
     } catch (failed) {
-        return fail(failed.error);
+        toReturn = fail(failed.error);
     }
 
     await teardown();
-    return success();
+    return toReturn;
 };
 
 // --- Register tests ---
 
 const tests: Map<string, () => Promise<Result>> = new Map([
-    ["first scenario", first],
-    ["second scenario", second],
-    ["third scenario", third],
+    ["first scenario: positive flow (RP requests access, RO accepts and RP reads resource)", first],
+    ["second scenario: negative flow (RP requests access, RO denies and RP reads resource)", second],
+    ["third scenario: incorrect flow (RP requests access, RP accepts)", third],
 ]);
 
 async function main() {
@@ -239,8 +249,8 @@ async function main() {
 
     const end = Date.now();
     const durationMillis = end - start;
-    const durationSeconds = (durationMillis/1000).toFixed(2);
-    
+    const durationSeconds = (durationMillis / 1000).toFixed(2);
+
     logger.info(`all tests completed in ${durationSeconds}s`);
 }
 

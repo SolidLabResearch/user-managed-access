@@ -1,6 +1,7 @@
-import { Store } from "n3";
+import { Store, DataFactory } from "n3";
 import {queryEngine} from './index';
-
+import { BadRequestHttpError, ForbiddenHttpError, RDF, XSD } from "@solid/community-server";
+const {literal, namedNode} = DataFactory
 /**
  * Run a query against the store and extract exactly one matching subgraph.
  *
@@ -90,7 +91,7 @@ const buildPolicyCreationQuery = (resourceOwner: string) => `
  */
 export const postPolicy = async (store: Store, resourceOwner: string): Promise<Store> => {
     const isOwner = store.countQuads(null, 'http://www.w3.org/ns/odrl/2/assigner', resourceOwner, null) !== 0;
-    if (!isOwner) throw new Error('403');
+    if (!isOwner) throw new ForbiddenHttpError();
     
     const result = await executePost(store, buildPolicyCreationQuery(resourceOwner), ["p", "r"]);
     
@@ -132,20 +133,15 @@ const buildAccessRequestCreationQuery = (requestingParty: string) => `
  * @param requestingParty identifier of the client
  * @returns the validated request as a store
  */
-export const postAccessRequest = (store: Store, requestingParty: string) =>
-    executePost(store, buildAccessRequestCreationQuery(requestingParty), ["r"]);
+export const postAccessRequest = async (store: Store, requestingParty: string): Promise<Store>  =>{
+    const hasTime = store.countQuads(null, "http://purl.org/dc/terms/issued", null, null) !== 0;
+    if (hasTime) throw new BadRequestHttpError("Time is managed by the server");
 
-/**
- * Check whether all subjects in the new store
- * are absent from the existing store.
- *
- * This is used to ensure no pre-existing entities
- * are being redefined.
- *
- * @param store the original store
- * @param newStore the store containing new data
- * @returns true if no subjects are already defined, false otherwise
- */
-export const noAlreadyDefinedSubjects = (store: Store, newStore: Store): boolean =>
-    newStore.getSubjects(null, null, null)
-        .every((subject) => store.countQuads(subject, null, null, null) === 0);
+    const requestIds = store.getSubjects(RDF.type, "https://w3id.org/force/sotw#EvaluationRequest", null);
+    if (requestIds.length !==1) {
+        throw new BadRequestHttpError("Expected one acces request.");
+    }
+
+    store.addQuad(requestIds[0], namedNode("http://purl.org/dc/terms/issued"), literal(new Date().toISOString(), XSD.terms.dateTime))
+    return await executePost(store, buildAccessRequestCreationQuery(requestingParty), ["r"]);
+}
