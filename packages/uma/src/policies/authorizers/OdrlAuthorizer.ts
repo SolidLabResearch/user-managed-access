@@ -7,7 +7,7 @@ import {
   RDF
 } from '@solid/community-server';
 import { basicPolicy, ODRL, UCPPolicy, UCRulesStorage } from '@solidlab/ucp';
-import { DataFactory, Literal, NamedNode, Quad_Subject, Store } from 'n3';
+import { DataFactory, Literal, NamedNode, Quad_Subject, Store, Writer } from 'n3';
 import { EyeReasoner, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator'
 import { WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
@@ -62,7 +62,8 @@ export class OdrlAuthorizer implements Authorizer {
         }
 
         // key value store for building the permissions to be granted on a resource
-        const grantedPermissions: { [key: string]: string[] } = {};
+        // Resource -> Action -> Active policy
+        const grantedPermissions: Record<string, Record<string, string>> = {};
 
         // prepare policy
         const policyStore = (await this.policies.getStore())
@@ -78,7 +79,7 @@ export class OdrlAuthorizer implements Authorizer {
         const subject = typeof claims[WEBID] === 'string' ? claims[WEBID] : 'urn:solidlab:uma:id:anonymous';
 
         for (const {resource_id, resource_scopes} of query) {
-            grantedPermissions[resource_id] = [];
+            grantedPermissions[resource_id] = {};
             const actions = transformActionsCssToOdrl(resource_scopes);
             for (const action of actions) {
                 this.logger.info(`Evaluating Request [S R AR]: [${subject} ${resource_id} ${action}]`);
@@ -109,7 +110,7 @@ export class OdrlAuthorizer implements Authorizer {
                     const activeReports = policyReport.ruleReport.filter(
                       (report) => report.activationState === ActivationState.Active);
                     if (activeReports.length > 0 && activeReports[0].type === RuleReportType.PermissionReport) {
-                        grantedPermissions[resource_id].push(action);
+                        grantedPermissions[resource_id][action] = policyReport.policy.value;
                     }
                 }
             }
@@ -118,7 +119,8 @@ export class OdrlAuthorizer implements Authorizer {
         Object.keys(grantedPermissions).forEach(
             resource_id => permissions.push({
                 resource_id,
-                resource_scopes: transformActionsOdrlToCss(grantedPermissions[resource_id])
+                resource_scopes: transformActionsOdrlToCss(Object.keys(grantedPermissions[resource_id])),
+                policies: [ ...new Set(Object.values(grantedPermissions[resource_id]))],
             }) );
         return permissions;
     }
