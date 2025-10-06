@@ -23,9 +23,13 @@ export class TypedVerifier implements Verifier {
     // Recursively verify in case of a meta credential token
     if (credential.format === this.metaType) {
       const metaClaims = {};
-      for (const [ format, token ] of Object.entries(credential.token)) {
-        Object.assign(metaClaims, await this.verify({ format, token }));
+      const metaToken = JSON.parse(credential.token);
+      for (const [ format, token ] of Object.entries(metaToken)) {
+        Object.assign(metaClaims, await this.verify({ format, token: token as string }));
       }
+
+      this.logger.info(`Combined verified claims into ${JSON.stringify(metaClaims)}`);
+
       return metaClaims;
     }
 
