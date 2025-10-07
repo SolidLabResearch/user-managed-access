@@ -14,12 +14,21 @@
       "overrideParameters": {
         "@type": "ParsingHttpHandler",
         "operationHandler": {
+          "@id": "urn:uma:default:AuthorizingHttpHandler",
           "@type": "AuthorizingHttpHandler",
           "credentialsExtractor": { "@id": "urn:solid-server:default:CredentialsExtractor" },
           "modesExtractor": { "@id": "urn:solid-server:default:ModesExtractor" },
           "permissionReader": { "@id": "urn:solid-server:default:PermissionReader" },
           "authorizer": { "@id": "urn:solid-server:default:Authorizer" },
-          "operationHandler": { "@id": "urn:solid-server:default:OperationHandler" }
+          "operationHandler": {
+            "@id": "urn:uma:default:TrustEnvelopeHttpHandler",
+            "@type": "TrustEnvelopeHttpHandler",
+            "converter": { "@id": "urn:solid-server:default:RepresentationConverter" },
+            "operationHandler": { "@id": "urn:solid-server:default:OperationHandler" },
+            "umaClient": { "@id": "urn:solid-server:default:UmaClient" },
+            "ownerUtil": { "@id": "urn:solid-server:default:OwnerUtil" },
+            "fetcher": { "@id": "urn:solid-server:default:UmaFetcher" }
+          }
         }
       }
     }
