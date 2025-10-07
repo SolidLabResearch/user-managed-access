@@ -1,4 +1,5 @@
 import { BadRequestHttpError, getLoggerFor, UnauthorizedHttpError } from '@solid/community-server';
+import { ClaimSet } from '../credentials/ClaimSet';
 import { TokenFactory } from '../tokens/TokenFactory';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 import { verifyRequest } from '../util/HttpMessageSignatures';
@@ -8,8 +9,10 @@ type IntrospectionResponse = {
   active : boolean,
   permissions: {
     resource_id: string,
-    resource_scopes: string[]
+    resource_scopes: string[],
+    policies?: string[],
   }[],
+  requestClaims?: ClaimSet,
   exp?: number,
   iat?: number,
   nbf?: number,
@@ -43,10 +46,10 @@ export class IntrospectionHandler extends HttpHandler {
     const token = new URLSearchParams(request.body as Record<string, string>).get('token');
     try {
       if (!token) throw new Error('could not extract token from request body')
-      const unsignedToken = await this.tokenFactory.deserialize(token);
+      const { token: unsignedToken, claims } = await this.tokenFactory.deserialize(token);
       return {
         status: 200,
-        body: { ...unsignedToken, active: true },
+        body: { ...unsignedToken, requestClaims: claims, active: true },
       };
     } catch (e) {
       this.logger.warn(`Token introspection failed: ${e}`)

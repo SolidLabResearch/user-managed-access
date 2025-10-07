@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { ClaimSet } from '../credentials/ClaimSet';
 import { Ticket } from '../ticketing/Ticket';
 import { Verifier } from '../credentials/verify/Verifier';
 import { TokenFactory } from '../tokens/TokenFactory';
@@ -50,7 +51,7 @@ export class BaseNegotiator implements Negotiator {
     this.logger.debug(`Processing ticket. ${JSON.stringify(ticket)}`);
 
     // Process pushed credentials
-    const updatedTicket = await this.processCredentials(input, ticket);
+    const { ticket: updatedTicket, claims } = await this.processCredentials(input, ticket);
     this.logger.debug(`resolved result ${JSON.stringify(updatedTicket)}`);
 
     // Try to resolve ticket ...
@@ -61,7 +62,7 @@ export class BaseNegotiator implements Negotiator {
     if (resolved.success) {
 
       // Retrieve / create instantiated policy
-      const { token, tokenType } = await this.tokenFactory.serialize({ permissions: resolved.value });
+      const { token, tokenType } = await this.tokenFactory.serialize({ permissions: resolved.value }, claims);
       this.logger.debug(`Minted token ${JSON.stringify(token)}`);
 
       // TODO:: test logging
@@ -129,7 +130,8 @@ export class BaseNegotiator implements Negotiator {
    *
    * @returns An updated Ticket in which the Credentials have been validated.
    */
-  protected async processCredentials(input: DialogInput, ticket: Ticket): Promise<Ticket> {
+  protected async processCredentials(input: DialogInput, ticket: Ticket):
+    Promise<{ ticket: Ticket, claims?: ClaimSet }> {
     const { claim_token: token, claim_token_format: format } = input;
 
     if (token || format) {
@@ -138,10 +140,10 @@ export class BaseNegotiator implements Negotiator {
 
       const claims = await this.verifier.verify({ token, format });
 
-      return await this.ticketingStrategy.validateClaims(ticket, claims);
+      return { ticket: await this.ticketingStrategy.validateClaims(ticket, claims), claims };
     }
 
-    return ticket;
+    return { ticket };
   }
 
   /**

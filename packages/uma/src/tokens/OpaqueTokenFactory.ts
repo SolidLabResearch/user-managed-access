@@ -1,5 +1,6 @@
-import { KeyValueStorage } from '@solid/community-server';
+import { BadRequestHttpError, KeyValueStorage } from '@solid/community-server';
 import { randomUUID } from 'node:crypto';
+import { ClaimSet } from '../credentials/ClaimSet';
 import {AccessToken} from './AccessToken';
 import {SerializedToken, TokenFactory} from './TokenFactory';
 
@@ -11,28 +12,22 @@ export class OpaqueTokenFactory extends TokenFactory {
    *
    * @param {KeyValueStorage<string, AccessToken>} tokenStore
    */
-  constructor(private tokenStore: KeyValueStorage<string, AccessToken>) {
+  constructor(protected readonly tokenStore: KeyValueStorage<string, { token: AccessToken, claims?: ClaimSet }>) {
     super();
   }
 
-  /**
-   *
-   * @param {AccessToken} token
-   * @return {Promise<SerializedToken>}
-   */
-  public async serialize(token: AccessToken): Promise<SerializedToken> {
+  public async serialize(token: AccessToken, claims?: ClaimSet): Promise<SerializedToken> {
     const serialized = randomUUID();
-    await this.tokenStore.set(serialized, token);
+    await this.tokenStore.set(serialized, { token, claims });
     return {tokenType: 'Bearer', token: serialized};
   }
 
-  /**
-   *
-   * @param {string} token
-   */
-  public async deserialize(token: string): Promise<AccessToken> {
-    const retrieved = await this.tokenStore.get(token);
-    if (retrieved) return retrieved;
-    throw new Error('Token string not recognized.');
+  public async deserialize(token: string): Promise<{ token: AccessToken, claims?: ClaimSet }> {
+    // TODO: might want to move this behaviour outside of this class as it is the same for all factories
+    const result = await this.tokenStore.get(token);
+    if (!result) {
+      throw new BadRequestHttpError('Invalid Access Token provided');
+    }
+    return result;
   }
 }

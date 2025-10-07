@@ -24,6 +24,7 @@ export interface Claims {
 export interface UmaPermission {
   resource_id: string,
   resource_scopes: string[],
+  policies?: string[],
   exp?: number,
   iat?: number,
   nbf?: number,
@@ -31,6 +32,7 @@ export interface UmaPermission {
 
 export type UmaClaims = JWTPayload & {
   permissions?: UmaPermission[],
+  requestClaims?: NodeJS.Dict<unknown>,
 }
 
 export interface UmaConfig {
@@ -232,7 +234,7 @@ export class UmaClient implements SingleThreaded {
     }
 
     const jwt = await res.json();
-    if (jwt.active !== 'true') throw new Error(`The provided UMA RPT is not active.`);
+    if (jwt.active !== true) throw new Error(`The provided UMA RPT is not active.`);
 
     return await this.verifyTokenData(jwt, config.issuer, config.jwks_uri);
   }

@@ -1,3 +1,4 @@
+import { ClaimSet } from '../credentials/ClaimSet';
 import {AccessToken} from './AccessToken';
 
 export interface SerializedToken {
@@ -11,6 +12,6 @@ export interface SerializedToken {
  * and deserializing gathered tokens
  */
 export abstract class TokenFactory {
-  public abstract serialize(token: AccessToken): Promise<SerializedToken>;
-  public abstract deserialize(token: string): Promise<AccessToken>;
+  public abstract serialize(token: AccessToken, claims?: ClaimSet): Promise<SerializedToken>;
+  public abstract deserialize(token: string): Promise<{ token: AccessToken, claims?: ClaimSet }>;
 }

@@ -7,10 +7,9 @@ import {
   KeyValueStorage
 } from '@solid/community-server';
 import { randomUUID } from 'node:crypto';
+import { ClaimSet } from '../credentials/ClaimSet';
 import { SerializedToken , TokenFactory} from './TokenFactory';
 import { AccessToken } from './AccessToken';
-import { array, reType } from '../util/ReType';
-import { Permission } from '../views/Permission';
 
 const AUD = 'solid';
 
@@ -35,7 +34,7 @@ export class JwtTokenFactory extends TokenFactory {
   constructor(
     protected readonly keyGen: JwkGenerator,
     protected readonly issuer: string,
-    protected readonly tokenStore: KeyValueStorage<string, AccessToken>,
+    protected readonly tokenStore: KeyValueStorage<string, { token: AccessToken, claims?: ClaimSet }>,
     protected readonly params: JwtTokenParams = { expirationTime: '30m', aud: 'solid' },
   ) {
     super();
@@ -44,9 +43,10 @@ export class JwtTokenFactory extends TokenFactory {
   /**
    * Serializes an Access Token into a JWT
    * @param {AccessToken} token - authenticated and authorized principal
+   * @param claims - claims used to acquire this token
    * @return {Promise<SerializedToken>} - access token response
    */
-  public async serialize(token: AccessToken): Promise<SerializedToken> {
+  public async serialize(token: AccessToken, claims?: ClaimSet): Promise<SerializedToken> {
     const key = await this.keyGen.getPrivateKey();
     const jwk = await importJWK(key, key.alg);
     const jwt = await new SignJWT({ permissions: token.permissions, contract: token.contract })
@@ -59,37 +59,21 @@ export class JwtTokenFactory extends TokenFactory {
       .sign(jwk);
 
     this.logger.debug(`Issued new JWT Token ${JSON.stringify(token)}`);
-    await this.tokenStore.set(jwt, token);
+    await this.tokenStore.set(jwt, { token, claims });
     return { token: jwt, tokenType: 'Bearer' };
   }
 
   /**
    * Deserializes a JWT into an Access Token
    * @param {string} token - JWT access token
-   * @return {Promise<AccessToken>} - deserialized access token
+   * @return {Promise<AccessToken>} - deserialized access token and claims
    */
-  public async deserialize(token: string): Promise<AccessToken> {
-    const key = await this.keyGen.getPublicKey();
-    const jwk = await importJWK(key, key.alg);
-    try {
-      const { payload } = await jwtVerify(token, jwk, {
-        issuer: this.issuer,
-        audience: this.params.aud ?? AUD,
-      });
-
-      if (!payload.permissions) {
-        throw new Error('missing required "permissions" claim.');
-      }
-
-      const permissions = payload.permissions;
-
-      reType(permissions, array(Permission));
-
-      return { permissions };
-    } catch (error: unknown) {
-      const msg = `Invalid Access Token provided, error while parsing: ${createErrorMessage(error)}`;
-      this.logger.warn(msg);
-      throw new BadRequestHttpError(msg);
+  public async deserialize(token: string): Promise<{ token: AccessToken, claims?: ClaimSet }> {
+    // TODO: might want to move this behaviour outside of this class as it is the same for all factories
+    const result = await this.tokenStore.get(token);
+    if (!result) {
+      throw new BadRequestHttpError('Invalid Access Token provided');
     }
+    return result;
   }
 }

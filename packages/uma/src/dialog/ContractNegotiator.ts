@@ -57,7 +57,7 @@ export class ContractNegotiator extends BaseNegotiator {
     this.logger.debug(`Processing ticket. ${JSON.stringify(ticket)}`);
 
     // Process pushed credentials
-    const updatedTicket = await this.processCredentials(input, ticket);
+    const { ticket: updatedTicket } = await this.processCredentials(input, ticket);
     this.logger.debug(`Processed credentials ${JSON.stringify(updatedTicket)}`);
 
     // TODO:
