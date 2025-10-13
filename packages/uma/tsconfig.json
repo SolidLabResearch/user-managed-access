@@ -10,12 +10,17 @@
     "downlevelIteration": true,
     "module": "node16",
     "moduleResolution": "node16",
+    "types": [ "vitest/globals" ],
+    "typeRoots": [
+      "types",
+      "node_modules/@types",
+      "../../node_modules"
+    ],
     "skipLibCheck": true, // voor ESM typings in CSS (@types/rdf-validate-shacl)
     "esModuleInterop": true,
     "strictNullChecks": true,
     "lib": ["ES2022"]
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "include": ["src", "types"],
+  "exclude": ["node_modules"]
 }
-

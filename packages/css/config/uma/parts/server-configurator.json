@@ -1,0 +1,36 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:solid-server:default:ServerConfigurator",
+      "@type": "ParallelHandler",
+      "handlers": [
+        {
+          "comment": "Informs relevant components of changes to the server state",
+          "@id": "urn:solid-server:default:StatusDependantServerConfigurator",
+          "@type": "StatusDependantServerConfigurator",
+          "dependants": [
+            { "@id": "urn:solid-server:default:UmaFetcher" }
+          ],
+          "statusMap": [
+            {
+              "StatusDependantServerConfigurator:_statusMap_key": "listening",
+              "StatusDependantServerConfigurator:_statusMap_value": true
+            },
+            {
+              "StatusDependantServerConfigurator:_statusMap_key": "close",
+              "StatusDependantServerConfigurator:_statusMap_value": false
+            },
+            {
+              "StatusDependantServerConfigurator:_statusMap_key": "error",
+              "StatusDependantServerConfigurator:_statusMap_value": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

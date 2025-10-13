@@ -14,3 +14,6 @@ can be swapped in.
 ## Known limitations
 ### Unused parameters in token request
 For token requests with grant_type `urn:ietf:params:oauth:grant-type:uma-ticket`, the token endpoint will ignore paramters `pct` and `scope` defined as optional in section 3.3.1 of the specification.
+
+
+

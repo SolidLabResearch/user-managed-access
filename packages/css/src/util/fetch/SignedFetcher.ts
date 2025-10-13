@@ -18,7 +18,7 @@ const algMap = {
 }
 
 /**
- * A {@link Fetcher} wrapper that signes requests. 
+ * A {@link Fetcher} wrapper that signes requests.
  */
 export class SignedFetcher implements Fetcher {
   protected readonly logger = getLoggerFor(this);
@@ -26,10 +26,10 @@ export class SignedFetcher implements Fetcher {
   constructor(
     protected fetcher: Fetcher,
     protected baseUrl: string,
-    protected keyGen: JwkGenerator, 
+    protected keyGen: JwkGenerator,
   ) {}
 
-  public async fetch(input: NodeJS.fetch.RequestInfo, init?: RequestInit): Promise<Response> {
+  public async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
     const jwk = await this.keyGen.getPrivateKey();
 
     const { alg, kid } = jwk;
@@ -52,14 +52,17 @@ export class SignedFetcher implements Fetcher {
       ...init ?? {},
       url,
       method: init?.method ?? 'GET',
-      headers: {} as Record<string, string>
-    }
-    ;
+      headers: {} as Record<string, string>,
+    };
     new Headers(init?.headers).forEach((value, key) => request.headers[key] = value);
     request.headers['Authorization'] = `HttpSig cred="${this.baseUrl}"`;
 
-    const signed = await httpbis.signMessage({ key, paramValues: { keyid: 'TODO' } }, request);
-    
+    const signed = await httpbis.signMessage({
+      key,
+      fields: [ '@target-uri', '@method' ],
+      paramValues: { keyid: 'TODO' }
+    }, request);
+
     return await this.fetcher.fetch(url, signed);
   }
 }

@@ -1,5 +1,4 @@
-import { Logger } from '../../util/logging/Logger';
-import { getLoggerFor } from '../../util/logging/LoggerUtils';
+import { BadRequestHttpError, getLoggerFor } from '@solid/community-server';
 import { Verifier } from './Verifier';
 import { ClaimSet } from '../ClaimSet';
 import { Credential } from "../Credential";
@@ -11,14 +10,15 @@ import { CLIENTID, WEBID } from '../Claims';
  * A Verifier for OIDC ID Tokens.
  */
 export class SolidOidcVerifier implements Verifier {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   private readonly verifyToken = createSolidTokenVerifier();
 
   /** @inheritdoc */
   public async verify(credential: Credential): Promise<ClaimSet> {
+    this.logger.debug(`Verifying credential ${JSON.stringify(credential)}`);
     if (credential.format !== OIDC) {
-      throw new Error(`Token format ${credential.format} does not match this processor's format.`);
+      throw new BadRequestHttpError(`Token format ${credential.format} does not match this processor's format.`);
     }
 
     try {
@@ -29,7 +29,7 @@ export class SolidOidcVerifier implements Verifier {
         url: "http://localhost:4000/uma/token",
       });
 
-      this.logger.info(`Authenticated via a Solid OIDC.`, claims);
+      this.logger.info(`Authenticated via a Solid OIDC. ${JSON.stringify(claims)}`);
 
       return ({ // TODO: keep issuer (and other metadata) for validation ??
         [WEBID]: claims.webid,
@@ -40,7 +40,7 @@ export class SolidOidcVerifier implements Verifier {
       const message = `Error verifying OIDC ID Token: ${(error as Error).message}`;
 
       this.logger.debug(message);
-      throw new Error(message);
+      throw new BadRequestHttpError(message);
     }
   }
 }

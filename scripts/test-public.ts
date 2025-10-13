@@ -1,6 +1,4 @@
-#!/usr/bin/env ts-node
-
-import { fetch } from 'cross-fetch'
+#!/usr/bin/env -S npx tsx
 
 const publicResource = "http://localhost:3000/alice/profile/card"
 
@@ -9,7 +7,7 @@ async function main() {
   console.log('\n\n');
 
   console.log(`=== Trying to read public resource <${publicResource}> without access token.\n`);
-  
+
   const publicResponse = await fetch(publicResource, { method: "GET" });
 
   console.log(`= Status: ${publicResponse.status}\n`);

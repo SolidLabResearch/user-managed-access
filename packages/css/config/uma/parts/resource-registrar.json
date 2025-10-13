@@ -1,0 +1,32 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Listens to the activities emitted by the MonitoringStore.",
+      "@id": "urn:solid-server:default:ResourceRegistrar",
+      "@type": "ResourceRegistrar",
+      "emitter": {
+        "@id": "urn:solid-server:default:ResourceStore"
+      },
+      "ownerUtil": {
+        "@id": "urn:solid-server:default:OwnerUtil"
+      },
+      "umaClient": {
+        "@id": "urn:solid-server:default:UmaClient"
+      }
+    },
+    {
+      "comment": "The ResourceRegistrar is added to the list of Initializers so Components.js finds and instantiates it.",
+      "@id": "urn:solid-server:default:PrimaryParallelInitializer",
+      "@type": "ParallelHandler",
+      "handlers": [
+        {
+          "@id": "urn:solid-server:default:ResourceRegistrar"
+        }
+      ]
+    }
+  ]
+}

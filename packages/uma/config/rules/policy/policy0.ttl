@@ -1,10 +1,31 @@
 @prefix ex: <http://example.org/1707120963224#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix odrl_p: <https://w3id.org/force/odrl3proposal#> .
 
 ex:usagePolicy a odrl:Agreement .
 ex:usagePolicy odrl:permission ex:permission .
 ex:permission a odrl:Permission .
-ex:permission odrl:action odrl:read , odrl:modify .
-ex:permission odrl:target <http://localhost:3000/alice/other/> , <http://localhost:3000/alice/other/resource.txt> .
+ex:permission odrl:action odrl:read , odrl:create , odrl:modify .
+ex:permission odrl:target <alice/other/> , <alice/other/resource.txt> .
 ex:permission odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
 ex:permission odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+ex:usagePolicy2 a odrl:Agreement .
+ex:usagePolicy2 odrl:permission ex:permission2 .
+ex:permission2 a odrl:Permission .
+ex:permission2 odrl:action odrl:create , odrl:modify .
+ex:permission2 odrl:target <alice/> , <alice/private/> , <alice/private/resource.txt> .
+ex:permission2 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission2 odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+ex:usagePolicy3 a odrl:Agreement .
+ex:usagePolicy3 odrl:permission ex:permission3 .
+ex:permission3 a odrl:Permission .
+ex:permission3 odrl:action odrl:read .
+ex:permission3 odrl:target <collection:alice/> .
+ex:permission3 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission3 odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+<collection:alice/> a odrl:AssetCollection ;
+  odrl:source <alice/> ;
+  odrl_p:relation <http://www.w3.org/ns/ldp#contains> .

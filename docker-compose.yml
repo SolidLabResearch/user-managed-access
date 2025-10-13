@@ -1,0 +1,17 @@
+# The server is currently configured to use localhost as its base URL.
+# When using multiple docker containers that want to interact with each other, 0.0.0.0 should be used.
+# Because of this, and also because of potential external interactions with the server,
+# it might be necessary in the future to add changes to support this.
+# Newer versions of CSS can be configured to allow multiple base URLs which will be necessary then.
+
+services:
+  solidtrustflows:
+    image: solidtrustflows
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000:3000
+      - 4000:4000

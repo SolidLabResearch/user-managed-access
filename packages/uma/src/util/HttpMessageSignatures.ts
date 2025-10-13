@@ -1,28 +1,29 @@
-import { UnauthorizedHttpError, type AlgJwk, BadRequestHttpError, InternalServerError } from '@solid/community-server';
-import { httpbis, type SigningKey, type Request as SignRequest } from 'http-message-signatures';
+import { UnauthorizedHttpError, type AlgJwk, BadRequestHttpError } from '@solid/community-server';
+import { httpbis, type SigningKey, type Request as SignRequest, defaultParams } from 'http-message-signatures';
 import { verifyMessage } from 'http-message-signatures/lib/httpbis';
 import { type SignatureParameters, type VerifierFinder, type VerifyingKey } from 'http-message-signatures/lib/types';
-import type { HttpHandlerRequest } from './http/models/HttpHandlerRequest';
+import { HttpHandlerRequest } from './http/models/HttpHandler';
 import buildGetJwks from 'get-jwks';
 import crypto from 'node:crypto';
 
 const authParserMod = import('@httpland/authorization-parser');
 
 export async function signRequest(
-  url: string, 
-  request: RequestInit & Omit<SignRequest, 'url'>, 
+  url: string,
+  request: RequestInit & Omit<SignRequest, 'url'>,
   jwk: AlgJwk
 ): Promise<RequestInit & SignRequest> {
   const key: SigningKey = {
     id: jwk.kid,
     alg: jwk.alg,
     async sign(data: BufferSource) {
-      const key = await crypto.subtle.importKey('jwk', jwk, jwk.alg, false, ['sign', 'verify']);
-      return Buffer.from(await crypto.subtle.sign(jwk.alg, key, data));
+      const params = algMap[jwk.alg];
+      const key = await crypto.subtle.importKey('jwk', jwk, params, false, ['sign']);
+      return Buffer.from(await crypto.subtle.sign(params, key, data));
     },
   };
 
-  return await httpbis.signMessage<RequestInit & SignRequest>({ key }, { ...request, url });
+  return await httpbis.signMessage({ key, fields: [ '@target-uri', '@method' ] }, { ...request, url });
 }
 
 export async function extractRequestSigner(request: HttpHandlerRequest): Promise<string> {
@@ -40,11 +41,7 @@ export async function extractRequestSigner(request: HttpHandlerRequest): Promise
     throw new UnauthorizedHttpError();
   }
 
-  const signer = params.cred;
-
-  if (!signer) throw new UnauthorizedHttpError('No valid HTTPSig authorization header found.');
-
-  return signer;
+  return params.cred;
 }
 
 export async function verifyRequest(
@@ -52,10 +49,10 @@ export async function verifyRequest(
   signer?: string,
 ): Promise<boolean> {
   signer = signer ?? await extractRequestSigner(request);
-  
+
   if (signer.startsWith('"')) signer = signer.slice(1);
   if (signer.endsWith('"')) signer = signer.slice(0,-1);
-  
+
   const jwks = buildGetJwks();
 
   const keyLookup: VerifierFinder = async (params: SignatureParameters) => {
@@ -66,11 +63,9 @@ export async function verifyRequest(
         domain: signer!,
         alg: alg ?? '',
         kid: keyid ?? '',
-      })
-    
+      });
+
       if (!alg) throw new BadRequestHttpError('Invalid HTTP message Signature parameters.');
-      // if (alg === 'EdDSA') throw new InternalServerError('EdDSA signing is not supported');
-      // if (alg === 'ES256K') throw new InternalServerError('ES256K signing is not supported');
 
       const verifier: VerifyingKey = {
         id: keyid,
@@ -83,7 +78,7 @@ export async function verifyRequest(
           } catch (err) { console.log(err); return null }
         },
       };
-      
+
       return verifier;
 
     } catch (err) {
@@ -111,4 +106,3 @@ const algMap: Record<string, AlgParams> = {
   'RS384': { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-384' },
   'RS512': { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-512' },
 }
-

@@ -13,18 +13,23 @@
         "@type": "Variable"
       },
       {
-        "comment": "Hostname of the server.",
-        "@id": "urn:uma:variables:host",
-        "@type": "Variable"
-      },
-      {
         "comment": "Path to the directory containing the policy rules.",
         "@id": "urn:uma:variables:policyDir",
         "@type": "Variable"
       },
       {
-        "comment": "Path to the directory containing the N3 rules.",
-        "@id": "urn:uma:variables:rulesDir",
+        "comment": "Base IRI to use when parsing policies.",
+        "@id": "urn:uma:variables:policyBaseIRI",
+        "@type": "Variable"
+      },
+      {
+        "comment": "Path of the local eye reasoner.",
+        "@id": "urn:uma:variables:eyePath",
+        "@type": "Variable"
+      },
+      {
+        "comment": "URL of container where policies are stored.",
+        "@id": "urn:uma:variables:policyContainer",
         "@type": "Variable"
       }
     ]

@@ -1,19 +1,18 @@
-import { Logger } from '../../util/logging/Logger';
-import { getLoggerFor } from '../../util/logging/LoggerUtils';
+import { getLoggerFor } from '@solid/community-server';
 import { Verifier } from './Verifier';
 import { ClaimSet } from '../ClaimSet';
 import { Credential } from "../Credential";
 import { JWT } from '../Formats';
 import { decodeJwt, decodeProtectedHeader, jwtVerify } from 'jose';
-import buildGetJwks from 'get-jwks';
+import buildGetJwks, {GetJwks} from 'get-jwks';
 
 /**
  * An UNSECURE Verifier that parses Tokens of the format `encode_uri(webId)[:encode_uri(clientId)]`,
  * without performing any further verification.
  */
 export class JwtVerifier implements Verifier {
-  protected readonly logger: Logger = getLoggerFor(this);
-  protected jwks = buildGetJwks();
+  protected readonly logger = getLoggerFor(this);
+  protected jwks:GetJwks = buildGetJwks();
 
   constructor(
     private readonly allowedClaims: string[],
@@ -23,17 +22,18 @@ export class JwtVerifier implements Verifier {
 
   /** @inheritdoc */
   public async verify(credential: Credential): Promise<ClaimSet> {
+    this.logger.debug(`Verifying credential ${JSON.stringify(credential)}`);
     if (credential.format !== JWT) {
       throw new Error(`Token format '${credential.format}' does not match this processor's format.`);
     }
 
     const claims = decodeJwt(credential.token);
-    
+
     if (this.verifyJwt) {
       if (!claims.iss) {
         throw new Error(`JWT should contain 'iss' claim.`);
       }
-      
+
       const params = decodeProtectedHeader(credential.token);
 
       if (!params.alg) {
@@ -53,13 +53,17 @@ export class JwtVerifier implements Verifier {
       await jwtVerify(credential.token, Object.assign(jwk, { type: 'JWK' }));
     }
 
-    for (const claim of Object.keys(claims)) if (!this.allowedClaims.includes(claim)) {
-      if (this.errorOnExtraClaims) throw new Error(`Claim '${claim}' not allowed.`);
+    for (const claim of Object.keys(claims)) {
+      if (!this.allowedClaims.includes(claim)) {
+        if (this.errorOnExtraClaims) {
+          throw new Error(`Claim '${claim}' not allowed.`);
+        }
 
-      delete claims[claim];
-    }    
+        delete claims[claim];
+      }
+    }
 
-    this.logger.warn(`Returning new claims: ${JSON.stringify(claims)}`)
+    this.logger.debug(`Returning discovered claims: ${JSON.stringify(claims)}`)
     return claims;
   }
 }

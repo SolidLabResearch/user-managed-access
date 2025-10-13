@@ -1,0 +1,22 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Replace the DPoP authentication with UMA authentication.",
+      "@id": "urn:solid-server:override:AccessTokenExtractor",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:AccessTokenExtractor"
+      },
+      "overrideParameters": {
+        "comment": "Extracts information from UMA access tokens.",
+        "@type": "UmaTokenExtractor",
+        "client": { "@id": "urn:solid-server:default:UmaClient" },
+        "targetExtractor": { "@id": "urn:solid-server:default:TargetExtractor" },
+        "ownerUtil": { "@id": "urn:solid-server:default:OwnerUtil" }
+      }
+    }
+  ]
+}

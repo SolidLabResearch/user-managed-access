@@ -6,20 +6,10 @@
     {
       "@id": "urn:uma:default:IntrospectionRoute",
       "@type": "HttpHandlerRoute",
-      "operations": [
-        {
-          "@type": "HttpHandlerOperation",
-          "method": "POST",
-          "publish": true
-        }
-      ],
+      "methods": [ "POST" ],
       "handler": {
-        "@type": "JsonHttpErrorHandler",
-        "nestedHandler": {
-          "@type": "IntrospectionHandler",
-          "tokenStore": { "@id": "urn:uma:default:TokenStore" },
-          "jwtTokenFactory": { "@id": "urn:uma:default:TokenFactory" }
-        }
+        "@type": "IntrospectionHandler",
+        "tokenFactory": { "@id": "urn:uma:default:TokenFactory" }
       },
       "path": "/uma/introspect"
     }

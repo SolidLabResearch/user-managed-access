@@ -1,11 +1,10 @@
+import { getLoggerFor } from '@solid/community-server';
 import { ClaimSet } from "../../credentials/ClaimSet";
 import { Ticket } from "../Ticket";
 import { Permission } from "../../views/Permission";
 import { Failure, Result, Success } from "../../util/Result";
 import { TicketingStrategy } from "./TicketingStrategy";
 import { Authorizer } from "../../policies/authorizers/Authorizer";
-import { getLoggerFor } from "../../util/logging/LoggerUtils";
-import { Logger } from "../../util/logging/Logger";
 import type { Requirements } from "../../credentials/Requirements";
 
 /**
@@ -13,15 +12,15 @@ import type { Requirements } from "../../credentials/Requirements";
  * available Permissions from them upon resolution.
  */
 export class ImmediateAuthorizerStrategy implements TicketingStrategy {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
 
   constructor(
-    private authorizer: Authorizer,
+    protected authorizer: Authorizer,
   ) {}
 
   /** @inheritdoc */
-  async initializeTicket(permissions: Permission[]): Promise<Ticket> {
-    this.logger.info('Initializing ticket.', permissions)
+  public async initializeTicket(permissions: Permission[]): Promise<Ticket> {
+    this.logger.info(`Initializing ticket. ${JSON.stringify(permissions)}`)
 
     return ({
       permissions,
@@ -31,9 +30,9 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
   }
 
   /** @inheritdoc */
-  async validateClaims(ticket: Ticket, claims: ClaimSet): Promise<Ticket> {
-    this.logger.info('Validating claims.', { ticket, claims });
-    
+  public async validateClaims(ticket: Ticket, claims: ClaimSet): Promise<Ticket> {
+    this.logger.info(`Validating claims. ${JSON.stringify({ ticket, claims })}`);
+
     for (const key of Object.keys(claims)) {
       ticket.provided[key] = claims[key];
     }
@@ -42,17 +41,17 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
   }
 
   /** @inheritdoc */
-  async resolveTicket(ticket: Ticket): Promise<Result<Permission[], Requirements[]>> {
-    this.logger.info('Resolving ticket.', ticket);
+  public async resolveTicket(ticket: Ticket): Promise<Result<Permission[], Requirements[]>> {
+    this.logger.info(`Resolving ticket. ${JSON.stringify(ticket)}`);
 
     const permissions = await this.calculatePermissions(ticket);
 
     if (permissions.length === 0) return Failure([]);
 
-    return Success(await this.calculatePermissions(ticket));
+    return Success(permissions);
   }
 
-  private async calculatePermissions(ticket: Ticket): Promise<Permission[]> {
+  protected async calculatePermissions(ticket: Ticket): Promise<Permission[]> {
     return (await this.authorizer.permissions(ticket.provided, ticket.permissions)).filter(
       permission => permission.resource_scopes.length > 0
     );

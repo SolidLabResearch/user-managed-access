@@ -1,0 +1,20 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Replace WWW-Authenticate metadata writer with the UMA version.",
+      "@id": "urn:solid-server:override:MetadataWriter_WwwAuth",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:MetadataWriter_WwwAuth"
+      },
+      "overrideParameters": {
+        "comment": "Returns the UMA ticket in case of an unauthorized request.",
+        "@id": "urn:solid-server:default:MetadataWriter_UmaTicket",
+        "@type": "UmaTicketMetadataWriter"
+      }
+    }
+  ]
+}

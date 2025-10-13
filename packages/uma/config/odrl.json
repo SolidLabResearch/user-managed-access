@@ -1,0 +1,22 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "import": [
+    "sai-uma:config/default.json"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:demo:Authorizer",
+      "@type": "Override",
+      "overrideInstance": { "@id": "urn:uma:default:Authorizer" },
+      "overrideParameters": {
+        "@type": "OdrlAuthorizer",
+        "eyePath": { "@id": "urn:uma:variables:eyePath" },
+        "policies": {
+          "@id": "urn:uma:default:RulesStorage"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+@prefix ex: <http://example.org/>.
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+ex:usagePolicy1 a odrl:Agreement .
+ex:usagePolicy1 odrl:permission ex:permission1 .
+ex:permission1 a odrl:Permission .
+ex:permission1 odrl:action odrl:modify .
+ex:permission1 odrl:target <alice/other/resource.txt> .
+ex:permission1 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission1 odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+ex:usagePolicy1a a odrl:Agreement .
+ex:usagePolicy1a odrl:permission ex:permission1a .
+ex:permission1a a odrl:Permission .
+ex:permission1a odrl:action odrl:create .
+ex:permission1a odrl:target <alice/other/resource.txt> .
+ex:permission1a odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission1a odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+ex:usagePolicy2 a odrl:Agreement .
+ex:usagePolicy2 odrl:permission ex:permission2a .
+ex:permission2 a odrl:Permission .
+ex:permission2 odrl:action odrl:modify .
+ex:permission2 odrl:target <alice/other/> .
+ex:permission2 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission2 odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+ex:usagePolicy2a a odrl:Agreement .
+ex:usagePolicy2a odrl:permission ex:permission2 .
+ex:permission2a a odrl:Permission .
+ex:permission2a odrl:action odrl:create .
+ex:permission2a odrl:target <alice/>, <alice/other/> .
+ex:permission2a odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission2a odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .
+
+
+ex:usagePolicy3 a odrl:Agreement .
+ex:usagePolicy3 odrl:permission ex:permission3 .
+ex:permission3 a odrl:Permission .
+ex:permission3 odrl:action odrl:read .
+ex:permission3 odrl:target <alice/other/resource.txt> .
+ex:permission3 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+ex:permission3 odrl:assigner <https://pod.woutslabbinck.com/profile/card#me> .

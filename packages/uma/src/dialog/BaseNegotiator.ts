@@ -1,78 +1,91 @@
-import { BadRequestHttpError } from '../util/http/errors/BadRequestHttpError';
+import { randomUUID } from 'node:crypto';
 import { Ticket } from '../ticketing/Ticket';
 import { Verifier } from '../credentials/verify/Verifier';
 import { TokenFactory } from '../tokens/TokenFactory';
 import { Negotiator } from './Negotiator';
-import { getLoggerFor } from '../util/logging/LoggerUtils';
-import { Logger } from '../util/logging/Logger';
 import { NeedInfoError } from '../errors/NeedInfoError';
 import { DialogInput } from './Input';
 import { DialogOutput } from './Output';
 import { reType } from '../util/ReType';
-import { KeyValueStore } from '../util/storage/models/KeyValueStore';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
-import { v4 } from 'uuid';
-import { ForbiddenHttpError } from '@solid/community-server';
+import {
+  BadRequestHttpError,
+  ForbiddenHttpError,
+  getLoggerFor,
+  HttpErrorClass,
+  KeyValueStorage } from '@solid/community-server';
+import { getOperationLogger } from '../logging/OperationLogger';
+import { serializePolicyInstantiation } from '../logging/OperationSerializer';
 
 /**
  * A concrete Negotiator that verifies incoming Claims and processes Tickets
  * according to a TicketingStrategy.
  */
 export class BaseNegotiator implements Negotiator {
-  protected readonly logger: Logger = getLoggerFor(this);
+  protected readonly logger = getLoggerFor(this);
+  protected readonly operationLogger = getOperationLogger();
 
   /**
    * Construct a new Negotiator
    * @param verifier - The Verifier used to verify Claims of incoming Credentials.
-   * @param ticketStore - A KeyValueStore to track Tickets.
-   * @param ticketManager - The strategy describing the life cycle of a Ticket.
+   * @param ticketStore - A KeyValueStorage to track Tickets.
+   * @param ticketingStrategy - The strategy describing the life cycle of a Ticket.
    * @param tokenFactory - A factory for minting Access Tokens.
    */
   public constructor(
     protected verifier: Verifier,
-    protected ticketStore: KeyValueStore<string, Ticket>,
+    protected ticketStore: KeyValueStorage<string, Ticket>,
     protected ticketingStrategy: TicketingStrategy,
     protected tokenFactory: TokenFactory,
   ) {}
 
   /**
    * Performs UMA grant negotiation.
-   *
-   * @param {TokenRequest} body - request body
-   * @param {HttpHandlerContext} context - request context
-   * @return {Promise<TokenResponse>} tokens - yielded tokens
    */
   public async negotiate(input: DialogInput): Promise<DialogOutput> {
     reType(input, DialogInput);
 
     // Create or retrieve ticket
     const ticket = await this.getTicket(input);
-    this.logger.debug(`Processing ticket.`, ticket);
+    this.logger.debug(`Processing ticket. ${JSON.stringify(ticket)}`);
 
     // Process pushed credentials
     const updatedTicket = await this.processCredentials(input, ticket);
+    this.logger.debug(`resolved result ${JSON.stringify(updatedTicket)}`);
 
     // Try to resolve ticket ...
     const resolved = await this.ticketingStrategy.resolveTicket(updatedTicket);
+    this.logger.debug(`Resolved ticket ${JSON.stringify(resolved)}`);
 
     // ... on success, create Access Token
     if (resolved.success) {
+
+      // Retrieve / create instantiated policy
       const { token, tokenType } = await this.tokenFactory.serialize({ permissions: resolved.value });
+      this.logger.debug(`Minted token ${JSON.stringify(token)}`);
 
-      this.logger.debug('Minted token', JSON.stringify(token));
+      // TODO:: test logging
+      this.operationLogger.addLogEntry(serializePolicyInstantiation())
 
+      // TODO:: dynamic contract link to stored signed contract.
+      // If needed we can always embed here directly into the return JSON
       return ({
         access_token: token,
         token_type: tokenType,
       });
     }
-    
+
     // ... on failure, deny if no solvable requirements
+    this.denyRequest(ticket);
+  }
+
+  // TODO:
+  protected denyRequest(ticket: Ticket): never {
     const requiredClaims = ticket.required.map(req => Object.keys(req));
     if (requiredClaims.length === 0) throw new ForbiddenHttpError();
 
     // ... require more info otherwise
-    const id = v4();
+    const id = randomUUID();
     this.ticketStore.set(id, ticket);
     throw new NeedInfoError('Need more info to authorize request ...', id, {
       required_claims: {
@@ -84,12 +97,12 @@ export class BaseNegotiator implements Negotiator {
   /**
    * Helper function that retrieves a Ticket from the TicketStore if it exists,
    * or initializes a new one otherwise.
-   * 
+   *
    * @param input - The input of the negotiation dialog.
-   * 
+   *
    * @returns The Ticket describing the dialog at hand.
    */
-  private async getTicket(input: DialogInput): Promise<Ticket> {
+  protected async getTicket(input: DialogInput): Promise<Ticket> {
     const { ticket, permissions } = input;
 
     if (ticket) {
@@ -113,10 +126,10 @@ export class BaseNegotiator implements Negotiator {
    *
    * @param input - The input of the negotiation dialog.
    * @param ticket - The Ticket against which to validate any Credentials.
-   * 
+   *
    * @returns An updated Ticket in which the Credentials have been validated.
    */
-  private async processCredentials(input: DialogInput, ticket: Ticket): Promise<Ticket> {
+  protected async processCredentials(input: DialogInput, ticket: Ticket): Promise<Ticket> {
     const { claim_token: token, claim_token_format: format } = input;
 
     if (token || format) {
@@ -134,16 +147,14 @@ export class BaseNegotiator implements Negotiator {
   /**
    * Logs and throws an error
    *
-   * @param {ErrorConstructor} constructor - The error constructor.
+   * @param {HttpErrorClass} constructor - The error constructor.
    * @param {string} message - The error message.
-   * 
+   *
    * @throws An Error constructed with the provided constructor with the
    * provided message
    */
-  private error(constructor: ErrorConstructor, message: string): never {
+  protected error(constructor: HttpErrorClass, message: string): never {
     this.logger.warn(message);
     throw new constructor(message);
   }
 }
-
-type ErrorConstructor = { new(msg: string): Error };

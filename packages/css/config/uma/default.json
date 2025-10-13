@@ -1,103 +1,22 @@
 {
   "@context": [
-    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
   ],
-  "@graph": [
-    {
-      "@id": "urn:solid-server:default:ServerConfigurator",
-      "@type": "ParallelHandler",
-      "handlers": [
-        {
-          "@id": "urn:solid-server:default:StatusDependantServerConfigurator",
-          "@type": "StatusDependantServerConfigurator",
-          "dependants": [
-            { "@id": "urn:solid-server:default:UmaFetcher" }
-          ],
-          "statusMap": [
-            {
-              "StatusDependantServerConfigurator:_statusMap_key": "listening",
-              "StatusDependantServerConfigurator:_statusMap_value": true
-            },
-            {
-              "StatusDependantServerConfigurator:_statusMap_key": "close",
-              "StatusDependantServerConfigurator:_statusMap_value": false
-            },
-            {
-              "StatusDependantServerConfigurator:_statusMap_key": "error",
-              "StatusDependantServerConfigurator:_statusMap_value": false
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "comment": "Returns the UMA ticket in case of an unauthorized request.",
-      "@id": "urn:solid-server:default:UmaClient",
-      "@type": "UmaClient",
-      "umaIdStore": {
-        "@id": "urn:solid-server:default:UmaIdStore",
-        "@type": "MemoryMapStorage"
-      },
-      "fetcher": {
-        "@id": "urn:solid-server:default:UmaFetcher",
-        "@type": "PausableFetcher",
-        "fetcher": {
-          "@type": "RetryingFetcher",
-          "fetcher": {
-            "@type": "SignedFetcher",
-            "fetcher": {
-              "@type": "BaseFetcher"
-            },
-            "baseUrl": { "@id": "urn:solid-server:default:variable:baseUrl" },
-            "keyGen": { "@id": "urn:solid-server:default:JwkGenerator" }
-          },
-          "retries": 150,
-          "exponent": 3,
-          "retryOn": [401, 500]
-        }
-      }
-    },
-    {
-      "@id": "urn:solid-server:default:OwnerUtil",
-      "@type": "OwnerUtil",
-      "podStore": {
-        "@id": "urn:solid-server:default:PodStore"
-      },
-      "accountStore": {
-        "@id": "urn:solid-server:default:AccountStore"
-      },
-      "storageStrategy": {
-        "@id": "urn:solid-server:default:StorageLocationStrategy"
-      },
-      "umaPatStore": {
-        "@id": "urn:solid-server:default:UmaPatStore",
-        "@type": "MemoryMapStorage"
-      }
-    },
-    {
-      "comment": "Listens to the activities emitted by the MonitoringStore.",
-      "@id": "urn:solid-server:default:ResourceRegistrar",
-      "@type": "ResourceRegistrar",
-      "store": {
-        "@id": "urn:solid-server:default:ResourceStore"
-      },
-      "ownerUtil": {
-        "@id": "urn:solid-server:default:OwnerUtil"
-      },
-      "umaClient": {
-        "@id": "urn:solid-server:default:UmaClient"
-      }
-    },
-    {
-      "comment": "The ResourceRegistrar is added to the list of Initializers so Components.js finds and instantiates it.",
-      "@id": "urn:solid-server:default:PrimaryParallelInitializer",
-      "@type": "ParallelHandler",
-      "handlers": [
-        {
-          "@id": "urn:solid-server:default:ResourceRegistrar"
-        }
-      ]
-    }
+  "import": [
+    "uma-css:config/uma/overrides/account-seeding.json",
+    "uma-css:config/uma/overrides/account-store.json",
+    "uma-css:config/uma/overrides/authorization-handler.json",
+    "uma-css:config/uma/overrides/authorizer.json",
+    "uma-css:config/uma/overrides/jwks.json",
+    "uma-css:config/uma/overrides/modes.json",
+    "uma-css:config/uma/overrides/token-extractor.json",
+    "uma-css:config/uma/overrides/www-auth.json",
+
+    "uma-css:config/uma/parts/cli.json",
+    "uma-css:config/uma/parts/client.json",
+    "uma-css:config/uma/parts/fetcher.json",
+    "uma-css:config/uma/parts/owner-util.json",
+    "uma-css:config/uma/parts/resource-registrar.json",
+    "uma-css:config/uma/parts/server-configurator.json"
   ]
 }

@@ -6,20 +6,12 @@
     {
       "@id": "urn:uma:default:PermissionRegistrationRoute",
       "@type": "HttpHandlerRoute",
-      "operations": [
-        {
-          "@type": "HttpHandlerOperation",
-          "method": "POST",
-          "publish": true
-        }
-      ],
+      "methods": [ "POST" ],
       "handler": {
-        "@type": "JsonHttpErrorHandler",
-        "nestedHandler": {
-          "@type": "TicketRequestHandler",
-          "ticketingStrategy": { "@id": "urn:uma:default:TicketingStrategy" },
-          "ticketStore": { "@id": "urn:uma:default:TicketStore" }
-        }
+        "@type": "TicketRequestHandler",
+        "ticketingStrategy": { "@id": "urn:uma:default:TicketingStrategy" },
+        "ticketStore": { "@id": "urn:uma:default:TicketStore" },
+        "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
       },
       "path": "/uma/ticket"
     }
