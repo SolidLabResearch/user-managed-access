@@ -22,15 +22,20 @@ export class SolidOidcVerifier implements Verifier {
     }
 
     try {
-      const claims = await this.verifyToken(`Basic ${credential.token}`);
-      
+      let authHeader = JSON.parse(credential.token)
+      const claims = await this.verifyToken(authHeader.Authorization, {
+        header: authHeader.DPoP as string,
+        method: "POST",
+        url: "http://localhost:4000/uma/token",
+      });
+
       this.logger.info(`Authenticated via a Solid OIDC.`, claims);
 
       return ({ // TODO: keep issuer (and other metadata) for validation ??
         [WEBID]: claims.webid,
         ...claims.client_id && { [CLIENTID]: claims.client_id }
       });
-      
+
     } catch (error: unknown) {
       const message = `Error verifying OIDC ID Token: ${(error as Error).message}`;
 
