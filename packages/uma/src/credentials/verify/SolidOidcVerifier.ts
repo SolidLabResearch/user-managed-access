@@ -22,7 +22,7 @@ export class SolidOidcVerifier implements Verifier {
     }
 
     try {
-      const claims = await this.verifyToken(`Basic ${credential.token}`);
+      const claims = await this.verifyToken(`Bearer ${credential.token}`);
 
       this.logger.info(`Authenticated via a Solid OIDC. ${JSON.stringify(claims)}`);
 
