@@ -1,5 +1,4 @@
 import {
-  getLoggerFor,
   InternalServerError,
   joinUrl,
   PodStore,
@@ -7,6 +6,7 @@ import {
   StorageLocationStrategy,
   WrappedSetMultiMap
 } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 
 /**
  * ...

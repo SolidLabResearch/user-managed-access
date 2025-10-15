@@ -1,9 +1,9 @@
-import { getLoggerFor } from '@solid/community-server';
 import { ANY_RESOURCE, ANY_SCOPE, Authorizer } from './Authorizer';
 import { Permission } from '../../views/Permission';
 import { Requirements } from '../../credentials/Requirements';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { WEBID } from '../../credentials/Claims';
+import { getLoggerFor } from 'global-logger-factory';
 
 /**
  * An Authorizer granting access for WebID's to resources in given namespaces.

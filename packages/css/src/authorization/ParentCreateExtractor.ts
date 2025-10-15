@@ -1,6 +1,5 @@
 import {
   AccessMap,
-  AccessMode,
   IdentifierSetMultiMap,
   IdentifierStrategy,
   InternalServerError,
@@ -9,6 +8,7 @@ import {
   ResourceIdentifier,
   ResourceSet
 } from '@solid/community-server';
+import { PERMISSIONS } from '@solidlab/policy-engine';
 
 /**
  * Transforms the result of the wrapped {@link ModesExtractor} to only return modes for existing resources.
@@ -37,11 +37,11 @@ export class ParentCreateExtractor extends ModesExtractor {
 
   public async handle(input: Operation): Promise<AccessMap> {
     const result = await this.source.handle(input);
-    const updatedResult = new IdentifierSetMultiMap<AccessMode>();
+    const updatedResult: AccessMap = new IdentifierSetMultiMap();
     for (const [ id, modes ] of result.entrySets()) {
-      if (modes.has(AccessMode.create)) {
+      if (modes.has(PERMISSIONS.Create)) {
         const parent = await this.findFirstExistingParent(id);
-        updatedResult.add(parent, AccessMode.create);
+        updatedResult.add(parent, PERMISSIONS.Create);
       } else {
         updatedResult.add(id, modes);
       }

@@ -1,7 +1,8 @@
 {
   "@context": [
     "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld"
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^8.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/asynchronous-handlers/^1.0.0/components/context.jsonld"
   ],
   "import": [
     "sai-uma:config/credentials/verifiers/default.json",
@@ -108,7 +109,7 @@
         "@type": "JsonHttpErrorHandler",
         "handler": {
           "@id": "urm:uma:default:RouteHandler",
-          "@type": "WaterfallHandler",
+          "@type": "StatusWaterfallHandler",
           "handlers": [
             {
               "comment": "Handles all JSON and form encoded input/output.",
@@ -144,7 +145,10 @@
             },
             {
               "@type": "StaticThrowHandler",
-              "error": { "@type": "NotFoundHttpError" }
+              "factory": {
+                "@type": "ClassErrorFactory",
+                "error": { "@type": "NotFoundHttpError" }
+              }
             }
           ]
         }

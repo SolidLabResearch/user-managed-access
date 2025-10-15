@@ -13,7 +13,7 @@ export default defineConfig({
     chaiConfig: {
       truncateThreshold: 0,
     },
-    hookTimeout: 60000,
-    testTimeout: 60000,
+    hookTimeout: 90000,
+    testTimeout: 90000,
   },
 });

@@ -1,16 +1,11 @@
+import { BadRequestHttpError, createErrorMessage, JwkGenerator, KeyValueStorage } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { importJWK, jwtVerify, SignJWT } from 'jose';
-import {
-  BadRequestHttpError,
-  createErrorMessage,
-  getLoggerFor,
-  JwkGenerator,
-  KeyValueStorage
-} from '@solid/community-server';
 import { randomUUID } from 'node:crypto';
-import { SerializedToken , TokenFactory} from './TokenFactory';
-import { AccessToken } from './AccessToken';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
+import { AccessToken } from './AccessToken';
+import { SerializedToken, TokenFactory } from './TokenFactory';
 
 const AUD = 'solid';
 

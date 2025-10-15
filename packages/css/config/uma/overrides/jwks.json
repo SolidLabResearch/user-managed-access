@@ -1,6 +1,6 @@
 {
   "@context": [
-    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^8.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
   ],
   "@graph": [
@@ -11,7 +11,7 @@
       "overrideInstance": { "@id": "urn:solid-server:default:BaseHttpHandler" },
       "overrideSteps": [{
         "@type": "OverrideListInsertAt",
-        "overrideParameter": { "@id": "WaterfallHandler:_handlers" },
+        "overrideParameter": { "@id": "StatusWaterfallHandler:_handlers" },
         "overrideTarget": 0,
         "overrideValue": {
           "@id": "urn:solid-server:default:JwksRouterHandler",

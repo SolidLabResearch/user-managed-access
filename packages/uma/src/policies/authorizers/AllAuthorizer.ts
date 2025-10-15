@@ -1,8 +1,8 @@
-import { getLoggerFor } from '@solid/community-server';
-import { ANY_RESOURCE, ANY_SCOPE, Authorizer } from './Authorizer';
-import { Permission } from '../../views/Permission';
+import { getLoggerFor } from 'global-logger-factory';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { Requirements } from '../../credentials/Requirements';
+import { Permission } from '../../views/Permission';
+import { ANY_RESOURCE, ANY_SCOPE, Authorizer } from './Authorizer';
 
 /**
  * Mock authorizer granting all specified access modes

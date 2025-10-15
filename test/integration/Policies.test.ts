@@ -1,5 +1,6 @@
-import { App, setGlobalLoggerFactory, WinstonLoggerFactory } from '@solid/community-server';
+import { App } from '@solid/community-server';
 import { ODRL } from '@solidlab/ucp';
+import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
 import { DataFactory as DF, Parser, Store } from 'n3';
 import path from 'node:path';
 import {

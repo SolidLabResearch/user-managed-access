@@ -1,12 +1,12 @@
-import { getLoggerFor } from '@solid/community-server';
-import type { StatusDependant } from './StatusDependant';
-import type { FetchParams, Fetcher } from './Fetcher';
 import EventEmitter from 'events';
+import { getLoggerFor } from 'global-logger-factory';
+import type { Fetcher, FetchParams } from './Fetcher';
+import type { StatusDependant } from './StatusDependant';
 
 const PROCESS = Symbol();
 
 /**
- * A {@link Fetcher} wrapper that is {@link StatusDependant}, 
+ * A {@link Fetcher} wrapper that is {@link StatusDependant},
  * enabling requests to be backlogged during inactive periods.
  */
 export class PausableFetcher implements Fetcher, StatusDependant<boolean> {

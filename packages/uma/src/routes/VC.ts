@@ -1,7 +1,6 @@
-import { getLoggerFor } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { getOperationLogger } from '../logging/OperationLogger';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
-
 
 /**
  * An HttpHandler used for returning the logs

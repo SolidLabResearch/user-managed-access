@@ -1,9 +1,9 @@
-import { getLoggerFor } from '@solid/community-server';
-import { Verifier } from './Verifier';
-import { ClaimSet } from '../ClaimSet';
-import { Credential } from "../Credential";
-import { UNSECURE } from '../Formats';
 import { CLIENTID, WEBID } from '../Claims';
+import { ClaimSet } from '../ClaimSet';
+import { Credential } from '../Credential';
+import { UNSECURE } from '../Formats';
+import { Verifier } from './Verifier';
+import { getLoggerFor } from 'global-logger-factory';
 
 /**
  * An UNSECURE Verifier that parses Tokens of the format `encode_uri(webId)[:encode_uri(clientId)]`,

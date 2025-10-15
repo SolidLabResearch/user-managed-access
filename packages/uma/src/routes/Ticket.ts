@@ -1,10 +1,10 @@
 import {
   BadRequestHttpError,
   createErrorMessage,
-  getLoggerFor,
   KeyValueStorage,
   UnauthorizedHttpError
 } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { randomUUID } from 'node:crypto';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../ticketing/Ticket';

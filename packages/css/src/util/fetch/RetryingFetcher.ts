@@ -1,9 +1,9 @@
-import { getLoggerFor } from '@solid/community-server';
-import type { FetchParams, Fetcher } from './Fetcher';
 import retryFetcher from 'fetch-retry';
+import { getLoggerFor } from 'global-logger-factory';
+import type { Fetcher, FetchParams } from './Fetcher';
 
 /**
- * A {@link Fetcher} wrapper that retries failed fetches. 
+ * A {@link Fetcher} wrapper that retries failed fetches.
  */
 export class RetryingFetcher implements Fetcher {
   protected readonly logger = getLoggerFor(this);

@@ -1,4 +1,5 @@
 import { IdentifierMap, PermissionReaderInput } from '@solid/community-server';
+import { PERMISSIONS } from '@solidlab/policy-engine';
 import { UmaPermissionReader } from '../../../src/authorization/UmaPermissionReader';
 import { UmaClaims } from '../../../src/uma/UmaClient';
 
@@ -19,8 +20,8 @@ describe('UmaPermissionReader', (): void => {
     ];
     const result = await reader.handle(input);
     expect([ ...result.keys() ]).toEqual([ { path: 'id1' }, { path: 'id2' } ]);
-    expect(result.get({ path: 'id1' })).toEqual({ read: true, write: true });
-    expect(result.get({ path: 'id2' })).toEqual({ create: true });
+    expect(result.get({ path: 'id1' })).toEqual({ [PERMISSIONS.Read]: true, [PERMISSIONS.Modify]: true });
+    expect(result.get({ path: 'id2' })).toEqual({ [PERMISSIONS.Create]: true });
   });
 
   it('returns an empty result if the token has invalid time restrictions.', async(): Promise<void> => {
@@ -45,8 +46,8 @@ describe('UmaPermissionReader', (): void => {
     rpt.exp = Date.now()/1000 + 10;
     rpt.nbf = Date.now()/1000 - 10;
     await expect(reader.handle(input)).resolves.toEqual(new IdentifierMap([
-      [ { path: 'id1' }, { read: true, write: true } ],
-      [ { path: 'id2' }, { create: true } ],
+      [ { path: 'id1' }, { [PERMISSIONS.Read]: true, [PERMISSIONS.Modify]: true } ],
+      [ { path: 'id2' }, { [PERMISSIONS.Create]: true } ],
     ]));
   });
 
@@ -58,22 +59,22 @@ describe('UmaPermissionReader', (): void => {
 
     rpt.permissions[0].iat = Date.now()/1000 + 10;
     await expect(reader.handle(input)).resolves.toEqual(new IdentifierMap([
-      [ { path: 'id1' }, { read: false, write: false } ],
-      [ { path: 'id2' }, { create: true } ],
+      [ { path: 'id1' }, { [PERMISSIONS.Read]: false, [PERMISSIONS.Modify]: false } ],
+      [ { path: 'id2' }, { [PERMISSIONS.Create]: true } ],
     ]));
     delete rpt.permissions[0].iat;
 
     rpt.permissions[0].exp = Date.now()/1000 - 10;
     await expect(reader.handle(input)).resolves.toEqual(new IdentifierMap([
-      [ { path: 'id1' }, { read: false, write: false } ],
-      [ { path: 'id2' }, { create: true } ],
+      [ { path: 'id1' }, { [PERMISSIONS.Read]: false, [PERMISSIONS.Modify]: false } ],
+      [ { path: 'id2' }, { [PERMISSIONS.Create]: true } ],
     ]));
     delete rpt.permissions[0].exp;
 
     rpt.permissions[0].nbf = Date.now()/1000 + 10;
     await expect(reader.handle(input)).resolves.toEqual(new IdentifierMap([
-      [ { path: 'id1' }, { read: false, write: false } ],
-      [ { path: 'id2' }, { create: true } ],
+      [ { path: 'id1' }, { [PERMISSIONS.Read]: false, [PERMISSIONS.Modify]: false } ],
+      [ { path: 'id2' }, { [PERMISSIONS.Create]: true } ],
     ]));
     delete rpt.permissions[0].nbf;
 
@@ -81,8 +82,8 @@ describe('UmaPermissionReader', (): void => {
     rpt.exp = Date.now()/1000 + 10;
     rpt.nbf = Date.now()/1000 - 10;
     await expect(reader.handle(input)).resolves.toEqual(new IdentifierMap([
-      [ { path: 'id1' }, { read: true, write: true } ],
-      [ { path: 'id2' }, { create: true } ],
+      [ { path: 'id1' }, { [PERMISSIONS.Read]: true, [PERMISSIONS.Modify]: true } ],
+      [ { path: 'id2' }, { [PERMISSIONS.Create]: true } ],
     ]));
   });
 });

@@ -1,12 +1,12 @@
 import {
   AccessMap,
-  AccessMode,
   IdentifierSetMultiMap,
   IdentifierStrategy,
   KeyValueStorage,
   NotFoundHttpError,
   ResourceSet
 } from '@solid/community-server';
+import { PERMISSIONS } from '@solidlab/policy-engine';
 import { EventEmitter } from 'events';
 import * as jose from 'jose';
 import { Mocked, MockInstance } from 'vitest';
@@ -113,9 +113,9 @@ describe('UmaClient', (): void => {
     }
 
     beforeEach(async(): Promise<void> => {
-      permissions = new IdentifierSetMultiMap<AccessMode>([
-        [ { path: 'target1' }, AccessMode.read ],
-        [ { path: 'target2' }, AccessMode.write ],
+      permissions = new IdentifierSetMultiMap<string>([
+        [ { path: 'target1' }, PERMISSIONS.Read ],
+        [ { path: 'target2' }, PERMISSIONS.Modify ],
       ]);
 
       // Config mock for first fetch call

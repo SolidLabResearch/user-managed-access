@@ -1,11 +1,11 @@
-import { getLoggerFor } from '@solid/community-server';
-import { ClaimSet } from "../../credentials/ClaimSet";
-import { Ticket } from "../Ticket";
-import { Permission } from "../../views/Permission";
-import { Failure, Result, Success } from "../../util/Result";
-import { TicketingStrategy } from "./TicketingStrategy";
-import { Requirements } from "../../credentials/Requirements";
-import { Authorizer } from "../../policies/authorizers/Authorizer";
+import { getLoggerFor } from 'global-logger-factory';
+import { ClaimSet } from '../../credentials/ClaimSet';
+import { Requirements } from '../../credentials/Requirements';
+import { Authorizer } from '../../policies/authorizers/Authorizer';
+import { Failure, Result, Success } from '../../util/Result';
+import { Permission } from '../../views/Permission';
+import { Ticket } from '../Ticket';
+import { TicketingStrategy } from './TicketingStrategy';
 
 /**
  * A TicketingStrategy that calculates all necessary Claims for a given Permissions

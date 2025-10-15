@@ -1,4 +1,5 @@
-import { getLoggerFor, JwkGenerator } from '@solid/community-server';
+import { JwkGenerator } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 
 /**

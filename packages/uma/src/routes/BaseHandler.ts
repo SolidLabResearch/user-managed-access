@@ -1,16 +1,17 @@
-import { BadRequestHttpError, getLoggerFor, MethodNotAllowedHttpError } from "@solid/community-server";
+import { BadRequestHttpError, MethodNotAllowedHttpError } from "@solid/community-server";
+import { getLoggerFor } from 'global-logger-factory';
 import { BaseController } from "../controller/BaseController";
 import { HttpHandler, HttpHandlerContext, HttpHandlerRequest, HttpHandlerResponse } from "../util/http/models/HttpHandler";
 import { verifyHttpCredentials } from "../util/routeSpecific/middlewareUtil";
 
 /**
  * Base handler for policy and access request endpoints.
- * 
+ *
  * Provides a generic request-handling layer between HTTP requests and the {@link BaseController}.
  * Handles routing based on HTTP method and request parameters, logging, and validation.
- * 
+ *
  * Supported methods:
- *  - **GET** `/:id`    -  retrieve a single policy (including its rules) or access request 
+ *  - **GET** `/:id`    -  retrieve a single policy (including its rules) or access request
  *  - **PATCH** `/:id`  -  patch a policy (and rules) or access request
  *  - **PUT** `/:id`    - rewrite a policy (and rules) or access request
  *  - **DELETE** `/:id` -  delete policy or access request
@@ -20,7 +21,7 @@ import { verifyHttpCredentials } from "../util/routeSpecific/middlewareUtil";
 export abstract class BaseHandler extends HttpHandler {
 
     protected readonly logger = getLoggerFor(this);
-    
+
     /**
      * @param controller reference to the controller implementing the policy/access request logic
      * @param handleLogMessage message to log at the start of each handled request
@@ -37,7 +38,7 @@ export abstract class BaseHandler extends HttpHandler {
     /**
      * Entry point for handling incoming HTTP requests.
      * Delegates to specific methods based on request method and presence of an `id` parameter.
-     * 
+     *
      * @param context context containing the HTTP request
      * @returns HTTP response with appropriate status and body
      */
@@ -69,7 +70,7 @@ export abstract class BaseHandler extends HttpHandler {
     /**
      * Handle a simple **OPTIONS** request to any of the specified endpoints.
      * Useful for CORS preflight requests.
-     * 
+     *
      * @returns a response with status 204 and appropriate headers
      */
     private async handleOptions(): Promise<HttpHandlerResponse<any>> {
@@ -79,7 +80,7 @@ export abstract class BaseHandler extends HttpHandler {
 
     /**
      * Retrieve a single policy (including its rules) or a single access request identified by `entityID`.
-     * 
+     *
      * @param entityID ID pointing to the policy or access request
      * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
      * @returns a response with status (200 if found, 404 if not) and Turtle body containing the entity
@@ -96,7 +97,7 @@ export abstract class BaseHandler extends HttpHandler {
     /**
      * Handle a **PATCH** request for a single policy or access request identified by `entityID`.
      * Supports multiple patch content types, depending on `patchContentType`.
-     * 
+     *
      * @param request HttpHandlerRequest containing the PATCH body
      * @param entityID ID of the policy or access request to patch
      * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
@@ -112,13 +113,13 @@ export abstract class BaseHandler extends HttpHandler {
             if (body.status) response = (await this.controller.patchEntity(entityID, body.status, clientID, false));
             else throw new BadRequestHttpError();
         } else response = (await this.controller.patchEntity(entityID, request.body, clientID));
-        
+
         return response;
     }
 
     /**
      * Rewrite a single policy (including rules) or access request identified by `entityID`.
-     * 
+     *
      * @param entityID ID pointing to the policy or access request
      * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
      * @returns a response with status 204 upon success
@@ -134,7 +135,7 @@ export abstract class BaseHandler extends HttpHandler {
 
     /**
      * Remove a single policy (including rules) or access request identified by `entityID`.
-     * 
+     *
      * @param entityID ID pointing to the policy or access request
      * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
      * @returns a response with status 204 if deletion was successful
@@ -149,7 +150,7 @@ export abstract class BaseHandler extends HttpHandler {
 
     /**
      * Retrieve all policies (including rules) or all access requests for a given `clientID`.
-     * 
+     *
      * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
      * @returns a response with status (200 if found, 404 if not) and Turtle body containing all entities
      */
@@ -164,7 +165,7 @@ export abstract class BaseHandler extends HttpHandler {
 
     /**
      * Create a new policy (with at least one rule) or a new access request for a given `clientID`.
-     * 
+     *
      * @param request HttpHandlerRequest containing RDF body representing the entity
      * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
      * @returns a response with status code 201 if successful, 409 if conflict occurred, or error otherwise

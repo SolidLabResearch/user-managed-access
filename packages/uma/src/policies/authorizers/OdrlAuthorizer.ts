@@ -1,14 +1,9 @@
-import {
-  BadRequestHttpError,
-  createVocabulary,
-  DC,
-  getLoggerFor,
-  NotImplementedHttpError,
-  RDF
-} from '@solid/community-server';
+import { BadRequestHttpError, DC, NotImplementedHttpError, RDF } from '@solid/community-server';
 import { basicPolicy, ODRL, UCPPolicy, UCRulesStorage } from '@solidlab/ucp';
+import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory, Literal, NamedNode, Quad_Subject, Store } from 'n3';
 import { EyeReasoner, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator'
+import { createVocabulary } from 'rdf-vocabulary';
 import { WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { Requirements } from '../../credentials/Requirements';

@@ -1,8 +1,9 @@
-import { BadRequestHttpError, getLoggerFor, UnauthorizedHttpError } from '@solid/community-server';
+import { BadRequestHttpError, UnauthorizedHttpError } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
+import { ClaimSet } from '../credentials/ClaimSet';
 import { TokenFactory } from '../tokens/TokenFactory';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 import { verifyRequest } from '../util/HttpMessageSignatures';
-
 
 type IntrospectionResponse = {
   active : boolean,

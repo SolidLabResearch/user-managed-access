@@ -4,4 +4,4 @@ export * from './get';
 export * from './patch';
 
 import { QueryEngine } from '@comunica/query-sparql';
-export const queryEngine = new QueryEngine();
+export const queryEngine: QueryEngine = new QueryEngine();

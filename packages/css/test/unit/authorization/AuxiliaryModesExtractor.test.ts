@@ -1,11 +1,12 @@
 import {
-  AccessMap, AccessMode,
+  AccessMap,
   AuxiliaryStrategy,
   IdentifierSetMultiMap,
   ModesExtractor,
   Operation,
   ResourceIdentifier
 } from '@solid/community-server';
+import { PERMISSIONS } from '@solidlab/policy-engine';
 import { expect, Mocked } from 'vitest';
 import { AuxiliaryModesExtractor } from '../../../src/authorization/AuxiliaryModesExtractor';
 
@@ -51,16 +52,16 @@ describe('AuxiliaryModesExtractor', (): void => {
     strategy.isAuxiliaryIdentifier.mockImplementation((id): boolean => results[id.path].aux);
     strategy.usesOwnAuthorization.mockImplementation((id): boolean => results[id.path].own);
     strategy.getSubjectIdentifier.mockImplementation((id): ResourceIdentifier => ({ path: results[id.path].subject }));
-    const output: AccessMap = new IdentifierSetMultiMap<AccessMode>([
-      [ { path: 'nonAux'}, new Set([ AccessMode.read ]) ],
-      [ { path: 'own'}, new Set([ AccessMode.write ]) ],
-      [ { path: 'aux'}, new Set([ AccessMode.create ]) ],
+    const output: AccessMap = new IdentifierSetMultiMap<string>([
+      [ { path: 'nonAux'}, new Set([ PERMISSIONS.Read ]) ],
+      [ { path: 'own'}, new Set([ PERMISSIONS.Modify ]) ],
+      [ { path: 'aux'}, new Set([ PERMISSIONS.Create ]) ],
     ]);
     source.handle.mockResolvedValueOnce(output);
     const result = await extractor.handle(input);
     expect(result.size).toBe(3);
-    expect([ ...result.get({ path: 'nonAux' })!]).toEqual([ AccessMode.read ]);
-    expect([ ...result.get({ path: 'own' })!]).toEqual([ AccessMode.write ]);
-    expect([ ...result.get({ path: 'subject' })!]).toEqual([ AccessMode.create ]);
+    expect([ ...result.get({ path: 'nonAux' })!]).toEqual([ PERMISSIONS.Read ]);
+    expect([ ...result.get({ path: 'own' })!]).toEqual([ PERMISSIONS.Modify ]);
+    expect([ ...result.get({ path: 'subject' })!]).toEqual([ PERMISSIONS.Create ]);
   });
 });
