@@ -20,6 +20,7 @@ describe('Config', (): void => {
         dpop_signing_alg_values_supported:
           expect.arrayContaining(['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'PS256', 'PS384', 'PS512']),
         response_types_supported: ['token'],
+        registration_endpoint: 'http://example.com/uma/reg/',
       }
     });
   });

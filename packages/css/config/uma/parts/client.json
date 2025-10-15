@@ -16,7 +16,8 @@
         "@id": "urn:solid-server:default:UmaFetcher"
       },
       "identifierStrategy": { "@id": "urn:solid-server:default:IdentifierStrategy" },
-      "resourceSet": { "@id": "urn:solid-server:default:CachedResourceSet" }
+      "resourceSet": { "@id": "urn:solid-server:default:CachedResourceSet" },
+      "baseUrl":{ "@id": "urn:solid-server:default:variable:baseUrl" }
     }
   ]
 }

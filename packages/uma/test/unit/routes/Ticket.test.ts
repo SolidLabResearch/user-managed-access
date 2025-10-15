@@ -4,7 +4,9 @@ import { TicketRequestHandler } from '../../../src/routes/Ticket';
 import { TicketingStrategy } from '../../../src/ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../../../src/ticketing/Ticket';
 import { HttpHandlerContext } from '../../../src/util/http/models/HttpHandler';
+import { RequestValidator } from '../../../src/util/http/validate/RequestValidator';
 import * as signatures from '../../../src/util/HttpMessageSignatures';
+import { RegistrationStore } from '../../../src/util/RegistrationStore';
 import { ResourceDescription } from '../../../src/views/ResourceDescription';
 
 vi.mock('node:crypto', () => ({
@@ -12,17 +14,17 @@ vi.mock('node:crypto', () => ({
 }));
 
 describe('Ticket', (): void => {
+  const owner = 'owner';
   let request: HttpHandlerContext;
-  const verifyRequest = vi.spyOn(signatures, 'verifyRequest');
 
   let ticketingStrategy: Mocked<TicketingStrategy>;
   let ticketStore: Mocked<KeyValueStorage<string, Ticket>>;
-  let resourceStore: Mocked<KeyValueStorage<string, ResourceDescription>>;
+  let registrationStore: Mocked<RegistrationStore>;
+  let validator: Mocked<RequestValidator>;
   let handler: TicketRequestHandler;
 
   beforeEach(async(): Promise<void> => {
     vi.clearAllMocks();
-    verifyRequest.mockResolvedValue(true);
 
     request = { request: { body: [{
       resource_id: 'id',
@@ -35,7 +37,7 @@ describe('Ticket', (): void => {
       validateClaims: vi.fn(),
     };
 
-    resourceStore = {
+    registrationStore = {
       has: vi.fn().mockResolvedValue(true),
     } satisfies Partial<KeyValueStorage<string, ResourceDescription>> as any;
 
@@ -43,14 +45,11 @@ describe('Ticket', (): void => {
       set: vi.fn(),
     } satisfies Partial<KeyValueStorage<string, Ticket>> as any;
 
-    handler = new TicketRequestHandler(ticketingStrategy, ticketStore, resourceStore);
-  });
+    validator = {
+      handleSafe: vi.fn().mockResolvedValue({ owner }),
+    } satisfies Partial<RequestValidator> as any;
 
-  it('errors if the request is not authorized.', async(): Promise<void> => {
-    verifyRequest.mockResolvedValueOnce(false);
-    await expect(handler.handle(request)).rejects.toThrow(UnauthorizedHttpError);
-    expect(verifyRequest).toHaveBeenCalledTimes(1);
-    expect(verifyRequest).toHaveBeenLastCalledWith(request.request);
+    handler = new TicketRequestHandler(ticketingStrategy, ticketStore, registrationStore, validator);
   });
 
   it('throws an error if the body is invalid.', async(): Promise<void> => {
@@ -76,8 +75,8 @@ describe('Ticket', (): void => {
       { resource_id: 'id1', resource_scopes: [ 'scope1' ]},
       { resource_id: 'id2', resource_scopes: [ 'scope2' ]},
     ];
-    resourceStore.has.mockResolvedValueOnce(true);
-    resourceStore.has.mockResolvedValueOnce(false);
+    registrationStore.has.mockResolvedValueOnce(true);
+    registrationStore.has.mockResolvedValueOnce(false);
     await expect(handler.handle(request)).resolves
       .toEqual({ status: 400, body: { error: 'invalid_resource_id', error_description: 'Unknown UMA ID id2' }});
     expect(ticketStore.set).toHaveBeenCalledTimes(0);

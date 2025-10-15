@@ -13,7 +13,7 @@ import {
   putPolicyB
 } from '../../scripts/util/policyExamples';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
-import { findTokenEndpoint, noTokenFetch } from '../util/UmaUtil';
+import { findTokenEndpoint, noTokenFetch, generateCredentials } from '../util/UmaUtil';
 
 const [ cssPort, umaPort ] = getPorts('Policies');
 
@@ -110,6 +110,14 @@ describe('A policy server setup', (): void => {
   });
 
   it('can not create a resource without access.', async(): Promise<void> => {
+    await generateCredentials({
+      webId: `http://localhost:${cssPort}/alice/profile/card#me`,
+      authorizationServer: `http://localhost:${umaPort}/uma`,
+      resourceServer: `http://localhost:${cssPort}/`,
+      email: 'alice@example.org',
+      password: 'abc123'
+    });
+
     await expect(attemptRequest(target, { method: 'PUT', headers: { 'content-type': 'text/plain' }, body: 'test' }))
       .resolves.toBe(false);
   });

@@ -9,10 +9,10 @@ import { randomUUID } from 'node:crypto';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../ticketing/Ticket';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
-import { verifyRequest } from '../util/HttpMessageSignatures';
+import { RequestValidator } from '../util/http/validate/RequestValidator';
+import { RegistrationStore } from '../util/RegistrationStore';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
-import { ResourceDescription } from '../views/ResourceDescription';
 
 /**
  * A TicketRequestHandler is tasked with implementing
@@ -26,14 +26,15 @@ export class TicketRequestHandler extends HttpHandler {
   constructor(
     protected readonly ticketingStrategy: TicketingStrategy,
     protected readonly ticketStore: KeyValueStorage<string, Ticket>,
-    protected readonly resourceStore: KeyValueStorage<string, ResourceDescription>,
+    protected readonly registrationStore: RegistrationStore,
+    protected readonly validator: RequestValidator,
   ) {
     super();
   }
 
   async handle({request}: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
     this.logger.info(`Received permission registration request.`);
-    if (!await verifyRequest(request)) throw new UnauthorizedHttpError();
+    await this.validator.handleSafe({ request });
 
     try {
       reType(request.body, array(Permission));
@@ -44,7 +45,7 @@ export class TicketRequestHandler extends HttpHandler {
 
     for (const { resource_id } of request.body) {
       // https://docs.kantarainitiative.org/uma/wg/rec-oauth-uma-federated-authz-2.0.html#rfc.section.4.3
-      if (!await this.resourceStore.has(resource_id)) {
+      if (!await this.registrationStore.has(resource_id)) {
         return {
           status: 400,
           body: {

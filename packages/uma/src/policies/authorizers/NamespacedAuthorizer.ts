@@ -1,9 +1,8 @@
-import { KeyValueStorage } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { Requirements } from '../../credentials/Requirements';
+import { RegistrationStore } from '../../util/RegistrationStore';
 import { Permission } from '../../views/Permission';
-import { ResourceDescription } from '../../views/ResourceDescription';
 import { Authorizer } from './Authorizer';
 
 const namespace = (resource: string) => new URL(resource).pathname.split('/')?.[2] ?? '';
@@ -20,12 +19,12 @@ export class NamespacedAuthorizer implements Authorizer {
    * @param authorizers - A key/value map with the key being the relevant namespace
    *                      and the value being the corresponding authorizer to use for that namespace.
    * @param fallback - Authorizer to use if there is no namespace match.
-   * @param resourceStore - The key/value store containing the resource registrations.
+   * @param registrationStore - The key/value store containing the resource registrations.
    */
   constructor(
     protected authorizers: Record<string, Authorizer>,
     protected fallback: Authorizer,
-    protected resourceStore: KeyValueStorage<string, ResourceDescription>,
+    protected registrationStore: RegistrationStore,
   ) {}
 
   /** @inheritdoc */
@@ -85,13 +84,13 @@ export class NamespacedAuthorizer implements Authorizer {
       return;
     }
 
-    const description = await this.resourceStore.get(resourceId);
-    if (!description) {
+    const registration = await this.registrationStore.get(resourceId);
+    if (!registration) {
       this.logger.warn(`Cannot find a registered resource with id ${resourceId}`);
       return;
     }
 
-    const resourceIdentifier = description.name;
+    const resourceIdentifier = registration.description.name;
     if (!resourceIdentifier) {
       this.logger.warn(`Resource ${resourceId} has no registered name.`);
       return

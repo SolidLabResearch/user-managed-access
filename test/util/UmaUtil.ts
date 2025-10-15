@@ -1,4 +1,5 @@
 import { DialogOutput } from '@solidlab/uma';
+import {joinUrl} from '@solid/community-server';
 
 /**
  * The initial request to a RS without a token.
@@ -102,4 +103,58 @@ export async function umaFetch(input: string | URL | globalThis.Request, init?: 
 
   // Perform new call with token
   return tokenFetch(token, input, init);
+}
+
+/**
+ * Generates credentials for the RS so it can request PATs.
+ */
+export async function generateCredentials(args: {
+    webId: string,
+    authorizationServer: string,
+    resourceServer: string,
+    email: string,
+    password: string,
+  }): Promise<void> {
+  const configurationUrl = joinUrl(args.authorizationServer, '/.well-known/uma2-configuration');
+  const configResponse = await fetch(configurationUrl);
+  expect(configResponse.status).toBe(200);
+  const configuration = await configResponse.json() as { registration_endpoint: string };
+  expect(configuration.registration_endpoint).toBeDefined();
+
+  let response = await fetch(configuration.registration_endpoint, {
+    method: 'POST',
+    headers: {
+      authorization: `WebID ${encodeURIComponent(args.webId)}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ client_uri: args.resourceServer }),
+  });
+  expect(response.status).toBe(201);
+  const { client_id, client_secret } = await response.json() as { client_id: string, client_secret: string };
+
+  let indexResponse = await fetch(joinUrl(args.resourceServer, '.account/'));
+  let { controls } = await indexResponse.json() as Record<string, any>;
+  expect(controls?.password?.login).toBeDefined();
+
+  response = await fetch(controls.password.login, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: args.email, password: args.password }),
+  });
+  expect(response.status).toBe(200);
+  const { authorization } = await response.json() as { authorization: string };
+  expect(authorization).toBeDefined();
+
+  indexResponse = await fetch(joinUrl(args.resourceServer, '.account/'), {
+    headers: { authorization: `CSS-Account-Token ${authorization}` }
+  });
+  ({ controls } = await indexResponse.json() as Record<string, any>);
+  expect(controls?.account?.pat).toBeDefined();
+
+  response = await fetch(controls.account.pat, {
+    method: 'POST',
+    headers: { authorization: `CSS-Account-Token ${authorization}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ id: client_id, secret: client_secret, issuer: args.authorizationServer }),
+  });
+  expect(response.status).toBe(200);
 }

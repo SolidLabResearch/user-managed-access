@@ -1,12 +1,9 @@
-import { AlgJwk, UnauthorizedHttpError } from '@solid/community-server';
+import { AlgJwk } from '@solid/community-server';
 import { httpbis } from 'http-message-signatures';
 import { exportJWK, generateKeyPair, GenerateKeyPairResult } from 'jose';
 import crypto from 'node:crypto';
-import { beforeAll, Mock } from 'vitest';
-import { HttpHandlerRequest } from '../../../src/util/http/models/HttpHandler';
-import { extractRequestSigner, signRequest, verifyRequest } from '../../../src/util/HttpMessageSignatures';
-
-vi.mock('get-jwks');
+import { beforeAll } from 'vitest';
+import { signRequest } from '../../../src/util/HttpMessageSignatures';
 
 describe('HttpMessageSignatures', (): void => {
   const url = 'https://example.com/foo';
@@ -38,61 +35,6 @@ describe('HttpMessageSignatures', (): void => {
         signedRequest,
       );
       expect(verified).toBe(true);
-    });
-  });
-
-  describe('#extractRequestSigner', (): void => {
-    it('extracts the request signer.', async(): Promise<void> => {
-      const request: HttpHandlerRequest = {
-        url: new URL('https://example.com/foo'),
-        method: 'GET',
-        headers: { accept: 'text/turtle', authorization: 'HttpSig cred="https://example.com/bar"' },
-      };
-      await expect(extractRequestSigner(request)).resolves.toBe('"https://example.com/bar"');
-    });
-
-    it('errors if there is no authorization header.', async(): Promise<void> => {
-      const request: HttpHandlerRequest = {
-        url: new URL('https://example.com/foo'),
-        method: 'GET',
-        headers: { accept: 'text/turtle' },
-      };
-      await expect(extractRequestSigner(request)).rejects.toThrow(UnauthorizedHttpError);
-    });
-
-    it('errors if the credentials are missing.', async(): Promise<void> => {
-      const request: HttpHandlerRequest = {
-        url: new URL('https://example.com/foo'),
-        method: 'GET',
-        headers: { accept: 'text/turtle', authorization: 'HttpSig' },
-      };
-      await expect(extractRequestSigner(request)).rejects.toThrow(UnauthorizedHttpError);
-    });
-  });
-
-  describe('#verifyRequest', (): void => {
-    let getJwk: Mock<() => unknown>;
-    beforeEach(async(): Promise<void> => {
-      const getJwks = await import('get-jwks');
-      getJwk = vi.fn().mockResolvedValue(publicKey);
-      (getJwks.default as unknown as Mock).mockReturnValue({ getJwk } as any);
-    });
-
-    it('verifies the request.', async(): Promise<void> => {
-      const request = { method: 'GET', headers: { accept: 'text/plain' }, body: 'text' };
-      const signedRequest = await signRequest(url, request, privateKey);
-      await expect(verifyRequest(signedRequest as any, 'signer')).resolves.toBe(true);
-      expect(getJwk).toHaveBeenCalledTimes(1);
-      expect(getJwk).toHaveBeenLastCalledWith({ domain: 'signer', alg: 'ES256', kid: 'private' });
-    });
-
-    it('returns false if the request could not be verified.', async(): Promise<void> => {
-      const request = { method: 'GET', headers: { accept: 'text/plain' }, body: 'text' };
-      const signedRequest = await signRequest(url, request, privateKey);
-      const badRequest = { ...signedRequest, url: 'https://example.com/wrong' };
-      await expect(verifyRequest(badRequest as any, 'signer')).resolves.toBe(false);
-      expect(getJwk).toHaveBeenCalledTimes(1);
-      expect(getJwk).toHaveBeenLastCalledWith({ domain: 'signer', alg: 'ES256', kid: 'private' });
     });
   });
 });

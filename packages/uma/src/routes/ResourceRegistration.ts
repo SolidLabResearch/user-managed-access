@@ -2,16 +2,15 @@ import {
   BadRequestHttpError,
   ConflictHttpError,
   createErrorMessage,
+  ForbiddenHttpError,
   InternalServerError,
   joinUrl,
-  KeyValueStorage,
   MethodNotAllowedHttpError,
   NotFoundHttpError,
-  UnauthorizedHttpError,
 } from '@solid/community-server';
 import { ODRL, ODRL_P, OWL, RDF, UCRulesStorage } from '@solidlab/ucp';
 import { getLoggerFor } from 'global-logger-factory';
-import { DataFactory as DF, NamedNode, Quad, Quad_Object, Quad_Subject, Store } from 'n3';
+import { DataFactory as DF, NamedNode, Quad, Quad_Subject, Store } from 'n3';
 import { randomUUID } from 'node:crypto';
 import {
   HttpHandler,
@@ -19,7 +18,8 @@ import {
   HttpHandlerRequest,
   HttpHandlerResponse
 } from '../util/http/models/HttpHandler';
-import { extractRequestSigner, verifyRequest } from '../util/HttpMessageSignatures';
+import { RequestValidator } from '../util/http/validate/RequestValidator';
+import { RegistrationStore } from '../util/RegistrationStore';
 import { reType } from '../util/ReType';
 import { ResourceDescription } from '../views/ResourceDescription';
 
@@ -38,34 +38,30 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
   /**
-   * @param resourceStore - Key/value store containing the {@link ResourceDescription}s.
+   * @param registrationStore - Key/value store containing the {@link ResourceDescription}s.
    * @param policies - Policy store to contain the asset relation triples.
+   * @param validator - Validates that the request is valid.
    */
   constructor(
-    private readonly resourceStore: KeyValueStorage<string, ResourceDescription>,
-    private readonly policies: UCRulesStorage,
+    protected readonly registrationStore: RegistrationStore,
+    protected readonly policies: UCRulesStorage,
+    protected readonly validator: RequestValidator,
   ) {
     super();
   }
 
   public async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
-    const signer = await extractRequestSigner(request);
-
-    // TODO: check if signer is actually the correct one
-
-    if (!await verifyRequest(request, signer)) {
-      throw new UnauthorizedHttpError(`Failed to verify signature of <${signer}>`);
-    }
+    const { owner } = await this.validator.handleSafe({ request });
 
     switch (request.method) {
-      case 'POST': return this.handlePost(request);
-      case 'PUT': return this.handlePut(request);
-      case 'DELETE': return this.handleDelete(request);
+      case 'POST': return this.handlePost(request, owner);
+      case 'PUT': return this.handlePut(request, owner);
+      case 'DELETE': return this.handleDelete(request, owner);
       default: throw new MethodNotAllowedHttpError([ request.method ]);
     }
   }
 
-  protected async handlePost(request: HttpHandlerRequest): Promise<HttpHandlerResponse> {
+  protected async handlePost(request: HttpHandlerRequest, owner: string): Promise<HttpHandlerResponse> {
     const { body } = request;
 
     try {
@@ -79,7 +75,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     // Reason being that there is not yet a good way to determine what the identifier would be when writing policies.
     let resource = body.name;
     if (resource) {
-      if (await this.resourceStore.has(resource)) {
+      if (await this.registrationStore.has(resource)) {
         throw new ConflictHttpError(
           `A resource with name ${resource} is already registered. Use PUT to update existing registrations.`,
         );
@@ -90,7 +86,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     }
 
     // Set the resource metadata
-    await this.setResourceMetadata(resource, body);
+    await this.setResourceMetadata(resource, body, owner);
 
     return ({
       status: 201,
@@ -102,13 +98,18 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     });
   }
 
-  protected async handlePut({ body, parameters }: HttpHandlerRequest): Promise<HttpHandlerResponse> {
+  protected async handlePut({ body, parameters }: HttpHandlerRequest, owner: string): Promise<HttpHandlerResponse> {
     if (typeof parameters?.id !== 'string') {
       throw new InternalServerError('URI for PUT operation should include an id.');
     }
 
-    if (!await this.resourceStore.has(parameters.id)) {
+    const entry = await this.registrationStore.get(parameters.id);
+    if (!entry) {
       throw new NotFoundHttpError();
+    }
+
+    if (entry.owner !== owner) {
+      throw new ForbiddenHttpError(`${owner} is not the owner of this resource.`);
     }
 
     try {
@@ -119,7 +120,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     }
 
     // Update the resource metadata
-    await this.setResourceMetadata(parameters.id, body);
+    await this.setResourceMetadata(parameters.id, body, owner);
 
     return ({
       status: 200,
@@ -130,16 +131,21 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     });
   }
 
-  protected async handleDelete({ parameters }: HttpHandlerRequest): Promise<HttpHandlerResponse> {
+  protected async handleDelete({ parameters }: HttpHandlerRequest, owner: string): Promise<HttpHandlerResponse> {
     if (typeof parameters?.id !== 'string') {
       throw new InternalServerError('URI for DELETE operation should include an id.');
     }
 
-    if (!await this.resourceStore.has(parameters.id)) {
+    const entry = await this.registrationStore.get(parameters.id);
+    if (!entry) {
       throw new NotFoundHttpError('Registration to be deleted does not exist (id unknown).');
     }
 
-    await this.resourceStore.delete(parameters.id);
+    if (entry.owner !== owner) {
+      throw new ForbiddenHttpError(`${owner} is not the owner of this resource.`);
+    }
+
+    await this.registrationStore.delete(parameters.id);
     this.logger.info(`Deleted resource ${parameters.id}.`);
 
     return ({ status: 204 });
@@ -149,8 +155,9 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
    * Updates all asset collection and relation metadata for the given resource based on an updated description.
    * @param id - The identifier of the resource.
    * @param description - The new {@link ResourceDescription} for the resource.
+   * @param owner - The owner of the resource.
    */
-  protected async setResourceMetadata(id: string, description: ResourceDescription): Promise<void> {
+  protected async setResourceMetadata(id: string, description: ResourceDescription, owner: string): Promise<void> {
     const policyStore = await this.policies.getStore();
     const collectionQuads = await this.updateCollections(policyStore, id, description);
     const relationQuads = await this.updateRelations(policyStore, id, description);
@@ -166,7 +173,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     // Store the new UMA ID (or update the contents of the existing one)
     // Note that we only do this after generating and updating the relation metadata,
     // as errors could be thrown there.
-    await this.resourceStore.set(id, description);
+    await this.registrationStore.set(id, { description, owner });
     this.logger.info(`Updated registration for ${id}.`);
   }
 

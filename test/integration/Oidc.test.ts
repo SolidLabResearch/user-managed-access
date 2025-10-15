@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { createServer, Server } from 'node:http';
 import path from 'node:path';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
-import { findTokenEndpoint, noTokenFetch } from '../util/UmaUtil';
+import { findTokenEndpoint, noTokenFetch, generateCredentials } from '../util/UmaUtil';
 
 const [ cssPort, umaPort ] = getPorts('OIDC');
 const idpPort = umaPort + 100;
@@ -79,6 +79,24 @@ describe('A server supporting OIDC tokens', (): void => {
     idp.listen(idpPort);
 
     await Promise.all([umaApp.start(), cssApp.start()]);
+  });
+
+  it('can register credentials for the RS/user combinations.', async(): Promise<void> => {
+    await generateCredentials({
+      webId: `http://localhost:${cssPort}/alice/profile/card#me`,
+      authorizationServer: `http://localhost:${umaPort}/uma`,
+      resourceServer: `http://localhost:${cssPort}/`,
+      email: 'alice@example.org',
+      password: 'abc123'
+    });
+
+    await generateCredentials({
+      webId: `http://localhost:${cssPort}/bob/profile/card#me`,
+      authorizationServer: `http://localhost:${umaPort}/uma`,
+      resourceServer: `http://localhost:${cssPort}/`,
+      email: 'bob@example.org',
+      password: 'abc123'
+    });
   });
 
   describe('accessing a resource using a standard OIDC token.', (): void => {

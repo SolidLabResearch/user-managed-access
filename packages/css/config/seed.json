@@ -4,7 +4,10 @@
     "password": "abc123",
     "pods": [{
       "name": "alice"
-    }]
+    }],
+    "authz": {
+      "server": "http://localhost:4000/uma"
+    }
   },
   {
     "email": "bob@example.org",
@@ -13,7 +16,10 @@
       {
         "name": "bob"
       }
-    ]
+    ],
+    "authz": {
+      "server": "http://localhost:4000/uma"
+    }
   },
   {
     "email": "demo@example.org",
@@ -22,7 +28,10 @@
       {
         "name": "demo"
       }
-    ]
+    ],
+    "authz": {
+      "server": "http://localhost:4000/uma"
+    }
   },
   {
     "email": "resources@example.org",
@@ -31,6 +40,9 @@
       {
         "name": "resources"
       }
-    ]
+    ],
+    "authz": {
+      "server": "http://localhost:4000/uma"
+    }
   }
 ]

@@ -1,40 +1,36 @@
 import 'jest-rdf';
 import {
-  joinUrl,
+  ForbiddenHttpError,
   KeyValueStorage,
   MethodNotAllowedHttpError,
   NotFoundHttpError,
-  RDF,
-  UnauthorizedHttpError
+  RDF
 } from '@solid/community-server';
 import { ODRL, ODRL_P, OWL, UCRulesStorage } from '@solidlab/ucp';
 import { DataFactory as DF, Store } from 'n3';
 import { Mocked } from 'vitest';
 import { ResourceRegistrationRequestHandler } from '../../../src/routes/ResourceRegistration';
 import { HttpHandlerContext } from '../../../src/util/http/models/HttpHandler';
-import * as signatures from '../../../src/util/HttpMessageSignatures';
+import { RequestValidator } from '../../../src/util/http/validate/RequestValidator';
+import { RegistrationStore } from '../../../src/util/RegistrationStore';
 import { ResourceDescription } from '../../../src/views/ResourceDescription';
-
-vi.mock('../../../src/util/HttpMessageSignatures', async() => ({
-  extractRequestSigner: vi.fn().mockResolvedValue('signer'),
-  verifyRequest: vi.fn().mockResolvedValue(true),
-}));
 
 vi.mock('node:crypto', () => ({
   randomUUID: vi.fn(),
 }));
 
 describe('ResourceRegistration', (): void => {
+  const owner = 'owner';
   let input: HttpHandlerContext<ResourceDescription>;
   let policyStore: Store;
 
-  let resourceStore: Mocked<KeyValueStorage<string, ResourceDescription>>;
+  let registrationStore: Mocked<RegistrationStore>;
   let policies: Mocked<UCRulesStorage>;
+  let validator: Mocked<RequestValidator>;
 
   let handler: ResourceRegistrationRequestHandler;
 
   beforeEach(async(): Promise<void> => {
-    vi.clearAllMocks();
 
     input = { request: {
       url: new URL('http://example.com/foo'),
@@ -48,8 +44,9 @@ describe('ResourceRegistration', (): void => {
 
     policyStore = new Store();
 
-    resourceStore = {
+    registrationStore = {
       has: vi.fn().mockResolvedValue(false),
+      get: vi.fn().mockResolvedValue({ owner, description: input.request.body }),
       set: vi.fn(),
       delete: vi.fn(),
     } satisfies Partial<KeyValueStorage<string, ResourceDescription>> as any;
@@ -60,15 +57,11 @@ describe('ResourceRegistration', (): void => {
       removeData: vi.fn(),
     } satisfies Partial<UCRulesStorage> as any;
 
-    handler = new ResourceRegistrationRequestHandler(resourceStore, policies);
-  });
+    validator = {
+      handleSafe: vi.fn().mockResolvedValue({ owner })
+    } satisfies Partial<RequestValidator> as any;
 
-  it('errors if the request is not authorized.', async(): Promise<void> => {
-    const verifyRequest = vi.spyOn(signatures, 'verifyRequest');
-    verifyRequest.mockResolvedValueOnce(false);
-    await expect(handler.handle(input)).rejects.toThrow(UnauthorizedHttpError);
-    expect(verifyRequest).toHaveBeenCalledTimes(1);
-    expect(verifyRequest).toHaveBeenLastCalledWith(input.request, 'signer');
+    handler = new ResourceRegistrationRequestHandler(registrationStore, policies, validator);
   });
 
   it('throws an error if the method is not allowed.', async(): Promise<void> => {
@@ -86,12 +79,12 @@ describe('ResourceRegistration', (): void => {
     });
 
     it('throws an error when trying to register a resource with a known name.', async(): Promise<void> => {
-      resourceStore.has.mockResolvedValueOnce(true);
+      registrationStore.has.mockResolvedValueOnce(true);
       await expect(handler.handle(input)).rejects
         .toThrow('A resource with name name is already registered. Use PUT to update existing registrations.');
-      expect(resourceStore.has).toHaveBeenCalledTimes(1);
-      expect(resourceStore.has).toHaveBeenLastCalledWith('name');
-      expect(resourceStore.set).toHaveBeenCalledTimes(0);
+      expect(registrationStore.has).toHaveBeenCalledTimes(1);
+      expect(registrationStore.has).toHaveBeenLastCalledWith('name');
+      expect(registrationStore.set).toHaveBeenCalledTimes(0);
     });
 
     it('registers the resource using the name as identifier.', async(): Promise<void> => {
@@ -100,8 +93,8 @@ describe('ResourceRegistration', (): void => {
         headers: { location: `http://example.com/foo/name` },
         body: { _id: 'name', user_access_policy_uri: 'TODO: implement policy UI' },
       });
-      expect(resourceStore.set).toHaveBeenCalledTimes(1);
-      expect(resourceStore.set).lastCalledWith('name', input.request.body);
+      expect(registrationStore.set).toHaveBeenCalledTimes(1);
+      expect(registrationStore.set).lastCalledWith('name', { owner, description: input.request.body });
     });
 
     it('stores newly created asset collections.', async(): Promise<void> => {
@@ -165,7 +158,7 @@ describe('ResourceRegistration', (): void => {
       input.request.method = 'PUT';
       input.request.parameters = { id: 'name' };
 
-      resourceStore.has.mockResolvedValue(true);
+      registrationStore.has.mockResolvedValue(true);
     });
 
     it('errors if no id parameter is provided.', async(): Promise<void> => {
@@ -174,7 +167,7 @@ describe('ResourceRegistration', (): void => {
     });
 
     it('errors if the resource is not known.', async(): Promise<void> => {
-      resourceStore.has.mockResolvedValueOnce(false);
+      registrationStore.get.mockResolvedValueOnce(undefined);
       await expect(handler.handle(input)).rejects.toThrow(NotFoundHttpError);
     });
 
@@ -183,13 +176,18 @@ describe('ResourceRegistration', (): void => {
       await expect(handler.handle(input)).rejects.toThrow('Request has bad syntax: value is not an array');
     });
 
+    it('only allows owners to update their own resources.', async(): Promise<void> => {
+      registrationStore.get.mockResolvedValueOnce({ owner: 'someone-else', description: input.request.body } as any);
+      await expect(handler.handle(input)).rejects.toThrow(ForbiddenHttpError);
+    });
+
     it('updates the resource metadata.', async(): Promise<void> => {
       await expect(handler.handle(input)).resolves.toEqual({
         status: 200,
         body: { _id: 'name', user_access_policy_uri: 'TODO: implement policy UI' },
       });
-      expect(resourceStore.set).toHaveBeenCalledTimes(1);
-      expect(resourceStore.set).lastCalledWith('name', input.request.body);
+      expect(registrationStore.set).toHaveBeenCalledTimes(1);
+      expect(registrationStore.set).lastCalledWith('name', { owner, description: input.request.body });
     });
 
     it('stores newly created asset collections.', async(): Promise<void> => {
@@ -250,25 +248,30 @@ describe('ResourceRegistration', (): void => {
       input.request.method = 'DELETE';
       input.request.parameters = { id: 'name' };
 
-      resourceStore.has.mockResolvedValue(true);
+      registrationStore.has.mockResolvedValue(true);
     });
 
     it('errors if no id parameter is provided.', async(): Promise<void> => {
       input.request.parameters = {};
       await expect(handler.handle(input)).rejects.toThrow('URI for DELETE operation should include an id.');
-      expect(resourceStore.delete).toHaveBeenCalledTimes(0);
+      expect(registrationStore.delete).toHaveBeenCalledTimes(0);
     });
 
     it('errors if the resource is not known.', async(): Promise<void> => {
-      resourceStore.has.mockResolvedValueOnce(false);
+      registrationStore.get.mockResolvedValueOnce(undefined);
       await expect(handler.handle(input)).rejects.toThrow(NotFoundHttpError);
-      expect(resourceStore.delete).toHaveBeenCalledTimes(0);
+      expect(registrationStore.delete).toHaveBeenCalledTimes(0);
+    });
+
+    it('only allows owners to delete their resources.', async(): Promise<void> => {
+      registrationStore.get.mockResolvedValueOnce({ owner: 'someone-else', description: input.request.body } as any);
+      await expect(handler.handle(input)).rejects.toThrow(ForbiddenHttpError);
     });
 
     it('deletes the resource.', async(): Promise<void> => {
       await expect(handler.handle(input)).resolves.toEqual({ status: 204 });
-      expect(resourceStore.delete).toHaveBeenCalledTimes(1);
-      expect(resourceStore.delete).toHaveBeenLastCalledWith('name');
+      expect(registrationStore.delete).toHaveBeenCalledTimes(1);
+      expect(registrationStore.delete).toHaveBeenLastCalledWith('name');
     });
   });
 });

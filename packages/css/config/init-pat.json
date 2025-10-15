@@ -1,0 +1,33 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^8.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/asynchronous-handlers/^1.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "comment": "Automatically registers a PAT for every account on server start"
+    },
+    {
+      "@id": "urn:solid-server:default:PatSeedRegistrar",
+      "@type": "PatSeedRegistrar",
+      "accountStorage": { "@id": "urn:solid-server:default:AccountStorage" },
+      "accountStore": { "@id": "urn:solid-server:default:AccountStore" },
+      "umaClient": { "@id": "urn:solid-server:default:UmaClient" },
+      "patUpdater": { "@id": "urn:solid-server:default:PatUpdater" }
+    },
+    {
+      "comment": "The PatSeedRegistrar is added to the list of Initializers so Components.js finds and instantiate it.",
+      "@id": "urn:solid-server:default:PrimaryParallelInitializer",
+      "@type": "ParallelHandler",
+      "handlers": [{ "@id": "urn:solid-server:default:PatSeedRegistrar" }]
+    },
+    {
+      "@id": "urn:solid-server:default:StatusDependantServerConfigurator",
+      "@type": "StatusDependantServerConfigurator",
+      "dependants": [
+        { "@id": "urn:solid-server:default:PatSeedRegistrar" }
+      ]
+    }
+  ]
+}

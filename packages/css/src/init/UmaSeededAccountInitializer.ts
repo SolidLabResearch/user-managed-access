@@ -10,6 +10,7 @@ import { readJson } from 'fs-extra';
 import { getLoggerFor } from 'global-logger-factory';
 import { array, object, string } from 'yup';
 import {
+  ACCOUNT_SETTINGS_AS_TOKEN,
   ACCOUNT_SETTINGS_AUTHZ_SERVER,
   ACCOUNT_SETTINGS_KEYS,
   UMA_ACCOUNT_STORAGE_TYPE
@@ -19,8 +20,9 @@ const inSchema = array().of(object({
   email: string().trim().email().lowercase().required(),
   password: string().trim().min(1).required(),
   authz: object({
-    server: string()
-  }).optional(),
+    server: string().required(),
+    credentials: string(),
+  }).default(undefined),
   keys: array().of(string().required()).optional(),
   pods: array().of(object({
     name: string().trim().min(1).required(),
@@ -94,11 +96,14 @@ export class UmaSeededAccountInitializer extends Initializer {
         const accountId = await this.accountStore.create();
 
         if (keys) {
-          await this.accountStore.updateSetting(accountId, ACCOUNT_SETTINGS_KEYS, keys)
+          await this.accountStore.updateSetting(accountId, ACCOUNT_SETTINGS_KEYS, keys);
         }
 
-        if (authz?.server) {
-          await this.accountStore.updateSetting(accountId, ACCOUNT_SETTINGS_AUTHZ_SERVER, authz.server)
+        if (authz) {
+          await this.accountStore.updateSetting(accountId, ACCOUNT_SETTINGS_AUTHZ_SERVER, authz.server);
+          if (authz.credentials) {
+            await this.accountStore.updateSetting(accountId, ACCOUNT_SETTINGS_AS_TOKEN, authz.credentials);
+          }
         }
 
         const id = await this.passwordStore.create(email, accountId, password);
