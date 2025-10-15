@@ -21,13 +21,14 @@ export type OAuthConfiguration = {
   dpop_signing_alg_values_supported?: string[],
   response_types_supported?: ResponseType[]
   scopes_supported?: string[]
+  registration_endpoint?: string,
 }
 
 export type UmaConfiguration = OAuthConfiguration & {
   uma_profiles_supported: string[],
   resource_registration_endpoint: string,
   permission_endpoint: string,
-  introspection_endpoint: string
+  introspection_endpoint: string,
 }
 
 /**
@@ -71,6 +72,7 @@ export class ConfigRequestHandler extends HttpHandler {
       uma_profiles_supported: ['http://openid.net/specs/openid-connect-core-1_0.html#IDToken'],
       dpop_signing_alg_values_supported: [...ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM],
       response_types_supported: [ResponseType.Token],
+      registration_endpoint: joinUrl(this.baseUrl, 'reg/'),
     };
   }
 }

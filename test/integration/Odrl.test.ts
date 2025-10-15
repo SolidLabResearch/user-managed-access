@@ -4,6 +4,7 @@ import { Parser, Writer } from 'n3';
 import { readFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
+import { generateCredentials } from '../util/UmaUtil';
 
 const [ cssPort, umaPort ] = getPorts('ODRL');
 
@@ -39,7 +40,7 @@ describe('An ODRL server setup', (): void => {
     await Promise.all([umaApp.start(), cssApp.start()]);
   });
 
-  describe('initializing policies', (): void => {
+  describe('initializing the servers', (): void => {
     it('can set up all the necessary policies.', async(): Promise<void> => {
       const owner = 'https://pod.woutslabbinck.com/profile/card#me';
       const url = `http://localhost:${umaPort}/uma/policies`;
@@ -56,6 +57,16 @@ describe('An ODRL server setup', (): void => {
         body,
       });
       expect(response.status).toBe(201);
+    });
+
+    it('can register a PAT for the user.', async(): Promise<void> => {
+      await generateCredentials({
+        webId: `http://localhost:${cssPort}/alice/profile/card#me`,
+        authorizationServer: `http://localhost:${umaPort}/uma`,
+        resourceServer: `http://localhost:${cssPort}/`,
+        email: 'alice@example.org',
+        password: 'abc123'
+      });
     });
   });
 

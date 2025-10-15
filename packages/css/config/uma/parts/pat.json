@@ -1,0 +1,48 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^8.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:solid-server:default:AccountPatRouter",
+      "@type": "AuthorizedRouteHandler",
+      "route": {
+        "@id": "urn:solid-server:default:AccountPatRoute",
+        "@type": "RelativePathInteractionRoute",
+        "base": { "@id": "urn:solid-server:default:AccountIdRoute" },
+        "relativePath": "pat/"
+      },
+      "source": {
+        "@type": "ViewInteractionHandler",
+        "source": {
+          "@id": "urn:solid-server:default:PatUpdateHandler",
+          "@type": "PatUpdateHandler",
+          "patUpdater": {
+            "@id": "urn:solid-server:default:PatUpdater",
+            "@type": "PatUpdater",
+            "accountStore": { "@id": "urn:solid-server:default:AccountStore" },
+            "podStore": { "@id": "urn:solid-server:default:PodStore" },
+            "resourceStore": { "@id": "urn:solid-server:default:ResourceStore" },
+            "umaClient": { "@id": "urn:solid-server:default:UmaClient" }
+          }
+        }
+      }
+    },
+
+    {
+      "@id": "urn:solid-server:default:InteractionRouteHandler",
+      "@type": "StatusWaterfallHandler",
+      "handlers": [{ "@id": "urn:solid-server:default:AccountPatRouter" }]
+    },
+
+    {
+      "@id": "urn:solid-server:default:AccountControlHandler",
+      "@type": "ControlHandler",
+      "controls": [{
+        "ControlHandler:_controls_key": "pat",
+        "ControlHandler:_controls_value": { "@id": "urn:solid-server:default:AccountPatRoute" }
+      }]
+    }
+  ]
+}

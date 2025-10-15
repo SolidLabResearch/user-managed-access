@@ -3,7 +3,7 @@ import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-fact
 import { Parser, Store } from 'n3';
 import * as path from 'node:path';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
-import { findTokenEndpoint, getToken, noTokenFetch, tokenFetch, umaFetch } from '../util/UmaUtil';
+import { findTokenEndpoint, getToken, noTokenFetch, generateCredentials, tokenFetch, umaFetch } from '../util/UmaUtil';
 
 const [ cssPort, umaPort ] = getPorts('Demo');
 
@@ -58,6 +58,16 @@ describe('A demo server setup', (): void => {
 
   afterAll(async(): Promise<void> => {
     await Promise.all([ umaApp.stop(), cssApp.stop() ]);
+  });
+
+  it('can register a PAT for the user.', async(): Promise<void> => {
+    await generateCredentials({
+      webId: `http://localhost:${cssPort}/ruben/profile/card#me`,
+      authorizationServer: `http://localhost:${umaPort}/uma`,
+      resourceServer: `http://localhost:${cssPort}/`,
+      email: 'ruben@example.org',
+      password: 'abc123'
+    });
   });
 
   it('sets up the initial data.', async(): Promise<void> => {

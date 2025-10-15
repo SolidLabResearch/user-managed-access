@@ -6,12 +6,14 @@
   ],
   "import": [
     "sai-uma:config/credentials/parsers/default.json",
+    "sai-uma:config/credentials/validators/pat.json",
     "sai-uma:config/credentials/verifiers/default.json",
     "sai-uma:config/dialog/negotiators/default.json",
     "sai-uma:config/policies/authorizers/default.json",
     "sai-uma:config/resources/storage/default.json",
     "sai-uma:config/routes/discovery.json",
     "sai-uma:config/routes/introspection.json",
+    "sai-uma:config/routes/client-registration.json",
     "sai-uma:config/routes/keys.json",
     "sai-uma:config/routes/resources.json",
     "sai-uma:config/routes/tickets.json",
@@ -126,7 +128,9 @@
                   { "@id": "urn:uma:default:PermissionRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
-                  { "@id": "urn:uma:default:IntrospectionRoute" }
+                  { "@id": "urn:uma:default:IntrospectionRoute" },
+                  { "@id": "urn:uma:default:ClientRegistrationRoute" },
+                  { "@id": "urn:uma:default:ClientRegistrationIdRoute" }
                 ]
               }
             },

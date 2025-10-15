@@ -6,8 +6,9 @@ import { OwnerUtil } from '../../../src/util/OwnerUtil';
 
 describe('ResourceRegistrar', (): void => {
   const target = { path: 'http://example.com/foo' };
-  const owners = [ 'owner1', 'owner2' ];
+  const owners = [ 'owner1' ];
   const issuer = 'issuer';
+  const credentials = 'credentials';
   let emitter: Mocked<ActivityEmitter>;
   let ownerUtil: Mocked<OwnerUtil>;
   let umaClient: Mocked<UmaClient>;
@@ -20,7 +21,7 @@ describe('ResourceRegistrar', (): void => {
 
     ownerUtil = {
       findOwners: vi.fn().mockResolvedValue(owners),
-      findIssuer: vi.fn().mockResolvedValue(issuer),
+      findUmaSettings: vi.fn().mockResolvedValue({ issuer, credentials }),
     } satisfies Partial<OwnerUtil> as any;
 
     umaClient = {
@@ -37,12 +38,10 @@ describe('ResourceRegistrar', (): void => {
     await expect(createFn(target, null as any)).resolves.toBeUndefined();
     expect(ownerUtil.findOwners).toHaveBeenCalledTimes(1);
     expect(ownerUtil.findOwners).toHaveBeenLastCalledWith(target);
-    expect(ownerUtil.findIssuer).toHaveBeenCalledTimes(2);
-    expect(ownerUtil.findIssuer).toHaveBeenNthCalledWith(1, 'owner1');
-    expect(ownerUtil.findIssuer).toHaveBeenNthCalledWith(2, 'owner2');
-    expect(umaClient.registerResource).toHaveBeenCalledTimes(2);
-    expect(umaClient.registerResource).toHaveBeenNthCalledWith(1, target, 'issuer');
-    expect(umaClient.registerResource).toHaveBeenNthCalledWith(2, target, 'issuer');
+    expect(ownerUtil.findUmaSettings).toHaveBeenCalledTimes(1);
+    expect(ownerUtil.findUmaSettings).toHaveBeenLastCalledWith('owner1');
+    expect(umaClient.registerResource).toHaveBeenCalledTimes(1);
+    expect(umaClient.registerResource).toHaveBeenLastCalledWith(target, issuer, credentials);
   });
 
   it('catches the error if something goes wrong registering.', async(): Promise<void> => {
@@ -58,12 +57,10 @@ describe('ResourceRegistrar', (): void => {
     await expect(createFn(target, null as any)).resolves.toBeUndefined();
     expect(ownerUtil.findOwners).toHaveBeenCalledTimes(1);
     expect(ownerUtil.findOwners).toHaveBeenLastCalledWith(target);
-    expect(ownerUtil.findIssuer).toHaveBeenCalledTimes(2);
-    expect(ownerUtil.findIssuer).toHaveBeenNthCalledWith(1, 'owner1');
-    expect(ownerUtil.findIssuer).toHaveBeenNthCalledWith(2, 'owner2');
-    expect(umaClient.deleteResource).toHaveBeenCalledTimes(2);
-    expect(umaClient.deleteResource).toHaveBeenNthCalledWith(1, target, 'issuer');
-    expect(umaClient.deleteResource).toHaveBeenNthCalledWith(2, target, 'issuer');
+    expect(ownerUtil.findUmaSettings).toHaveBeenCalledTimes(1);
+    expect(ownerUtil.findUmaSettings).toHaveBeenLastCalledWith('owner1');
+    expect(umaClient.deleteResource).toHaveBeenCalledTimes(1);
+    expect(umaClient.deleteResource).toHaveBeenLastCalledWith(target, issuer, credentials);
   });
 
   it('catches the error if something goes wrong deleting.', async(): Promise<void> => {

@@ -3,7 +3,9 @@ import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-fact
 import { Parser, Writer } from 'n3';
 import { readFile } from 'node:fs/promises';
 import * as path from 'node:path';
+import { promises } from 'node:timers';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
+import { generateCredentials } from '../util/UmaUtil';
 
 const [ cssPort, umaPort ] = getPorts('Base');
 
@@ -41,7 +43,7 @@ describe('A server setup', (): void => {
     await Promise.all([ umaApp.stop(), cssApp.stop() ]);
   });
 
-  describe('initializing policies', (): void => {
+  describe('initializing the servers', (): void => {
     it('can set up all the necessary policies.', async(): Promise<void> => {
       const owner = 'https://pod.woutslabbinck.com/profile/card#me';
       const url = `http://localhost:${umaPort}/uma/policies`;
@@ -59,10 +61,21 @@ describe('A server setup', (): void => {
       });
       expect(response.status).toBe(201);
     });
+
+    it('can register client credentials for the user/RS combination.', async(): Promise<void> => {
+      await generateCredentials({
+        webId: `http://localhost:${cssPort}/alice/profile/card#me`,
+        authorizationServer: `http://localhost:${umaPort}/uma`,
+        resourceServer: `http://localhost:${cssPort}/`,
+        email: 'alice@example.org',
+        password: 'abc123'
+      });
+    });
   });
 
   describe('using public namespace authorization', (): void => {
     it('RS: provides immediate read access.', async(): Promise<void> => {
+      await promises.setTimeout(1000);
       const publicResource = `http://localhost:${cssPort}/alice/profile/card`;
 
       const publicResponse = await fetch(publicResource);

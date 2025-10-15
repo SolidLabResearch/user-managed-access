@@ -54,7 +54,7 @@ export class UmaTokenExtractor extends CredentialsExtractor {
     try {
       const target = await this.targetExtractor.handleSafe({ request });
       const owners = await this.ownerUtil.findOwners(target);
-      const issuers = await Promise.all(owners.map(o => this.ownerUtil.findIssuer(o)))
+      const issuers = await Promise.all(owners.map(async o => (await this.ownerUtil.findUmaSettings(o)).issuer))
       const validIssuers = issuers.filter((i): i is string => i !== undefined);
 
       if (this.introspect) {

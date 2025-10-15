@@ -15,6 +15,8 @@ export const DialogInput = ({
   rpt: $(string),
   permissions: $(array(Permission)), // this deviates from UMA, which only has a 'scope' string-array
   permission: $(array(ODRLPermission)), // this deviates from UMA, which only has a 'scope' string-array
+  scope: $(string),
+  refresh_token: $(string),
 });
 
 /**

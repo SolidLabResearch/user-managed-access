@@ -57,11 +57,11 @@
     "build": "yarn build:ts && yarn build:components",
     "build:ts": "yarn run -T tsc",
     "build:components": "yarn run -T componentsjs-generator -r uma-css -s src/ -c dist/components -i .componentsignore --lenient",
-    "start:unseeded": "yarn run community-solid-server -m . -c ./config/default.json -a http://localhost:4000/",
-    "start": "yarn run community-solid-server -m . -c ./config/default.json --seedConfig ./config/seed.json -a http://localhost:4000/",
+    "start:unseeded": "yarn run community-solid-server -m . -c ./config/default.json",
+    "start": "yarn run community-solid-server -m . -c ./config/default.json ./config/init-pat.json  --seedConfig ./config/seed.json",
     "demo": "yarn run demo:setup && yarn run demo:start",
     "demo:setup": "yarn run -T shx rm -rf ./tmp && yarn run -T shx cp -R ../../demo/data ./tmp",
-    "demo:start": "yarn run community-solid-server -m . -c ./config/demo.json -f ./tmp -a http://localhost:4000/"
+    "demo:start": "yarn run community-solid-server -m . -c ./config/demo.json ./config/init-pat.json -f ./tmp"
   },
   "dependencies": {
     "@solid/community-server": "^8.0.0-alpha.1",

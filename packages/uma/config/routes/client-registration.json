@@ -1,0 +1,34 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^8.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:default:ClientRegistrationHandler",
+      "@type": "ClientRegistrationRequestHandler",
+      "credentialParser": { "@id": "urn:uma:default:CredentialParser" },
+      "verifier": { "@id": "urn:uma:default:Verifier" },
+      "storage": {
+        "@id": "urn:solid-server:default:ClientRegistrationStorage",
+        "@type": "WrappedIndexedStorage",
+        "valueStorage": { "@type": "MemoryMapStorage" },
+        "indexStorage": { "@type": "MemoryMapStorage" }
+      }
+    },
+    {
+      "@id": "urn:uma:default:ClientRegistrationRoute",
+      "@type": "HttpHandlerRoute",
+      "methods": [ "GET", "POST" ],
+      "handler": { "@id": "urn:uma:default:ClientRegistrationHandler" },
+      "path": "/uma/reg/"
+    },
+    {
+      "@id": "urn:uma:default:ClientRegistrationIdRoute",
+      "@type": "HttpHandlerRoute",
+      "methods": [ "DELETE" ],
+      "handler": { "@id": "urn:uma:default:ClientRegistrationHandler" },
+      "path": "/uma/reg/{id}"
+    }
+  ]
+}

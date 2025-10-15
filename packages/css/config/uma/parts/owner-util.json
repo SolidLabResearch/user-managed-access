@@ -8,14 +8,17 @@
       "comment": "Provides utility for interacting with pod owner metadata",
       "@id": "urn:solid-server:default:OwnerUtil",
       "@type": "OwnerUtil",
+      "accountStorage": {
+        "@id": "urn:solid-server:default:AccountStorage"
+      },
+      "accountStore": {
+        "@id": "urn:solid-server:default:AccountStore"
+      },
       "podStore": {
         "@id": "urn:solid-server:default:PodStore"
       },
       "storageStrategy": {
         "@id": "urn:solid-server:default:StorageLocationStrategy"
-      },
-      "umaServerURL": {
-        "@id": "urn:solid-server:uma:variable:AuthorizationServer"
       }
     }
   ]

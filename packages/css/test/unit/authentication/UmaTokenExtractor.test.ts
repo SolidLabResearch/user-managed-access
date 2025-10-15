@@ -22,7 +22,7 @@ describe('UmaTokenExtractor', () => {
 
     ownerUtil = {
       findOwners: vi.fn().mockResolvedValue([ 'owner' ]),
-      findIssuer: vi.fn().mockResolvedValue('issuer'),
+      findUmaSettings: vi.fn().mockResolvedValue({ issuer: 'issuer' }),
     } satisfies Partial<OwnerUtil> as any;
 
     extractor = new UmaTokenExtractor(client, targetExtractor, ownerUtil);

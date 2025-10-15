@@ -63,26 +63,114 @@ You can see the AS working by going to <http://localhost:4000/uma/.well-known/um
 This page contains all the relevant APIs of the UMA server,
 which are used in the next steps.
 
-## Authenticating the Resource Server
+## Authenticating as Resource Owner
 
-Throughout this guide, there are several instances where the RS has to send an HTTP request to the AS.
-The AS needs some way to verify if the request comes from the RS.
-The current implementation makes use of [HTTP signatures](https://datatracker.ietf.org/doc/html/rfc9421).
-To enable this, the RS needs to expose a [JSON Web Key](https://datatracker.ietf.org/doc/html/rfc7517).
-This key can be found at <http://localhost:3000/.well-known/jwks.json>.
-The RS uses that same key to sign its messages as described in the RFC,
-using the [http-message-signatures](https://www.npmjs.com/package/http-message-signatures) library.
-This is done for every HTTP request the RS sends to the AS in the following sections.
+There are some APIs on the AS where a Resource Owner (RO) has to identify themself.
+Specifically, the policy APIs, as described in the [policy management documentation](policy-management.md),
+and the client credentials API described further below.
+Two authentication methods are supported: OIDC tokens, both Solid and standard, and unsafe WebID strings.
 
-## Locating the Authorization Server
+To use OIDC, the `Bearer` authorization scheme needs to be used, followed by the token.
+For example, `Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI...`.
 
-To be able to communicate with it, the RS needs to know where to find the AS.
-The current implementation of the RS knows this through server configuration.
-This can be seen in the startup script in the [RS package.json](../packages/css/package.json)
-when looking at the `start` script.
-It uses the CLI parameter `-a http://localhost:4000/` to inform the RS where it can find the relevant AS,
-which internally sets the Components.js variable `urn:solid-server:uma:variable:AuthorizationServer`
-to the provided value.
+To directly pass a WebID, the `WebID` scheme can be used together with a URL encoded WebID.
+For example, `Authorization: WebID http%3A%2F%2Fexample.com%2Fprofile%2Fcard%23me`.
+No validation is performed in this case, so this should only be used for development and debugging purposes.
+
+## Authenticating as Resource Server
+
+The RS has to send several requests to the AS, as described below.
+Generally, these requests are done for a specific user,
+e.g., registering a resource for its owner,
+or requesting access on an owner's resource.
+To identify both itself and the owner,
+the RS has to send a Personal Access Token (PAT) in the authorization header
+when making such a request.
+As the UMA specification does not have strong requirements on how such a token should be generated,
+the specific implementation of our AS is described here.
+
+The following steps need to be taken:
+1. The owner requests client credentials from the AS for a specific RS, which is the client here,
+   as described in RFC 7591.
+2. The AS returns an id/secret combination which uniquely identifies this owner/RS combination.
+3. The owner provides this id/secret combination to the RS, together with the URL of the corresponding AS.
+4. Before making a request, the RS uses this id/secret combination to request an access token from that AS
+   with scope `uma_protection`, as described in RFC 6749 and RFC 7617.
+   This token is the PAT.
+5. The RS uses this bearer token for the request.
+
+### Requesting client credentials
+
+To register a RS, the owner should find the `registration_endpoint` API in the AS' UMA configuration.
+They should then POST a request there with a body as follows:
+```json
+{
+  "client_name": "descriptive name for the RS (optional)",
+  "client_uri": "http://localhost:3000"
+}
+```
+
+The AS will then respond with client credentials such as
+```json
+{
+  "client_uri": "http://localhost:3000",
+  "client_name": "descriptive name for the RS (optional)",
+  "client_id": "1be8b63f-29c2-4d2c-9932-8784a28de5cf",
+  "client_secret": "184984651984...",
+  "client_secret_expires_at": "0",
+  "grant_types": [ "client_credentials", "refresh_token" ],
+  "token_endpoint_auth_method": "client_secret_basic"
+}
+```
+
+This response, or at least the `client_id` and `client_secret` should then be passed along to the RS.
+
+### Sending the credentials to the RS (CSS specific)
+
+This section is specific for our CSS implementation of the RS
+and is irrelevant if you have your own custom RS.
+
+The implementation makes use of the
+[CSS account API](https://communitysolidserver.github.io/CommunitySolidServer/latest/usage/account/json-api/).
+A new `pat` entry has been added to the account controls after authenticating.
+This API expects a POST request with the following body:
+```json
+{
+  "id": "1be8b63f-29c2-4d2c-9932-8784a28de5cf",
+  "secret": "184984651984...",
+  "issuer": "http://localhost:4000/uma"
+}
+```
+Sending this request will update the stored credentials for the authenticated user.
+
+### Requesting a PAT as RS
+
+To request a PAT, the RS needs to find the `token_endpoint` API in the AS UMA config.
+A PAT can then be requested by sending a POST request with a `application/x-www-form-urlencoded` body as follows:
+```
+grant_type=client_credentials&scope=uma_protection
+```
+A JSON body containing the same information would also work.
+
+The important thing is that the `Authorization` header needs to be set using the Basic id/secret combination
+as described in RFC 7617.
+Specifically, that means you generate a string `$MY_ID:$MY_secret` and generating the base 64 encoding of this result.
+The Authorization header should then contain `Basic $ENCODED_RESULT`.
+
+The AS will then respond with a body containing the generated access token:
+```json
+{
+  "access_token": "eyJhbGciOi...",
+  "refresh_token":  "efe2dea0-9cb4-4ffd-9dbe-a581a249202b",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "scope": "uma_protection"
+}
+```
+
+This access token then needs to be sent along in a Bearer Authorization header when making the necessary requests.
+The current implementation of the AS allows the PAT to be reused until it is expired,
+which can be useful when doing bulk resource registration.
 
 ## Resource registration
 
@@ -185,7 +273,7 @@ and the requested scopes, which looks as follows:
 
 ### Generating a ticket
 
-The first thing the AS has to do when receiving any HTTP request is to validate the signature, as discussed above.
+The first thing the AS has to do when receiving any HTTP request is to validate the PAT, as discussed above.
 Afterward, it creates a ticket identifier, links it with the request body,
 and responds to the RS request with a 201 status code.
 The location header of the response contains the ticket identifier.

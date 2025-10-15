@@ -12,10 +12,10 @@
     "uma-css:config/uma/overrides/token-extractor.json",
     "uma-css:config/uma/overrides/www-auth.json",
 
-    "uma-css:config/uma/parts/cli.json",
     "uma-css:config/uma/parts/client.json",
     "uma-css:config/uma/parts/fetcher.json",
     "uma-css:config/uma/parts/owner-util.json",
+    "uma-css:config/uma/parts/pat.json",
     "uma-css:config/uma/parts/resource-registrar.json",
     "uma-css:config/uma/parts/server-configurator.json"
   ]

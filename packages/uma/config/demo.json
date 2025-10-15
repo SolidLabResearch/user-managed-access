@@ -34,7 +34,7 @@
             }
           }
         ],
-        "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
+        "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
       }
     },
     {
