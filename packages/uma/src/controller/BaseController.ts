@@ -1,9 +1,8 @@
 import { UCRulesStorage } from "@solidlab/ucp";
-import { Store } from "n3";
+import { getLoggerFor } from 'global-logger-factory';
+import { Parser, Store } from 'n3';
 import { writeStore } from "../util/ConvertUtil";
-import { parseStringAsN3Store } from 'koreografeye';
 import { noAlreadyDefinedSubjects } from "../util/routeSpecific/sanitizeUtil";
-import { getLoggerFor } from "@solid/community-server";
 
 /**
  * Controller class for Policy & Access Request endpoints.
@@ -79,7 +78,7 @@ export abstract class BaseController {
      *          - 409 if a conflict occurred (duplicate subject)
      */
     public async addEntity(data: string, clientID: string): Promise<{ status: number, message:string }> {
-        const store = await parseStringAsN3Store(data);
+        const store = new Store(new Parser().parse(data));
 
         try {
             const sanitizedStore = await this.sanitizePost(store, clientID);
@@ -179,7 +178,7 @@ export abstract class BaseController {
         if (getResult.status !== 200) return { status: 404 };
 
         // parse the entity through a POST request and check the results
-        const store = await parseStringAsN3Store(data);
+        const store = new Store(new Parser().parse(data));
         const sanitizedStore = await this.sanitizePost(store, clientID);
 
         // delete the old rule and insert the new

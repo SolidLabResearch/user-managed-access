@@ -1,5 +1,5 @@
-import { App, setGlobalLoggerFactory, WinstonLoggerFactory } from '@solid/community-server';
-import { DialogOutput } from '@solidlab/uma';
+import { App } from '@solid/community-server';
+import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
 import { Parser, Store } from 'n3';
 import * as path from 'node:path';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
@@ -164,6 +164,9 @@ _:rename a solid:InsertDeletePatch;
   });
 
   it('can add a healthcare policy to the server.', async(): Promise<void> => {
+    // TODO: policy currently not linking to constraints as these need to be added to the ODRL evaluator
+    // odrl:constraint <http://example.org/HCPX-agreement-permission-purpose>,
+    //                 <http://example.org/HCPX-agreement-permission-lb> .
     const healthcare_patient_policy =
       `PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#>
@@ -182,9 +185,7 @@ PREFIX ex: <http://example.org/>
     odrl:action odrl:read ;
     odrl:target <${terms.resources.smartwatch}> ;
     odrl:assigner <${terms.agents.ruben}> ;
-    odrl:assignee <${terms.agents.alice}> ;
-    odrl:constraint <http://example.org/HCPX-agreement-permission-purpose>,
-        <http://example.org/HCPX-agreement-permission-lb> .
+    odrl:assignee <${terms.agents.alice}> .
 
 <http://example.org/HCPX-agreement-permission-purpose> a odrl:Constraint ;
     odrl:leftOperand odrl:purpose ; # can also be oac:Purpose, to conform with OAC profile

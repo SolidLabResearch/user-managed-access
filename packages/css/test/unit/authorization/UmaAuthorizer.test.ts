@@ -1,11 +1,11 @@
 import {
   AccessMap,
-  AccessMode,
   Authorizer,
   ForbiddenHttpError, HttpError,
   IdentifierSetMultiMap,
   InternalServerError
 } from '@solid/community-server';
+import { PERMISSIONS } from '@solidlab/policy-engine';
 import { Mocked } from 'vitest';
 import { UmaAuthorizer, WWW_AUTH } from '../../../src/authorization/UmaAuthorizer';
 import { UmaClient } from '../../../src/uma/UmaClient';
@@ -58,7 +58,7 @@ describe('UmaAuthorizer', (): void => {
   it('errors if no issuer could be found.', async(): Promise<void> => {
     source.handleSafe.mockRejectedValueOnce(new ForbiddenHttpError());
     ownerUtil.findCommonOwner.mockResolvedValueOnce('owner');
-    const requestedModes: AccessMap = new IdentifierSetMultiMap<AccessMode>([[ { path: 'id' }, AccessMode.read ]]);
+    const requestedModes: AccessMap = new IdentifierSetMultiMap<string>([[ { path: 'id' }, PERMISSIONS.Read ]]);
 
     await expect(authorizer.handle({ requestedModes } as any)).rejects
       .toThrowError(`No UMA authorization server found for owner.`);
@@ -72,7 +72,7 @@ describe('UmaAuthorizer', (): void => {
     ownerUtil.findCommonOwner.mockResolvedValueOnce('owner');
     ownerUtil.findIssuer.mockResolvedValueOnce('issuer');
     client.fetchTicket.mockResolvedValueOnce('ticket');
-    const requestedModes: AccessMap = new IdentifierSetMultiMap<AccessMode>([[ { path: 'id' }, AccessMode.read ]]);
+    const requestedModes: AccessMap = new IdentifierSetMultiMap<string>([[ { path: 'id' }, PERMISSIONS.Read ]]);
 
     try {
       await authorizer.handle({ requestedModes } as any);
@@ -88,7 +88,7 @@ describe('UmaAuthorizer', (): void => {
     source.handleSafe.mockRejectedValueOnce(new ForbiddenHttpError());
     ownerUtil.findCommonOwner.mockResolvedValueOnce('owner');
     ownerUtil.findIssuer.mockResolvedValueOnce('issuer');
-    const requestedModes: AccessMap = new IdentifierSetMultiMap<AccessMode>([[ { path: 'id' }, AccessMode.read ]]);
+    const requestedModes: AccessMap = new IdentifierSetMultiMap<string>([[ { path: 'id' }, PERMISSIONS.Read ]]);
 
     await expect(authorizer.handle({ requestedModes } as any)).resolves.toBeUndefined();
   });
@@ -98,7 +98,7 @@ describe('UmaAuthorizer', (): void => {
     ownerUtil.findCommonOwner.mockResolvedValueOnce('owner');
     ownerUtil.findIssuer.mockResolvedValueOnce('issuer');
     client.fetchTicket.mockRejectedValueOnce(new Error('bad data'));
-    const requestedModes: AccessMap = new IdentifierSetMultiMap<AccessMode>([[ { path: 'id' }, AccessMode.read ]]);
+    const requestedModes: AccessMap = new IdentifierSetMultiMap<string>([[ { path: 'id' }, PERMISSIONS.Read ]]);
 
     await expect(authorizer.handle({ requestedModes } as any)).rejects
       .toThrow(`Error while requesting UMA header: bad data.`);

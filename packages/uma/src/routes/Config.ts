@@ -1,6 +1,8 @@
-import { ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM }
-  from '@solid/access-token-verifier/dist/constant/ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM';
-import { getLoggerFor, joinUrl } from '@solid/community-server';
+import {
+  ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM
+} from '@solid/access-token-verifier/dist/constant/ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM';
+import { joinUrl } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 
 // eslint-disable no-unused-vars

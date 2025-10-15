@@ -2,7 +2,6 @@ import {
   BadRequestHttpError,
   ConflictHttpError,
   createErrorMessage,
-  getLoggerFor,
   InternalServerError,
   joinUrl,
   KeyValueStorage,
@@ -11,6 +10,7 @@ import {
   UnauthorizedHttpError,
 } from '@solid/community-server';
 import { ODRL, ODRL_P, OWL, RDF, UCRulesStorage } from '@solidlab/ucp';
+import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory as DF, NamedNode, Quad, Quad_Object, Quad_Subject, Store } from 'n3';
 import { randomUUID } from 'node:crypto';
 import {

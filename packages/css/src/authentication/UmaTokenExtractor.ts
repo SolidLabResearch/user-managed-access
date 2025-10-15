@@ -1,7 +1,13 @@
 import {
-  CredentialsExtractor, getLoggerFor, HttpRequest,
-  NotImplementedHttpError, BadRequestHttpError, Credentials, TargetExtractor, createErrorMessage
+  BadRequestHttpError,
+  createErrorMessage,
+  Credentials,
+  CredentialsExtractor,
+  HttpRequest,
+  NotImplementedHttpError,
+  TargetExtractor,
 } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { UmaClaims, UmaClient } from '../uma/UmaClient';
 import { OwnerUtil } from '../util/OwnerUtil';
 

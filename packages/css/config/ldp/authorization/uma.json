@@ -1,7 +1,8 @@
 {
     "@context": [
-      "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
-      "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld"
+      "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^8.0.0/components/context.jsonld",
+      "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma-css/^0.0.0/components/context.jsonld",
+      "https://linkedsoftwaredependencies.org/bundles/npm/asynchronous-handlers/^1.0.0/components/context.jsonld"
     ],
     "import": [
       "uma-css:config/ldp/authorization/readers/uma.json"
@@ -10,7 +11,9 @@
       {
         "comment": "There are no auth-specific resources, but this ID still has to exist.",
         "@id": "urn:solid-server:default:AuthResourceHttpHandler",
-        "@type": "UnsupportedAsyncHandler"
+        "@type": "StaticThrowHandler",
+        "onlyHandle": false,
+        "factory": { "@id": "urn:solid-server:default:UnsupportedErrorFactory" }
       }
     ]
   }

@@ -1,10 +1,11 @@
-import { BadRequestHttpError, getLoggerFor } from '@solid/community-server';
-import { Verifier } from './Verifier';
-import { ClaimSet } from '../ClaimSet';
-import { Credential } from "../Credential";
 import { createSolidTokenVerifier } from '@solid/access-token-verifier';
-import { OIDC } from '../Formats';
+import { BadRequestHttpError } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { CLIENTID, WEBID } from '../Claims';
+import { ClaimSet } from '../ClaimSet';
+import { Credential } from '../Credential';
+import { OIDC } from '../Formats';
+import { Verifier } from './Verifier';
 
 /**
  * A Verifier for OIDC ID Tokens.

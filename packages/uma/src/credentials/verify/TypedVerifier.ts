@@ -1,7 +1,8 @@
-import { BadRequestHttpError, getLoggerFor } from '@solid/community-server';
-import { ClaimSet } from "../ClaimSet";
-import { Credential } from "../Credential";
-import { Verifier } from "./Verifier";
+import { BadRequestHttpError } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
+import { ClaimSet } from '../ClaimSet';
+import { Credential } from '../Credential';
+import { Verifier } from './Verifier';
 
 export class TypedVerifier implements Verifier {
   private readonly logger = getLoggerFor(this);

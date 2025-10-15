@@ -1,11 +1,12 @@
 import {
-  AccessMap, AccessMode,
+  AccessMap,
   IdentifierSetMultiMap,
   IdentifierStrategy,
   ModesExtractor,
   Operation,
   ResourceSet
 } from '@solid/community-server';
+import { PERMISSIONS } from '@solidlab/policy-engine';
 import { expect, Mocked } from 'vitest';
 import { ParentCreateExtractor } from '../../../src/authorization/ParentCreateExtractor';
 
@@ -47,8 +48,8 @@ describe('ParentCreateExtractor', (): void => {
   });
 
   it('returns the same result if the resource exists.', async(): Promise<void> => {
-    const output: AccessMap = new IdentifierSetMultiMap<AccessMode>([
-      [{ path: 'id' }, new Set([AccessMode.read])],
+    const output: AccessMap = new IdentifierSetMultiMap<string>([
+      [{ path: 'id' }, new Set([PERMISSIONS.Read])],
     ]);
     source.handle.mockResolvedValueOnce(output);
     resourceSet.hasResource.mockResolvedValueOnce(true);
@@ -57,11 +58,11 @@ describe('ParentCreateExtractor', (): void => {
   });
 
   it('replaces create resources that do not exist with the first existing parent.', async(): Promise<void> => {
-    const output: AccessMap = new IdentifierSetMultiMap<AccessMode>([
-      [{ path: 'foo/bar/baz' }, new Set([AccessMode.create])],
-      [{ path: 'foo/bar/bazz' }, new Set([AccessMode.create, AccessMode.read])],
-      [{ path: 'foo/bar' }, new Set([AccessMode.write])],
-      [{ path: 'oof' }, new Set([AccessMode.read])],
+    const output: AccessMap = new IdentifierSetMultiMap<string>([
+      [{ path: 'foo/bar/baz' }, new Set([PERMISSIONS.Create])],
+      [{ path: 'foo/bar/bazz' }, new Set([PERMISSIONS.Create, PERMISSIONS.Read])],
+      [{ path: 'foo/bar' }, new Set([PERMISSIONS.Modify])],
+      [{ path: 'oof' }, new Set([PERMISSIONS.Read])],
     ]);
 
     source.handle.mockResolvedValueOnce(output);
@@ -71,8 +72,8 @@ describe('ParentCreateExtractor', (): void => {
 
     const result = await extractor.handle(input);
     expect([...result.distinctKeys()]).toHaveLength(3);
-    expect([...result.get({ path: 'foo' })!]).toEqual([ AccessMode.create ]);
-    expect([...result.get({ path: 'foo/bar' })!]).toEqual([ AccessMode.write ]);
-    expect([...result.get({ path: 'oof' })!]).toEqual([ AccessMode.read ]);
+    expect([...result.get({ path: 'foo' })!]).toEqual([ PERMISSIONS.Create ]);
+    expect([...result.get({ path: 'foo/bar' })!]).toEqual([ PERMISSIONS.Modify ]);
+    expect([...result.get({ path: 'oof' })!]).toEqual([ PERMISSIONS.Read ]);
   });
 });

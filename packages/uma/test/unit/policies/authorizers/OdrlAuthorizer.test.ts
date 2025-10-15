@@ -1,5 +1,5 @@
 import { NotImplementedHttpError, RDF, XSD } from '@solid/community-server';
-import { basicPolicy, ODRL, UCRulesStorage } from '@solidlab/ucp';
+import { basicPolicy, UCRulesStorage } from '@solidlab/ucp';
 import { DataFactory as DF, Parser, Store } from 'n3';
 import { ODRLEvaluator } from 'odrl-evaluator';
 import { Mocked } from 'vitest';
@@ -72,7 +72,7 @@ describe('OdrlAuthorizer', (): void => {
     expect(evaluate).toHaveBeenCalledTimes(1);
     expect(evaluate).toHaveBeenLastCalledWith(
       policyStore.getQuads(null, null, null, null),
-      requestQuads,
+      [ ...new Store(requestQuads) ],
       sotw,
     );
   });
@@ -95,7 +95,7 @@ describe('OdrlAuthorizer', (): void => {
     expect(evaluate).toHaveBeenCalledTimes(1);
     expect(evaluate).toHaveBeenLastCalledWith(
       policyStore.getQuads(null, null, null, null),
-      requestQuads,
+      [ ...new Store(requestQuads) ],
       sotw,
     );
   });

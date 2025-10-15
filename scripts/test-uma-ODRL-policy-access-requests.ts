@@ -1,14 +1,14 @@
 /**
  * The purpose of this script is to test all policy and access requests endpoints.
- * 
+ *
  * This integration tests test the following scenarios:
- * 
+ *
  * 1. RP requests access to resource, RO accepts
  * 2. RP requests access to resource, RO denies
  * 3. RP requests access to resource, tries to make its own accept
  */
 
-import { parseStringAsN3Store } from 'koreografeye';
+import { Parser, Store } from 'n3';
 import logger from './util/logger';
 import { ACCESS_REQUEST, SETUP_POLICIES } from './util/policy-access-request-integration-util';
 import { UserManagedAccessFetcher } from './util/UMA-client';
@@ -72,7 +72,7 @@ const teardown = async (): Promise<Result> => {
     }
     );
 
-    const store = await parseStringAsN3Store(await policies.text());
+    const store = new Store(new Parser().parse(await policies.text()));
     const policyIDs = store.getSubjects(null, "http://www.w3.org/ns/odrl/2/Agreement", null).map((subject) => subject.id);
 
     await Promise.all(policyIDs.map((policyID) =>

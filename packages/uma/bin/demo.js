@@ -1,6 +1,6 @@
 const path = require('path');
 const { ComponentsManager } = require('componentsjs');
-const { setGlobalLoggerFactory, WinstonLoggerFactory } = require('@solid/community-server');
+const { setGlobalLoggerFactory, WinstonLoggerFactory } = require('global-logger-factory');
 
 const protocol = 'http';
 const host = 'localhost';

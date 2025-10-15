@@ -32,7 +32,7 @@ export async function findTokenEndpoint(uri: string): Promise<string> {
   const configurationUrl = uri + '/.well-known/uma2-configuration';
   const configResponse = await fetch(configurationUrl);
   expect(configResponse.status).toBe(200);
-  const configuration = await configResponse.json();
+  const configuration = await configResponse.json() as { token_endpoint: string };
   expect(typeof configuration.token_endpoint).toBe('string');
   return configuration.token_endpoint;
 }
@@ -59,7 +59,7 @@ export async function getToken(ticket: string, endpoint: string, webId?: string)
 
   expect(response.status).toBe(200);
   expect(response.headers.get('content-type')).toBe('application/json');
-  const jsonResponse: DialogOutput =  await response.json();
+  const jsonResponse: DialogOutput =  await response.json() as { access_token: string, token_type: string };
 
   expect(typeof jsonResponse.access_token).toBe('string');
   expect(jsonResponse.token_type).toBe('Bearer');

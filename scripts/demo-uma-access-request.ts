@@ -1,8 +1,8 @@
+import { Parser, Store } from 'n3';
 import logger from './util/logger';
 import * as readline from 'readline/promises';
 import { UserManagedAccessFetcher } from './util/UMA-client';
 import { SETUP_POLICIES } from './util/policy-access-request-integration-util';
-import { parseStringAsN3Store } from 'koreografeye';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:4000/uma';
 const POLICY_URL = `${BASE_URL}/policies`;
@@ -103,9 +103,9 @@ const teardown = async (policy: string): Promise<void> => {
         }
     );
 
-    const store = await parseStringAsN3Store(await policies.text());
+    const store = new Store(new Parser().parse(await policies.text()));
     const policyIDs = store.getSubjects(null, "http://www.w3.org/ns/odrl/2/Agreement", null).filter((subject) => subject.id !== policy).map((subject) => subject.id);
-    
+
     await Promise.all(policyIDs.map((policyID) =>
         fetch(`${POLICY_URL}/${encodeURIComponent(policyID)}`, { method: 'DELETE', headers: { 'authorization': RESOURCE_OWNER } })
     ));

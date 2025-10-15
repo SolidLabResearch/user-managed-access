@@ -1,9 +1,10 @@
-import { getLoggerFor, KeyValueStorage } from '@solid/community-server';
+import { KeyValueStorage } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
+import { ClaimSet } from '../../credentials/ClaimSet';
+import { Requirements } from '../../credentials/Requirements';
+import { Permission } from '../../views/Permission';
 import { ResourceDescription } from '../../views/ResourceDescription';
 import { Authorizer } from './Authorizer';
-import { Permission } from '../../views/Permission';
-import { Requirements } from '../../credentials/Requirements';
-import { ClaimSet } from '../../credentials/ClaimSet';
 
 const namespace = (resource: string) => new URL(resource).pathname.split('/')?.[2] ?? '';
 

@@ -1,13 +1,13 @@
 import {
   AccountStore,
   createErrorMessage,
-  getLoggerFor,
   Initializer,
   PasswordStore,
   PodCreator,
   URL_SCHEMA
 } from '@solid/community-server';
 import { readJson } from 'fs-extra';
+import { getLoggerFor } from 'global-logger-factory';
 import { array, object, string } from 'yup';
 import {
   ACCOUNT_SETTINGS_AUTHZ_SERVER,

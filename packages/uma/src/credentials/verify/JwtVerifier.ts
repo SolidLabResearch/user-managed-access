@@ -1,10 +1,10 @@
-import { getLoggerFor } from '@solid/community-server';
-import { Verifier } from './Verifier';
-import { ClaimSet } from '../ClaimSet';
-import { Credential } from "../Credential";
-import { JWT } from '../Formats';
+import buildGetJwks, { GetJwks } from 'get-jwks';
+import { getLoggerFor } from 'global-logger-factory';
 import { decodeJwt, decodeProtectedHeader, jwtVerify } from 'jose';
-import buildGetJwks, {GetJwks} from 'get-jwks';
+import { ClaimSet } from '../ClaimSet';
+import { Credential } from '../Credential';
+import { JWT } from '../Formats';
+import { Verifier } from './Verifier';
 
 /**
  * An UNSECURE Verifier that parses Tokens of the format `encode_uri(webId)[:encode_uri(clientId)]`,

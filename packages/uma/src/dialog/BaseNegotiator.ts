@@ -1,21 +1,18 @@
+import { BadRequestHttpError, ForbiddenHttpError, HttpErrorClass, KeyValueStorage } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { randomUUID } from 'node:crypto';
-import { Ticket } from '../ticketing/Ticket';
+import { ClaimSet } from '../credentials/ClaimSet';
 import { Verifier } from '../credentials/verify/Verifier';
-import { TokenFactory } from '../tokens/TokenFactory';
-import { Negotiator } from './Negotiator';
 import { NeedInfoError } from '../errors/NeedInfoError';
-import { DialogInput } from './Input';
-import { DialogOutput } from './Output';
-import { reType } from '../util/ReType';
-import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
-import {
-  BadRequestHttpError,
-  ForbiddenHttpError,
-  getLoggerFor,
-  HttpErrorClass,
-  KeyValueStorage } from '@solid/community-server';
 import { getOperationLogger } from '../logging/OperationLogger';
 import { serializePolicyInstantiation } from '../logging/OperationSerializer';
+import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
+import { Ticket } from '../ticketing/Ticket';
+import { TokenFactory } from '../tokens/TokenFactory';
+import { reType } from '../util/ReType';
+import { DialogInput } from './Input';
+import { Negotiator } from './Negotiator';
+import { DialogOutput } from './Output';
 
 /**
  * A concrete Negotiator that verifies incoming Claims and processes Tickets

@@ -1,8 +1,8 @@
-import { getLoggerFor } from '@solid/community-server';
-import { Authorizer } from './Authorizer';
-import { Permission } from '../../views/Permission';
-import { Requirements } from '../../credentials/Requirements';
+import { getLoggerFor } from 'global-logger-factory';
 import { ClaimSet } from '../../credentials/ClaimSet';
+import { Requirements } from '../../credentials/Requirements';
+import { Permission } from '../../views/Permission';
+import { Authorizer } from './Authorizer';
 
 /**
  * Mock authorizer granting no access to any client.
