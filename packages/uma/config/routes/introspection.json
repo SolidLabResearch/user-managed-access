@@ -9,7 +9,8 @@
       "methods": [ "POST" ],
       "handler": {
         "@type": "IntrospectionHandler",
-        "tokenFactory": { "@id": "urn:uma:default:TokenFactory" }
+        "tokenFactory": { "@id": "urn:uma:default:TokenFactory" },
+        "validator": { "@id": "urn:uma:default:RequestValidator" }
       },
       "path": "/uma/introspect"
     }

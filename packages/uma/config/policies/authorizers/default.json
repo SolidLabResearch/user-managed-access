@@ -56,7 +56,7 @@
           "@id": "urn:uma:default:RulesStorage"
         }
       },
-      "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
+      "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
     },
     {
       "@id": "urn:uma:default:RulesStorage",

@@ -1,0 +1,23 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:default:PatGenerationRoute",
+      "@type": "HttpHandlerRoute",
+      "methods": [ "POST" ],
+      "handler": {
+        "@id": "urn:uma:default:PatGenerationHandler",
+        "@type": "PatHandler",
+        "verifier": { "@id": "urn:uma:default:Verifier" },
+        "storage": {
+          "@id": "urn:uma:default:PatStorage",
+          "@type": "MemoryMapStorage"
+        }
+      },
+      "path": "/uma/pat"
+    }
+  ]
+}

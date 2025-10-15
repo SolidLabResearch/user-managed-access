@@ -4,6 +4,7 @@
     "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld"
   ],
   "import": [
+    "sai-uma:config/credentials/validators/pat.json",
     "sai-uma:config/credentials/verifiers/default.json",
     "sai-uma:config/dialog/negotiators/default.json",
     "sai-uma:config/policies/authorizers/default.json",
@@ -11,6 +12,7 @@
     "sai-uma:config/routes/discovery.json",
     "sai-uma:config/routes/introspection.json",
     "sai-uma:config/routes/keys.json",
+    "sai-uma:config/routes/pat.json",
     "sai-uma:config/routes/resources.json",
     "sai-uma:config/routes/tickets.json",
     "sai-uma:config/routes/tokens.json",
@@ -122,7 +124,8 @@
                   { "@id": "urn:uma:default:PermissionRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
-                  { "@id": "urn:uma:default:IntrospectionRoute" }
+                  { "@id": "urn:uma:default:IntrospectionRoute" },
+                  { "@id": "urn:uma:default:PatGenerationRoute" }
                 ]
               }
             },

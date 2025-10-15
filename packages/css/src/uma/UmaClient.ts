@@ -35,11 +35,11 @@ export type UmaClaims = JWTPayload & {
 
 export interface UmaConfig {
   jwks_uri: string;
-  // jwks: any;
   issuer: string;
   permission_endpoint: string;
   introspection_endpoint: string;
   resource_registration_endpoint: string;
+  pat_generation_endpoint?: string;
 }
 
 export type UmaVerificationOptions = Omit<JWTVerifyOptions, 'iss' | 'aud' | 'sub' | 'iat'>;
@@ -73,6 +73,7 @@ export class UmaClient implements SingleThreaded {
    * @param fetcher - Used to perform requests targeting the AS.
    * @param identifierStrategy - Utility functions based on the path configuration of the server.
    * @param resourceSet - Will be used to verify existence of resources.
+   * @param baseUrl - The base URL of this server.
    * @param options - JWT verification options.
    */
   constructor(
@@ -80,6 +81,7 @@ export class UmaClient implements SingleThreaded {
     protected readonly fetcher: Fetcher,
     protected readonly identifierStrategy: IdentifierStrategy,
     protected readonly resourceSet: ResourceSet,
+    protected readonly baseUrl: string,
     protected readonly options: UmaVerificationOptions = {},
   ) {
     // This number can potentially get very big when seeding a bunch of pods.
@@ -91,11 +93,11 @@ export class UmaClient implements SingleThreaded {
    * Method to fetch a ticket from the Permission Registration endpoint of the UMA Authorization Service.
    *
    * @param {AccessMap} permissions - the access targets and modes for which a ticket is requested
-   * @param {string} owner - the resource owner of the requested target resources
    * @param {string} issuer - the issuer from which to request the permission ticket
+   * @param {string} pat - the UMA PAT of the owner, in case the resource still needs to be registered
    * @return {Promise<string>} - the permission ticket
    */
-  public async fetchTicket(permissions: AccessMap, issuer: string): Promise<string | undefined> {
+  public async fetchTicket(permissions: AccessMap, issuer: string, pat: string): Promise<string | undefined> {
     let endpoint: string;
 
     try {
@@ -121,7 +123,7 @@ export class UmaClient implements SingleThreaded {
         // This can be a consequence of adding resources in the wrong way (e.g., copying files),
         // or other special resources, such as derived resources.
         if (await this.resourceSet.hasResource(target)) {
-          await this.registerResource(target, issuer);
+          await this.registerResource(target, issuer, pat);
           umaId = await this.umaIdStore.get(target.path);
         } else {
           throw new NotFoundHttpError();
@@ -276,13 +278,13 @@ export class UmaClient implements SingleThreaded {
    * In that case the registration will be done immediately,
    * and updated with the relations once the parent registration is finished.
    */
-  public async registerResource(resource: ResourceIdentifier, issuer: string): Promise<void> {
+  public async registerResource(resource: ResourceIdentifier, issuer: string, pat: string): Promise<void> {
     if (this.inProgressResources.has(resource.path)) {
       // It is possible a resource is still being registered when an updated registration is already requested.
       // To prevent duplicate registrations of the same resource,
       // the next call will only happen when the first one is finished.
       await once(this.registerEmitter, resource.path);
-      return this.registerResource(resource, issuer);
+      return this.registerResource(resource, issuer, pat);
     }
     this.inProgressResources.add(resource.path);
     let { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
@@ -320,12 +322,13 @@ export class UmaClient implements SingleThreaded {
 
         promises.push(
           once(this.registerEmitter, parentIdentifier.path)
-            .then(() => this.registerResource(resource, issuer)),
+            .then(() => this.registerResource(resource, issuer, pat)),
         );
         // It is possible the parent is not yet being registered.
         // We need to force a registration in such a case, otherwise the above event will never be fired.
         if (!this.inProgressResources.has(parentIdentifier.path)) {
-          promises.push(this.registerResource(parentIdentifier, issuer));
+          // TODO: using this PAT is wrong when accessing the parent of a root container
+          promises.push(this.registerResource(parentIdentifier, issuer, pat));
         }
       }
     }
@@ -339,6 +342,7 @@ export class UmaClient implements SingleThreaded {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Authorization': `Bearer ${pat}`,
       },
       body: JSON.stringify(description),
     };
@@ -375,7 +379,7 @@ export class UmaClient implements SingleThreaded {
   /**
    * Deletes the UMA registration for the given resource from the given issuer.
    */
-  public async deleteResource(resource: ResourceIdentifier, issuer: string): Promise<void> {
+  public async deleteResource(resource: ResourceIdentifier, issuer: string, pat: string): Promise<void> {
     const { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
 
     const umaId = await this.umaIdStore.get(resource.path);
@@ -386,7 +390,34 @@ export class UmaClient implements SingleThreaded {
 
     this.logger.info(`Deleting resource registration for <${resource.path}> at <${url}>`);
 
-    await this.fetcher.fetch(url, { method: 'DELETE' });
+    await this.fetcher.fetch(url, { method: 'DELETE', headers: { Authorization: `Bearer ${pat}` } });
+  }
+
+  public async generatePat(webId: string, issuer: string): Promise<string> {
+    const config = await this.fetchUmaConfig(issuer);
+    if (!config.pat_generation_endpoint) {
+      throw new InternalServerError(`Issuer ${issuer} does not support simple PAT generation`);
+    }
+    const response = await this.fetcher.fetch(config.pat_generation_endpoint, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        claim_token: `${encodeURIComponent(webId)}:${encodeURIComponent(this.baseUrl)}`,
+        claim_token_format: 'urn:solidlab:uma:claims:formats:webid',
+        scope: 'uma_protection',
+      }),
+    });
+    if (response.status >= 400) {
+      throw new InternalServerError(`Unable to generate PAT: ${response.status} - ${await response.text()}`);
+    }
+
+    const { pat } = await response.json();
+    this.logger.info(`Generated PAT ${pat} for ${webId}`);
+
+    return pat;
   }
 }
 

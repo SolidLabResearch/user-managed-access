@@ -9,6 +9,9 @@ export * from './http/output/metadata/UmaTicketMetadataWriter';
 
 export * from './identity/interaction/account/util/AccountSettings';
 export * from './identity/interaction/account/util/UmaAccountStore';
+export * from './identity/interaction/PatUpdateHandler';
+export * from './identity/PatSeedRegistrar';
+export * from './identity/PatUpdater';
 
 export * from './init/EmptyContainerInitializer';
 export * from './init/UmaSeededAccountInitializer';

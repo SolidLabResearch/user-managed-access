@@ -43,7 +43,7 @@ export class UmaAuthorizer extends Authorizer {
       await this.authorizer.handleSafe(input);
     } catch (error: unknown) {
 
-      // Unless 403/403 throw original error
+      // Unless 401/403 throw original error
       if (!UnauthorizedHttpError.isInstance(error) && !ForbiddenHttpError.isInstance(error)) throw error;
 
       // Request UMA ticket
@@ -63,12 +63,12 @@ export class UmaAuthorizer extends Authorizer {
 
   protected async requestTicket(requestedModes: AccessMap): Promise<string | undefined> {
     const owner = await this.ownerUtil.findCommonOwner(requestedModes.keys());
-    const issuer = await this.ownerUtil.findIssuer(owner);
+    const { issuer, pat } = await this.ownerUtil.findUmaSettings(owner);
 
-    if (!issuer) throw new InternalServerError(`No UMA authorization server found for ${owner}.`);
+    if (!issuer || !pat) throw new InternalServerError(`PAT and/or issuer are not set for ${owner}.`);
 
     try {
-      const ticket = await this.umaClient.fetchTicket(requestedModes, issuer);
+      const ticket = await this.umaClient.fetchTicket(requestedModes, issuer, pat);
       return ticket ? `UMA realm="solid", as_uri="${issuer}", ticket="${ticket}"` : undefined;
     } catch (e) {
       this.logger.error(`Error while requesting UMA header: ${(e as Error).message}`);

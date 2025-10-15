@@ -41,6 +41,7 @@ export * from './routes/Config';
 export * from './routes/Log';
 export * from './routes/VC';
 export * from './routes/Contract';
+export * from './routes/Pat';
 
 // Tickets
 export * from './ticketing/Ticket';
@@ -67,9 +68,13 @@ export * from './util/http/server/JsonHttpErrorHandler';
 export * from './util/http/server/JsonFormHttpHandler';
 export * from './util/http/server/NodeHttpRequestResponseHandler';
 export * from './util/http/server/RoutedHttpRequestHandler';
+export * from './util/http/validate/HttpMessageValidator';
+export * from './util/http/validate/PatRequestValidator';
+export * from './util/http/validate/RequestValidator';
 
 // Util
 export * from './util/ConvertUtil';
 export * from './util/HttpMessageSignatures';
+export * from './util/RegistrationStore';
 export * from './util/Result';
 export * from './util/ReType';

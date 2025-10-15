@@ -6,7 +6,7 @@ import EventEmitter from 'events';
 const PROCESS = Symbol();
 
 /**
- * A {@link Fetcher} wrapper that is {@link StatusDependant}, 
+ * A {@link Fetcher} wrapper that is {@link StatusDependant},
  * enabling requests to be backlogged during inactive periods.
  */
 export class PausableFetcher implements Fetcher, StatusDependant<boolean> {

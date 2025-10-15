@@ -1,8 +1,7 @@
 import { BadRequestHttpError, getLoggerFor, UnauthorizedHttpError } from '@solid/community-server';
 import { TokenFactory } from '../tokens/TokenFactory';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
-import { verifyRequest } from '../util/HttpMessageSignatures';
-
+import { RequestValidator } from '../util/http/validate/RequestValidator';
 
 type IntrospectionResponse = {
   active : boolean,
@@ -15,7 +14,6 @@ type IntrospectionResponse = {
   nbf?: number,
 }
 
-
 /**
  * An HTTP handler that provides introspection into opaque access tokens.
  */
@@ -26,15 +24,17 @@ export class IntrospectionHandler extends HttpHandler {
    * Creates an introspection handler for tokens in the given token store.
    *
    * @param tokenFactory - The factory with which tokens were produced.
+   * @param validator - Verifies the validity of the request.
    */
   constructor(
     private readonly tokenFactory: TokenFactory,
+    private readonly validator: RequestValidator,
   ) {
     super();
   }
 
   async handle({request}: HttpHandlerContext): Promise<HttpHandlerResponse<IntrospectionResponse>> {
-    if (!await verifyRequest(request)) throw new UnauthorizedHttpError();
+    if (!await this.validator.handle({ request })) throw new UnauthorizedHttpError();
 
     if (!request.body) {
       throw new BadRequestHttpError('Missing request body.');

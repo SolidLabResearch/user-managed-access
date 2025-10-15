@@ -6,8 +6,9 @@
     {
       "@id": "urn:uma:default:ResourceRegistrationHandler",
       "@type": "ResourceRegistrationRequestHandler",
-      "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
-      "policies": { "@id": "urn:uma:default:RulesStorage" }
+      "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
+      "policies": { "@id": "urn:uma:default:RulesStorage" },
+      "validator": { "@id": "urn:uma:default:RequestValidator" }
     },
     {
       "@id": "urn:uma:default:ResourceRegistrationRoute",

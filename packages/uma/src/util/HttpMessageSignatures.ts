@@ -1,12 +1,6 @@
-import { UnauthorizedHttpError, type AlgJwk, BadRequestHttpError } from '@solid/community-server';
-import { httpbis, type SigningKey, type Request as SignRequest, defaultParams } from 'http-message-signatures';
-import { verifyMessage } from 'http-message-signatures/lib/httpbis';
-import { type SignatureParameters, type VerifierFinder, type VerifyingKey } from 'http-message-signatures/lib/types';
-import { HttpHandlerRequest } from './http/models/HttpHandler';
-import buildGetJwks from 'get-jwks';
+import { type AlgJwk } from '@solid/community-server';
+import { httpbis, type Request as SignRequest, type SigningKey } from 'http-message-signatures';
 import crypto from 'node:crypto';
-
-const authParserMod = import('@httpland/authorization-parser');
 
 export async function signRequest(
   url: string,
@@ -24,70 +18,6 @@ export async function signRequest(
   };
 
   return await httpbis.signMessage({ key, fields: [ '@target-uri', '@method' ] }, { ...request, url });
-}
-
-export async function extractRequestSigner(request: HttpHandlerRequest): Promise<string> {
-  const { authorization } = request.headers;
-  if (!authorization) {
-    throw new UnauthorizedHttpError('Missing authorization header in request.');
-  }
-
-  const { authScheme, params } = (await authParserMod).parseAuthorization(authorization);
-  if (authScheme !== 'HttpSig') {
-    throw new UnauthorizedHttpError();
-  }
-
-  if (!params || typeof params !== 'object' || !params.cred) {
-    throw new UnauthorizedHttpError();
-  }
-
-  return params.cred;
-}
-
-export async function verifyRequest(
-  request: HttpHandlerRequest & SignRequest,
-  signer?: string,
-): Promise<boolean> {
-  signer = signer ?? await extractRequestSigner(request);
-
-  if (signer.startsWith('"')) signer = signer.slice(1);
-  if (signer.endsWith('"')) signer = signer.slice(0,-1);
-
-  const jwks = buildGetJwks();
-
-  const keyLookup: VerifierFinder = async (params: SignatureParameters) => {
-    const { alg, keyid } = params;
-
-    try {
-      const jwk = await jwks.getJwk({
-        domain: signer!,
-        alg: alg ?? '',
-        kid: keyid ?? '',
-      });
-
-      if (!alg) throw new BadRequestHttpError('Invalid HTTP message Signature parameters.');
-
-      const verifier: VerifyingKey = {
-        id: keyid,
-        algs: alg ? [ alg ] : [],
-        async verify(data: Buffer, signature: Buffer) {
-          try {
-            const params = algMap[alg];
-            const key = await crypto.subtle.importKey('jwk', jwk, params, false, ['verify']);
-            return await crypto.subtle.verify(params, key, signature, data);
-          } catch (err) { console.log(err); return null }
-        },
-      };
-
-      return verifier;
-
-    } catch (err) {
-      throw new Error(`Something went wrong during signature checking: ${err.message}`)
-    }
-  };
-
-  const verified = await verifyMessage({ keyLookup }, request);
-  return verified ?? false;
 }
 
 type AlgParams = RsaHashedImportParams | EcKeyImportParams | HmacImportParams

@@ -10,12 +10,7 @@
       "fetcher": {
         "@type": "RetryingFetcher",
         "fetcher": {
-          "@type": "SignedFetcher",
-          "fetcher": {
-            "@type": "BaseFetcher"
-          },
-          "baseUrl": { "@id": "urn:solid-server:default:variable:baseUrl" },
-          "keyGen": { "@id": "urn:solid-server:default:JwkGenerator" }
+          "@type": "BaseFetcher"
         },
         "retries": 150,
         "exponent": 3,
