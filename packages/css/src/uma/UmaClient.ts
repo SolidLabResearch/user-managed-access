@@ -1,6 +1,5 @@
 import {
   AccessMap,
-  getLoggerFor,
   IdentifierStrategy,
   InternalServerError,
   isContainerIdentifier,
@@ -11,11 +10,16 @@ import {
   ResourceSet,
   SingleThreaded
 } from '@solid/community-server';
+import { PERMISSIONS } from '@solidlab/policy-engine';
 import type { ResourceDescription } from '@solidlab/uma';
 import { EventEmitter, once } from 'events';
+import { getLoggerFor } from 'global-logger-factory';
 import { createRemoteJWKSet, decodeJwt, JWTPayload, jwtVerify, JWTVerifyOptions } from 'jose';
 import { promises } from 'node:timers';
+import { VocabularyValue } from 'rdf-vocabulary';
 import type { Fetcher } from '../util/fetch/Fetcher';
+import { MODES } from '../util/Vocabularies';
+import { toUmaScope } from './ScopeUtil';
 
 export interface Claims {
   [key: string]: unknown;
@@ -135,7 +139,7 @@ export class UmaClient implements SingleThreaded {
       }
       body.push({
         resource_id: umaId,
-        resource_scopes: Array.from(modes).map(mode => `urn:example:css:modes:${mode}`)
+        resource_scopes: (Array.from(modes) as VocabularyValue<typeof PERMISSIONS>[]).map(toUmaScope),
       });
     }
 
@@ -154,7 +158,7 @@ export class UmaClient implements SingleThreaded {
       throw new Error(`Error while retrieving UMA Ticket: Received status ${response.status} from '${endpoint}'.`);
     }
 
-    const json = await response.json();
+    const json = await response.json() as { ticket?: unknown } ;
 
     if (!json.ticket || !isString(json.ticket)) {
       throw new Error('Invalid response from UMA AS: missing or invalid \'ticket\'.');
@@ -233,7 +237,7 @@ export class UmaClient implements SingleThreaded {
       throw new Error(`Unable to introspect UMA RPT for Authorization Server '${config.issuer}'`);
     }
 
-    const jwt = await res.json();
+    const jwt = await res.json() as any;
     if (jwt.active !== true) throw new Error(`The provided UMA RPT is not active.`);
 
     return await this.verifyTokenData(jwt, config.issuer, config.jwks_uri);
@@ -252,7 +256,7 @@ export class UmaClient implements SingleThreaded {
       throw new Error(`Unable to retrieve UMA Configuration for Authorization Server '${issuer}' from '${configUrl}'`);
     }
 
-    const configuration = await res.json();
+    const configuration = await res.json() as Record<string, unknown>;
 
     const missing = REQUIRED_METADATA.filter((value) => !(value in configuration));
     if (missing.length !== 0) {
@@ -264,7 +268,7 @@ export class UmaClient implements SingleThreaded {
       `The Authorization Server Metadata of '${issuer}' should have string attributes ${noString.join(', ')}`
     );
 
-    return configuration;
+    return configuration as unknown as UmaConfig;
   }
 
   /**
@@ -296,11 +300,11 @@ export class UmaClient implements SingleThreaded {
     const description: ResourceDescription = {
       name: resource.path,
       resource_scopes: [
-        'urn:example:css:modes:read',
-        'urn:example:css:modes:append',
-        'urn:example:css:modes:create',
-        'urn:example:css:modes:delete',
-        'urn:example:css:modes:write',
+        MODES.append,
+        MODES.read,
+        MODES.create,
+        MODES.delete,
+        MODES.write,
       ],
     };
 
@@ -355,7 +359,7 @@ export class UmaClient implements SingleThreaded {
           throw new InternalServerError(`Resource registration request failed. ${await resp.text()}`);
         }
 
-        const { _id: umaId } = await resp.json();
+        const { _id: umaId } = await resp.json() as { _id: string };
 
         if (!isString(umaId)) {
           throw new InternalServerError('Unexpected response from UMA server; no UMA id received.');

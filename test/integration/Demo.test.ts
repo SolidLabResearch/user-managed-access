@@ -1,4 +1,5 @@
-import { App, setGlobalLoggerFactory, WinstonLoggerFactory } from '@solid/community-server';
+import { App } from '@solid/community-server';
+import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
 import { DialogOutput } from '@solidlab/uma';
 import { Parser, Store } from 'n3';
 import * as path from 'node:path';
@@ -29,7 +30,7 @@ async function noTokenFetch(input: string | URL | globalThis.Request, init?: Req
   expect(typeof wwwAuthenticateHeader).toBe('string');
 
   const parsedHeader = Object.fromEntries(
-    wwwAuthenticateHeader
+    wwwAuthenticateHeader!
       .replace(/^UMA /,'')
       .split(', ')
       .map(param => param.split('=').map(s => s.replace(/"/g,'')))
@@ -44,7 +45,7 @@ async function findTokenEndpoint(uri: string): Promise<string> {
   const configurationUrl = uri + '/.well-known/uma2-configuration';
   const configResponse = await fetch(configurationUrl);
   expect(configResponse.status).toBe(200);
-  const configuration = await configResponse.json();
+  const configuration = await configResponse.json() as any;
   expect(typeof configuration.token_endpoint).toBe('string');
   return configuration.token_endpoint;
 }
@@ -67,7 +68,7 @@ async function getToken(ticket: string, endpoint: string, webId?: string): Promi
 
   expect(response.status).toBe(200);
   expect(response.headers.get('content-type')).toBe('application/json');
-  const jsonResponse: DialogOutput =  await response.json();
+  const jsonResponse: DialogOutput =  await response.json() as any;
 
   expect(typeof jsonResponse.access_token).toBe('string');
   expect(jsonResponse.token_type).toBe('Bearer');

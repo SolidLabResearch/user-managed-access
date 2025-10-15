@@ -1,4 +1,5 @@
-import { BadRequestHttpError, getLoggerFor } from '@solid/community-server';
+import { BadRequestHttpError } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { DialogInput } from '../dialog/Input';
 import { Negotiator } from '../dialog/Negotiator';
 import { NeedInfoError } from '../errors/NeedInfoError';

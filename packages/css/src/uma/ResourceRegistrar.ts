@@ -1,11 +1,6 @@
-import {
-  ActivityEmitter,
-  AS,
-  createErrorMessage,
-  getLoggerFor,
-  ResourceIdentifier,
-  StaticHandler
-} from '@solid/community-server';
+import { ActivityEmitter, AS, createErrorMessage, ResourceIdentifier } from '@solid/community-server';
+import { StaticHandler } from 'asynchronous-handlers';
+import { getLoggerFor } from 'global-logger-factory';
 import { OwnerUtil } from '../util/OwnerUtil';
 import type { UmaClient } from './UmaClient';
 

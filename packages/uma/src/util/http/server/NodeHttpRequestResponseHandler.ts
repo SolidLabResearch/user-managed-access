@@ -1,13 +1,12 @@
 import {
   BadRequestHttpError,
-  getLoggerFor,
   HttpHandler as NodeHttpStreamsHandler,
   HttpHandlerInput,
   TargetExtractor
 } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { buffer } from 'node:stream/consumers';
 import { HttpHandler, HttpHandlerContext, HttpHandlerRequest } from '../models/HttpHandler';
-
 
 /**
  * A { NodeHttpStreamsHandler } reading the request stream into a { HttpHandlerRequest },

@@ -1,4 +1,5 @@
-import { createErrorMessage, getLoggerFor, KeyValueStorage } from '@solid/community-server';
+import { createErrorMessage, KeyValueStorage } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { Requirements } from '../credentials/Requirements';
 import { Verifier } from '../credentials/verify/Verifier';
 import { ContractManager } from '../policies/contracts/ContractManager';

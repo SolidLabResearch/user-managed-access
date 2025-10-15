@@ -1,4 +1,5 @@
-import { App, setGlobalLoggerFactory, WinstonLoggerFactory } from '@solid/community-server';
+import { App } from '@solid/community-server';
+import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
 import * as path from 'node:path';
 import { getDefaultCssVariables, instantiateFromConfig } from '../util/ServerUtil';
 
@@ -84,7 +85,7 @@ describe('A server setup', (): void => {
       const configurationUrl = parsedHeader.as_uri + '/.well-known/uma2-configuration';
       const response = await fetch(configurationUrl);
       expect(response.status).toBe(200);
-      const configuration = await response.json();
+      const configuration = await response.json() as any;
       expect(typeof configuration.token_endpoint).toBe('string');
       tokenEndpoint = configuration.token_endpoint;
     });
@@ -107,7 +108,7 @@ describe('A server setup', (): void => {
 
       expect(asRequestResponse.status).toBe(200);
       expect(asRequestResponse.headers.get('content-type')).toBe('application/json');
-      jsonResponse = await asRequestResponse.json();
+      jsonResponse = await asRequestResponse.json() as any;
       expect(typeof jsonResponse.access_token).toBe('string');
       expect(jsonResponse.token_type).toBe('Bearer');
       const token = JSON.parse(Buffer.from(jsonResponse.access_token.split('.')[1], 'base64').toString());

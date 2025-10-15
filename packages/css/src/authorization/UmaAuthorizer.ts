@@ -1,12 +1,17 @@
-import {
-  Authorizer, createErrorMessage, ForbiddenHttpError, getLoggerFor, InternalServerError, UnauthorizedHttpError
-} from '@solid/community-server';
 import type { AccessMap, AuthorizerInput } from '@solid/community-server';
-import { OwnerUtil } from '../util/OwnerUtil';
-import { UmaClient } from '../uma/UmaClient';
+import {
+  Authorizer,
+  createErrorMessage,
+  ForbiddenHttpError,
+  InternalServerError,
+  UnauthorizedHttpError
+} from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory } from 'n3';
+import { UmaClient } from '../uma/UmaClient';
+import { OwnerUtil } from '../util/OwnerUtil';
 
-const { blankNode, namedNode, literal } = DataFactory;
+const { namedNode, literal } = DataFactory;
 
 export const WWW_AUTH = namedNode('urn:css:http:headers:www-authenticate');
 

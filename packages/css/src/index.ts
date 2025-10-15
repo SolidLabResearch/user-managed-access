@@ -18,6 +18,7 @@ export * from './server/middleware/JwksHandler';
 export * from './server/TrustEnvelopeHttpHandler';
 
 export * from './uma/ResourceRegistrar';
+export * from './uma/ScopeUtil';
 export * from './uma/UmaClient';
 
 export * from './util/OwnerUtil';

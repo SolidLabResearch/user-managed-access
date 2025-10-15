@@ -1,6 +1,5 @@
-import {
-  MetadataWriter, getLoggerFor, HttpResponse, RepresentationMetadata, HTTP, addHeader
-} from '@solid/community-server';
+import { addHeader, HTTP, HttpResponse, MetadataWriter, RepresentationMetadata } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { WWW_AUTH } from '../../../authorization/UmaAuthorizer';
 
 /**
@@ -18,7 +17,7 @@ export class UmaTicketMetadataWriter extends MetadataWriter {
     metadata: RepresentationMetadata;
   }): Promise<void> {
     const statusCode = input.metadata.get(HTTP.terms.statusCodeNumber)?.value;
-    
+
     if (statusCode === '401' || statusCode === '403') {
       const authHeader = input.metadata.get(WWW_AUTH)?.value;
       if (authHeader) {

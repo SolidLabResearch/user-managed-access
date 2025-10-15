@@ -1,6 +1,6 @@
-import { getLoggerFor } from '@solid/community-server';
 import { ClaimSet } from "../../credentials/ClaimSet";
 import { Ticket } from "../Ticket";
+import { getLoggerFor } from 'global-logger-factory';
 import { Permission } from "../../views/Permission";
 import { Failure, Result, Success } from "../../util/Result";
 import { TicketingStrategy } from "./TicketingStrategy";

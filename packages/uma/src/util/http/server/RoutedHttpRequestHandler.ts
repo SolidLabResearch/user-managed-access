@@ -1,9 +1,5 @@
-import {
-  getLoggerFor,
-  InternalServerError,
-  MethodNotAllowedHttpError,
-  NotImplementedHttpError
-} from '@solid/community-server';
+import { InternalServerError, MethodNotAllowedHttpError, NotImplementedHttpError } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import Template from 'uri-template-lite';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../models/HttpHandler';
 import { HttpHandlerRoute } from '../models/HttpHandlerRoute';

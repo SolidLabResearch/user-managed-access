@@ -1,7 +1,8 @@
-import { BadRequestHttpError, getLoggerFor } from '@solid/community-server';
-import { ClaimSet } from "../ClaimSet";
-import { Credential } from "../Credential";
-import { Verifier } from "./Verifier";
+import { BadRequestHttpError } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
+import { ClaimSet } from '../ClaimSet';
+import { Credential } from '../Credential';
+import { Verifier } from './Verifier';
 
 /**
  * Redirect verification requests to the relevant verifier by matching the credential format

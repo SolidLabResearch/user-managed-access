@@ -1,5 +1,6 @@
+import { ServerConfigurator } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import type { Server } from 'node:http';
-import { getLoggerFor, ServerConfigurator } from '@solid/community-server';
 import type { StatusDependant } from './StatusDependant';
 
 /**

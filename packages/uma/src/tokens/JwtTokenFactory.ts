@@ -1,15 +1,10 @@
-import { importJWK, jwtVerify, SignJWT } from 'jose';
-import {
-  BadRequestHttpError,
-  createErrorMessage,
-  getLoggerFor,
-  JwkGenerator,
-  KeyValueStorage
-} from '@solid/community-server';
+import { BadRequestHttpError, JwkGenerator, KeyValueStorage } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
+import { importJWK, SignJWT } from 'jose';
 import { randomUUID } from 'node:crypto';
 import { ClaimSet } from '../credentials/ClaimSet';
-import { SerializedToken , TokenFactory} from './TokenFactory';
 import { AccessToken } from './AccessToken';
+import { SerializedToken, TokenFactory } from './TokenFactory';
 
 const AUD = 'solid';
 

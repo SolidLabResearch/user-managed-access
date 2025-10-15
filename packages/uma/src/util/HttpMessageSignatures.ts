@@ -1,10 +1,11 @@
-import { UnauthorizedHttpError, type AlgJwk, BadRequestHttpError } from '@solid/community-server';
-import { httpbis, type SigningKey, type Request as SignRequest, defaultParams } from 'http-message-signatures';
+import { type AlgJwk, BadRequestHttpError, UnauthorizedHttpError } from '@solid/community-server';
+import buildGetJwks from 'get-jwks';
+import { httpbis, type Request as SignRequest, type SigningKey } from 'http-message-signatures';
 import { verifyMessage } from 'http-message-signatures/lib/httpbis';
 import { type SignatureParameters, type VerifierFinder, type VerifyingKey } from 'http-message-signatures/lib/types';
+import crypto, { webcrypto } from 'node:crypto';
+import { BufferSource } from 'node:stream/web';
 import { HttpHandlerRequest } from './http/models/HttpHandler';
-import buildGetJwks from 'get-jwks';
-import crypto from 'node:crypto';
 
 const authParserMod = import('@httpland/authorization-parser');
 
@@ -90,7 +91,7 @@ export async function verifyRequest(
   return verified ?? false;
 }
 
-type AlgParams = RsaHashedImportParams | EcKeyImportParams | HmacImportParams
+type AlgParams = webcrypto.RsaHashedImportParams | webcrypto.EcKeyImportParams | webcrypto.HmacImportParams
 
 const algMap: Record<string, AlgParams> = {
   'ES256': { name: 'ECDSA', hash: 'SHA-256', namedCurve: 'P-256' },

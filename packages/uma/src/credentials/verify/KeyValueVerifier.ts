@@ -1,4 +1,4 @@
-import { getLoggerFor } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { ClaimSet } from '../ClaimSet';
 import { Credential } from '../Credential';
 import { Verifier } from './Verifier';

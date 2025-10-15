@@ -1,12 +1,12 @@
 import {
   BasicRepresentation,
   ensureTrailingSlash,
-  getLoggerFor,
   Initializer,
   joinUrl,
   ResourceIdentifier,
   ResourceStore
 } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 
 /**
  * Creates an empty container with the given identifier.

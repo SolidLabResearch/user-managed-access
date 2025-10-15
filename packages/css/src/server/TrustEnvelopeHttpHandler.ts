@@ -1,7 +1,6 @@
 import {
   asyncToArray,
   BasicRepresentation,
-  getLoggerFor,
   guardedStreamFrom,
   INTERNAL_QUADS,
   OperationHttpHandler,
@@ -13,6 +12,7 @@ import {
   SOLID_META,
   XSD
 } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory as DF, Literal, Quad } from 'n3';
 import { UmaClaims, UmaClient } from '../uma/UmaClient';
 import type { Fetcher } from '../util/fetch/Fetcher';
@@ -118,7 +118,7 @@ export class TrustEnvelopeHttpHandler extends OperationHttpHandler {
     };
   }
 
-  protected async introspect(input: OperationHttpHandlerInput, owners: string[]) {
+  protected async introspect(input: OperationHttpHandlerInput, owners: string[]): Promise<UmaClaims | undefined> {
     const authorization = input.request.headers.authorization;
     if (!authorization || !authorization.match(/.+ .+/)) {
       return;
@@ -149,7 +149,7 @@ export class TrustEnvelopeHttpHandler extends OperationHttpHandler {
       throw new Error(`Unable to introspect UMA RPT for Authorization Server '${config.issuer}'`);
     }
 
-    return res.json();
+    return res.json() as Promise<UmaClaims>;
   }
 
   protected generateEnvelopeData(verified: UmaClaims, owners?: string[]): Quad[] {

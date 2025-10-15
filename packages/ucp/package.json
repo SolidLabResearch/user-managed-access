@@ -54,12 +54,8 @@
     "build:components": "yarn run -T componentsjs-generator -r ucp -s src -c dist/components -i .componentsignore --lenient"
   },
   "dependencies": {
-    "@smessie/readable-web-to-node-stream": "^3.0.3",
     "@types/n3": "^1.16.4",
-    "koreografeye": "^0.4.8",
-    "n3": "^1.17.2",
-    "rdf-parse": "^2.3.3",
-    "rdf-store-stream": "^2.0.1"
+    "n3": "^1.17.2"
   },
   "lsd:module": "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/ucp",
   "lsd:components": "dist/components/components.jsonld",

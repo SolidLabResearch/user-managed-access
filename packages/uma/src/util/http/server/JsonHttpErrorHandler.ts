@@ -1,4 +1,5 @@
-import { createErrorMessage, getLoggerFor } from '@solid/community-server';
+import { createErrorMessage } from '@solid/community-server';
+import { getLoggerFor } from 'global-logger-factory';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../models/HttpHandler';
 
 export const statusCodes: { [code: number]: string } = {

@@ -1,10 +1,9 @@
-import { getLoggerFor } from '@solid/community-server';
 import { randomUUID } from 'crypto';
+import { getLoggerFor } from 'global-logger-factory';
 import { Permission, Ticket } from '../..'
 import { switchODRLandCSSPermission } from '../../util/rdf/RequestProcessing';
 import { ODRLContract, ODRLPermission } from '../../views/Contract';
 import { ContractStorage } from './ContractStorage';
-
 
 export class ContractManager {
     private readonly logger = getLoggerFor(this)

@@ -1,4 +1,4 @@
-import { AsyncHandler } from '@solid/community-server';
+import { AsyncHandler } from 'asynchronous-handlers';
 import { OutgoingHttpHeaders } from 'http';
 
 export interface HttpHandlerContext<B = unknown> {

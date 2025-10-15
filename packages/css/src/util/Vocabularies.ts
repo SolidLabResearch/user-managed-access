@@ -1,4 +1,4 @@
-import { createVocabulary } from '@solid/community-server';
+import { createVocabulary } from 'rdf-vocabulary';
 
 export const DCTERMS = createVocabulary(
   'http://purl.org/dc/terms/',
@@ -9,6 +9,15 @@ export const DPV = createVocabulary(
   'https://w3id.org/dpv#',
   'hasData',
   'hasDataSubject',
+);
+
+export const MODES = createVocabulary(
+  'urn:example:css:modes:',
+  'append',
+  'read',
+  'create',
+  'delete',
+  'write',
 );
 
 export const ODRL = createVocabulary(
