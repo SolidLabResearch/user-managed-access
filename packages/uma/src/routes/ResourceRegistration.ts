@@ -352,12 +352,9 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
           entry.source.value} while there is no matching collection.`);
       }
 
-      // for (const collectionId of collectionIds) {
-      //   quads.push(DF.quad(part, ODRL.terms.partOf, collectionId));
-      // }
-      // TODO: the above code is correct, but the code below is currently needed because of a bug in the ODRL evaluator
-      //       https://github.com/SolidLabResearch/ODRL-Evaluator/issues/8
-      quads.push(DF.quad(part, ODRL.terms.partOf, entry.source));
+      for (const collectionId of collectionIds) {
+        quads.push(DF.quad(part, ODRL.terms.partOf, collectionId));
+      }
     }
     return quads;
   }
