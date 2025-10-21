@@ -153,10 +153,8 @@ describe('ResourceRegistration', (): void => {
       expect(policies.addRule).toHaveBeenCalledTimes(1);
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
-        // TODO: because of issue in ODRL evaluator
-        // DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:1')),
-        // DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:2')),
-        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('name')),
+        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:1')),
+        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:2')),
       ]);
     });
   });
@@ -241,10 +239,8 @@ describe('ResourceRegistration', (): void => {
       expect(policies.addRule).toHaveBeenCalledTimes(1);
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
-        // TODO: because of issue in ODRL evaluator
-        // DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:1')),
-        // DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:2')),
-        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('name')),
+        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:1')),
+        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:2')),
       ]);
     });
   });

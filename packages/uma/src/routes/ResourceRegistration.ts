@@ -352,12 +352,9 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
           entry.source.value} while there is no matching collection.`);
       }
 
-      // for (const collectionId of collectionIds) {
-      //   quads.push(DF.quad(part, ODRL.terms.partOf, collectionId));
-      // }
-      // TODO: the above code is correct, but the code below is currently needed because of a bug in the ODRL evaluator
-      //       https://github.com/SolidLabResearch/ODRL-Evaluator/issues/8
-      quads.push(DF.quad(part, ODRL.terms.partOf, entry.source));
+      for (const collectionId of collectionIds) {
+        quads.push(DF.quad(part, ODRL.terms.partOf, collectionId));
+      }
     }
     return quads;
   }
@@ -371,10 +368,11 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
   protected findCollectionIds(entry: CollectionMetadata, data: Store): Quad_Subject[] {
     const sourceMatches = data.getSubjects(ODRL.terms.source, entry.source, null);
     if (entry.reverse) {
-      const blanks = sourceMatches.flatMap((subject): Quad_Object[] =>
-        data.getObjects(subject, ODRL_P.terms.relation, null)) as Quad_Subject[];
-      return blanks.filter((subject): boolean =>
-        data.has(DF.quad(subject, OWL.terms.inverseOf, entry.relation)));
+      const blankQuads = sourceMatches.flatMap((subject): Quad[] =>
+        data.getQuads(subject, ODRL_P.terms.relation, null, null));
+      const matchedBlankQuads = blankQuads.filter((quad): boolean =>
+        data.has(DF.quad(quad.object as Quad_Subject, OWL.terms.inverseOf, entry.relation)));
+      return matchedBlankQuads.map((quad) => quad.subject);
     } else {
       return sourceMatches.filter((subject): boolean =>
         data.has(DF.quad(subject, ODRL_P.terms.relation, entry.relation)));
