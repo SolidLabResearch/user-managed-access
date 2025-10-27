@@ -43,6 +43,7 @@ export class TokenRequestHandler extends HttpHandler {
       if (NeedInfoError.isInstance(e)) return ({
         status: 403,
         body: {
+          error: 'need_info',
           ticket: e.ticket,
           ...e.additionalParams
         }

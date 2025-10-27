@@ -3,8 +3,13 @@ import { ForbiddenHttpError } from '@solid/community-server';
 export type RedirectUserInfo = {
     redirect_user: string
 }
+export type RequiredClaim = {
+  claim_token_format?: string,
+  name?: string,
+  value?: string,
+}
 export type RequiredClaimsInfo = {
-    required_claims: { claim_token_format: string[][] }
+    required_claims: RequiredClaim[],
 }
 
 /**

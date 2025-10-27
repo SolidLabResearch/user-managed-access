@@ -1,9 +1,11 @@
 import { BadRequestHttpError, ForbiddenHttpError, HttpErrorClass, KeyValueStorage } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { randomUUID } from 'node:crypto';
+import { PURPOSE } from '../credentials/Claims';
 import { ClaimSet } from '../credentials/ClaimSet';
+import { META } from '../credentials/Formats';
 import { Verifier } from '../credentials/verify/Verifier';
-import { NeedInfoError } from '../errors/NeedInfoError';
+import { NeedInfoError, RequiredClaim, RequiredClaimsInfo } from '../errors/NeedInfoError';
 import { getOperationLogger } from '../logging/OperationLogger';
 import { serializePolicyInstantiation } from '../logging/OperationSerializer';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
@@ -78,16 +80,22 @@ export class BaseNegotiator implements Negotiator {
 
   // TODO:
   protected denyRequest(ticket: Ticket): never {
-    const requiredClaims = ticket.required.map(req => Object.keys(req));
-    if (requiredClaims.length === 0) throw new ForbiddenHttpError();
+    // const requiredClaims = ticket.required.map(req => Object.keys(req));
+    // if (requiredClaims.length === 0) throw new ForbiddenHttpError();
+    // TODO: hardcoded claims for demo atm
+    let requiredClaims: RequiredClaim[] = [{
+      claim_token_format: META,
+      name: PURPOSE,
+    }];
+    if (ticket.provided[PURPOSE] === 'urn:data:research') {
+      requiredClaims[0].value = 'urn:data:medical-research';
+    }
 
     // ... require more info otherwise
     const id = randomUUID();
     this.ticketStore.set(id, ticket);
     throw new NeedInfoError('Need more info to authorize request ...', id, {
-      required_claims: {
-        claim_token_format: requiredClaims,
-      },
+      required_claims: requiredClaims,
     });
   }
 

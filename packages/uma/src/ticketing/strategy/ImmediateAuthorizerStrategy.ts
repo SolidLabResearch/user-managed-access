@@ -1,3 +1,4 @@
+import { PURPOSE, WEBID } from '../../credentials/Claims';
 import { ClaimSet } from "../../credentials/ClaimSet";
 import { Ticket } from "../Ticket";
 import { getLoggerFor } from 'global-logger-factory';
@@ -52,6 +53,16 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
   }
 
   protected async calculatePermissions(ticket: Ticket): Promise<Permission[]> {
+    // TODO: hardcoded mock for demo as I can't get Authorizer to work
+    if (ticket.permissions.length === 1 &&
+      ticket.permissions[0].resource_id.endsWith('/ruben/medical/smartwatch.ttl') &&
+      ticket.permissions[0].resource_scopes.length === 1 &&
+      ticket.permissions[0].resource_scopes[0] === 'urn:example:css:modes:read') {
+      return (ticket.provided[PURPOSE] === 'urn:data:medical-research' &&
+        ticket.provided[WEBID] === 'http://example.com/researcher/profile/card#me')? ticket.permissions : [];
+    }
+
+    // TODO: authorizer should return required claims so these can be put into the ticket
     return (await this.authorizer.permissions(ticket.provided, ticket.permissions)).filter(
       permission => permission.resource_scopes.length > 0
     );
