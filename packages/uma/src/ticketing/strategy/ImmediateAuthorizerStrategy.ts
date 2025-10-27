@@ -62,6 +62,29 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
         ticket.provided[WEBID] === 'http://example.com/researcher/profile/card#me')? ticket.permissions : [];
     }
 
+    if (ticket.permissions.length === 1 &&
+      ticket.permissions[0].resource_id.endsWith('/ruben/medical/') &&
+      ticket.permissions[0].resource_scopes.length === 1 &&
+      ticket.permissions[0].resource_scopes[0] === 'urn:example:css:modes:read') {
+      const permissions: Permission[] = [];
+      if (ticket.provided[WEBID] === 'http://example.com/researcher/profile/card#me') {
+        if (ticket.provided[PURPOSE] === 'urn:data:research' ||
+          ticket.provided[PURPOSE] === 'urn:data:medical-research') {
+          permissions.push({
+            resource_id: ticket.permissions[0].resource_id + 'shared.ttl',
+            resource_scopes: [ 'urn:example:css:modes:read' ],
+          });
+        }
+        if (ticket.provided[PURPOSE] === 'urn:data:medical-research') {
+          permissions.push({
+            resource_id: ticket.permissions[0].resource_id + 'smartwatch.ttl',
+            resource_scopes: [ 'urn:example:css:modes:read' ],
+          });
+        }
+      }
+      return permissions;
+    }
+
     // TODO: authorizer should return required claims so these can be put into the ticket
     return (await this.authorizer.permissions(ticket.provided, ticket.permissions)).filter(
       permission => permission.resource_scopes.length > 0
