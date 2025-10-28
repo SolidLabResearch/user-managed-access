@@ -1,6 +1,6 @@
 /**
  * This test requires the ODRL Authorization Server to be running.
- * 
+ *
  * The purpose of this file is to test the /policies endpoint.
  */
 
@@ -41,20 +41,39 @@ async function patchPolicies() {
     const encoded95e = encodeURIComponent(policyId95e);
 
     let response = await fetch(endpoint(`/${encoded1}`), { method: 'PATCH', headers: { 'Authorization': client('a'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy1) });
-    console.log(`expecting a positive response: status code ${response.status}\n expecting to see policy100 as its only rule: \n${await response.text()}`);
+    console.log(`expecting a positive response: status code ${response.status}`);
     testCode(response.status);
+    response = await fetch(endpoint(`/${encoded1}`), { headers: { 'Authorization': client('a') }});
+    let resText = await response.text();
+    console.log(`expecting to see permission100 as its only rule: \n${resText}`);
+    if (resText.length === 0) {
+      errorCounter++;
+      console.log('missing expected body');
+    }
 
     response = await fetch(endpoint(`/${encoded95e}`), { method: 'PATCH', headers: { 'Authorization': client('a'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy95e) });
-    console.log(`expecting a positive response: status code ${response.status}\nexpecting the old rule to delete and two rules to take its place: \n${await response.text()}`);
+    console.log(`expecting a positive response: status code ${response.status}`);
     testCode(response.status);
+    response = await fetch(endpoint(`/${encoded95e}`), { headers: { 'Authorization': client('a') }});
+    resText = await response.text();
+    console.log(`expecting the old rule to delete and two rules to take its place: \n${resText}`);
+    if (resText.length === 0) {
+        errorCounter++;
+        console.log('missing expected body');
+    }
 
     response = await fetch(endpoint(`/${encoded1}`), { method: 'PATCH', headers: { 'Authorization': client('c'), 'Content-Type': 'application/sparql-update' }, body: quickBuffer(changePolicy1) });
     console.log(`expecting a negative response since the query changes another client's rules ${response.status}\nmessage: ${await response.text()}`);
     testCode(response.status, 4);
 
     response = await fetch(endpoint(), { headers: { 'Authorization': client('a') } })
-    console.log("expecting to see the patched policy for client a: \n", await response.text())
+    resText = await response.text();
+    console.log("expecting to see the patched policy for client a: \n", resText)
     testCode(response.status);
+    if (resText.length === 0) {
+        errorCounter++;
+        console.log('missing expected body');
+    }
 }
 
 async function getAllPolicies() {
@@ -135,10 +154,15 @@ async function testDelete() {
     testCode(resText.length, 0, false);
 
     response = await fetch(endpoint(`/${encodedPolicyId}`), { headers: { 'Authorization': client('b') } });
+    testCode(response.status, 200, false);
     resText = await response.text();
-    console.log(`expecting the policy with one rule: ${resText}\n\n`);
+    console.log(`expecting the policy with one rule: ${resText}\n`);
+    if (resText.length === 0) {
+      errorCounter++;
+      console.log('missing expected body');
+    }
 
-    console.log('now we delete the policy for client b. It should delete the rules AND the policy information');
+    console.log('\nnow we delete the policy for client b. It should delete the rules AND the policy information');
     response = await fetch(endpoint(`/${encodedPolicyId}`), { method: 'DELETE', headers: { 'Authorization': client('b') } });
     console.log(`expecting status 204: ${response.status}`);
     testCode(response.status, 204, false);
@@ -169,7 +193,7 @@ async function deleteAll() {
 }
 
 /**
- * As explained in the docs, the order of execution is extremely important. 
+ * As explained in the docs, the order of execution is extremely important.
  * The storage is filled with the POST requests, so this must precede the other tests!
  */
 async function main() {
