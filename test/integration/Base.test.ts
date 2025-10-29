@@ -1,4 +1,6 @@
 import { App, setGlobalLoggerFactory, WinstonLoggerFactory } from '@solid/community-server';
+import { Parser, Writer } from 'n3';
+import { readFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { getDefaultCssVariables, instantiateFromConfig } from '../util/ServerUtil';
 
@@ -18,8 +20,6 @@ describe('A server setup', (): void => {
       {
         'urn:uma:variables:port': umaPort,
         'urn:uma:variables:baseUrl': `http://localhost:${umaPort}/uma`,
-        'urn:uma:variables:policyBaseIRI': `http://localhost:${cssPort}/`,
-        'urn:uma:variables:policyDir': path.join(__dirname, '../../packages/uma/config/rules/policy'),
         'urn:uma:variables:eyePath': 'eye',
       }
     ) as App;
@@ -39,6 +39,26 @@ describe('A server setup', (): void => {
 
   afterAll(async(): Promise<void> => {
     await Promise.all([ umaApp.stop(), cssApp.stop() ]);
+  });
+
+  describe('initializing policies', (): void => {
+    it('can set up all the necessary policies.', async(): Promise<void> => {
+      const owner = 'https://pod.woutslabbinck.com/profile/card#me';
+      const url = `http://localhost:${umaPort}/uma/policies`;
+
+      // Need to parse the file so we can set the base URL to that of the resource server
+      const policyData = await readFile(
+        path.join(__dirname, '../../packages/uma/config/rules/policy/policy0.ttl'), 'utf8');
+      const quads = new Parser({ baseIRI: `http://localhost:${cssPort}/` }).parse(policyData);
+      const body = new Writer().quadsToString(quads);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { authorization: owner, 'content-type': 'text/turtle' },
+        body,
+      });
+      expect(response.status).toBe(201);
+    });
   });
 
   describe('using public namespace authorization', (): void => {
