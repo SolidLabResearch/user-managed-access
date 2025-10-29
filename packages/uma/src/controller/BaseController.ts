@@ -12,7 +12,7 @@ import { getLoggerFor } from "@solid/community-server";
 export abstract class BaseController {
 
     private readonly logger = getLoggerFor(this);
-    
+
     constructor(
         protected readonly store: UCRulesStorage,
         protected readonly conflictMessage: string,
@@ -25,7 +25,7 @@ export abstract class BaseController {
 
     /**
      * Execute a given sanitizeGet-like function and serialize its results as Turtle.
-     *  
+     *
      * @param sanitizeGet function to execute retrieval and sanitization
      * @returns results serialized in Turtle and status code 200,
      *          or an empty body with status 404 if nothing was found
@@ -33,7 +33,7 @@ export abstract class BaseController {
     private async get(sanitizeGet: Function): Promise<{ message: string, status: number }> {
         try {
             const store = await sanitizeGet();
-            
+
             const message = store.size > 0
                 ? await writeStore(store)
                 : '';
@@ -47,7 +47,7 @@ export abstract class BaseController {
 
     /**
      * Retrieve all policies (including rules) or all access requests belonging to a given `clientID`.
-     * 
+     *
      * @param clientID ID of the resource owner (RO) or requesting party (RP)
      * @returns a Turtle-serialized store of all policies or access requests,
      *          and an HTTP status code indicating success (200) or not found (404)
@@ -58,7 +58,7 @@ export abstract class BaseController {
 
     /**
      * Retrieve a single policy (including its rules) or access request identified by `entityID` for a given `clientID`.
-     * 
+     *
      * @param entityID ID pointing to the policy or access request
      * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
      * @returns a Turtle-serialized representation of the policy/access request and HTTP status code (200),
@@ -71,7 +71,7 @@ export abstract class BaseController {
     /**
      * Add a new policy (with at least one rule) or access request on behalf of a given `clientID`.
      * Ensures no duplicate subjects already exist in the store.
-     * 
+     *
      * @param data RDF data in Turtle/N3 format representing the new policy or access request
      * @param clientID ID of the resource owner (RO) or requesting party (RP) creating the entity
      * @returns a status code:
@@ -80,13 +80,13 @@ export abstract class BaseController {
      */
     public async addEntity(data: string, clientID: string): Promise<{ status: number, message:string }> {
         const store = await parseStringAsN3Store(data);
-        
+
         try {
             const sanitizedStore = await this.sanitizePost(store, clientID);
             if (noAlreadyDefinedSubjects(await this.store.getStore(), sanitizedStore))
                 this.store.addRule(sanitizedStore);
             else return { status: 409, message: ''  }; // conflict
-        } catch (e) {          
+        } catch (e) {
             return { status: e.statusCode || 500, message: e.message }; // the message of this error will contain the reason this query failed
         }
 
@@ -95,23 +95,26 @@ export abstract class BaseController {
 
     /**
      * Delete a single policy (including rules) or access request identified by `entityID` for a given `clientID`.
-     * 
+     *
      * @param entityID ID pointing to the policy or access request
      * @param clientID ID of the resource owner (RO) or requesting party (RP) making the deletion
      * @returns a status code:
      *          - 204 if deletion was successful
      */
     public async deleteEntity(entityID: string, clientID: string): Promise<{ status: number }> {
-        await this.sanitizeDelete(await this.store.getStore(), entityID, clientID);
+        const filteredStore = new Store(await this.store.getStore());
+        await this.sanitizeDelete(filteredStore, entityID, clientID);
+        const diff = (await this.store.getStore()).difference(filteredStore);
+        await this.store.removeData(diff as Store);
         return { status: 204 }; // no content
     }
 
     /**
      * Apply a patch to a single policy or access request identified by `entityID`.
-     * 
+     *
      * If `isolate` is true, all information related to the entity is first isolated to prevent unintended side effects.
      * After patching, the entity is sanitized and reinserted.
-     * 
+     *
      * @param entityID ID pointing to the policy or access request
      * @param patchInformation information describing the patch to be applied (query or JSON, but content type of request must match this.contentType)
      * @param clientID ID of the resource owner (RO) or requesting party (RP) making the patch
@@ -121,15 +124,17 @@ export abstract class BaseController {
      */
     public async patchEntity(entityID: string, patchInformation: string, clientID: string, isolate: boolean = true): Promise<{ status: number, message: string }> {
         let response = { status: 204, message: '' };
-        let store: Store;
-        
+        let filteredStore = new Store(await this.store.getStore());
+        let omitStore: Store;
+
         if (isolate) { // requires isolating all information about the entity provided, as e.g. the patchinformation has a query to be executed
-            store = await this.sanitizeGet(await this.store.getStore(), entityID, clientID);
-            (await this.store.getStore()).removeQuads(store.getQuads(null, null, null, null));
-        } else store = await this.store.getStore();
+            filteredStore = await this.sanitizeGet(filteredStore, entityID, clientID);
+            omitStore = new Store(await this.store.getStore());
+            omitStore.removeQuads([ ...filteredStore]);
+        }
 
         try {
-            await this.sanitizePatch(store, entityID, clientID, patchInformation);
+            await this.sanitizePatch(filteredStore, entityID, clientID, patchInformation);
         } catch (e) {
             response = { status: e.status || 500, message: e.message };
         }
@@ -139,8 +144,19 @@ export abstract class BaseController {
             // * bonus: filters out extra quads
             // ! drawback: PATCH may still be used to DELETE all information about the entity
             // TODO: check if PATCH is smth we want for all resources, make patchEntity optional otherwise
-            store = await this.sanitizeGet(store, entityID, clientID) || store;
-            (await this.store.getStore()).addAll(store);
+            filteredStore = await this.sanitizeGet(filteredStore, entityID, clientID) || filteredStore;
+            omitStore!.addAll(filteredStore);
+            filteredStore = omitStore!;
+        }
+
+        const originalStore = await this.store.getStore();
+        const remove = originalStore.difference(filteredStore);
+        const add = filteredStore.difference(originalStore);
+        if (remove.size > 0) {
+            await this.store.removeData(remove as Store);
+        }
+        if (add.size > 0) {
+            await this.store.addRule(add as Store);
         }
 
         return response;
@@ -148,9 +164,9 @@ export abstract class BaseController {
 
     /**
      * Apply a PUT to a single policy or access request identified by `entityID`.
-     * 
+     *
      * Currently, this is only implemented for policies.
-     * 
+     *
      * @param data RDF data in Turtle/N3 format representing a policy or acccess request
      * @param entityID ID pointing to the policy or access request
      * @param clientID ID pointing to the resource owner (RO) or requesting party making the put
