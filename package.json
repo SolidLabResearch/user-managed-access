@@ -62,6 +62,7 @@
     "script:access-request-demo": "yarn exec tsx --env-file=.env scripts/demo-uma-access-request.ts",
     "script:demo-test": "yarn exec tsx ./demo/flow-test.ts",
     "script:demo-uma-policy": "yarn exec tsx ./scripts/demo-uma-policy.ts",
+    "script:init-policies": "yarn exec tsx ./scripts/init-test-policies.ts",
     "script:public": "yarn exec tsx ./scripts/test-public.ts",
     "script:private": "yarn exec tsx ./scripts/test-private.ts",
     "script:collection": "yarn exec tsx ./scripts/test-collection.ts",
@@ -70,7 +71,7 @@
     "script:uma-odrl": "yarn exec tsx ./scripts/test-uma-ODRL.ts",
     "script:uma-odrl-policy": "yarn exec tsx ./scripts/test-uma-ODRL-policy.ts",
     "script:uma-odrl-end2end": "yarn exec tsx ./scripts/test-uma-ODRL-policy-access-requests.ts",
-    "script:flow": "yarn run script:public && yarn run script:private && yarn run script:collection && yarn run script:uma-ucp",
+    "script:flow": "yarn run script:init-policies && yarn run script:public && yarn run script:private && yarn run script:collection && yarn run script:uma-ucp && yarn run script:uma-odrl-policy && yarn run script:uma-odrl-end2end",
     "sync:list": "syncpack list-mismatches",
     "sync:fix": "syncpack fix-mismatches"
   },
