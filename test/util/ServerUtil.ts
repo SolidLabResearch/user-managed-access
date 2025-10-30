@@ -1,8 +1,25 @@
 import { ComponentsManager, IModuleState } from 'componentsjs';
 import * as path from 'node:path';
 
-let cachedModuleState: IModuleState;
 
+const portNames = [
+  'Base',
+  'Demo',
+  'ODRL',
+] as const;
+
+export function getPorts(name: typeof portNames[number]): [ number, number ] {
+  const idx = portNames.indexOf(name);
+  // Just in case something doesn't listen to the typings
+  if (idx < 0) {
+    throw new Error(`Unknown port name ${name}`);
+  }
+  // 6000 is a bad port, causing node v18+ to block fetch requests targeting such a URL
+  // https://fetch.spec.whatwg.org/#port-blocking
+  return [ 6000 + idx + 1, 6100 + idx + 1 ];
+}
+
+let cachedModuleState: IModuleState;
 /**
  * Returns a component instantiated from a Components.js configuration.
  */

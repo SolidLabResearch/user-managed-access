@@ -2,10 +2,9 @@ import { App, setGlobalLoggerFactory, WinstonLoggerFactory } from '@solid/commun
 import { DialogOutput } from '@solidlab/uma';
 import { Parser, Store } from 'n3';
 import * as path from 'node:path';
-import { getDefaultCssVariables, instantiateFromConfig } from '../util/ServerUtil';
+import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
 
-const cssPort = 3003;
-const umaPort = 4003;
+const [ cssPort, umaPort ] = getPorts('Demo');
 
 const terms = {
   solid: {
@@ -25,7 +24,7 @@ async function noTokenFetch(input: string | URL | globalThis.Request, init?: Req
 
   expect(noTokenResponse.status).toBe(401);
 
-  const wwwAuthenticateHeader = noTokenResponse.headers.get('WWW-Authenticate');
+  const wwwAuthenticateHeader = noTokenResponse.headers.get('WWW-Authenticate') as string;
   expect(typeof wwwAuthenticateHeader).toBe('string');
 
   const parsedHeader = Object.fromEntries(

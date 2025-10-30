@@ -2,10 +2,9 @@ import { App, setGlobalLoggerFactory, WinstonLoggerFactory } from '@solid/commun
 import { Parser, Writer } from 'n3';
 import { readFile } from 'node:fs/promises';
 import * as path from 'node:path';
-import { getDefaultCssVariables, instantiateFromConfig } from '../util/ServerUtil';
+import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
 
-const cssPort = 3002;
-const umaPort = 4002;
+const [ cssPort, umaPort ] = getPorts('ODRL');
 
 describe('An ODRL server setup', (): void => {
   let umaApp: App;
