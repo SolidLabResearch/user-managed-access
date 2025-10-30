@@ -61,7 +61,7 @@
     "start": "yarn run community-solid-server -m . -c ./config/default.json --seedConfig ./config/seed.json -a http://localhost:4000/",
     "demo": "yarn run demo:setup && yarn run demo:start",
     "demo:setup": "yarn run -T shx rm -rf ./tmp && yarn run -T shx cp -R ../../demo/data ./tmp",
-    "demo:start": "yarn run community-solid-server -m . -c ./config/demo.json -f ./tmp -a http://localhost:4000/"
+    "demo:start": "yarn run community-solid-server -m . -c ./config/demo.json -f ./tmp"
   },
   "dependencies": {
     "@solid/community-server": "^7.1.7",
