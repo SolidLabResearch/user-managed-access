@@ -1,4 +1,4 @@
-import { BadRequestHttpError } from "@solid/community-server";
+import { BadRequestHttpError, UnauthorizedHttpError } from '@solid/community-server';
 import { HttpHandlerRequest } from "../http/models/HttpHandler";
 
 /**
@@ -11,5 +11,5 @@ import { HttpHandlerRequest } from "../http/models/HttpHandler";
 export const verifyHttpCredentials = (request: HttpHandlerRequest): string => {
     if (typeof request.headers['authorization'] === 'string')
         return request.headers['authorization'];
-    else throw new BadRequestHttpError('Missing Authorization header');
+    else throw new UnauthorizedHttpError('Missing Authorization header');
 }

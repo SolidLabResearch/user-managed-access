@@ -6,6 +6,7 @@ const portNames = [
   'Base',
   'Demo',
   'ODRL',
+  'Policies',
 ] as const;
 
 export function getPorts(name: typeof portNames[number]): [ number, number ] {

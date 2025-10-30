@@ -136,6 +136,7 @@ export const ODRL = createVocabulary(
     'gt',
     'lt',
     'eq',
+    'uid',
 );
 
 export const ODRL_P = createVocabulary(

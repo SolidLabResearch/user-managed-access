@@ -3,6 +3,7 @@ import { DialogOutput } from '@solidlab/uma';
 import { Parser, Store } from 'n3';
 import * as path from 'node:path';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
+import { findTokenEndpoint, getToken, noTokenFetch, tokenFetch, umaFetch } from '../util/UmaUtil';
 
 const [ cssPort, umaPort ] = getPorts('Demo');
 
@@ -17,88 +18,6 @@ const terms = {
     ruben: `http://localhost:${cssPort}/ruben/profile/card#me`,
     alice: `http://localhost:${cssPort}/alice/profile/card#me`,
   }
-}
-
-async function noTokenFetch(input: string | URL | globalThis.Request, init?: RequestInit): Promise<{ as_uri: string, ticket: string }> {
-  const noTokenResponse = await fetch(input, init);
-
-  expect(noTokenResponse.status).toBe(401);
-
-  const wwwAuthenticateHeader = noTokenResponse.headers.get('WWW-Authenticate') as string;
-  expect(typeof wwwAuthenticateHeader).toBe('string');
-
-  const parsedHeader = Object.fromEntries(
-    wwwAuthenticateHeader
-      .replace(/^UMA /,'')
-      .split(', ')
-      .map(param => param.split('=').map(s => s.replace(/"/g,'')))
-  );
-  expect(typeof parsedHeader.as_uri).toBe('string');
-  expect(typeof parsedHeader.ticket).toBe('string');
-  return parsedHeader;
-}
-
-async function findTokenEndpoint(uri: string): Promise<string> {
-  // TODO: cache this
-  const configurationUrl = uri + '/.well-known/uma2-configuration';
-  const configResponse = await fetch(configurationUrl);
-  expect(configResponse.status).toBe(200);
-  const configuration = await configResponse.json();
-  expect(typeof configuration.token_endpoint).toBe('string');
-  return configuration.token_endpoint;
-}
-
-async function getToken(ticket: string, endpoint: string, webId?: string): Promise<DialogOutput> {
-  const content: Record<string, string> = {
-    grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
-    ticket: ticket,
-  };
-  if (webId) {
-    content.claim_token = encodeURIComponent(webId);
-    content.claim_token_format = 'urn:solidlab:uma:claims:formats:webid';
-  }
-
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(content),
-  });
-
-  expect(response.status).toBe(200);
-  expect(response.headers.get('content-type')).toBe('application/json');
-  const jsonResponse: DialogOutput =  await response.json();
-
-  expect(typeof jsonResponse.access_token).toBe('string');
-  expect(jsonResponse.token_type).toBe('Bearer');
-  const token = JSON.parse(Buffer.from(jsonResponse.access_token.split('.')[1], 'base64').toString());
-  expect(Array.isArray(token.permissions)).toBe(true);
-
-  return jsonResponse;
-}
-
-async function tokenFetch(token: any, input: string | URL | globalThis.Request, init?: RequestInit): Promise<Response> {
-  return fetch(input, {
-    ...init,
-    headers: {
-      ...init?.headers,
-      'Authorization': `${token.token_type} ${token.access_token}`
-    },
-  });
-}
-
-// TODO: only call this function if you know there will be a 401
-async function umaFetch(input: string | URL | globalThis.Request, init?: RequestInit, webId?: string): Promise<Response> {
-  // Parse ticket and UMA server URL from header
-  const parsedHeader = await noTokenFetch(input, init);
-
-  // Find UMA server token endpoint
-  const tokenEndpoint = await findTokenEndpoint(parsedHeader.as_uri);
-
-  // Send ticket request to UMA server and extract token from response
-  const token = await getToken(parsedHeader.ticket, tokenEndpoint, webId);
-
-  // Perform new call with token
-  return tokenFetch(token, input, init);
 }
 
 describe('A demo server setup', (): void => {
