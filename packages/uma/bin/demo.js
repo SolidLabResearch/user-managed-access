@@ -2,12 +2,10 @@ const path = require('path');
 const { ComponentsManager } = require('componentsjs');
 const { setGlobalLoggerFactory, WinstonLoggerFactory } = require('@solid/community-server');
 
-const protocol = process.env.UMA_DEMO_PROTOCOL ?? 'http';
-const host = process.env.UMA_DEMO_HOST ?? 'localhost';
 const port = process.env.UMA_DEMO_PORT ?? 4000;
 const policiesUrl = process.env.UMA_DEMO_POLICIES ?? 'http://localhost:3000/settings/policies/';
 
-const baseUrl = `${protocol}://${host}:${port}/uma`;
+const baseUrl = process.env.UMA_DEMO_BASE ?? `http://localhost:${port}/uma`;
 const rootDir = path.join(__dirname, '../');
 
 const launch = async () => {
