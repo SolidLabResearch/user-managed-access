@@ -123,7 +123,8 @@
                   { "@id": "urn:uma:default:ResourceRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
                   { "@id": "urn:uma:default:IntrospectionRoute" }
-                ]
+                ],
+                "onlyMatchTail": true
               }
             },
             {
@@ -134,7 +135,8 @@
                 { "@id": "urn:uma:default:ContractRoute" },
                 { "@id": "urn:uma:default:LogRoute" },
                 { "@id": "urn:uma:default:VCRoute" }
-              ]
+              ],
+              "onlyMatchTail": true
             },
             {
               "@type": "StaticThrowHandler",
