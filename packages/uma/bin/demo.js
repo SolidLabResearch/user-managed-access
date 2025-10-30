@@ -2,9 +2,10 @@ const path = require('path');
 const { ComponentsManager } = require('componentsjs');
 const { setGlobalLoggerFactory, WinstonLoggerFactory } = require('@solid/community-server');
 
-const protocol = 'http';
-const host = 'localhost';
-const port = 4000;
+const protocol = process.env.UMA_DEMO_PROTOCOL ?? 'http';
+const host = process.env.UMA_DEMO_HOST ?? 'localhost';
+const port = process.env.UMA_DEMO_PORT ?? 4000;
+const policiesUrl = process.env.UMA_DEMO_POLICIES ?? 'http://localhost:3000/settings/policies/';
 
 const baseUrl = `${protocol}://${host}:${port}/uma`;
 const rootDir = path.join(__dirname, '../');
@@ -16,7 +17,7 @@ const launch = async () => {
   variables['urn:uma:variables:baseUrl'] = baseUrl;
 
   // variables['urn:uma:variables:policyDir'] = path.join(rootDir, './config/rules/policy');
-  variables['urn:uma:variables:policyContainer'] = 'http://localhost:3000/settings/policies/';
+  variables['urn:uma:variables:policyContainer'] = policiesUrl;
   variables['urn:uma:variables:eyePath'] = 'eye';
 
   const configPath = path.join(rootDir, './config/demo.json');
