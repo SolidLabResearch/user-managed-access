@@ -1,11 +1,11 @@
 # Policy Management
 
-In this document we describe the *policy adminstration endpoint*.
-It contains the methods to describe how to create, read, update and delete policies.
+The *policy management API* allows users to configure the policies that govern access to their data.
+First we cover the available operations, after which we cover the known issues and limitations of the API.
 
-## Supported endpoints
+## API
 
-The current implementation supports the following requests:
+The current implementation supports the following requests on the UMA server:
 
 - [`GET`](#reading-policies) to both `uma/policies` and `uma/policies/<encodedPolicyID>`
 - [`POST`](#creating-policies) to `uma/policies`
@@ -15,13 +15,15 @@ The current implementation supports the following requests:
 
 These requests comply with some restrictions:
 
-- When the URL contains a policy ID, it must be [URI encoded](#uri-encoding-decision).
-- The request must have its `'Authorization'` header set to the clients webID. More on that [later](#authorizationauthentication-decisions).
+- When the URL contains a policy ID, it must be URI encoded.
+- The request must have its `Authorization` header set to the owners WebID.
+  More on that [later](#authentication).
 
 ### Creating policies
 
 Create a policy/multiple policies through a POST request to `/uma/policies`.
-Apart from its Authorization header, the `'Content-Type'` must be set to the RDF serialization format in which the body is written.
+Apart from its Authorization header, the `'Content-Type'` must be set
+to the RDF serialization format in which the body is written.
 The accepted formats are those accepted by the [N3 Parser](https://github.com/rdfjs/N3.js/?tab=readme-ov-file#parsing), represented by the following content types:
 
 - `text/turtle`
@@ -30,7 +32,9 @@ The accepted formats are those accepted by the [N3 Parser](https://github.com/rd
 - `application/n-quads`
 - `text/n3`
 
-The body is expected to represent a valid ODRL policy, although some [sanitization](#sanitization-decisions) is applied to ensure minimal validity. It is possible to POST multiple policies at once, but they have to remain in scope of the client.
+The body is expected to represent a valid ODRL policy,
+although some [sanitization](#sanitization-decisions) is applied to ensure minimal validity.
+It is possible to POST multiple policies at once, but they have to remain in scope of the owner.
 Upon success, the server responds with **status code 201**.
 Bad requests, possibly due to an improper policy definition, will respond with **status code 400 or 409**.
 When the policy has been validated, but adding it to the storage fails, the response will have **status code 500**.
@@ -61,22 +65,24 @@ ex:permission a odrl:Permission ;
 
 To read policies, two endpoints are implemented:
 
-- GET `/uma/policies`: get policy information you are authorized to see, for every policy.
-- GET `/uma/policies/<encodedPolicyID>`: get policy information you are authorized to see, for the policy with the specified [URI encoded](#uri-encoding-decision) ID.
+- GET `/uma/policies`: return all policies the provided credentials have assigned.
+- GET `/uma/policies/<encodedPolicyID>`: return the rules of the policy with the given (encoded) ID,
+  if the provided credentials are allowed to see them.
 
-These endpoints returen both the policies (and related rules) where the user is identified as the assigner and assignee.
-Applications should be aware of this and should make sure the distinction is made where necessary.
+One policy can contain rules of multiple assigners,
+only the rules where the assigner matches the request credentials will be returned.
 
 #### GET one policy
 
-An example request to get policy `http://example.org/policy` for the client with webID `https://pod.example.com/profile/card#me` looks like this:
+An example request to get policy `http://example.org/policy`
+with WebID `https://pod.example.com/profile/card#me` looks like this:
 
 ```curl
 curl --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2Fpolicy' \
 --header 'Authorization: https://pod.example.com/profile/card#me'
 ```
 
-If the client has viable information about this policy, the server would respond with the information about the policy:
+Since the credentials match the assigner, the server responds with the information about the policy:
 
 ```ttl
 <http://example.org/policy> a <http://www.w3.org/ns/odrl/2/Agreement>;
@@ -99,27 +105,34 @@ curl --location 'http://localhost:4000/uma/policies' \
 
 ### Updating policies
 
-Updating a policy can be done through a PUT or a PATCH request to `/uma/policies/<encodedPolicyID>`, each with different semantics.
+Updating a policy can be done through a PUT or a PATCH request to `/uma/policies/<encodedPolicyID>`,
+each with different semantics.
 
 #### PUT
 
-A PUT completely replaces the policy within the scope of the client.
-The PUT works as a combination of DELETE and POST. It requires a body with the same content type as the [POST request](#creating-policies). This body will be interpreted as the requested policy with some rules.
+A PUT completely replaces all rules of a policy the client is the assigner of.
+The PUT works as a combination of DELETE and POST.
+It requires a body with the same content type as the [POST request](#creating-policies).
+This body will be interpreted as the requested policy with some rules.
 
 The PUT process:
 
-1. Find information about the policy. If it does not exist, return with a **status code 404** to indicate that you cannot rewrite a nonexistent policy.
+1. Find information about the policy.
+   If it does not exist, return with a **status code 404** to indicate that you cannot rewrite a nonexistent policy.
 
-2. Parse and validate the body, with the same procedure used in the POST endpoint. First, we perform the basic sanitization checks. Upon success, extra checks are performed to see if the new definition stays within the scope of the client:
+2. Parse and validate the body, with the same procedure used in the POST endpoint.
+   First, we perform the basic sanitization checks.
+   Upon success, extra checks are performed to see if the new definition stays within the scope of the client:
      - Check that the newly defined policy does not define other policies
      - Check that the new policy does not contain any rules that do not belong to the client
      - Check that no unrelated quads to the policy and its rules are added.
 
     Failed checks will result in a response with **status code 400** and a dedicated message.
-3. Delete the old policy, but keep a copy for a possible rollback. The deletion uses the procedure used in the [DELETE](#deleting-policies) endpoint.
+3. Delete the old policy, but keep a copy for a possible rollback.
+   The deletion uses the procedure used in the [DELETE](#deleting-policies) endpoint.
 
 4. Add the new policy. On success, the server will respond with **status code 204** .
-Upon failure, the server will respond with a 5xx error status.
+   Upon failure, the server will respond with a 5xx error status.
 
 ##### Example PUT Request
 
@@ -143,21 +156,20 @@ ex:permission a odrl:Permission ;
               odrl:assigner <https://pod.example.com/profile/card#me> .'
 ```
 
-This example updates the target of this policy. It is important to explicitly include `-X PUT`, as curl will otherwise default to a POST request, which is invalid for this endpoint.
-
 #### PATCH
 
 A PATCH request will update the policy and its related rules using a SPARQL update query.
 The `content-type` header must be set to `application/sparql-update`.
 
 The policy will be isolated from the store before executing the query, to make sure no other quads are affected.
-In addition, the user's credentials are checked to make sure they are the resource owner for the resource targeted in the policy.
 After this, the query can be executed.
-To make sure the policy remains a valid policy, the policy is isolated and checked again before inserting the modified store back in the store.
+To make sure the policy remains a valid policy, the policy is isolated and checked again
+before inserting the modified store back in the store.
 
 ##### Example PATCH request
 
-The example below illustrates how policies can be changed using a PATCH request. We notice that the content type has changed to `application/sparql-query`.
+The example below illustrates how policies can be changed using a PATCH request.
+Notice that the content type has changed to `application/sparql-query`.
 
 ```curl
 curl -X PATCH --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2Fpolicy' \
@@ -188,65 +200,49 @@ curl -X DELETE --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexamp
 --header 'Authorization: https://pod.example.com/profile/card#me'
 ```
 
-## Implementation details
+## Known issues and limitations
 
-### Authorization/Authentication decisions
+### Authentication
 
-The current implementation has insufficient authentication restrictions. Currently, the only requirement is that the 'Authorization' header is to be set to the webID of the "logged on" client. Proper procedures to authenticate this client are still to be implemented.
+Current authentication is done by setting the `Authorization` header to a WebID.
+There is no verification so any WebID can be entered.
+In the future we want to support OIDC tokens for authentication.
 
-### Sanitization decisions
+### Sanitization
 
-Some endpoints allow new policies to be created, or existing policies to be modified. This introduces the possibility of invalid syntactic or semantic policies, hence a sanitization strategy is required. In the current implementation, only POST, PUT and PATCH could introduce such problems. We provided the following basic checks:
+New policies and policy updates are sanitized with the following checks:
 
-- Every defined rule must have a unique ID.
+- Every defined rule must have a unique ID (`odrl:uid`).
 - Every rule must have exactly one assigner.
-- Every assigner must match the authenticated client.
+- The assigner must match the authenticated WebID.
 
-Sanitization Limitations
+The sanitization check is quite limited and will not prevent all invalid policies.
+On the other hand, it is not able to handle some triples that are valid,
+such as collection definitions.
 
-- There are currently no checks to verify whether a client is sufficiently authorized to create or modify a policy/rule for a specific target.
-    - A client should not be in able to alter rights about a target it does not have access to.
-- There are plenty of other sanitization checks to be considered.
+### Ownership
 
-### URI encoding decision
+There is no ownership check to make sure users can only write policies they own.
+This will require changes to the resource server as currently it does not inform the UMA server of ownership.
 
-Some operations require the client to specify a policy ID in the URL. Since policy ID's might contain reserved characters (e.g. `/`, `:`, ...), we have chosen to encode them with the builtin [`encodeURIComponent()` function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent). Using this method, reserved characters will be converted to their respective UTF-8 encodings.
+### PATCH limitations
 
-## Testing
+PATCH only works on simple policies without constraints.
+There is a known issue where nested triples, such as constraints, can get lost when modifying a policy.
 
-The current implementation is tested only by the script in `scripts\test-uma-ODRL-policy.ts`. This script tests every implemented endpoint with a designated flow. Since the script initiates with an empty storage, and there is no endpoint or other way to seed it, the first requests must test the POST endpoint. These tests are designed to ensure that the storage is filled. After the POST tests, the access endpoints can be tested. Every endpoint gets tested in this script, which makes sure that the added data is removed. The current testing will be replaced with proper unit tests and integration tests in the near future.
+### PUT identifier validation
 
-## TODO
+The identifier is not validated correctly when doing a PUT request.
+This means that the identifier of the policy you are PUTting does not need to match the identifier in the URL.
+The policy that gets modified is based on the identifier found in the policy.
 
-- The current [sanitization limitations](#sanitization-decisions) are to be considered.
-- Implement Unit Tests
-- ...
+### Policies with multiple assigners
 
-### Solved Problems
-
-#### DELETE fix
-
-##### Problem
-
-When you have a policy with multiple rules that have different assigners, DELETE on every rule of one assigner will succesfully delete the rule itself, but not the definition of the rule within the policy. This is due to the fact that you can currently only DELETE based on the ID of the rule/policy you want to delete, and you cannot delete the entire policy since other assigners depend on it. Currently, the only problem with this is filling space, since the quads defining deleted rules will not be returned in GET requests.
-
-##### Fix
-
-We created a new RulesStorage function, made specifically to fix our problem entirely. The function is implemented to delete the rule AND its definition in the policy. This solution is still a bit experimental.
-
-#### PATCH fix
-
-PATCH used to contain a safety hazard. When client A has a certain policy/rule, or even just a certain quad, this could be discovered by an intrusive client B. Client B could simply PATCH an INSERT of a random quad that does NOT belong to its own rules/policies, which can have one of three outcomes:
-
-1. The PATCH resolves in an error saying that you cannot change rules that do not belong to you. This means that the quad belongs to some other client, since it has been detected as a quad owned by someone else.
-
-2. The PATCH resolves in an error saying that you cannot change rules that belong to nobody. This means that the quad is not affiliated with any client.
-
-3. The PATCH completes with code 200. Since the inserted quad does NOT belong to you, there must be another client that owns the quad. In this way, any policy can be discovered (exhaustively).
-An extra constraint, disabling clients to PATCH policies it has no rules in, would still enable the client to exploit policies that it has rules in.
-
-This problem was solved by splitting the policy into the parts where the client has access to, and the parts where it does not. By executing the query only on the parts that the client has access to, it would be easier to analyse the resulting store of the query. If this store has rules that the client does not have access to, they must have been added by the client and the operation gets cancelled. This method is also protected from deleting rules out of our reach.
-
-#### POST checks
-
-It is now impossible to POST an already existing policy or already existing rules. This means that a policy can only be POSTED once. If a client wishes to be a part of a policy, it has to do it through a PUT request. If a client is already part of the policy, it can PATCH modifications.
+It is possible to have a policy with several rules,
+which have different assigners.
+Some known issues there:
+- When GETting such a policy, you will only receive the identifiers of all linked rules,
+  even those you are not the assigner of.
+  You will not get the contents of those rules though.
+- When DELETEing such a policy, all rules will be deleted,
+  even those you are not the assigner of.

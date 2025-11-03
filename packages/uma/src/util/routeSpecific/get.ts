@@ -3,10 +3,10 @@ import {queryEngine} from './index';
 
 /**
  * Run a query against a store and collect the matching subgraphs.
- * 
+ *
  * For each set of variable bindings, this function extracts all triples
  * where the bound terms appear as subjects, then groups them into a result store.
- * 
+ *
  * @param store the source store to query
  * @param query the query string to execute
  * @param vars list of variable names that must be present in the result
@@ -50,10 +50,10 @@ const executeGet = async (
 
 /**
  * Build a query to retrieve a single policy and its permissions
- * by matching both the policy ID and the client’s role as assigner or assignee.
- * 
+ * by matching both the policy ID and the client’s role as assigner.
+ *
  * @param policyID identifier of the policy
- * @param resourceOwner identifier of the client (assigner or assignee)
+ * @param resourceOwner identifier of the assigner
  * @returns a query string
  */
 const buildPolicyRetrievalQuery = (policyID: string, resourceOwner: string) => `
@@ -76,7 +76,7 @@ const buildPolicyRetrievalQuery = (policyID: string, resourceOwner: string) => `
 
 /**
  * Retrieve a single policy and its permissions.
- * 
+ *
  * @param store the source store
  * @param policyID identifier of the policy
  * @param resourceOwner identifier of the client (assigner or assignee)
@@ -88,7 +88,7 @@ export const getPolicy = (store: Store, policyID: string, resourceOwner: string)
 /**
  * Build a query to retrieve all policies for a given client.
  * A client may act as assigner or assignee.
- * 
+ *
  * @param resourceOwner identifier of the client
  * @returns a query string
  */
@@ -110,7 +110,7 @@ const buildPoliciesRetrievalQuery = (resourceOwner: string) => `
 
 /**
  * Retrieve all policies for a given client.
- * 
+ *
  * @param store the source store
  * @param resourceOwner identifier of the client
  * @returns a store containing all policies and their permissions
@@ -126,7 +126,7 @@ export const getPolicies = (store: Store, resourceOwner: string) =>
  * Build a query to retrieve a single request,
  * provided that the client is either the requesting party
  * or the assigner of a policy targeting the same resource.
- * 
+ *
  * @param requestID identifier of the request
  * @param requestingPartyOrResourceOwner identifier of the client
  * @returns a query string
@@ -154,7 +154,7 @@ const buildAccessRequestRetrievalQuery = (requestID: string, requestingPartyOrRe
 /**
  * Retrieve a single request by ID,
  * if the client is the requesting party or assigner of the target.
- * 
+ *
  * @param store the source store
  * @param accessRequestID identifier of the request
  * @param requestingPartyOrResourceOwner identifier of the client
@@ -166,7 +166,7 @@ export const getAccessRequest = (store: Store, accessRequestID: string, requesti
 /**
  * Build a query to retrieve all requests for a client,
  * either as requesting party or as assigner of the requested target.
- * 
+ *
  * @param requestingPartyOrResourceOwner identifier of the client
  * @returns a query string
  */
@@ -193,7 +193,7 @@ const buildAccessRequestsRetrievalQuery = (requestingPartyOrResourceOwner: strin
 /**
  * Retrieve all requests for a client,
  * either as requesting party or as assigner of the requested targets.
- * 
+ *
  * @param store the source store
  * @param requestingPartyOrResourceOwner identifier of the client
  * @returns a store containing the requests

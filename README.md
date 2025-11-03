@@ -30,6 +30,8 @@ You can then execute the following flows:
 - `yarn script:collection`: `POST`, `GET` and `DELETE` some text to/from `/alice/public/resource.txt` to test the correct creation and deletion of resource registrations on the UMA server.
                             An AssetCollection policy is used to create `/alice/public/`.
                             More information on the collection implementation can be found in [documentation/collections.md](documentation/collections.md).
+- `yarn script:uma-odrl-policy`: Tests all policy management APIs.
+- `yarn script:uma-odrl-end2end`: Tests the access request management APIs
 
 `yarn script:flow` runs all flows in sequence.
 
@@ -38,6 +40,9 @@ the above scripts are the best way to learn about how everything works.
 
 A more extensive getting started guide can be found
 in [documentation/getting-started.md](documentation/getting-started.md).
+
+More information on policy management can be found in
+[documentation/policy-management](documentation/policy-management.md).
 
 ## Demonstration
 
