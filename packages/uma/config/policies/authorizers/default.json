@@ -53,20 +53,11 @@
         "@type": "OdrlAuthorizer",
         "eyePath": { "@id": "urn:uma:variables:eyePath" },
         "policies": {
-          "@id": "urn:uma:default:RulesStorage"
+          "@id": "urn:uma:default:RulesStorage",
+          "@type": "MemoryUCRulesStorage"
         }
       },
       "resourceStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
-    },
-    {
-      "@id": "urn:uma:default:RulesStorage",
-      "@type": "DirectoryUCRulesStorage",
-      "directoryPath": {
-        "@id": "urn:uma:variables:policyDir"
-      },
-      "baseIRI": {
-        "@id": "urn:uma:variables:policyBaseIRI"
-      }
     }
   ]
 }

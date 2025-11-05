@@ -2,7 +2,7 @@ import { extractQuadsRecursive } from '../util/Util';
 import { UCRulesStorage } from "./UCRulesStorage";
 import * as path from 'path'
 import * as fs from 'fs'
-import { Parser, Store } from 'n3';
+import { Parser, Store, Writer } from 'n3';
 
 /**
  * Reads rules from files on disk and caches them in memory.
@@ -43,7 +43,9 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
         return new Store(this.store);
     }
 
-
+    async deleteRuleFromPolicy(ruleID: string, PolicyID: string) {
+        return new Promise<void>(() => { })
+    }
     public async addRule(rule: Store): Promise<void> {
         this.store.addQuads(rule.getQuads(null, null, null, null));
     }

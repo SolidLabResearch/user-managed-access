@@ -27,6 +27,9 @@ export class ContainerUCRulesStorage implements UCRulesStorage {
         }
         this.extraDataUrl = containerURL + randomUUID();
     }
+    async deleteRuleFromPolicy(ruleID: string, PolicyID: string){
+        return new Promise<void>(() => {})
+    }
 
     public async getStore(): Promise<Store> {
         // TODO: can use last-modified date/etag or something to cache store?

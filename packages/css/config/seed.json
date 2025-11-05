@@ -23,5 +23,14 @@
         "name": "demo"
       }
     ]
+  },
+  {
+    "email": "resources@example.org",
+    "password": "abc123",
+    "pods": [
+      {
+        "name": "resources"
+      }
+    ]
   }
 ]

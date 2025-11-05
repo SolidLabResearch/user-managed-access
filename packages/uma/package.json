@@ -58,6 +58,7 @@
     "demo": "node bin/demo.js"
   },
   "dependencies": {
+    "@comunica/query-sparql": "^2.9.0",
     "@httpland/authorization-parser": "^1.1.0",
     "@solid/access-token-verifier": "^1.2.0",
     "@solid/community-server": "^7.1.7",

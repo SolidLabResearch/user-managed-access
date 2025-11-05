@@ -1,0 +1,43 @@
+{
+    "@context": [
+        "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+    ],
+    "@graph": [
+        {
+            "@id": "urn:uma:default:AccessRequestController",
+            "@type": "AccessRequestController",
+            "store": { "@id": "urn:uma:default:RulesStorage" }
+        },
+        {
+            "@id": "urn:uma:default:AccessRequestHandler",
+            "@type": "BaseHandler",
+            "controller": { "@id": "urn:uma:default:AccessRequestController" },
+            "handleLogMessage": "received access request/grants request",
+            "patchContentType": "application/json" 
+        },
+        {
+            "@id": "urn:uma:default:AccessRequestRoute",
+            "@type": "HttpHandlerRoute",
+            "methods": [
+                "GET",
+                "POST",
+                "OPTIONS"
+            ],
+            "handler": { "@id": "urn:uma:default:AccessRequestHandler" },
+            "path": "/uma/requests"
+        },
+        {
+            "@id": "urn:uma:default:OneAccessRequestRoute",
+            "@type": "HttpHandlerRoute",
+            "methods": [
+                "OPTIONS",
+                "PATCH",
+                "GET",
+                "DELETE", 
+                "PUT"
+            ],
+            "handler": { "@id": "urn:uma:default:AccessRequestHandler" },
+            "path": "/uma/requests/{id}"
+        }
+    ]
+}

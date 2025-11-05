@@ -3642,6 +3642,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@solidlab/uma@workspace:packages/uma"
   dependencies:
+    "@comunica/query-sparql": "npm:^2.9.0"
     "@httpland/authorization-parser": "npm:^1.1.0"
     "@solid/access-token-verifier": "npm:^1.2.0"
     "@solid/community-server": "npm:^7.1.7"

@@ -41,6 +41,7 @@ export * from './routes/Config';
 export * from './routes/Log';
 export * from './routes/VC';
 export * from './routes/Contract';
+export * from './routes/BaseHandler';
 
 // Tickets
 export * from './ticketing/Ticket';
@@ -73,3 +74,8 @@ export * from './util/ConvertUtil';
 export * from './util/HttpMessageSignatures';
 export * from './util/Result';
 export * from './util/ReType';
+
+// Controllers
+export * from './controller/BaseController';
+export * from './controller/AccessRequestController';
+export * from './controller/PolicyRequestController';

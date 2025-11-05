@@ -1,0 +1,43 @@
+{
+    "@context": [
+        "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+    ],
+    "@graph": [
+        {
+            "@id": "urn:uma:default:PolicyController",
+            "@type": "PolicyController",
+            "store": { "@id": "urn:uma:default:RulesStorage" }
+        },
+        {
+            "@id": "urn:uma:default:PolicyHandler",
+            "@type": "BaseHandler",
+            "controller": { "@id": "urn:uma:default:PolicyController" },
+            "handleLogMessage": "received policy request",
+            "patchContentType": "application/sparql-update" 
+        },
+        {
+            "@id": "urn:uma:default:PolicyRoute",
+            "@type": "HttpHandlerRoute",
+            "methods": [
+                "GET",
+                "POST",
+                "OPTIONS"
+            ],
+            "handler": { "@id": "urn:uma:default:PolicyHandler" },
+            "path": "/uma/policies"
+        },
+        {
+            "@id": "urn:uma:default:OnePolicyRoute",
+            "@type": "HttpHandlerRoute",
+            "methods": [
+                "OPTIONS",
+                "PATCH",
+                "GET",
+                "DELETE",
+                "PUT"
+            ],
+            "handler": { "@id": "urn:uma:default:PolicyHandler" },
+            "path": "/uma/policies/{id}"
+        }
+    ]
+}
