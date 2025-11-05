@@ -1,6 +1,6 @@
 {
   "name": "@solidlab/uma-css",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "UMA authorization plugin for CommunitySolidServer.",
   "keywords": [
     "css",
