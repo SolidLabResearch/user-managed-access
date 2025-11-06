@@ -36,7 +36,8 @@ so some information might change depending on which version and branch you're us
     + [Generating a ticket](#generating-a-ticket)
       - [Publicly accessible resources](#publicly-accessible-resources)
     + [Exchange ticket](#exchange-ticket)
-      - [Claim security](#claim-security)
+      - [Authentication methods](#authentication-methods)
+      - [Customizing OIDC verification](#customizing-oidc-verification)
     + [Generate token](#generate-token)
     + [Use token](#use-token)
   * [Policies](#policies)
@@ -225,15 +226,47 @@ The `claim_token_format` explains to the AS how the `claim_token` should be inte
 In this case, this is a custom format designed for this server,
 where the token is a URL-encoded WebID.
 
-#### Claim security
+#### Authentication methods
 
-In the above body, the claim token format is a string representing a WebID.
-No actual authentication or verification takes place here,
-meaning anyone can insert any WebID they want.
-This is great for quickly testing things out,
-but less good for security and testing actual authentication.
-The AS also supports OIDC tokens as defined in the [Solid OIDC specification](https://solid.github.io/solid-oidc/).
-In that case, the `claim_token_format` should be `http://openid.net/specs/openid-connect-core-1_0.html#IDToken`.
+The above claim token format indicates that the claim token should be interpreted as a valid WebID.
+No validation is done, so this should only be used for debugging and development.
+
+It is also possible to use `http://openid.net/specs/openid-connect-core-1_0.html#IDToken` as token format instead.
+In that case the body is expected to be an OIDC ID token.
+Both Solid and standard OIDC tokens are supported.
+In case of standard tokens, the value of the `sub` field will be used to match the assignee in the policies.
+
+#### Customizing OIDC verification
+
+Several configuration options can be added to further restrict authentication when using OIDC tokens,
+by adding entries to the Components.js configuration of the UMA server.
+All options of the [verification function](https://github.com/panva/jose/blob/main/docs/jwt/verify/interfaces/JWTVerifyOptions.md)
+can be added.
+For example, the max age of a token can be set to 60s by adding the following block:
+```json
+{
+  "@id": "urn:uma:default:OidcVerifier",
+  "verifyOptions": [
+    {
+      "OidcVerifier:_verifyOptions_key": "maxTokenAge",
+      "OidcVerifier:_verifyOptions_value": 60
+    }
+  ]
+}
+```
+Other options can be added in a similar fashion by adding entries to the above array.
+
+It is also possible to restrict which token issuers are allowed.
+This can be done by adding the following configuration:
+```json
+{
+  "@id": "urn:uma:default:OidcVerifier",
+  "allowedIssuers": [
+    "http://example.com/idp/",
+    "http://example.org/issuer/"
+  ]
+}
+```
 
 ### Generate token
 
