@@ -62,6 +62,8 @@ export class OidcVerifier implements Verifier {
 
   protected async verifySolidToken(token: string): Promise<{ [WEBID]: string, [CLIENTID]?: string }> {
     const claims = await this.verifyToken(`Bearer ${token}`);
+    // Depends on the spec version which field to use
+    const clientId = (claims as { azp?: string }).azp ?? claims.client_id;
 
     this.logger.info(`Authenticated via a Solid OIDC. ${JSON.stringify(claims)}`);
 
@@ -69,7 +71,7 @@ export class OidcVerifier implements Verifier {
       // TODO: would have to use different value than "WEBID"
       // TODO: still want to use WEBID as external value potentially?
       [WEBID]: claims.webid,
-      ...claims.client_id && { [CLIENTID]: claims.client_id }
+      ...clientId && { [CLIENTID]: clientId }
     });
   }
 
