@@ -271,31 +271,11 @@ ex:usagePolicy a odrl:Agreement ;
                 odrl:permission ex:permission .
 ex:permission a odrl:Permission ;
               odrl:action odrl:create ;
-              odrl:target <alice/private/> , <alice/private/resource.txt> ;
+              odrl:target <http://localhost:3000/alice/private/> ;
               odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
 ```
-This policy says that the above WebID has access to the `create` scope
-on `<alice/private/>` and `<alice/private/resource.txt>`.
-The server is configured so the base URL of all policy documents is the URL of the RS, `http://localhost:3000/`,
-to make sure the identifiers match the Solid resource identifiers as discussed [above](#about-identifiers).
+This policy says that the above WebID has access to the `create` scope on `<http://localhost:3000/alice/private/>`.
 
 ## Adding or changing policies
 
-When starting the server with `yarn start`,
-the server is configured to load all policies from a specified folder.
-In this case, this is [packages/uma/config/rules/policy](../packages/uma/config/rules/policy).
-This is done by setting the Components.js variable `urn:uma:variables:policyBaseIRI` to the necessary folder,
-as can be seen in the start script at [packages/uma/bin/main.js](../packages/uma/bin/main.js).
-With this setup,
-there is no way to change the policies while the server is running.
-The only way is to change the folder and restart the server.
-
-An alternative setup is used with the `yarn start:demo` script.
-There the server is configured to read all policies from a specific Solid container,
-set by the `urn:uma:variables:policyContainer` variable.
-This way, it is possible to modify the policies at run-time by changing the contents of that container.
-In this case, it is important to make sure UMA is not used to handle the access of that container,
-as that would prevent the UMA server from readings its contents to determine the policies.
-
-Both of these options have their issues,
-so work is being done on having a more secure and usable solution.
+For more details, see the [policy management API documentation](policy-management.md).
