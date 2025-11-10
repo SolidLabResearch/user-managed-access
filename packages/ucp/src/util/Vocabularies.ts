@@ -118,6 +118,7 @@ export const ODRL = createVocabulary(
     'Prohibition',
     'Duty',
     'Request',
+    'Constraint',
     'source',
     'partOf',
     'action',

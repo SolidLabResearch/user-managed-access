@@ -309,6 +309,36 @@ ex:permission a odrl:Permission ;
 ```
 This policy says that the above WebID has access to the `create` scope on `<http://localhost:3000/alice/private/>`.
 
+### Client application identification
+
+It is possible to create policies that restrict access based on the client application being used.
+This can only be done when using an OIDC ID token for authentication.
+The `azp` claim of the token will be used.
+
+To restrict a policy to a certain client application,
+a constraint needs to be added to the policy.
+Due to some issues with internal libraries,
+the `odrl:purpose` constraint is currently used to identify the client.
+This will be fixed in the near future.
+
+To restrict a policy to only permit access when using the application `http://example.com/client`,
+the policy should look as follows:
+```ttl
+@prefix ex: <http://example.org/1707120963224#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+ex:usagePolicy a odrl:Agreement ;
+                odrl:permission ex:permission .
+ex:permission a odrl:Permission ;
+              odrl:action odrl:create ;
+              odrl:target <http://localhost:3000/alice/private/> ;
+              odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> ;
+              odrl:constraint ex:constraint .
+ex:constraint odrl:leftOperand odrl:purpose ;
+              odrl:operator odrl:eq ;
+              odrl:rightOperand <http://example.com/client> .
+```
+
 ## Adding or changing policies
 
 For more details, see the [policy management API documentation](policy-management.md).

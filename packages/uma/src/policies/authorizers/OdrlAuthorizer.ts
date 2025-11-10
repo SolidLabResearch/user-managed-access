@@ -1,16 +1,16 @@
 import { BadRequestHttpError, DC, NotImplementedHttpError, RDF } from '@solid/community-server';
-import { basicPolicy, ODRL, UCPPolicy, UCRulesStorage } from '@solidlab/ucp';
+import { basicPolicy, ODRL, UCPConstraint, UCPPolicy, UCRulesStorage } from '@solidlab/ucp';
 import { getLoggerFor } from 'global-logger-factory';
-import { DataFactory, Literal, NamedNode, Quad_Subject, Store, Writer } from 'n3';
+import { DataFactory, Literal, NamedNode, Quad, Quad_Subject, Store, Writer } from 'n3';
 import { EyeReasoner, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator'
 import { createVocabulary } from 'rdf-vocabulary';
-import { WEBID } from '../../credentials/Claims';
+import { CLIENTID, WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { Requirements } from '../../credentials/Requirements';
 import { Permission } from '../../views/Permission';
 import { Authorizer } from './Authorizer';
 
-const {quad, namedNode, literal} = DataFactory
+const { quad, namedNode, literal, blankNode } = DataFactory
 
 /**
  * Permission evaluation is performed as follows:
@@ -71,6 +71,23 @@ export class OdrlAuthorizer implements Authorizer {
         );
 
         const subject = typeof claims[WEBID] === 'string' ? claims[WEBID] : 'urn:solidlab:uma:id:anonymous';
+        const clientQuads: Quad[] = [];
+        const clientSubject = blankNode();
+        if (typeof claims[CLIENTID] === 'string') {
+            clientQuads.push(
+                quad(clientSubject, RDF.terms.type, ODRL.terms.Constraint),
+                // TODO: using purpose as other constraints are not supported in current version of ODRL evaluator
+                //       https://github.com/SolidLabResearch/ODRL-Evaluator/blob/v0.5.0/ODRL-Support.md#left-operands
+                quad(clientSubject, ODRL.terms.leftOperand, namedNode(ODRL.namespace + 'purpose')),
+                quad(clientSubject, ODRL.terms.operator, ODRL.terms.eq),
+                quad(clientSubject, ODRL.terms.rightOperand, namedNode(claims[CLIENTID])),
+            );
+            // constraints.push({
+            //     type: ODRL.namespace + 'deliveryChannel',
+            //     operator: ODRL.eq,
+            //     value: namedNode(claims[CLIENTID]),
+            // });
+        }
 
         for (const {resource_id, resource_scopes} of query) {
             grantedPermissions[resource_id] = [];
@@ -87,7 +104,18 @@ export class OdrlAuthorizer implements Authorizer {
                         }
                     ]
                 }
-                const requestStore = basicPolicy(requestPolicy).representation
+                const request = basicPolicy(requestPolicy);
+                const requestStore = request.representation
+                // Adding context triples for the client identifier, if there is one
+                if (clientQuads.length > 0) {
+                    requestStore.addQuad(quad(
+                      namedNode(request.ruleIRIs[0]),
+                      namedNode('https://w3id.org/force/sotw#context'),
+                      clientSubject,
+                    ));
+                    requestStore.addQuads(clientQuads);
+                }
+
                 // evaluate policies
                 const reports = await this.odrlEvaluator.evaluate(
                     [...policyStore],

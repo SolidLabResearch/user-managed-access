@@ -7,7 +7,7 @@ import path from 'node:path';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
 import { findTokenEndpoint, noTokenFetch } from '../util/UmaUtil';
 
-const [ cssPort, umaPort ] = getPorts('Policies');
+const [ cssPort, umaPort ] = getPorts('OIDC');
 const idpPort = umaPort + 100;
 
 describe('A server supporting OIDC tokens', (): void => {
@@ -47,7 +47,6 @@ describe('A server supporting OIDC tokens', (): void => {
     privateKey = { ...await generator.getPrivateKey(), kid: 'kid' };
     const publicKey = { ...await generator.getPublicKey(), kid: 'kid' }
     idp = createServer((req, res) => {
-      console.log(req.url);
       if (req.url!.endsWith('/card')) {
         res.writeHead(200, { 'content-type': 'text/turtle' });
         res.end(`
@@ -64,6 +63,12 @@ describe('A server supporting OIDC tokens', (): void => {
         return;
       }
       res.writeHead(200, { 'content-type': 'application/json' });
+      if (req.url!.endsWith('/client')) {
+        res.end(JSON.stringify({
+          '@context': ['https://www.w3.org/ns/solid/oidc-context.jsonld'],
+        }));
+        return;
+      }
       if (req.url!.endsWith('/.well-known/openid-configuration')) {
         res.end(JSON.stringify({ jwks_uri: idpUrl }));
         return;
@@ -136,9 +141,76 @@ describe('A server supporting OIDC tokens', (): void => {
     });
   });
 
+  describe('accessing a resource using a standard OIDC token with a specific client.', (): void => {
+    const resource = `http://localhost:${cssPort}/alice/standardClient`;
+    const sub = '123456';
+    const client = 'my-client';
+    const policy = `
+      @prefix ex: <http://example.org/>.
+      @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+      @prefix dct: <http://purl.org/dc/terms/>.
+      ex:policyStandardClient a odrl:Set;
+          odrl:uid ex:policyStandardClient ;
+          odrl:permission ex:permissionStandardClient .
+          
+      ex:permissionStandardClient a odrl:Permission ;
+        odrl:assignee <${sub}> ;
+        odrl:assigner <${webId}> ;
+        odrl:action odrl:read , odrl:create , odrl:modify ;
+        odrl:target <http://localhost:${cssPort}/alice/> ;
+        odrl:constraint ex:constraintStandardClient.
+
+      ex:constraintStandardClient
+        odrl:leftOperand odrl:purpose ;
+        odrl:operator odrl:eq ;
+        odrl:rightOperand <${client}> .`;
+
+    it('can set up the policy.', async(): Promise<void> => {
+      const response = await fetch(policyEndpoint, {
+        method: 'POST',
+        headers: { authorization: webId, 'content-type': 'text/turtle' },
+        body: policy,
+      });
+      expect(response.status).toBe(201);
+    });
+
+    it('can get an access token.', async(): Promise<void> => {
+      const { as_uri, ticket } = await noTokenFetch(resource, {
+        method: 'PUT',
+        headers: { 'content-type': 'text/plain' },
+        body: 'hello',
+      });
+      const endpoint = await findTokenEndpoint(as_uri);
+
+      // TODO: also add token that fails
+      const jwk = await importJWK(privateKey, privateKey.alg);
+      const jwt = await new SignJWT({ azp: client })
+        .setSubject(sub)
+        .setProtectedHeader({ alg: privateKey.alg, kid: privateKey.kid })
+        .setIssuedAt()
+        .setIssuer(idpUrl)
+        .setAudience(`http://localhost:${umaPort}/uma`)
+        .setJti(randomUUID())
+        .sign(jwk);
+
+      const content: Record<string, string> = {
+        grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
+        ticket: ticket,
+        claim_token: jwt,
+        claim_token_format: oidcFormat,
+      };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(content),
+      });
+      expect(response.status).toBe(200);
+    });
+  });
 
   describe('accessing a resource using a Solid OIDC token.', (): void => {
-    const resource = `http://localhost:${cssPort}/alice/standard`;
+    const resource = `http://localhost:${cssPort}/alice/solid`;
     // Using dummy server so we can spoof WebID
     const alice =  idpUrl + 'alice/profile/card#me';
     const policy = `
@@ -176,6 +248,75 @@ describe('A server supporting OIDC tokens', (): void => {
       const jwk = await importJWK(privateKey, privateKey.alg);
       const jwt = await new SignJWT({ webid: alice })
         .setSubject(alice)
+        .setProtectedHeader({ alg: privateKey.alg, kid: privateKey.kid })
+        .setIssuedAt()
+        .setIssuer(idpUrl)
+        .setAudience([ 'solid', `http://localhost:${umaPort}/uma` ])
+        .setJti(randomUUID())
+        .setExpirationTime(Date.now() + 5000)
+        .sign(jwk);
+
+      const content: Record<string, string> = {
+        grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
+        ticket: ticket,
+        claim_token: jwt,
+        claim_token_format: oidcFormat,
+      };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(content),
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe('accessing a resource using a Solid OIDC token with a specific client.', (): void => {
+    const resource = `http://localhost:${cssPort}/bob/solidClient`;
+    // Using dummy server so we can spoof WebID
+    const bob =  idpUrl + 'bob/profile/card#me';
+    const client = idpUrl + 'client';
+    const policy = `
+      @prefix ex: <http://example.org/>.
+      @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+      @prefix dct: <http://purl.org/dc/terms/>.
+      ex:policySolidClient a odrl:Set;
+          odrl:uid ex:policySolidClient ;
+          odrl:permission ex:permissionSolidClient .
+          
+      ex:permissionSolidClient a odrl:Permission ;
+        odrl:assignee <${bob}> ;
+        odrl:assigner <${webId}> ;
+        odrl:action odrl:read , odrl:create , odrl:modify ;
+        odrl:target <http://localhost:${cssPort}/bob/> ;
+        odrl:constraint ex:constraintSolidClient.
+
+      ex:constraintSolidClient
+        odrl:leftOperand odrl:purpose ;
+        odrl:operator odrl:eq ;
+        odrl:rightOperand <${client}> .`;
+
+    it('can set up the policy.', async(): Promise<void> => {
+      const response = await fetch(policyEndpoint, {
+        method: 'POST',
+        headers: { authorization: webId, 'content-type': 'text/turtle' },
+        body: policy,
+      });
+      expect(response.status).toBe(201);
+    });
+
+    it('can get an access token.', async(): Promise<void> => {
+      const { as_uri, ticket } = await noTokenFetch(resource, {
+        method: 'PUT',
+        headers: { 'content-type': 'text/plain' },
+        body: 'hello',
+      });
+      const endpoint = await findTokenEndpoint(as_uri);
+
+      const jwk = await importJWK(privateKey, privateKey.alg);
+      const jwt = await new SignJWT({ webid: bob, azp: client })
+        .setSubject(bob)
         .setProtectedHeader({ alg: privateKey.alg, kid: privateKey.kid })
         .setIssuedAt()
         .setIssuer(idpUrl)
