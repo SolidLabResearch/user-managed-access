@@ -15,7 +15,8 @@ This repository contains SolidLab research artefacts on use of UMA in the Solid 
 
 In order to run this project you need to perform the following steps.
 
-1. Ensure that you are using Node.js 20 or higher, e.g. by running `nvm use`. (see [.nvmrc](./.nvmrc))
+1. Install the [eye reasoner](https://github.com/eyereasoner/eye/) and have `eye` available on your path.
+2. Ensure that you are using Node.js 20 or higher, e.g. by running `nvm use`. (see [.nvmrc](./.nvmrc))
 2. Enable Node.js Corepack with `corepack enable`.
 3. Run `yarn install` in the project root (this will automatically call `yarn build`).
 4. Run `yarn start`.
