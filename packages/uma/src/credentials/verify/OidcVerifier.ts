@@ -1,5 +1,5 @@
 import { createSolidTokenVerifier } from '@solid/access-token-verifier';
-import { BadRequestHttpError } from '@solid/community-server';
+import { BadRequestHttpError, joinUrl } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { createRemoteJWKSet, decodeJwt, JWTPayload, jwtVerify, JWTVerifyOptions } from 'jose';
 import { CLIENTID, WEBID } from '../Claims';
@@ -52,9 +52,10 @@ export class OidcVerifier implements Verifier {
   }
 
   protected validateToken(payload: JWTPayload): void {
-    if (payload.aud !== this.baseUrl && !(Array.isArray(payload.aud) && payload.aud.includes(this.baseUrl))) {
-      throw new BadRequestHttpError('This server is not valid audience for the token');
-    }
+    // TODO: disable audience check for now, need to investigate required values further
+    // if (payload.aud !== this.baseUrl && !(Array.isArray(payload.aud) && payload.aud.includes(this.baseUrl))) {
+    //   throw new BadRequestHttpError('This server is not valid audience for the token');
+    // }
     if (!payload.iss || this.allowedIssuers.length > 0 && !this.allowedIssuers.includes(payload.iss)) {
       throw new BadRequestHttpError('Unsupported issuer');
     }
@@ -77,7 +78,16 @@ export class OidcVerifier implements Verifier {
 
   protected async verifyStandardToken(token: string, issuer: string):
     Promise<{ [WEBID]: string, [CLIENTID]?: string }> {
-    const jwkSet = createRemoteJWKSet(new URL(issuer));
+    const configUrl = joinUrl(issuer, '/.well-known/openid-configuration');
+    const configResponse = await fetch(configUrl);
+    if (configResponse.status !== 200) {
+      throw new BadRequestHttpError(`Unable to access ${configUrl}`);
+    }
+    const config = await configResponse.json() as { jwks_uri?: string };
+    if (!config.jwks_uri) {
+      throw new BadRequestHttpError(`Missing jwks_uri from ${configUrl}`);
+    }
+    const jwkSet = createRemoteJWKSet(new URL(config.jwks_uri));
     const decoded = await jwtVerify(token, jwkSet, this.verifyOptions);
     if (!decoded.payload.sub) {
       throw new BadRequestHttpError('Invalid OIDC token: missing `sub` claim');

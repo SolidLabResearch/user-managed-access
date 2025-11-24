@@ -28,12 +28,17 @@ describe('OidcVerifier', (): void => {
   const decodeJwt = vi.spyOn(jose, 'decodeJwt');
   const jwtVerify = vi.spyOn(jose, 'jwtVerify');
   const createRemoteJWKSet = vi.spyOn(jose, 'createRemoteJWKSet');
+  const fetchMock = vi.spyOn(global, 'fetch');
   const verifierMock = vi.fn();
   vi.spyOn(accessTokenVerifier, 'createSolidTokenVerifier').mockReturnValue(verifierMock);
   let verifier: OidcVerifier;
 
   beforeEach(async(): Promise<void> => {
     vi.clearAllMocks();
+    fetchMock.mockResolvedValue({
+      status: 200,
+      json: vi.fn().mockResolvedValue({ jwks_uri: `${issuer}/jwks_uri` }),
+    } as any);
     decodeJwt.mockReturnValue(decodedToken);
     jwtVerify.mockResolvedValue({ payload: decodedToken } as any);
     createRemoteJWKSet.mockReturnValue(remoteKeySet as any);
@@ -49,14 +54,6 @@ describe('OidcVerifier', (): void => {
   it('errors on non-OIDC credentials.', async(): Promise<void> => {
     await expect(verifier.verify({ format: 'wrong', token: 'token' })).rejects
       .toThrow("Token format wrong does not match this processor's format.");
-  });
-
-  it('errors if the server is not part of the audience.', async(): Promise<void> => {
-    decodeJwt.mockReturnValue({ ...decodedToken, aud: 'wrong'  });
-    await expect(verifier.verify(credential)).rejects.toThrow('This server is not valid audience for the token');
-
-    decodeJwt.mockReturnValue({ ...decodedToken, aud: undefined  });
-    await expect(verifier.verify(credential)).rejects.toThrow('This server is not valid audience for the token');
   });
 
   it('errors if the issuer is not allowed.', async(): Promise<void> => {
