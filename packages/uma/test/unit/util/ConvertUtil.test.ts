@@ -1,4 +1,4 @@
-import { isPrimitive, formToJson, jsonToForm } from '../../../src/util/ConvertUtil';
+import { isPrimitive, formToJson, jsonToForm, isIri } from '../../../src/util/ConvertUtil';
 
 describe('ConvertUtil', (): void => {
   describe('#formToJson', (): void => {
@@ -31,6 +31,14 @@ describe('ConvertUtil', (): void => {
       expect(isPrimitive('apple')).toBe(true);
       expect(isPrimitive([])).toBe(false);
       expect(isPrimitive({})).toBe(false);
+    });
+  });
+
+  describe('#isIri', (): void => {
+    it('estimates if the string is a valid IRI.', async(): Promise<void> => {
+      expect(isIri('apple')).toBe(false);
+      expect(isIri('urn:apple')).toBe(true);
+      expect(isIri('urn:ap ple')).toBe(false);
     });
   });
 });
