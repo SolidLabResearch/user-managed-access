@@ -44,7 +44,7 @@ const setup = async (): Promise<Result> => {
         POLICY_URL, {
         method: 'POST',
         headers: {
-            'authorization': RESOURCE_OWNER,
+            'authorization': `WebID ${encodeURIComponent(RESOURCE_OWNER)}`,
             'content-type': 'text/turtle'
         }, body: SETUP_POLICIES(RESOURCE_PARENT, RESOURCE, RESOURCE_OWNER)
     }
@@ -67,7 +67,7 @@ const teardown = async (): Promise<Result> => {
         POLICY_URL, {
         method: 'GET',
         headers: {
-            'authorization': RESOURCE_OWNER
+            'authorization': `WebID ${encodeURIComponent(RESOURCE_OWNER)}`
         }
     }
     );
@@ -76,7 +76,7 @@ const teardown = async (): Promise<Result> => {
     const policyIDs = store.getSubjects(null, "http://www.w3.org/ns/odrl/2/Agreement", null).map((subject) => subject.id);
 
     await Promise.all(policyIDs.map((policyID) =>
-        fetch(`${POLICY_URL}/${encodeURIComponent(policyID)}`, { method: 'DELETE', headers: { 'authorization': RESOURCE_OWNER } })
+        fetch(`${POLICY_URL}/${encodeURIComponent(policyID)}`, { method: 'DELETE', headers: { 'authorization': `WebID ${encodeURIComponent(RESOURCE_OWNER)}` } })
     ));
 
     return success();
@@ -92,7 +92,7 @@ const createAccessRequest = async (clientID: string, accessRequestID: string): P
         ACCESS_REQUEST_URL, {
         method: 'POST',
         headers: {
-            'authorization': clientID,
+            'authorization': `WebID ${encodeURIComponent(clientID)}`,
             'content-type': 'text/turtle'
         }, body: ACCESS_REQUEST(accessRequestID, RESOURCE, clientID),
     }
@@ -107,7 +107,7 @@ const updateAccessRequest = async (clientID: string, accessRequestID: string, st
         `${ACCESS_REQUEST_URL}/${encodeURIComponent(accessRequestID)}`, {
         method: 'PATCH',
         headers: {
-            'authorization': clientID,
+            'authorization': `WebID ${encodeURIComponent(clientID)}`,
             'content-type': 'application/json'
         }, body: JSON.stringify({ status: status })
     }
@@ -125,7 +125,7 @@ const deleteAccesRequest = async (clientID: string, accessRequestID: string): Pr
         `${ACCESS_REQUEST_URL}/${encodeURIComponent(accessRequestID)}`, {
         method: 'DELETE',
         headers: {
-            'authorization': clientID
+            'authorization': `WebID ${encodeURIComponent(clientID)}`,
         }
     }
     );

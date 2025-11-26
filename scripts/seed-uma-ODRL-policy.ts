@@ -2,7 +2,7 @@ import * as readline from 'readline';
 import { seedingPolicies, seedingPolicies2, seedingPolicies3 } from './util/policyExamples';
 
 async function seedForOneClient(id: string) {
-    await fetch("http://localhost:4000/uma/policies", { method: 'POST', headers: { 'Authorization': id, 'Content-Type': 'text/turtle' }, body: Buffer.from(seedingPolicies3(id), 'utf-8') });
+    await fetch("http://localhost:4000/uma/policies", { method: 'POST', headers: { 'Authorization': `WebID ${encodeURIComponent(id)}`, 'Content-Type': 'text/turtle' }, body: Buffer.from(seedingPolicies3(id), 'utf-8') });
 }
 
 async function deleteForOneClient(id: string) {
@@ -25,7 +25,7 @@ async function deleteForOneClient(id: string) {
     for (const policyId of policyIds) {
         await fetch(`http://localhost:4000/uma/policies/${encodeURIComponent(policyId)}`, {
             method: 'DELETE',
-            headers: { 'Authorization': id }
+            headers: { 'Authorization': `WebID ${encodeURIComponent(id)}` }
         });
     }
 }

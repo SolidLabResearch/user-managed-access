@@ -60,7 +60,10 @@ async function fetchPolicy(method: string, webId: string, id?: string, data?: st
   Promise<Response> {
   return fetch(policyEndpoint + (id ? `/${encodeURIComponent(id)}` : ''), {
     method,
-    headers: { authorization: webId, 'content-type': patch ? 'application/sparql-update' : 'text/turtle' },
+    headers: {
+      authorization: `WebID ${encodeURIComponent(webId)}`,
+      'content-type': patch ? 'application/sparql-update' : 'text/turtle'
+    },
     ... data ? { body: data } : {},
   });
 }
