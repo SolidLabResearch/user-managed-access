@@ -150,5 +150,47 @@ describe('A server setup', (): void => {
 
       expect(response.status).toBe(201);
     });
+
+    it('RS: does not allow public read access to the new resource.', async(): Promise<void> => {
+      const response = await fetch(collectionResource);
+      expect(response.status).toBe(401);
+    });
+
+    it('the resource can be made publicly accessible by having an anonymous assignee.', async(): Promise<void> => {
+      const owner = 'https://pod.woutslabbinck.com/profile/card#me';
+      const url = `http://localhost:${umaPort}/uma/policies`;
+
+      const policy = `
+        @prefix ex: <http://example.org/>.
+        @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+        
+        ex:publicPolicy a odrl:Agreement ;
+          odrl:uid ex:publicPolicy ;
+          odrl:permission ex:publicPermission .
+        ex:publicPermission a odrl:Permission ;
+          odrl:action odrl:read , odrl:modify ;
+          odrl:target <${collectionResource}> ;
+          odrl:assignee <urn:solidlab:uma:id:anonymous> ;
+          odrl:assigner <${owner}> .
+      `;
+
+      const policyResponse = await fetch(url, {
+        method: 'POST',
+        headers: { authorization: owner, 'content-type': 'text/turtle' },
+        body: policy,
+      });
+      expect(policyResponse.status).toBe(201);
+
+      const putResponse = await fetch(collectionResource, {
+        method: 'PUT',
+        headers: { 'content-type': 'text/plain' },
+        body: 'Some new text!',
+      });
+      expect(putResponse.status).toBe(205);
+
+      const getResponse = await fetch(collectionResource);
+      expect(getResponse.status).toBe(200);
+      await expect(getResponse.text()).resolves.toEqual('Some new text!');
+    });
   });
 });
