@@ -3,6 +3,11 @@
 export * from './credentials/ClaimSet';
 export * from './credentials/Requirements';
 export * from './credentials/Credential';
+export * from './credentials/CredentialParser';
+export * from './credentials/Formats';
+
+// CredentialParsers
+export * from './credentials/parse/MappedSchemeParser';
 
 // Verifiers
 export * from './credentials/verify/Verifier';

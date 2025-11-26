@@ -16,8 +16,21 @@ The current implementation supports the following requests on the UMA server:
 These requests comply with some restrictions:
 
 - When the URL contains a policy ID, it must be URI encoded.
-- The request must have its `Authorization` header set to the owners WebID.
-  More on that [later](#authentication).
+- Every request requires a valid Authorization header, which is detailed below.
+
+### Authorization
+
+The policy API supports similar authentication tokens as the UMA API,
+but expects them in the Authorization header,
+as the body is already used for other purposes.
+Two authorization methods are supported: OIDC tokens, both Solid and standard, and unsafe WebID strings.
+
+To use OIDC, the `Bearer` authorization scheme needs to be used, followed by the token.
+For example, `Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI...`.
+
+To directly pass a WebID, the `WebID` scheme can be used together with a URL encoded WebID.
+For example, `Authorization: WebID http%3A%2F%2Fexample.com%2Fprofile%2Fcard%23me`.
+No validation is performed in this case, so this should only be used for development and debugging purposes.
 
 ### Creating policies
 

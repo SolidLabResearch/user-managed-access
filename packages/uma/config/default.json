@@ -5,6 +5,7 @@
     "https://linkedsoftwaredependencies.org/bundles/npm/asynchronous-handlers/^1.0.0/components/context.jsonld"
   ],
   "import": [
+    "sai-uma:config/credentials/parsers/default.json",
     "sai-uma:config/credentials/verifiers/default.json",
     "sai-uma:config/dialog/negotiators/default.json",
     "sai-uma:config/policies/authorizers/default.json",

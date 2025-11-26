@@ -54,7 +54,7 @@ describe('A server setup', (): void => {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: { authorization: owner, 'content-type': 'text/turtle' },
+        headers: { authorization: `WebID ${encodeURIComponent(owner)}`, 'content-type': 'text/turtle' },
         body,
       });
       expect(response.status).toBe(201);
@@ -176,7 +176,7 @@ describe('A server setup', (): void => {
 
       const policyResponse = await fetch(url, {
         method: 'POST',
-        headers: { authorization: owner, 'content-type': 'text/turtle' },
+        headers: { authorization: `WebID ${encodeURIComponent(owner)}`, 'content-type': 'text/turtle' },
         body: policy,
       });
       expect(policyResponse.status).toBe(201);

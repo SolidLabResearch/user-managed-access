@@ -12,8 +12,10 @@
             "@id": "urn:uma:default:AccessRequestHandler",
             "@type": "BaseHandler",
             "controller": { "@id": "urn:uma:default:AccessRequestController" },
+            "credentialParser": { "@id": "urn:uma:default:CredentialParser" },
+            "verifier": { "@id": "urn:uma:default:Verifier" },
             "handleLogMessage": "received access request/grants request",
-            "patchContentType": "application/json" 
+            "patchContentType": "application/json"
         },
         {
             "@id": "urn:uma:default:AccessRequestRoute",
@@ -33,7 +35,7 @@
                 "OPTIONS",
                 "PATCH",
                 "GET",
-                "DELETE", 
+                "DELETE",
                 "PUT"
             ],
             "handler": { "@id": "urn:uma:default:AccessRequestHandler" },

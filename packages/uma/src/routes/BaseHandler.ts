@@ -1,8 +1,16 @@
-import { BadRequestHttpError, MethodNotAllowedHttpError } from "@solid/community-server";
+import { BadRequestHttpError, ForbiddenHttpError, MethodNotAllowedHttpError } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
-import { BaseController } from "../controller/BaseController";
-import { HttpHandler, HttpHandlerContext, HttpHandlerRequest, HttpHandlerResponse } from "../util/http/models/HttpHandler";
-import { verifyHttpCredentials } from "../util/routeSpecific/middlewareUtil";
+import { BaseController } from '../controller/BaseController';
+import { WEBID } from '../credentials/Claims';
+import { ClaimSet } from '../credentials/ClaimSet';
+import { CredentialParser } from '../credentials/CredentialParser';
+import { Verifier } from '../credentials/verify/Verifier';
+import {
+    HttpHandler,
+    HttpHandlerContext,
+    HttpHandlerRequest,
+    HttpHandlerResponse
+} from '../util/http/models/HttpHandler';
 
 /**
  * Base handler for policy and access request endpoints.
@@ -18,19 +26,23 @@ import { verifyHttpCredentials } from "../util/routeSpecific/middlewareUtil";
  *  - **GET** `/`   -   retrieve all policies (including their rules) or access requests
  *  - **POST** `/`  -   create new policy or access request
  */
-export abstract class BaseHandler extends HttpHandler {
+export class BaseHandler extends HttpHandler {
 
     protected readonly logger = getLoggerFor(this);
 
     /**
      * @param controller reference to the controller implementing the policy/access request logic
+     * @param credentialParser parses the request headers to find the credential format and token
+     * @param verifier verifies the credential token and extracts the claims
      * @param handleLogMessage message to log at the start of each handled request
      * @param patchContentType expected content type for PATCH requests (e.g. `application/json` or `application/sparql-update`)
      */
     constructor(
         protected readonly controller: BaseController,
-        private readonly handleLogMessage: string,
-        private readonly patchContentType: string,
+        protected readonly credentialParser: CredentialParser,
+        protected readonly verifier: Verifier,
+        protected readonly handleLogMessage: string,
+        protected readonly patchContentType: string,
     ) {
         super();
     }
@@ -48,20 +60,25 @@ export abstract class BaseHandler extends HttpHandler {
         if (request.method === 'OPTIONS')
             return this.handleOptions();
 
-        const credentials = verifyHttpCredentials(request);
+        const credential = await this.credentialParser.handleSafe(request);
+        const claims = await this.verifier.verify(credential);
+        const userId = claims[WEBID];
+        if (typeof userId !== 'string') {
+            throw new ForbiddenHttpError(`Missing claim ${WEBID}.`);
+        }
 
         if (request.parameters?.id) {
             switch (request.method) {
-                case 'GET': return this.handleSingleGet(request.parameters.id, credentials);
-                case 'PATCH': return this.handlePatch(request as HttpHandlerRequest<string>, request.parameters.id, credentials);
-                case 'PUT': return this.handlePut(request as HttpHandlerRequest<string>, request.parameters.id, credentials);
-                case 'DELETE': return this.handleDelete(request.parameters.id, credentials);
+                case 'GET': return this.handleSingleGet(request.parameters.id, userId);
+                case 'PATCH': return this.handlePatch(request as HttpHandlerRequest<string>, request.parameters.id, userId);
+                case 'PUT': return this.handlePut(request as HttpHandlerRequest<string>, request.parameters.id, userId);
+                case 'DELETE': return this.handleDelete(request.parameters.id, userId);
                 default: throw new MethodNotAllowedHttpError();
             }
         } else {
             switch (request.method) {
-                case 'GET': return this.handleGet(credentials);
-                case 'POST': return this.handlePost(request as HttpHandlerRequest<string>, credentials);
+                case 'GET': return this.handleGet(userId);
+                case 'POST': return this.handlePost(request as HttpHandlerRequest<string>, userId);
                 default: throw new MethodNotAllowedHttpError();
             }
         }

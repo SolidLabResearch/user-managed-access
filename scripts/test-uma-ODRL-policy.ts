@@ -7,7 +7,7 @@
 import { policyA, policyB, policyC, badPolicy1, changePolicy1, changePolicy95e, putPolicy95e, putPolicyB } from "./util/policyExamples";
 
 const endpoint = (extra: string = '') => 'http://localhost:4000/uma/policies' + extra;
-const client = (client: string = 'a') => `https://pod.${client}.com/profile/card#me`;
+const client = (client: string = 'a') => `WebID ${encodeURIComponent(`https://pod.${client}.com/profile/card#me`)}`;
 const policyId1 = 'http://example.org/usagePolicy1';
 const policyId95e = 'urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc'
 const badPolicyId = 'nonExistentPolicy';
