@@ -36,6 +36,15 @@ export function isPrimitive(val: unknown): val is string | number | boolean {
   return typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean';
 }
 
+export const IRI_REGEX = /^[A-Za-z][A-Za-z0-9+.-]*:\S*$/;
+
+/**
+ * Uses a heuristic to estimate if a string is a valid IRI.
+ */
+export function isIri(input: string): boolean {
+  return IRI_REGEX.test(input);
+}
+
 /**
  * Write an N3 store to a string (in turtle format)
  */
