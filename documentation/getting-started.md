@@ -236,6 +236,13 @@ In that case the body is expected to be an OIDC ID token.
 Both Solid and standard OIDC tokens are supported.
 In case of standard tokens, the value of the `sub` field will be used to match the assignee in the policies.
 
+The values that are extracted from the OIDC token are expected to be IRIs.
+In case the `sub` or `azp`, which is discussed below, values are not IRIs,
+the server wil internally convert them by URL encoding the value, and prepending them with `http://example.com/id/`.
+This means that your policies should reference the converted ID.
+For example, if your `sub` value is `my id`, your policy needs to target `http://example.com/id/my%20id`.
+This base URL will be updated in the future once we have settled on a fixed value.
+
 #### Customizing OIDC verification
 
 Several configuration options can be added to further restrict authentication when using OIDC tokens,
