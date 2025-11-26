@@ -93,7 +93,7 @@ describe('A server supporting OIDC tokens', (): void => {
           odrl:permission ex:permissionStandard .
           
       ex:permissionStandard a odrl:Permission ;
-        odrl:assignee <${sub}> ;
+        odrl:assignee <http://example.com/id/${sub}> ;
         odrl:assigner <${webId}>;
         odrl:action odrl:read , odrl:create , odrl:modify ;
         odrl:target <http://localhost:${cssPort}/alice/> .`;
@@ -154,7 +154,7 @@ describe('A server supporting OIDC tokens', (): void => {
           odrl:permission ex:permissionStandardClient .
           
       ex:permissionStandardClient a odrl:Permission ;
-        odrl:assignee <${sub}> ;
+        odrl:assignee <http://example.com/id/${sub}> ;
         odrl:assigner <${webId}> ;
         odrl:action odrl:read , odrl:create , odrl:modify ;
         odrl:target <http://localhost:${cssPort}/alice/> ;
@@ -163,7 +163,7 @@ describe('A server supporting OIDC tokens', (): void => {
       ex:constraintStandardClient
         odrl:leftOperand odrl:purpose ;
         odrl:operator odrl:eq ;
-        odrl:rightOperand <${client}> .`;
+        odrl:rightOperand <http://example.com/id/${client}> .`;
 
     it('can set up the policy.', async(): Promise<void> => {
       const response = await fetch(policyEndpoint, {

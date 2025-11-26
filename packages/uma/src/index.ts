@@ -15,6 +15,7 @@ export * from './credentials/verify/TypedVerifier';
 export * from './credentials/verify/UnsecureVerifier';
 export * from './credentials/verify/OidcVerifier';
 export * from './credentials/verify/JwtVerifier';
+export * from './credentials/verify/IriVerifier';
 
 // Dialog
 export * from './dialog/Input';
