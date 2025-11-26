@@ -101,7 +101,7 @@ describe('A server supporting OIDC tokens', (): void => {
     it('can set up the policy.', async(): Promise<void> => {
       const response = await fetch(policyEndpoint, {
         method: 'POST',
-        headers: { authorization: webId, 'content-type': 'text/turtle' },
+        headers: { authorization: `WebID ${encodeURIComponent(webId)}`, 'content-type': 'text/turtle' },
         body: policy,
       });
       expect(response.status).toBe(201);
@@ -168,7 +168,7 @@ describe('A server supporting OIDC tokens', (): void => {
     it('can set up the policy.', async(): Promise<void> => {
       const response = await fetch(policyEndpoint, {
         method: 'POST',
-        headers: { authorization: webId, 'content-type': 'text/turtle' },
+        headers: { authorization: `WebID ${encodeURIComponent(webId)}`, 'content-type': 'text/turtle' },
         body: policy,
       });
       expect(response.status).toBe(201);
@@ -230,7 +230,7 @@ describe('A server supporting OIDC tokens', (): void => {
     it('can set up the policy.', async(): Promise<void> => {
       const response = await fetch(policyEndpoint, {
         method: 'POST',
-        headers: { authorization: webId, 'content-type': 'text/turtle' },
+        headers: { authorization: `WebID ${encodeURIComponent(webId)}`, 'content-type': 'text/turtle' },
         body: policy,
       });
       expect(response.status).toBe(201);
@@ -300,7 +300,7 @@ describe('A server supporting OIDC tokens', (): void => {
     it('can set up the policy.', async(): Promise<void> => {
       const response = await fetch(policyEndpoint, {
         method: 'POST',
-        headers: { authorization: webId, 'content-type': 'text/turtle' },
+        headers: { authorization: `WebID ${encodeURIComponent(webId)}`, 'content-type': 'text/turtle' },
         body: policy,
       });
       expect(response.status).toBe(201);

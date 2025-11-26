@@ -14,7 +14,7 @@ async function main() {
   console.log(`=== Trying to initialize test policies.\n`);
   const response = await fetch(url, {
     method: 'POST',
-    headers: { authorization: owner, 'content-type': 'text/turtle' },
+    headers: { authorization: `WebID ${encodeURIComponent(owner)}`, 'content-type': 'text/turtle' },
     body,
   });
   console.log(`= Status: ${response.status}\n`);

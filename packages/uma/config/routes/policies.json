@@ -12,8 +12,10 @@
             "@id": "urn:uma:default:PolicyHandler",
             "@type": "BaseHandler",
             "controller": { "@id": "urn:uma:default:PolicyController" },
+            "credentialParser": { "@id": "urn:uma:default:CredentialParser" },
+            "verifier": { "@id": "urn:uma:default:Verifier" },
             "handleLogMessage": "received policy request",
-            "patchContentType": "application/sparql-update" 
+            "patchContentType": "application/sparql-update"
         },
         {
             "@id": "urn:uma:default:PolicyRoute",
