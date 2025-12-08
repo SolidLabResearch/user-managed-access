@@ -301,6 +301,7 @@ Below is an example of the policy that allowed the example above to succeed:
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 
 ex:usagePolicy a odrl:Agreement ;
+                odr:uid ex:usagePolicy ;
                 odrl:permission ex:permission .
 ex:permission a odrl:Permission ;
               odrl:action odrl:create ;
@@ -328,6 +329,7 @@ the policy should look as follows:
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 
 ex:usagePolicy a odrl:Agreement ;
+                odrl:uid ex:usagePolicy ;
                 odrl:permission ex:permission .
 ex:permission a odrl:Permission ;
               odrl:action odrl:create ;
