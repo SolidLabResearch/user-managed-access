@@ -1,9 +1,9 @@
 import 'jest-rdf';
+import { RDF } from '@solid/community-server';
 import { DataFactory as DF, Store } from 'n3';
 import * as fs from 'node:fs';
 import path from 'node:path';
-import { DirectoryUCRulesStorage } from '../../../src/storage/DirectoryUCRulesStorage';
-import { RDF } from '../../../src/util/Vocabularies';
+import { DirectoryUCRulesStorage } from '../../../../src/ucp/storage/DirectoryUCRulesStorage';
 
 vi.mock('fs', () => ({
   lstatSync: vi.fn().mockReturnValue({ isDirectory: vi.fn().mockReturnValue(true) }),

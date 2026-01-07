@@ -1,11 +1,11 @@
-import { UCRulesStorage } from "@solidlab/ucp";
+import { UCRulesStorage } from "../ucp/storage/UCRulesStorage";
 import { BaseController } from "./BaseController";
-import { 
-    deletePolicy, 
-    getPolicies, 
-    getPolicy, 
-    patchPolicy, 
-    postPolicy 
+import {
+    deletePolicy,
+    getPolicies,
+    getPolicy,
+    patchPolicy,
+    postPolicy
 } from "../util/routeSpecific";
 
 /**

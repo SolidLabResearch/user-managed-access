@@ -1,7 +1,8 @@
-import { DataFactory as DF, Writer } from 'n3';
-import { basicPolicy } from '../../../src/policy/ODRL';
-import { UCPPolicy } from '../../../src/policy/UsageControlPolicy';
-import { ODRL, RDF, XSD } from '../../../src/util/Vocabularies';
+import { RDF, XSD } from '@solid/community-server';
+import { DataFactory as DF } from 'n3';
+import { basicPolicy } from '../../../../src/ucp/policy/ODRL';
+import { UCPPolicy } from '../../../../src/ucp/policy/UsageControlPolicy';
+import { ODRL } from '../../../../src/ucp/util/Vocabularies';
 
 const now = new Date();
 vi.useFakeTimers({ now });

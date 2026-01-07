@@ -1,15 +1,16 @@
 import { NotImplementedHttpError, RDF, XSD } from '@solid/community-server';
-import { basicPolicy, UCRulesStorage } from '@solidlab/ucp';
 import { DataFactory as DF, Parser, Store } from 'n3';
 import { ODRLEvaluator } from 'odrl-evaluator';
 import { Mocked } from 'vitest';
 import { OdrlAuthorizer } from '../../../../src/policies/authorizers/OdrlAuthorizer';
+import { basicPolicy } from '../../../../src/ucp/policy/ODRL';
+import { UCRulesStorage } from '../../../../src/ucp/storage/UCRulesStorage';
 import { Permission } from '../../../../src/views/Permission';
 
 const now = new Date();
 vi.useFakeTimers({ now });
 
-vi.mock('@solidlab/ucp', async(importOriginal) => ({
+vi.mock('../../../../src/ucp/policy/ODRL', async(importOriginal) => ({
     ...await importOriginal(),
     basicPolicy: vi.fn(),
 }));

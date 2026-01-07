@@ -79,6 +79,16 @@ export * from './util/http/validate/HttpMessageValidator';
 export * from './util/http/validate/PatRequestValidator';
 export * from './util/http/validate/RequestValidator';
 
+// UCP
+export * from './ucp/policy/ODRL';
+export * from './ucp/policy/UsageControlPolicy';
+export * from './ucp/storage/ContainerUCRulesStorage';
+export * from './ucp/storage/DirectoryUCRulesStorage';
+export * from './ucp/storage/MemoryUCRulesStorage';
+export * from './ucp/storage/UCRulesStorage';
+export * from './ucp/util/Util';
+export * from './ucp/util/Vocabularies';
+
 // Util
 export * from './util/ConvertUtil';
 export * from './util/HttpMessageSignatures';

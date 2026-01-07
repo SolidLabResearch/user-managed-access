@@ -1,9 +1,8 @@
 import { InternalServerError, type JwkGenerator } from '@solid/community-server';
-import { RequestInfo } from '@solidlab/ucp';
 import { getLoggerFor } from 'global-logger-factory';
 import { httpbis, type SigningKey } from 'http-message-signatures';
 import { BufferSource } from 'node:stream/web';
-import type { Fetcher } from './Fetcher';
+import type { Fetcher, FetchParams } from './Fetcher';
 
 const algMap = {
   'Ed25519': { name: 'Ed25519' },
@@ -33,7 +32,7 @@ export class SignedFetcher implements Fetcher {
     protected keyGen: JwkGenerator,
   ) {}
 
-  public async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+  public async fetch(...[ input, init ]: FetchParams): Promise<Response> {
     const jwk = await this.keyGen.getPrivateKey();
 
     const { alg, kid } = jwk;

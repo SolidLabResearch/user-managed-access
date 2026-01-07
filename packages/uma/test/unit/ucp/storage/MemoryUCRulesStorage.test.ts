@@ -1,5 +1,5 @@
 import { Parser, Store } from 'n3';
-import { MemoryUCRulesStorage } from '../../../src/storage/MemoryUCRulesStorage'
+import { MemoryUCRulesStorage } from '../../../../src/ucp/storage/MemoryUCRulesStorage'
 import "jest-rdf";
 
 describe('A MemoryUCRulesStorage', () => {

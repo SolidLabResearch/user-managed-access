@@ -6,10 +6,12 @@ import {
   NotFoundHttpError,
   RDF
 } from '@solid/community-server';
-import { ODRL, ODRL_P, OWL, UCRulesStorage } from '@solidlab/ucp';
 import { DataFactory as DF, Store } from 'n3';
+import { ODRL } from 'odrl-evaluator';
 import { Mocked } from 'vitest';
 import { ResourceRegistrationRequestHandler } from '../../../src/routes/ResourceRegistration';
+import { UCRulesStorage } from '../../../src/ucp/storage/UCRulesStorage';
+import { ODRL_P, OWL } from '../../../src/ucp/util/Vocabularies';
 import { HttpHandlerContext } from '../../../src/util/http/models/HttpHandler';
 import { RequestValidator } from '../../../src/util/http/validate/RequestValidator';
 import { RegistrationStore } from '../../../src/util/RegistrationStore';

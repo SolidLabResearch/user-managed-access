@@ -5619,15 +5619,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solidlab/ucp@workspace:^, @solidlab/ucp@workspace:packages/ucp":
-  version: 0.0.0-use.local
-  resolution: "@solidlab/ucp@workspace:packages/ucp"
-  dependencies:
-    "@types/n3": "npm:^1.16.4"
-    n3: "npm:^1.17.2"
-  languageName: unknown
-  linkType: soft
-
 "@solidlab/uma-css@workspace:packages/css":
   version: 0.0.0-use.local
   resolution: "@solidlab/uma-css@workspace:packages/css"
@@ -5654,7 +5645,6 @@ __metadata:
     "@httpland/authorization-parser": "npm:^1.1.0"
     "@solid/access-token-verifier": "npm:^1.2.0"
     "@solid/community-server": "npm:^8.0.0-alpha.1"
-    "@solidlab/ucp": "workspace:^"
     "@types/ms": "npm:^2.1.0"
     "@types/n3": "npm:^1.16.4"
     asynchronous-handlers: "npm:^1.0.2"

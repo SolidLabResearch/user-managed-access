@@ -1,8 +1,8 @@
 import 'jest-rdf';
+import { RDF } from '@solid/community-server';
 import { DataFactory as DF, NamedNode, Parser, Store } from 'n3';
 import { Mock, vi } from 'vitest';
-import { ContainerUCRulesStorage } from '../../../src/storage/ContainerUCRulesStorage';
-import { RDF } from '../../../src/util/Vocabularies';
+import { ContainerUCRulesStorage } from '../../../../src/ucp/storage/ContainerUCRulesStorage';
 
 describe('ContainerUCRulesStorage', (): void => {
   const containerTtl = `
