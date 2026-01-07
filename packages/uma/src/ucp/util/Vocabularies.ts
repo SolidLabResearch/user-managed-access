@@ -103,11 +103,6 @@ export function extendVocabulary<TBase extends string, TLocal extends string, TN
   return createVocabulary(vocabulary.namespace, ...allNames);
 }
 
-export const RDF = createVocabulary(
-    'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-    'type',
-);
-
 
 export const ODRL = createVocabulary(
     'http://www.w3.org/ns/odrl/2/',
@@ -148,12 +143,4 @@ export const ODRL_P = createVocabulary(
 export const OWL = createVocabulary(
   'http://www.w3.org/2002/07/owl#',
   'inverseOf',
-);
-
-export const XSD = createVocabulary(
-    'http://www.w3.org/2001/XMLSchema#',
-    'dateTime',
-    'duration',
-    'integer',
-    'string',
 );

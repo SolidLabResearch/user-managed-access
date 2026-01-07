@@ -1,4 +1,4 @@
-import { UCRulesStorage } from "@solidlab/ucp";
+import { UCRulesStorage } from "../ucp/storage/UCRulesStorage";
 import { getLoggerFor } from 'global-logger-factory';
 import { Parser, Store } from 'n3';
 import { writeStore } from "../util/ConvertUtil";

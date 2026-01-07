@@ -1,6 +1,6 @@
 import 'jest-rdf';
 import { DataFactory as DF, Store } from 'n3';
-import { extractQuadsRecursive } from '../../../src/util/Util';
+import { extractQuadsRecursive } from '../../../../src/ucp/util/Util';
 
 describe('Util', (): void => {
   describe('#extractQuadsRecursive', (): void => {
