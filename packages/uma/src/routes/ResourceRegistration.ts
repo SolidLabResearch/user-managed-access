@@ -6,12 +6,13 @@ import {
   InternalServerError,
   joinUrl,
   MethodNotAllowedHttpError,
-  NotFoundHttpError,
+  NotFoundHttpError, RDF,
 } from '@solid/community-server';
-import { ODRL, ODRL_P, OWL, RDF, UCRulesStorage } from '@solidlab/ucp';
 import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory as DF, NamedNode, Quad, Quad_Subject, Store } from 'n3';
 import { randomUUID } from 'node:crypto';
+import { UCRulesStorage } from '../ucp/storage/UCRulesStorage';
+import { ODRL, ODRL_P, OWL } from '../ucp/util/Vocabularies';
 import {
   HttpHandler,
   HttpHandlerContext,

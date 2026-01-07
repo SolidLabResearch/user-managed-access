@@ -1,12 +1,15 @@
 import { BadRequestHttpError, DC, NotImplementedHttpError, RDF } from '@solid/community-server';
-import { basicPolicy, ODRL, UCPConstraint, UCPPolicy, UCRulesStorage } from '@solidlab/ucp';
 import { getLoggerFor } from 'global-logger-factory';
-import { DataFactory, Literal, NamedNode, Quad, Quad_Subject, Store, Writer } from 'n3';
+import { DataFactory, Literal, NamedNode, Quad, Quad_Subject, Store } from 'n3';
 import { EyeReasoner, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator'
 import { createVocabulary } from 'rdf-vocabulary';
 import { CLIENTID, WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { Requirements } from '../../credentials/Requirements';
+import { basicPolicy } from '../../ucp/policy/ODRL';
+import { UCPPolicy } from '../../ucp/policy/UsageControlPolicy';
+import { UCRulesStorage } from '../../ucp/storage/UCRulesStorage';
+import { ODRL } from '../../ucp/util/Vocabularies';
 import { Permission } from '../../views/Permission';
 import { Authorizer } from './Authorizer';
 

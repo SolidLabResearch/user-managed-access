@@ -1,4 +1,4 @@
-import { ODRL } from "@solidlab/ucp";
+import { ODRL } from '../ucp/util/Vocabularies';
 import { Type, array, string, optional, any, union } from "../util/ReType";
 
 export const JsonLdIdentifier = {
@@ -61,9 +61,9 @@ export function convertStringOrJsonLdIdentifierToString(x : StringOrJsonLdIdenti
 
 /**
  * Note: This check makes the assumption of slash-semantics based resource ordering!
- * @param url 
- * @param policyTarget 
- * @returns 
+ * @param url
+ * @param policyTarget
+ * @returns
  */
 export function isPolicyTarget(url: string, policyTarget: ODRLTargetOrAssetCollection) {
     // AssetCollection
@@ -71,7 +71,7 @@ export function isPolicyTarget(url: string, policyTarget: ODRLTargetOrAssetColle
     if (assetCollectionType && assetCollectionType === ODRL.namespace + "AssetCollection") {
         return url.startsWith((policyTarget as ODRLAssetCollection).source)
     }
-    
+
     // @id identfier
     const id = (policyTarget as JsonLdIdentifier)["@id"]
     if (id && url === id) return true
@@ -87,11 +87,11 @@ export function getPolicyTargets(policyTarget: ODRLTargetOrAssetCollection): str
     if (assetCollectionType && assetCollectionType === ODRL.namespace + "AssetCollection") {
         return (policyTarget as ODRLAssetCollection).source
     }
-    
+
     // @id identfier
     const id = (policyTarget as JsonLdIdentifier)["@id"]
     if (id) return id
 
     // string
-    return policyTarget as string  
+    return policyTarget as string
 }

@@ -1,6 +1,7 @@
+import { RDF, XSD } from '@solid/community-server';
 import { DataFactory, Quad, Store } from "n3";
 import { randomUUID } from 'node:crypto';
-import { ODRL, RDF, XSD } from "../util/Vocabularies";
+import { ODRL } from "../util/Vocabularies";
 import { SimplePolicy, UCPConstraint, UCPPolicy, UCPRule } from "./UsageControlPolicy";
 const { quad, namedNode, literal } = DataFactory
 

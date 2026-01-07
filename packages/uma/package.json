@@ -62,7 +62,6 @@
     "@httpland/authorization-parser": "^1.1.0",
     "@solid/access-token-verifier": "^1.2.0",
     "@solid/community-server": "^8.0.0-alpha.1",
-    "@solidlab/ucp": "workspace:^",
     "@types/ms": "^2.1.0",
     "@types/n3": "^1.16.4",
     "asynchronous-handlers": "^1.0.2",
