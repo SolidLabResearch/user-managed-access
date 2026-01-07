@@ -1,6 +1,6 @@
 {
   "name": "@solidlab/user-managed-access",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "SolidLab access & usage control artefacts for use in the Solid ecosystem.",
   "keywords": [
     "css",
