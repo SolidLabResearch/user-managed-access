@@ -84,6 +84,7 @@ export * from './ucp/policy/ODRL';
 export * from './ucp/policy/UsageControlPolicy';
 export * from './ucp/storage/ContainerUCRulesStorage';
 export * from './ucp/storage/DirectoryUCRulesStorage';
+export * from './ucp/storage/FileBackupUCRulesStorage';
 export * from './ucp/storage/MemoryUCRulesStorage';
 export * from './ucp/storage/UCRulesStorage';
 export * from './ucp/util/Util';

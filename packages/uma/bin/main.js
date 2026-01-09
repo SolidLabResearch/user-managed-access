@@ -18,6 +18,7 @@ const launch = async () => {
   variables['urn:uma:variables:policyBaseIRI'] = 'http://localhost:3000/';
   variables['urn:uma:variables:policyDir'] = path.join(rootDir, './config/rules/policy');
   variables['urn:uma:variables:eyePath'] = 'eye';
+  variables['urn:uma:variables:backupFilePath'] = 'backup.ttl';
 
   const configPath = path.join(rootDir, './config/default.json');
 

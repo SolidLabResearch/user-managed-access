@@ -1,6 +1,8 @@
 {
   "@context": [
-    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^8.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/asynchronous-handlers/^1.0.0/components/context.jsonld"
   ],
   "@graph": [
     {
@@ -53,10 +55,23 @@
         "eyePath": { "@id": "urn:uma:variables:eyePath" },
         "policies": {
           "@id": "urn:uma:default:RulesStorage",
-          "@type": "MemoryUCRulesStorage"
+          "@type": "FileBackupUCRulesStorage",
+          "filePath": { "@id": "urn:uma:variables:backupFilePath" }
         }
       },
       "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
+    },
+    {
+      "@id": "urn:uma:default:FlexibleInitializer",
+      "@type": "SequenceHandler",
+      "handlers": [
+        {
+          "comment": "Reads in the policies stored in the backup file when starting the server",
+          "@id": "urn:uma:default:RulesStorageInitializableHandler",
+          "@type": "InitializableHandler",
+          "initializable": { "@id": "urn:uma:default:RulesStorage" }
+        }
+      ]
     }
   ]
 }

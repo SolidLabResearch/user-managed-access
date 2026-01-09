@@ -1,6 +1,7 @@
 {
   "@context": [
-    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/asynchronous-handlers/^1.0.0/components/context.jsonld"
   ],
   "import": [
     "sai-uma:config/default.json"
@@ -47,6 +48,15 @@
         "containerURL": {
           "@id": "urn:uma:variables:policyContainer"
         }
+      }
+    },
+    {
+      "comment": "Replace the InitializableHandler as the storage is no longer an Initializer",
+      "@id": "urn:solid-server:override:RulesStorageInitializableHandler",
+      "@type": "Override",
+      "overrideInstance": { "@id": "urn:uma:default:RulesStorageInitializableHandler" },
+      "overrideParameters": {
+        "@type": "StaticHandler"
       }
     }
   ]
