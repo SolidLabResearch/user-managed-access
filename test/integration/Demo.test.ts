@@ -36,6 +36,7 @@ describe('A demo server setup', (): void => {
         'urn:uma:variables:baseUrl': `http://localhost:${umaPort}/uma`,
         'urn:uma:variables:eyePath': 'eye',
         'urn:uma:variables:policyContainer': policyContainer,
+        'urn:uma:variables:backupFilePath': '',
       }
     ) as App;
 

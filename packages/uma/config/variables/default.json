@@ -31,6 +31,11 @@
         "comment": "URL of container where policies are stored.",
         "@id": "urn:uma:variables:policyContainer",
         "@type": "Variable"
+      },
+      {
+        "comment": "File path pointing to where policies should be backed up. Set to empty string to disable backups.",
+        "@id": "urn:uma:variables:backupFilePath",
+        "@type": "Variable"
       }
     ]
   }
