@@ -23,6 +23,7 @@ describe('A server setup', (): void => {
         'urn:uma:variables:port': umaPort,
         'urn:uma:variables:baseUrl': `http://localhost:${umaPort}/uma`,
         'urn:uma:variables:eyePath': 'eye',
+        'urn:uma:variables:backupFilePath': '',
       }
     ) as App;
 

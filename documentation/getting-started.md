@@ -26,9 +26,13 @@ so some information might change depending on which version and branch you're us
 ## Index
 
 - [Getting started](#getting-started)
+  * [Index](#index)
   * [Starting the server](#starting-the-server)
-  * [Authenticating the Resource Server](#authenticating-the-resource-server)
-  * [Locating the Authorization Server](#locating-the-authorization-server)
+  * [Authenticating as Resource Owner](#authenticating-as-resource-owner)
+  * [Authenticating as Resource Server](#authenticating-as-resource-server)
+    + [Requesting client credentials](#requesting-client-credentials)
+    + [Sending the credentials to the RS (CSS specific)](#sending-the-credentials-to-the-rs--css-specific-)
+    + [Requesting a PAT as RS](#requesting-a-pat-as-rs)
   * [Resource registration](#resource-registration)
     + [About identifiers](#about-identifiers)
   * [Resource access](#resource-access)
@@ -41,7 +45,9 @@ so some information might change depending on which version and branch you're us
     + [Generate token](#generate-token)
     + [Use token](#use-token)
   * [Policies](#policies)
+    + [Client application identification](#client-application-identification)
   * [Adding or changing policies](#adding-or-changing-policies)
+  * [Policy backups](#policy-backups)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
@@ -439,3 +445,18 @@ ex:constraint odrl:leftOperand odrl:purpose ;
 ## Adding or changing policies
 
 For more details, see the [policy management API documentation](policy-management.md).
+
+## Policy backups
+
+Policies are stored in memory, meaning these will be lost when the AS is restarted.
+To prevent this from happening,
+there is a backup system which copies all policy data to a file every 5 minutes,
+and reads it in again on server start.
+
+By default, this is disabled.
+To enable this, you have to edit the Components.js variables
+which get passed along in [`packages/uma/bin/main.js`](../packages/uma/bin/main.js).
+You want to change the line that defines the `urn:uma:variables:backupFilePath` variable,
+and set the string value to the path where you want the backup file to be stored,
+e.g., `backup.ttl`.
+When restarting the server, the contents of that file will be read to initialize policies on the server.

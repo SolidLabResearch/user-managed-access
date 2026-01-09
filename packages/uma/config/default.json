@@ -34,7 +34,18 @@
       "comment": "This is the entry point to the application. It can be used to both start and stop the server.",
       "@id": "urn:uma:default:App",
       "@type": "App",
-      "initializer": { "@id": "urn:uma:default:NodeHttpServer" },
+      "initializer": {
+        "@id": "urn:uma:default:Initializer",
+        "@type": "SequenceHandler",
+        "handlers": [
+          {
+            "@id": "urn:uma:default:FlexibleInitializer",
+            "@type": "SequenceHandler",
+            "handlers": []
+          },
+          { "@id": "urn:uma:default:NodeHttpServer" }
+        ]
+      },
       "finalizer": {
         "@id": "urn:uma:default:Finalizer",
         "@type": "SequenceHandler",
