@@ -65,6 +65,7 @@ const buildPolicyCreationQuery = (resourceOwner: string) => `
             ?p a odrl:Agreement ;
                odrl:permission ?r ;
                odrl:uid ?p .
+            ?r odrl:assignee ?assignee .
         } UNION {
             ?p a odrl:Set ;
                odrl:permission ?r ;
@@ -74,7 +75,6 @@ const buildPolicyCreationQuery = (resourceOwner: string) => `
         ?r a odrl:Permission ;
            odrl:action ?action ;
            odrl:target ?target ;
-           odrl:assignee ?assignee ;
            odrl:assigner <${resourceOwner}> .
     }
 `;
@@ -92,9 +92,9 @@ const buildPolicyCreationQuery = (resourceOwner: string) => `
 export const postPolicy = async (store: Store, resourceOwner: string): Promise<Store> => {
     const isOwner = store.countQuads(null, 'http://www.w3.org/ns/odrl/2/assigner', resourceOwner, null) !== 0;
     if (!isOwner) throw new ForbiddenHttpError();
-    
+
     const result = await executePost(store, buildPolicyCreationQuery(resourceOwner), ["p", "r"]);
-    
+
     return result;
 }
 
