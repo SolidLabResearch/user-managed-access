@@ -134,10 +134,10 @@ describe('BaseNegotiator', (): void => {
   });
 
   it('errors if invalid credentials are provided.', async(): Promise<void> => {
-    await expect(negotiator.negotiate({ ...input, claim_token: 'token' }))
-      .rejects.toThrow('Request with a "claim_token" must contain a "claim_token_format".');
-    await expect(negotiator.negotiate({ ...input, claim_token_format: 'format' }))
-      .rejects.toThrow('Request with a "claim_token_format" must contain a "claim_token".');
+    await expect(negotiator.negotiate({ ...input, claim_token: 'token' })).rejects.toThrow(
+      'Every claim requires both a token and format, received { claim_token: token, claim_token_format: undefined }');
+    await expect(negotiator.negotiate({ ...input, claim_token_format: 'format' })).rejects.toThrow(
+      'Every claim requires both a token and format, received { claim_token: undefined, claim_token_format: format }');
   });
 
   it('processes the credentials if they are provided.', async(): Promise<void> => {
@@ -155,5 +155,22 @@ describe('BaseNegotiator', (): void => {
     expect(tokenFactory.serialize).toHaveBeenCalledTimes(1);
     expect(tokenFactory.serialize).toHaveBeenLastCalledWith(
       { permissions: { resource_id: 'id1', resource_scopes: [ 'scope1' ] } });
+  });
+
+  it('supports multiple claim tokens.', async(): Promise<void> => {
+    await expect(negotiator.negotiate({ ...input,
+      claim_token: [
+        { claim_token: 'token', claim_token_format: 'format' },
+        { claim_token: 'token2', claim_token_format: 'format2' },
+      ],
+    })).resolves
+      .toEqual({ access_token: 'token', token_type: 'type' });
+    expect(ticketingStrategy.initializeTicket).toHaveBeenCalledTimes(1);
+    expect(ticketingStrategy.initializeTicket).toHaveBeenLastCalledWith(input.permissions);
+    expect(verifier.verify).toHaveBeenCalledTimes(2);
+    expect(verifier.verify).toHaveBeenCalledWith({ token: 'token', format: 'format' });
+    expect(verifier.verify).toHaveBeenCalledWith({ token: 'token2', format: 'format2' });
+    expect(ticketingStrategy.validateClaims).toHaveBeenCalledTimes(2);
+    expect(ticketingStrategy.validateClaims).toHaveBeenCalledWith(ticket, claims);
   });
 });
