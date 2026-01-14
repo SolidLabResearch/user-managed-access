@@ -127,15 +127,20 @@ export class BaseNegotiator implements Negotiator {
    * @returns An updated Ticket in which the Credentials have been validated.
    */
   protected async processCredentials(input: DialogInput, ticket: Ticket): Promise<Ticket> {
-    const { claim_token: token, claim_token_format: format } = input;
+    const tokens: { claim_token?: string, claim_token_format?: string}[] = [];
+    if (Array.isArray(input.claim_token)) {
+      tokens.push(...input.claim_token);
+    } else if (input.claim_token || input.claim_token_format) {
+      tokens.push({ claim_token: input.claim_token, claim_token_format: input.claim_token_format });
+    }
 
-    if (token || format) {
-      if (!token) this.error(BadRequestHttpError, 'Request with a "claim_token_format" must contain a "claim_token".');
-      if (!format) this.error(BadRequestHttpError, 'Request with a "claim_token" must contain a "claim_token_format".');
-
+    for (const { claim_token: token, claim_token_format: format } of tokens) {
+      if (!token || !format) {
+        this.error(BadRequestHttpError, `Every claim requires both a token and format, received { claim_token: ${
+          token}, claim_token_format: ${format} }`);
+      }
       const claims = await this.verifier.verify({ token, format });
-
-      return await this.ticketingStrategy.validateClaims(ticket, claims);
+      ticket = await this.ticketingStrategy.validateClaims(ticket, claims);
     }
 
     return ticket;
