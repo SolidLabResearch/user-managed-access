@@ -63,6 +63,7 @@ export class ClientRegistrationRequestHandler extends HttpHandler {
   protected async initializeStorage(): Promise<void> {
     await this.storage.defineType(CLIENT_REGISTRATION_STORAGE_TYPE, CLIENT_REGISTRATION_STORAGE_DESCRIPTION);
     await this.storage.createIndex(CLIENT_REGISTRATION_STORAGE_TYPE, 'userId');
+    await this.storage.createIndex(CLIENT_REGISTRATION_STORAGE_TYPE, 'clientUri');
     await this.storage.createIndex(CLIENT_REGISTRATION_STORAGE_TYPE, 'clientId');
   }
 

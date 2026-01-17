@@ -2,8 +2,11 @@ import {
   BadRequestHttpError,
   ConflictHttpError,
   IndexedStorage, InternalServerError,
-  joinUrl, NotFoundHttpError,
-  UnauthorizedHttpError
+  joinUrl,
+  MemoryMapStorage,
+  NotFoundHttpError,
+  UnauthorizedHttpError,
+  WrappedIndexedStorage
 } from '@solid/community-server';
 import { Mocked } from 'vitest';
 import { WEBID } from '../../../src/credentials/Claims';
@@ -113,6 +116,41 @@ describe('ClientRegistration', (): void => {
       clientId: '0000-1111-2222-3333-4444',
       clientSecret: '616263',
     });
+  });
+
+  it('allows multiple registrations for the same owner when client_uri differs.', async(): Promise<void> => {
+    const realStorage = new WrappedIndexedStorage(new MemoryMapStorage(), new MemoryMapStorage());
+    const realHandler = new ClientRegistrationRequestHandler(credentialParser, verifier, realStorage as any);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    vi.spyOn(crypto, 'randomUUID')
+      .mockReturnValueOnce('0000-1111-2222-3333-4444')
+      .mockReturnValueOnce('4444-3333-2222-1111-0000');
+    vi.spyOn(crypto, 'randomBytes')
+      .mockReturnValueOnce(Buffer.from('abc') as any)
+      .mockReturnValueOnce(Buffer.from('def') as any);
+
+    const firstRequest = {
+      method: 'POST',
+      url: new URL('http://example1.com/'),
+      body: {
+        client_name: 'rs-1',
+        client_uri: 'http://example1.com/',
+      },
+    } satisfies Partial<HttpHandlerRequest> as HttpHandlerRequest;
+
+    await expect(realHandler.handle({ request: firstRequest })).resolves.toMatchObject({ status: 201 });
+
+    const secondRequest = {
+      method: 'POST',
+      url: new URL('http://example2.com/'),
+      body: {
+        client_name: 'rs-2',
+        client_uri: 'http://example2.com/',
+      },
+    } satisfies Partial<HttpHandlerRequest> as HttpHandlerRequest;
+
+    await expect(realHandler.handle({ request: secondRequest })).resolves.toMatchObject({ status: 201 });
   });
 
   it('requires valid input when registering.', async(): Promise<void> => {
