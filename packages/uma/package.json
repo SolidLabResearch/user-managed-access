@@ -77,7 +77,8 @@
     "odrl-evaluator": "^0.5.0",
     "rdf-vocabulary": "^1.0.1",
     "uri-template-lite": "^23.4.0",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "yargs": "^18.0.0"
   },
   "lsd:module": "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma",
   "lsd:components": "dist/components/components.jsonld",
