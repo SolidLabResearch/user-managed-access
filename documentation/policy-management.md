@@ -21,7 +21,7 @@ These requests comply with some restrictions:
 ### Authentication
 
 The client is expected to use the authentication method
-described in the [getting started documentation](getting-started.md).
+described in the [getting started documentation](getting-started.md#authenticating-as-resource-owner).
 
 ### Creating policies
 
@@ -49,7 +49,7 @@ This example creates a policy `http://example.org/policy` for client `https://po
 
 ```curl
 curl --location 'http://localhost:4000/uma/policies' \
---header 'Authorization: https://pod.example.com/profile/card#me' \
+--header 'Authorization: WebID https%3A%2F%2Fpod.example.com%2Fprofile%2Fcard%23me' \
 --header 'Content-Type: text/turtle' \
 --data-raw '@prefix ex: <http://example.org/>.
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
@@ -83,7 +83,7 @@ with WebID `https://pod.example.com/profile/card#me` looks like this:
 
 ```curl
 curl --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2Fpolicy' \
---header 'Authorization: https://pod.example.com/profile/card#me'
+--header 'Authorization: WebID https%3A%2F%2Fpod.example.com%2Fprofile%2Fcard%23me'
 ```
 
 Since the credentials match the assigner, the server responds with the information about the policy:
@@ -104,7 +104,7 @@ An example request would look like this:
 
 ```curl
 curl --location 'http://localhost:4000/uma/policies' \
---header 'Authorization: https://pod.example.com/profile/card#me'
+--header 'Authorization: WebID https%3A%2F%2Fpod.example.com%2Fprofile%2Fcard%23me'
 ```
 
 ### Updating policies
@@ -144,7 +144,7 @@ This example updates the policy previously created, `http://example.org/policy`,
 
 ```curl
 curl -X PUT --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2Fpolicy' \
---header 'Authorization: https://pod.example.com/profile/card#me' \
+--header 'Authorization: WebID https%3A%2F%2Fpod.example.com%2Fprofile%2Fcard%23me' \
 --header 'Content-Type: text/turtle' \
 --data-raw '@prefix ex: <http://example.org/>.
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
@@ -177,7 +177,7 @@ Notice that the content type has changed to `application/sparql-query`.
 
 ```curl
 curl -X PATCH --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2Fpolicy' \
---header 'Authorization: https://pod.example.com/profile/card#me' \
+--header 'Authorization: WebID https%3A%2F%2Fpod.example.com%2Fprofile%2Fcard%23me' \
 --header 'Content-Type: application/sparql-update' \
 --data-raw 'PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
@@ -201,16 +201,10 @@ In order to delete the policy created and updated above, this simple request wou
 
 ```curl
 curl -X DELETE --location 'http://localhost:4000/uma/policies/http%3A%2F%2Fexample.org%2Fpolicy' \
---header 'Authorization: https://pod.example.com/profile/card#me'
+--header 'Authorization: WebID https%3A%2F%2Fpod.example.com%2Fprofile%2Fcard%23me'
 ```
 
 ## Known issues and limitations
-
-### Authentication
-
-Current authentication is done by setting the `Authorization` header to a WebID.
-There is no verification so any WebID can be entered.
-In the future we want to support OIDC tokens for authentication.
 
 ### Sanitization
 
