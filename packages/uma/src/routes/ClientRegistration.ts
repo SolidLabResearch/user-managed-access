@@ -64,6 +64,7 @@ export class ClientRegistrationRequestHandler extends HttpHandler {
     await this.storage.defineType(CLIENT_REGISTRATION_STORAGE_TYPE, CLIENT_REGISTRATION_STORAGE_DESCRIPTION);
     await this.storage.createIndex(CLIENT_REGISTRATION_STORAGE_TYPE, 'userId');
     await this.storage.createIndex(CLIENT_REGISTRATION_STORAGE_TYPE, 'clientId');
+    await this.storage.createIndex(CLIENT_REGISTRATION_STORAGE_TYPE, 'clientUri');
   }
 
   public async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse> {
@@ -108,7 +109,7 @@ export class ClientRegistrationRequestHandler extends HttpHandler {
     const match = await this.storage.findIds(
       CLIENT_REGISTRATION_STORAGE_TYPE, { userId, clientUri: request.body.client_uri });
     if (match.length > 0) {
-    throw new ConflictHttpError(`${request.body.client_uri} is already registered for ${userId}`);
+      throw new ConflictHttpError(`${request.body.client_uri} is already registered for ${userId}`);
     }
 
     const clientId = randomUUID();

@@ -1,4 +1,4 @@
-import { App } from '@solid/community-server';
+import { App, joinUrl } from '@solid/community-server';
 import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
 import { Parser, Writer } from 'n3';
 import { readFile } from 'node:fs/promises';
@@ -70,6 +70,24 @@ describe('A server setup', (): void => {
         email: 'alice@example.org',
         password: 'abc123'
       });
+    });
+
+    it('can register client credentials for a different user/RS combination.', async(): Promise<void> => {
+      // There used to be an issue where this was not possible
+      const configResponse = await fetch(`http://localhost:${umaPort}/uma/.well-known/uma2-configuration`);
+      expect(configResponse.status).toBe(200);
+      const configuration = await configResponse.json() as { registration_endpoint: string };
+      expect(configuration.registration_endpoint).toBeDefined();
+
+      let response = await fetch(configuration.registration_endpoint, {
+        method: 'POST',
+        headers: {
+          authorization: `WebID ${encodeURIComponent(`http://localhost:${cssPort}/alice/profile/card#me`)}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ client_uri: `http://example.org/` }),
+      });
+      expect(response.status).toBe(201);
     });
   });
 
