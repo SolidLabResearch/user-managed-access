@@ -34,11 +34,12 @@ export class OidcVerifier implements Verifier {
 
     // We first need to determine if this is a Solid OIDC token or a standard one
     const unsafeDecoded = decodeJwt(credential.token);
-    const isSolidTOken = Array.isArray(unsafeDecoded.aud) && unsafeDecoded.aud.includes('solid');
+    const isSolidToken = unsafeDecoded.aud === 'solid' ||
+      (Array.isArray(unsafeDecoded.aud) && unsafeDecoded.aud.includes('solid'));
 
     try {
       this.validateToken(unsafeDecoded);
-      if (isSolidTOken) {
+      if (isSolidToken) {
         return await this.verifySolidToken(credential.token);
       } else {
         return await this.verifyStandardToken(credential.token, unsafeDecoded.iss!);
