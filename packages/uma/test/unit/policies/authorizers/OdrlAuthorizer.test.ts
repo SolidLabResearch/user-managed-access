@@ -35,7 +35,7 @@ describe('OdrlAuthorizer', (): void => {
 
     vi.mocked(basicPolicy).mockReturnValueOnce({
       ruleIRIs:[],
-      policyIRI: '',
+      policyIRI: 'req',
       representation: new Store(requestQuads),
     });
 
@@ -109,8 +109,13 @@ describe('OdrlAuthorizer', (): void => {
       @prefix dc: <http://purl.org/dc/terms/> .
       @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
       <urn:policyReport> a cr:PolicyReport ;
+        dc:created "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
+        cr:policyRequest <req> ;
+        cr:policy <urn:policy> ;
         cr:ruleReport <urn:ruleReport> .
       <urn:ruleReport> a cr:PermissionReport ;
+        cr:rule <urn:rule> ;
+        cr:ruleRequest <urn:ruleRequest> ;
         cr:activationState cr:Active ;
         cr:premiseReport <urn:premiseReport> .
       <urn:premiseReport> a cr:Target-Report ;
@@ -132,8 +137,13 @@ describe('OdrlAuthorizer', (): void => {
       @prefix dc: <http://purl.org/dc/terms/> .
       @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
       <urn:policyReport> a cr:PolicyReport ;
+        dc:created "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
+        cr:policyRequest <req> ;
+        cr:policy <urn:policy> ;
         cr:ruleReport <urn:ruleReport> .
       <urn:ruleReport> a cr:PermissionReport ;
+        cr:rule <urn:rule> ;
+        cr:ruleRequest <urn:ruleRequest> ;
         cr:activationState cr:Inactive ;
         cr:premiseReport <urn:premiseReport> .
       <urn:premiseReport> a cr:Target-Report ;
@@ -155,8 +165,14 @@ describe('OdrlAuthorizer', (): void => {
       @prefix dc: <http://purl.org/dc/terms/> .
       @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
       <urn:policyReport> a cr:PolicyReport ;
+        cr:policyRequest <req> ;
+        dc:created "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
+        cr:policyRequest <req> ;
+        cr:policy <urn:policy> ;
         cr:ruleReport <urn:ruleReport> .
       <urn:ruleReport> a cr:ProhibitionReport ;
+        cr:rule <urn:rule> ;
+        cr:ruleRequest <urn:ruleRequest> ;
         cr:activationState cr:Active ;
         cr:premiseReport <urn:premiseReport> .
       <urn:premiseReport> a cr:Target-Report ;
@@ -181,8 +197,13 @@ describe('OdrlAuthorizer', (): void => {
       @prefix dc: <http://purl.org/dc/terms/> .
       @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
       <urn:policyReport> a cr:PolicyReport ;
+        dc:created "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
+        cr:policyRequest <req> ;
+        cr:policy <urn:policy> ;
         cr:ruleReport <urn:ruleReport> .
       <urn:ruleReport> a cr:PermissionReport ;
+        cr:rule <urn:rule> ;
+        cr:ruleRequest <urn:ruleRequest> ;
         cr:activationState cr:Active ;
         cr:premiseReport <urn:premiseReport> .
       <urn:premiseReport> a cr:Target-Report ;
@@ -193,8 +214,13 @@ describe('OdrlAuthorizer', (): void => {
       @prefix dc: <http://purl.org/dc/terms/> .
       @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
       <urn:policyReport> a cr:PolicyReport ;
+        dc:created "2024-02-12T11:20:10.999Z"^^xsd:dateTime ;
+        cr:policyRequest <req> ;
+        cr:policy <urn:policy> ;
         cr:ruleReport <urn:ruleReport> .
       <urn:ruleReport> a cr:ProhibitionReport ;
+        cr:rule <urn:rule> ;
+        cr:ruleRequest <urn:ruleRequest> ;
         cr:activationState cr:Active ;
         cr:premiseReport <urn:premiseReport> .
       <urn:premiseReport> a cr:Target-Report ;
