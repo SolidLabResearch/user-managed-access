@@ -6,7 +6,8 @@ import {
   InternalServerError,
   joinUrl,
   MethodNotAllowedHttpError,
-  NotFoundHttpError, RDF,
+  NotFoundHttpError,
+  RDF,
 } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory as DF, NamedNode, Quad, Quad_Subject, Store } from 'n3';
@@ -121,7 +122,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     }
 
     // Update the resource metadata
-    await this.setResourceMetadata(parameters.id, body, owner);
+    await this.setResourceMetadata(parameters.id, body, owner, entry.description);
 
     return ({
       status: 200,
@@ -157,11 +158,13 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
    * @param id - The identifier of the resource.
    * @param description - The new {@link ResourceDescription} for the resource.
    * @param owner - The owner of the resource.
+   * @param previous - The previously stored {@link ResourceDescription}, if there is one.
    */
-  protected async setResourceMetadata(id: string, description: ResourceDescription, owner: string): Promise<void> {
+  protected async setResourceMetadata(id: string, description: ResourceDescription, owner: string,
+    previous?: ResourceDescription): Promise<void> {
     const policyStore = await this.policies.getStore();
-    const collectionQuads = await this.updateCollections(policyStore, id, description);
-    const relationQuads = await this.updateRelations(policyStore, id, description);
+    const collectionQuads = await this.updateCollections(policyStore, id, description, previous);
+    const relationQuads = await this.updateRelations(policyStore, id, description, previous);
     const addQuads = [ ...collectionQuads.add, ...relationQuads.add ];
     if (addQuads.length > 0) {
       await this.policies.addRule(new Store([...collectionQuads.add, ...relationQuads.add]));
