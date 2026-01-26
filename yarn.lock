@@ -5657,7 +5657,7 @@ __metadata:
     ms: "npm:^2.1.3"
     n3: "npm:^1.17.2"
     odrl-evaluator: "npm:^0.6.0"
-    policy-conflict-resolver: "npm:^0.0.2"
+    policy-conflict-resolver: "npm:^0.0.3"
     rdf-string: "npm:^2.0.1"
     rdf-vocabulary: "npm:^1.0.1"
     uri-template-lite: "npm:^23.4.0"
@@ -11381,16 +11381,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"policy-conflict-resolver@npm:^0.0.2":
-  version: 0.0.2
-  resolution: "policy-conflict-resolver@npm:0.0.2"
+"policy-conflict-resolver@npm:^0.0.3":
+  version: 0.0.3
+  resolution: "policy-conflict-resolver@npm:0.0.3"
   dependencies:
     "@rdfjs/types": "npm:^2.0.1"
     "@types/n3": "npm:^1.21.1"
     asynchronous-handlers: "npm:^1.0.2"
     n3: "npm:^2.0.1"
     rdf-vocabulary: "npm:^1.0.0"
-  checksum: 10c0/1d2d07b7d811907bd991507a6e83463550bcdc5eee308b29a587d805993c1e3ee152afac98affd420b132ecd5c3da4e3148cf807588bdafc3f41e49ef351192d
+  checksum: 10c0/e96677faf1a1e136ee41574d85ba7ce6953ce8bce7ad47376f1548183375e951f1abae2d52c1e44de8afb1902936578972faa469b90623a905becb285174ca96
   languageName: node
   linkType: hard
 
