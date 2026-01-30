@@ -6,6 +6,10 @@
     {
       "@id": "urn:uma:default:ResourceRegistrationStore",
       "@type": "MemoryMapStorage"
+    },
+    {
+      "@id": "urn:uma:default:DerivationStore",
+      "@type": "MemoryMapStorage"
     }
   ]
 }

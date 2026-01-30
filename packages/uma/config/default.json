@@ -134,6 +134,7 @@
                 "@type": "RoutedHttpRequestHandler",
                 "routes": [
                   { "@id": "urn:uma:default:UmaConfigRoute" },
+                  { "@id": "urn:uma:default:OidcConfigRoute" },
                   { "@id": "urn:uma:default:JwksRoute" },
                   { "@id": "urn:uma:default:TokenRoute" },
                   { "@id": "urn:uma:default:PermissionRegistrationRoute" },
