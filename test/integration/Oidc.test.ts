@@ -32,17 +32,16 @@ describe('A server supporting OIDC tokens', (): void => {
         'urn:uma:variables:eyePath': 'eye',
         'urn:uma:variables:backupFilePath': '',
       }
-    ) as App;
+    );
 
     cssApp = await instantiateFromConfig(
       'urn:solid-server:default:App',
       path.join(__dirname, '../../packages/css/config/default.json'),
       {
         ...getDefaultCssVariables(cssPort),
-        'urn:solid-server:uma:variable:AuthorizationServer': `http://localhost:${umaPort}/`,
         'urn:solid-server:default:variable:seedConfig': path.join(__dirname, '../../packages/css/config/seed.json'),
       },
-    ) as App;
+    );
 
     const generator = new CachedJwkGenerator('ES256', 'jwks', new MemoryMapStorage());
     privateKey = { ...await generator.getPrivateKey(), kid: 'kid' };

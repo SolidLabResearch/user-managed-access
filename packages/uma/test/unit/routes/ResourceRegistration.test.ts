@@ -26,6 +26,7 @@ describe('ResourceRegistration', (): void => {
   let input: HttpHandlerContext<ResourceDescription>;
   let policyStore: Store;
 
+  let derivationStore: Mocked<KeyValueStorage<string, string>>;
   let registrationStore: Mocked<RegistrationStore>;
   let policies: Mocked<UCRulesStorage>;
   let validator: Mocked<RequestValidator>;
@@ -46,9 +47,14 @@ describe('ResourceRegistration', (): void => {
 
     policyStore = new Store();
 
+    derivationStore = {
+      set: vi.fn(),
+      delete: vi.fn(),
+    } satisfies Partial<KeyValueStorage<string, string>> as any;
+
     registrationStore = {
       has: vi.fn().mockResolvedValue(false),
-      get: vi.fn().mockResolvedValue({ owner, description: input.request.body }),
+      get: vi.fn().mockResolvedValue({ owner, description: { ...input.request.body }}),
       set: vi.fn(),
       delete: vi.fn(),
     } satisfies Partial<KeyValueStorage<string, ResourceDescription>> as any;
@@ -60,10 +66,10 @@ describe('ResourceRegistration', (): void => {
     } satisfies Partial<UCRulesStorage> as any;
 
     validator = {
-      handleSafe: vi.fn().mockResolvedValue({ owner })
+      handleSafe: vi.fn().mockResolvedValue({ owner }),
     } satisfies Partial<RequestValidator> as any;
 
-    handler = new ResourceRegistrationRequestHandler(registrationStore, policies, validator);
+    handler = new ResourceRegistrationRequestHandler(derivationStore, registrationStore, policies, validator);
   });
 
   it('throws an error if the method is not allowed.', async(): Promise<void> => {
@@ -151,6 +157,21 @@ describe('ResourceRegistration', (): void => {
         DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:1')),
         DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:2')),
       ]);
+    });
+
+    it('stores derivation IDs.', async(): Promise<void> => {
+      input.request.body!.derived_from = [
+        { derivation_resource_id: 'd1', issuer: 'issuer1' },
+        { derivation_resource_id: 'd2', issuer: 'issuer2' },
+      ];
+      await expect(handler.handle(input)).resolves.toEqual({
+        status: 201,
+        headers: { location: `http://example.com/foo/name` },
+        body: { _id: 'name', user_access_policy_uri: 'TODO: implement policy UI' },
+      });
+      expect(derivationStore.set).toHaveBeenCalledTimes(2);
+      expect(derivationStore.set).toHaveBeenCalledWith('d1', 'issuer1');
+      expect(derivationStore.set).toHaveBeenCalledWith('d2', 'issuer2');
     });
   });
 
@@ -242,6 +263,71 @@ describe('ResourceRegistration', (): void => {
         DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:1')),
         DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:2')),
       ]);
+    });
+
+    it('removes outdated relation triples.', async(): Promise<void> => {
+      policyStore.addQuads([
+        DF.quad(DF.namedNode('collection:1'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:1'), ODRL.terms.source, DF.namedNode('name')),
+        DF.quad(DF.namedNode('collection:1'), ODRL_P.terms.relation, DF.namedNode('pred')),
+        DF.quad(DF.namedNode('collection:2'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:2'), ODRL.terms.source, DF.namedNode('name')),
+        DF.quad(DF.namedNode('collection:2'), ODRL_P.terms.relation, DF.blankNode('n3-0')),
+        DF.quad(DF.blankNode('n3-0'), OWL.terms.inverseOf, DF.namedNode('rPred')),
+        DF.quad(DF.namedNode('collection:3'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:3'), ODRL.terms.source, DF.namedNode('name2')),
+        DF.quad(DF.namedNode('collection:3'), ODRL_P.terms.relation, DF.namedNode('pred2')),
+        DF.quad(DF.namedNode('collection:4'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:4'), ODRL.terms.source, DF.namedNode('name2')),
+        DF.quad(DF.namedNode('collection:4'), ODRL_P.terms.relation, DF.blankNode('n3-1')),
+        DF.quad(DF.blankNode('n3-1'), OWL.terms.inverseOf, DF.namedNode('rPred2')),
+
+        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:1')),
+        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:2')),
+        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:3')),
+        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:4')),
+      ]);
+
+      registrationStore.get.mockResolvedValue({ owner, description: {
+          name: 'entry',
+          resource_scopes: [ 'scope1', 'scope2' ],
+          resource_relations: { rPred: [ 'name' ], rPred2: [ 'name2' ],
+            '@reverse': { pred: [ 'name' ], pred2: [ 'name2' ] }},
+        }});
+      input.request.body!.resource_relations = { rPred: [ 'name' ], '@reverse': { pred: [ 'name' ] }};
+      input.request.parameters = { id: 'entry' };
+      await expect(handler.handle(input)).resolves.toEqual({
+        status: 200,
+        body: { _id: 'entry', user_access_policy_uri: 'TODO: implement policy UI' },
+      });
+      expect(policies.addRule).toHaveBeenCalledTimes(0);
+      expect(policies.removeData).toHaveBeenCalledTimes(1);
+      const newStore = policies.removeData.mock.calls[0][0];
+      expect(newStore).toBeRdfIsomorphic([
+        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:3')),
+        DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:4')),
+      ]);
+    });
+
+    it('updates the stored derivation IDs.', async(): Promise<void> => {
+      registrationStore.get.mockResolvedValue({ owner, description: {
+          name: 'name',
+          resource_scopes: [ 'scope1', 'scope2' ],
+          derived_from: [{ derivation_resource_id: 'd3', issuer: 'issuer3' }]
+        }});
+      input.request.body!.derived_from = [
+        { derivation_resource_id: 'd1', issuer: 'issuer1' },
+        { derivation_resource_id: 'd2', issuer: 'issuer2' },
+      ];
+      await expect(handler.handle(input)).resolves.toEqual({
+        status: 200,
+        body: { _id: 'name', user_access_policy_uri: 'TODO: implement policy UI' },
+      });
+      expect(derivationStore.set).toHaveBeenCalledTimes(2);
+      expect(derivationStore.set).toHaveBeenCalledWith('d1', 'issuer1');
+      expect(derivationStore.set).toHaveBeenCalledWith('d2', 'issuer2');
+      expect(derivationStore.delete).toHaveBeenCalledTimes(1);
+      expect(derivationStore.delete).toHaveBeenCalledWith('d3');
     });
   });
 

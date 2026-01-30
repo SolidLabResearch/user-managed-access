@@ -5,8 +5,13 @@
   "@graph": [
     {
       "@id": "urn:uma:default:TicketingStrategy",
-      "@type": "ImmediateAuthorizerStrategy",
-      "authorizer": { "@id": "urn:uma:default:Authorizer" }
+      "@type": "AggregatorStrategy",
+      "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
+      "derivationStore": { "@id": "urn:uma:default:DerivationStore" },
+      "strategy": {
+        "@type": "ImmediateAuthorizerStrategy",
+        "authorizer": { "@id": "urn:uma:default:Authorizer" }
+      }
     }
   ]
 }

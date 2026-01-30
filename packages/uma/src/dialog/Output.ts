@@ -9,6 +9,7 @@ export const DialogOutput = ({
   token_type: string,
   expires_in: $(number),
   upgraded: $(boolean),
+  derivation_resource_id: $(string),
 });
 
 /**

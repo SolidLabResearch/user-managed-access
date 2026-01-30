@@ -1,6 +1,5 @@
 import { getLoggerFor } from 'global-logger-factory';
 import { ClaimSet } from '../../credentials/ClaimSet';
-import { Requirements } from '../../credentials/Requirements';
 import { RegistrationStore } from '../../util/RegistrationStore';
 import { Permission } from '../../views/Permission';
 import { Authorizer } from './Authorizer';
@@ -50,30 +49,6 @@ export class NamespacedAuthorizer implements Authorizer {
 
     // Delegate to authorizer
     return authorizer.permissions(claims, query);
-  }
-
-  /** @inheritdoc */
-  public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements[]> {
-    this.logger.info(`Calculating credentials. ${JSON.stringify({ permissions, query })}`);
-
-    // No requirements if no requested permissions
-    if (!permissions || permissions.length === 0) return [];
-
-    // Base namespace on first resource
-    const ns = await this.findNamespace(permissions[0].resource_id);
-
-    // Check namespaces of other resources
-    for (let i = 1; i < permissions.length; ++i) {
-      if (await this.findNamespace(permissions[i].resource_id) !== ns) {
-        this.logger.warn(`Cannot calculate credentials over multiple namespaces at once.`);
-        return [];
-      }
-    }
-
-    // Find applicable authorizer
-    const authorizer = (typeof ns === 'string' && this.authorizers[ns]) || this.fallback;
-
-    return authorizer.credentials(permissions, query);
   }
 
   /**

@@ -5,8 +5,10 @@ import {
   ForbiddenHttpError,
   InternalServerError,
   joinUrl,
+  KeyValueStorage,
   MethodNotAllowedHttpError,
-  NotFoundHttpError, RDF,
+  NotFoundHttpError,
+  RDF,
 } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory as DF, NamedNode, Quad, Quad_Subject, Store } from 'n3';
@@ -39,11 +41,13 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
   /**
+   * @param derivationStore - Key/value store linking derivation_resource_ids to their issuer.
    * @param registrationStore - Key/value store containing the {@link ResourceDescription}s.
    * @param policies - Policy store to contain the asset relation triples.
    * @param validator - Validates that the request is valid.
    */
   constructor(
+    protected readonly derivationStore: KeyValueStorage<string, string>,
     protected readonly registrationStore: RegistrationStore,
     protected readonly policies: UCRulesStorage,
     protected readonly validator: RequestValidator,
@@ -121,7 +125,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     }
 
     // Update the resource metadata
-    await this.setResourceMetadata(parameters.id, body, owner);
+    await this.setResourceMetadata(parameters.id, body, owner, entry.description);
 
     return ({
       status: 200,
@@ -157,11 +161,13 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
    * @param id - The identifier of the resource.
    * @param description - The new {@link ResourceDescription} for the resource.
    * @param owner - The owner of the resource.
+   * @param previous - The previously stored {@link ResourceDescription}, if there is one.
    */
-  protected async setResourceMetadata(id: string, description: ResourceDescription, owner: string): Promise<void> {
+  protected async setResourceMetadata(id: string, description: ResourceDescription, owner: string,
+    previous?: ResourceDescription): Promise<void> {
     const policyStore = await this.policies.getStore();
-    const collectionQuads = await this.updateCollections(policyStore, id, description);
-    const relationQuads = await this.updateRelations(policyStore, id, description);
+    const collectionQuads = await this.updateCollections(policyStore, id, description, previous);
+    const relationQuads = await this.updateRelations(policyStore, id, description, previous);
     const addQuads = [ ...collectionQuads.add, ...relationQuads.add ];
     if (addQuads.length > 0) {
       await this.policies.addRule(new Store([...collectionQuads.add, ...relationQuads.add]));
@@ -169,6 +175,17 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     const removeQuads = [ ...collectionQuads.remove, ...relationQuads.remove ];
     if (removeQuads.length > 0) {
       await this.policies.removeData(new Store([...collectionQuads.remove, ...relationQuads.remove]));
+    }
+
+    // Update the stored derivation IDs accordingly
+    const derivedEntries = description.derived_from ?? [];
+    const removedDerivedIds = new Set((previous?.derived_from ?? []).map((entry) => entry.derivation_resource_id));
+    for (const entry of derivedEntries) {
+      await this.derivationStore.set(entry.derivation_resource_id, entry.issuer);
+      removedDerivedIds.delete(entry.derivation_resource_id);
+    }
+    for (const id of removedDerivedIds) {
+      await this.derivationStore.delete(id);
     }
 
     // Store the new UMA ID (or update the contents of the existing one)

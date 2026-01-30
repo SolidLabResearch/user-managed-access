@@ -1,9 +1,8 @@
 import { BadRequestHttpError, ForbiddenHttpError, HttpErrorClass, KeyValueStorage } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { randomUUID } from 'node:crypto';
-import { ClaimSet } from '../credentials/ClaimSet';
 import { Verifier } from '../credentials/verify/Verifier';
-import { NeedInfoError } from '../errors/NeedInfoError';
+import { NeedInfoError, RequiredClaim } from '../errors/NeedInfoError';
 import { getOperationLogger } from '../logging/OperationLogger';
 import { serializePolicyInstantiation } from '../logging/OperationSerializer';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
@@ -73,21 +72,18 @@ export class BaseNegotiator implements Negotiator {
     }
 
     // ... on failure, deny if no solvable requirements
-    this.denyRequest(ticket);
+    this.denyRequest(ticket, resolved.value);
   }
 
   // TODO:
-  protected denyRequest(ticket: Ticket): never {
-    const requiredClaims = ticket.required.map(req => Object.keys(req));
-    if (requiredClaims.length === 0) throw new ForbiddenHttpError();
+  protected denyRequest(ticket: Ticket, requirements: RequiredClaim[]): never {
+    if (requirements.length === 0) throw new ForbiddenHttpError('Request denied');
 
     // ... require more info otherwise
     const id = randomUUID();
     this.ticketStore.set(id, ticket);
     throw new NeedInfoError('Need more info to authorize request ...', id, {
-      required_claims: {
-        claim_token_format: requiredClaims,
-      },
+      required_claims: requirements,
     });
   }
 
@@ -127,15 +123,20 @@ export class BaseNegotiator implements Negotiator {
    * @returns An updated Ticket in which the Credentials have been validated.
    */
   protected async processCredentials(input: DialogInput, ticket: Ticket): Promise<Ticket> {
-    const { claim_token: token, claim_token_format: format } = input;
+    const tokens: { claim_token?: string, claim_token_format?: string}[] = [];
+    if (Array.isArray(input.claim_token)) {
+      tokens.push(...input.claim_token);
+    } else if (input.claim_token || input.claim_token_format) {
+      tokens.push({ claim_token: input.claim_token, claim_token_format: input.claim_token_format });
+    }
 
-    if (token || format) {
-      if (!token) this.error(BadRequestHttpError, 'Request with a "claim_token_format" must contain a "claim_token".');
-      if (!format) this.error(BadRequestHttpError, 'Request with a "claim_token" must contain a "claim_token_format".');
-
+    for (const { claim_token: token, claim_token_format: format } of tokens) {
+      if (!token || !format) {
+        this.error(BadRequestHttpError, `Every claim requires both a token and format, received { claim_token: ${
+          token}, claim_token_format: ${format} }`);
+      }
       const claims = await this.verifier.verify({ token, format });
-
-      return await this.ticketingStrategy.validateClaims(ticket, claims);
+      ticket = await this.ticketingStrategy.validateClaims(ticket, claims);
     }
 
     return ticket;

@@ -38,7 +38,7 @@ describe('A demo server setup', (): void => {
         'urn:uma:variables:policyContainer': policyContainer,
         'urn:uma:variables:backupFilePath': '',
       }
-    ) as App;
+    );
 
     cssApp = await instantiateFromConfig(
       'urn:solid-server:default:App',
@@ -49,10 +49,9 @@ describe('A demo server setup', (): void => {
       ],
       {
         ...getDefaultCssVariables(cssPort),
-        'urn:solid-server:uma:variable:AuthorizationServer': `http://localhost:${umaPort}/`,
         'urn:solid-server:default:variable:seedConfig':  path.join(__dirname, '../../demo/seed.json'),
       },
-    ) as App;
+    );
 
     await Promise.all([umaApp.start(), cssApp.start()]);
   });
@@ -232,28 +231,6 @@ PREFIX ex: <http://example.org/>
         resource_id: terms.resources.smartwatch,
         resource_scopes: [ 'urn:example:css:modes:read' ]
       }],
-      contract:{
-        '@context': 'http://www.w3.org/ns/odrl.jsonld',
-        '@type': 'Agreement',
-        uid: expect.any(String),
-        'http://purl.org/dc/terms/description': 'Agreement for HCP X to read Alice\'s health data for bariatric care.',
-        'https://w3id.org/dpv#hasLegalBasis': {
-          '@id': 'https://w3id.org/dpv/legal/eu/gdpr#eu-gdpr:A9-2-a'
-        },
-        permission:[{
-          '@type': 'Permission',
-          action: 'https://w3id.org/oac#read',
-          target: terms.resources.smartwatch,
-          assigner: 'http://localhost:3000/ruben/profile/card#me',
-          assignee: 'http://localhost:3000/alice/profile/card#me',
-          constraint: [{
-            '@type': 'Constraint',
-            leftOperand: 'purpose',
-            operator: 'eq',
-            rightOperand: { '@id':'http://example.org/bariatric-care' }
-          }]
-        }]
-      },
       iat: expect.any(Number),
       iss: `http://localhost:${umaPort}/uma`,
       aud: 'solid',

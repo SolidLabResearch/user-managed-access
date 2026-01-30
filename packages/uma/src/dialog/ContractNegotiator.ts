@@ -1,7 +1,7 @@
 import { createErrorMessage, KeyValueStorage } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
-import { Requirements } from '../credentials/Requirements';
 import { Verifier } from '../credentials/verify/Verifier';
+import { RequiredClaim } from '../errors/NeedInfoError';
 import { ContractManager } from '../policies/contracts/ContractManager';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../ticketing/Ticket';
@@ -70,7 +70,7 @@ export class ContractNegotiator extends BaseNegotiator {
     }
 
     // ... on failure, deny if no solvable requirements
-    this.denyRequest(ticket);
+    this.denyRequest(ticket, result.value);
   }
 
   /**
@@ -81,8 +81,8 @@ export class ContractNegotiator extends BaseNegotiator {
    * In case the ticket is not resolved,
    * the needed requirements will be returned as Failure.
    */
-  protected async toContract(ticket: Ticket): Promise<Result<ODRLContract, Requirements[]>> {
-    let result : Result<ODRLContract, Requirements[]>;
+  protected async toContract(ticket: Ticket): Promise<Result<ODRLContract, RequiredClaim[]>> {
+    let result : Result<ODRLContract, RequiredClaim[]>;
     let contract: ODRLContract | undefined;
 
     // Check contract availability
