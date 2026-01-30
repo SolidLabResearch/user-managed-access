@@ -14,11 +14,11 @@ describe('NamespacedAuthorizer', (): void => {
 
   beforeEach(async(): Promise<void> => {
     authorizers = {
-      ns1: { permissions: vi.fn().mockResolvedValue('perm1'), credentials: vi.fn().mockResolvedValue('cred1'), },
-      ns2: { permissions: vi.fn().mockResolvedValue('perm2'), credentials: vi.fn().mockResolvedValue('cred2'), },
+      ns1: { permissions: vi.fn().mockResolvedValue('perm1'), },
+      ns2: { permissions: vi.fn().mockResolvedValue('perm2'), },
     };
 
-    fallback = { permissions: vi.fn().mockResolvedValue('perm'), credentials: vi.fn().mockResolvedValue('cred'), };
+    fallback = { permissions: vi.fn().mockResolvedValue('perm'), };
 
     const descriptions: Record<string, Registration> = {
       res1: { description: { name: 'http://example.com/foo/ns1/res', resource_scopes: [] }, owner: 'owner1' },
@@ -62,40 +62,6 @@ describe('NamespacedAuthorizer', (): void => {
       expect(fallback.permissions).toHaveBeenCalledTimes(2);
       expect(fallback.permissions).toHaveBeenCalledWith(claims, query1);
       expect(fallback.permissions).toHaveBeenCalledWith(claims, query2);
-    });
-  });
-
-  describe('.credentials', (): void => {
-    const query = { key: vi.fn() };
-
-    it('returns an empty list if there are no permissions or multiple identifiers.', async(): Promise<void> => {
-      await expect(authorizer.credentials([])).resolves.toEqual([]);
-      const permissions = [{ resource_id: 'res1', resource_scopes: [] }, { resource_id: 'res2', resource_scopes: [] }];
-      await expect(authorizer.credentials(permissions, query)).resolves.toEqual([]);
-      expect(authorizers.ns1.credentials).toHaveBeenCalledTimes(0);
-      expect(authorizers.ns2.credentials).toHaveBeenCalledTimes(0);
-      expect(fallback.credentials).toHaveBeenCalledTimes(0);
-    });
-
-    it('calls the matching authorizer.', async(): Promise<void> => {
-      const permissions = [{ resource_id: 'res2', resource_scopes: [ 'scope1' ] }];
-      await expect(authorizer.credentials(permissions, query)).resolves.toEqual('cred2');
-      expect(authorizers.ns1.credentials).toHaveBeenCalledTimes(0);
-      expect(authorizers.ns2.credentials).toHaveBeenCalledTimes(1);
-      expect(authorizers.ns2.credentials).toHaveBeenLastCalledWith(permissions, query);
-      expect(fallback.credentials).toHaveBeenCalledTimes(0);
-    });
-
-    it('calls the fallback authorizer if there is no match.', async(): Promise<void> => {
-      const perms1 = [{ resource_id: 'res3', resource_scopes: [ 'scope' ] }];
-      const perms2 = [{ resource_id: 'unknown', resource_scopes: [ 'scope' ] }];
-      await expect(authorizer.credentials(perms1, query)).resolves.toEqual('cred');
-      await expect(authorizer.credentials(perms2, query)).resolves.toEqual('cred');
-      expect(authorizers.ns1.credentials).toHaveBeenCalledTimes(0);
-      expect(authorizers.ns2.credentials).toHaveBeenCalledTimes(0);
-      expect(fallback.credentials).toHaveBeenCalledTimes(2);
-      expect(fallback.credentials).toHaveBeenCalledWith(perms1, query);
-      expect(fallback.credentials).toHaveBeenCalledWith(perms2, query);
     });
   });
 });

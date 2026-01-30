@@ -1,9 +1,8 @@
 import { BadRequestHttpError, ForbiddenHttpError, HttpErrorClass, KeyValueStorage } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { randomUUID } from 'node:crypto';
-import { ClaimSet } from '../credentials/ClaimSet';
 import { Verifier } from '../credentials/verify/Verifier';
-import { NeedInfoError } from '../errors/NeedInfoError';
+import { NeedInfoError, RequiredClaim } from '../errors/NeedInfoError';
 import { getOperationLogger } from '../logging/OperationLogger';
 import { serializePolicyInstantiation } from '../logging/OperationSerializer';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
@@ -73,21 +72,18 @@ export class BaseNegotiator implements Negotiator {
     }
 
     // ... on failure, deny if no solvable requirements
-    this.denyRequest(ticket);
+    this.denyRequest(ticket, resolved.value);
   }
 
   // TODO:
-  protected denyRequest(ticket: Ticket): never {
-    const requiredClaims = ticket.required.map(req => Object.keys(req));
-    if (requiredClaims.length === 0) throw new ForbiddenHttpError();
+  protected denyRequest(ticket: Ticket, requirements: RequiredClaim[]): never {
+    if (requirements.length === 0) throw new ForbiddenHttpError('Request denied');
 
     // ... require more info otherwise
     const id = randomUUID();
     this.ticketStore.set(id, ticket);
     throw new NeedInfoError('Need more info to authorize request ...', id, {
-      required_claims: {
-        claim_token_format: requiredClaims,
-      },
+      required_claims: requirements,
     });
   }
 

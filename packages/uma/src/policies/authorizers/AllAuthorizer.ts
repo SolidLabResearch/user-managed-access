@@ -1,6 +1,5 @@
 import { getLoggerFor } from 'global-logger-factory';
 import { ClaimSet } from '../../credentials/ClaimSet';
-import { Requirements } from '../../credentials/Requirements';
 import { Permission } from '../../views/Permission';
 import { ANY_RESOURCE, ANY_SCOPE, Authorizer } from './Authorizer';
 
@@ -27,11 +26,5 @@ export class AllAuthorizer implements Authorizer {
       resource_scopes: permission.resource_scopes ?? [ ANY_SCOPE ] }));
 
     return [{ resource_id: ANY_RESOURCE, resource_scopes: [ ANY_SCOPE ] }];
-  }
-
-  /** @inheritdoc */
-  public async credentials(permissions: Permission[]): Promise<Requirements[]> {
-    this.logger.info(`Skipping credentials. ${JSON.stringify(permissions)}`);
-    return [{}];
   }
 }

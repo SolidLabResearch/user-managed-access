@@ -1,4 +1,3 @@
-import { Requirements } from '../../credentials/Requirements';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { Permission } from '../../views/Permission';
 
@@ -17,18 +16,4 @@ export abstract class Authorizer {
    * @return {Promise<Permission[]>} - An Array of available Permissions.
    */
   public abstract permissions(claims: ClaimSet, query?: Partial<Permission>[]): Promise<Permission[]>;
-
-  /**
-   * Calculates the required Credentials to achieve a set of given Permissions.
-   *
-   * @param {Permissions[]} permissions - The requested Permissions.
-   * @param {Requirements} query - An optional query to constrain the calculated Requirements.
-   *
-   * @return {Promise<Requirements>} An object containing ClaimDescriptions.
-   */
-  public abstract credentials(permissions: Permission[], query?: Requirements): Promise<Requirements[]>;
-  // TODO:
-  // * @throws {ForbiddenHttpError} When no Credentials can be found (within the query limits)
-  // * that would grant the requested Permissions.
-
 }

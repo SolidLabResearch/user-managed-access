@@ -33,7 +33,7 @@ describe('OdrlAuthorizer', (): void => {
     vi.clearAllMocks();
     evaluate.mockResolvedValue([]);
 
-    vi.mocked(basicPolicy).mockReturnValueOnce({
+    vi.mocked(basicPolicy).mockReturnValue({
       ruleIRIs:[],
       policyIRI: '',
       representation: new Store(requestQuads),
@@ -45,10 +45,6 @@ describe('OdrlAuthorizer', (): void => {
     } satisfies Partial<UCRulesStorage> as any;
 
     authorizer = new OdrlAuthorizer(policies);
-  });
-
-  it('does not support credentials requests.', async(): Promise<void> => {
-    await expect(authorizer.credentials([])).rejects.toThrow(NotImplementedHttpError);
   });
 
   it('returns an empty result if there is no query.', async(): Promise<void> => {
