@@ -48,6 +48,7 @@ so some information might change depending on which version and branch you're us
     + [Client application identification](#client-application-identification)
   * [Adding or changing policies](#adding-or-changing-policies)
   * [Policy backups](#policy-backups)
+  * [Data aggregation](#data-aggregation)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
@@ -461,3 +462,7 @@ and set the string value to the path where you want the backup file to be stored
 e.g., `backup.ttl`,
 or you can use the `-f` CLI option when starting the server.
 When restarting the server, the contents of that file will be read to initialize policies on the server.
+
+## Data aggregation
+
+The UMA server implements the [Aggregator Specification](https://spec.knows.idlab.ugent.be/aggregator-protocol/latest/).

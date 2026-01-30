@@ -1,8 +1,11 @@
+import { App } from '@solid/community-server';
 import { ComponentsManager, IModuleState } from 'componentsjs';
 import * as path from 'node:path';
 
 
 const portNames = [
+  'Aggregation',
+  'AggregationSource',
   'Base',
   'Demo',
   'ODRL',
@@ -29,10 +32,10 @@ export async function instantiateFromConfig(
   componentUrl: string,
   configPaths: string | string[],
   variables?: Record<string, unknown>,
-): Promise<unknown> {
+): Promise<App> {
   // Initialize the Components.js loader
   const mainModulePath = path.join(__dirname, '../../');
-  const manager = await ComponentsManager.build({
+  const manager = await ComponentsManager.build<App>({
     mainModulePath,
     logLevel: 'error',
     moduleState: cachedModuleState,

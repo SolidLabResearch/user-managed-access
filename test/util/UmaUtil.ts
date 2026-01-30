@@ -42,7 +42,8 @@ export async function findTokenEndpoint(uri: string): Promise<string> {
  * Calls the UMA token endpoint with a token and potentially the given WebID to receive a response.
  * Will error if the response is not an access token.
  */
-export async function getToken(ticket: string, endpoint: string, webId?: string): Promise<DialogOutput> {
+export async function getToken(ticket: string, endpoint: string, webId?: string, scope?: string):
+  Promise<DialogOutput> {
   const content: Record<string, string> = {
     grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
     ticket: ticket,
@@ -50,6 +51,9 @@ export async function getToken(ticket: string, endpoint: string, webId?: string)
   if (webId) {
     content.claim_token = encodeURIComponent(webId);
     content.claim_token_format = 'urn:solidlab:uma:claims:formats:webid';
+  }
+  if (scope) {
+    content.scope = scope;
   }
 
   const response = await fetch(endpoint, {
@@ -90,8 +94,8 @@ export async function tokenFetch(token: DialogOutput, input: string | URL | glob
  * This only works if the initial RS request fails,
  * and the token request to the UMA server succeeds.
  */
-export async function umaFetch(input: string | URL | globalThis.Request, init?: RequestInit, webId?: string):
-  Promise<Response> {
+export async function umaFetch(input: string | URL | globalThis.Request, init?: RequestInit, webId?: string,
+  scope?: string): Promise<Response> {
   // Parse ticket and UMA server URL from header
   const parsedHeader = await noTokenFetch(input, init);
 
@@ -99,7 +103,7 @@ export async function umaFetch(input: string | URL | globalThis.Request, init?: 
   const tokenEndpoint = await findTokenEndpoint(parsedHeader.as_uri);
 
   // Send ticket request to UMA server and extract token from response
-  const token = await getToken(parsedHeader.ticket, tokenEndpoint, webId);
+  const token = await getToken(parsedHeader.ticket, tokenEndpoint, webId, scope);
 
   // Perform new call with token
   return tokenFetch(token, input, init);

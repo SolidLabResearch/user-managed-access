@@ -5,6 +5,7 @@ import {
   ForbiddenHttpError,
   InternalServerError,
   joinUrl,
+  KeyValueStorage,
   MethodNotAllowedHttpError,
   NotFoundHttpError,
   RDF,
@@ -40,11 +41,13 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
   protected readonly logger = getLoggerFor(this);
 
   /**
+   * @param derivationStore - Key/value store linking derivation_resource_ids to their issuer.
    * @param registrationStore - Key/value store containing the {@link ResourceDescription}s.
    * @param policies - Policy store to contain the asset relation triples.
    * @param validator - Validates that the request is valid.
    */
   constructor(
+    protected readonly derivationStore: KeyValueStorage<string, string>,
     protected readonly registrationStore: RegistrationStore,
     protected readonly policies: UCRulesStorage,
     protected readonly validator: RequestValidator,
@@ -172,6 +175,17 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     const removeQuads = [ ...collectionQuads.remove, ...relationQuads.remove ];
     if (removeQuads.length > 0) {
       await this.policies.removeData(new Store([...collectionQuads.remove, ...relationQuads.remove]));
+    }
+
+    // Update the stored derivation IDs accordingly
+    const derivedEntries = description.derived_from ?? [];
+    const removedDerivedIds = new Set((previous?.derived_from ?? []).map((entry) => entry.derivation_resource_id));
+    for (const entry of derivedEntries) {
+      await this.derivationStore.set(entry.derivation_resource_id, entry.issuer);
+      removedDerivedIds.delete(entry.derivation_resource_id);
+    }
+    for (const id of removedDerivedIds) {
+      await this.derivationStore.delete(id);
     }
 
     // Store the new UMA ID (or update the contents of the existing one)
