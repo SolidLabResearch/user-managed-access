@@ -1,11 +1,10 @@
-import { BadRequestHttpError, DC, NotImplementedHttpError, RDF } from '@solid/community-server';
+import { DC, RDF } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
-import { DataFactory, Literal, NamedNode, Quad, Quad_Subject, Store } from 'n3';
+import { DataFactory, Literal, NamedNode, Quad, Quad_Subject, Store, Writer } from 'n3';
 import { EyeReasoner, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator'
 import { createVocabulary } from 'rdf-vocabulary';
 import { CLIENTID, WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
-import { Requirements } from '../../credentials/Requirements';
 import { basicPolicy } from '../../ucp/policy/ODRL';
 import { UCPPolicy } from '../../ucp/policy/UsageControlPolicy';
 import { UCRulesStorage } from '../../ucp/storage/UCRulesStorage';
@@ -94,8 +93,11 @@ export class OdrlAuthorizer implements Authorizer {
 
         for (const {resource_id, resource_scopes} of query) {
             grantedPermissions[resource_id] = [];
-            const actions = transformActionsCssToOdrl(resource_scopes);
-            for (const action of actions) {
+            for (const scope of resource_scopes) {
+                // TODO: why is this transformation happening (here)?
+                //       IMO this should either happen on the RS,
+                //       or the policies should just use the "CSS" modes (not really though)
+                const action = scopeCssToOdrl.get(scope) ?? scope;
                 this.logger.info(`Evaluating Request [S R AR]: [${subject} ${resource_id} ${action}]`);
                 const requestPolicy: UCPPolicy = {
                     type: ODRL.Request,
@@ -135,7 +137,7 @@ export class OdrlAuthorizer implements Authorizer {
                     const activeReports = policyReport.ruleReport.filter(
                       (report) => report.activationState === ActivationState.Active);
                     if (activeReports.length > 0 && activeReports[0].type === RuleReportType.PermissionReport) {
-                        grantedPermissions[resource_id].push(action);
+                        grantedPermissions[resource_id].push(scope);
                     }
                 }
             }
@@ -144,15 +146,10 @@ export class OdrlAuthorizer implements Authorizer {
         Object.keys(grantedPermissions).forEach(
             resource_id => permissions.push({
                 resource_id,
-                resource_scopes: transformActionsOdrlToCss(grantedPermissions[resource_id])
+                resource_scopes: grantedPermissions[resource_id],
             }) );
         return permissions;
     }
-
-    public async credentials(permissions: Permission[], query?: Requirements | undefined): Promise<Requirements[]> {
-        throw new NotImplementedHttpError('Method not implemented.');
-    }
-
 }
 const scopeCssToOdrl: Map<string, string> = new Map();
 scopeCssToOdrl.set('urn:example:css:modes:read','http://www.w3.org/ns/odrl/2/read');
@@ -162,38 +159,6 @@ scopeCssToOdrl.set('urn:example:css:modes:delete','http://www.w3.org/ns/odrl/2/d
 scopeCssToOdrl.set('urn:example:css:modes:write','http://www.w3.org/ns/odrl/2/write');
 
 const scopeOdrlToCss : Map<string, string> = new Map(Array.from(scopeCssToOdrl, entry => [entry[1], entry[0]]));
-
-/**
- * Transform the Actions enforced by the Community Solid Server to equivalent ODRL Actions
- * @param actions
- */
-function transformActionsCssToOdrl(actions: string[]): string[] {
-    // scopes come from UmaClient.ts -> see CSS package
-
-    // in UMAPermissionReader, only the last part of the URN will be used, divided by a colon
-    // again, see CSS package
-    return actions.map(action => {
-      const result = scopeCssToOdrl.get(action);
-      if (!result) {
-        throw new BadRequestHttpError(`Unsupported action ${action}`);
-      }
-      return result;
-    });
-}
-/**
- * Transform ODRL Actions to equivalent Actions enforced by the Community Solid Server
- * @param actions
- */
-function transformActionsOdrlToCss(actions: string[]): string[] {
-    const cssActions = []
-    for (const action of actions) {
-        if (action === 'http://www.w3.org/ns/odrl/2/use'){
-            return Array.from(scopeCssToOdrl.keys());
-        }
-        cssActions.push(scopeOdrlToCss.get(action)!);
-    }
-    return cssActions;
-}
 
 type PolicyReport = {
     id: NamedNode;

@@ -27,17 +27,4 @@ describe('WebIdAuthorizer', (): void => {
       { resource_id: 'urn:solidlab:uma:resources:any', resource_scopes: [ 'scope3' ]},
     ]);
   });
-
-  it('returns an empty requirements result if there a query without WebID', async(): Promise<void> => {
-    await expect(authorizer.credentials([], {})).resolves.toEqual([]);
-  });
-
-  it('requires a WebID match.', async(): Promise<void> => {
-    const result = await authorizer.credentials([], { [WEBID]: vi.fn() });
-    expect(result).toHaveLength(1);
-    expect(result[0][WEBID]).toBeDefined();
-    await expect(result[0][WEBID]!(webIds[0])).resolves.toBe(true);
-    await expect(result[0][WEBID]!(webIds[1])).resolves.toBe(true);
-    await expect(result[0][WEBID]!('wrong')).resolves.toBe(false);
-  });
 });
