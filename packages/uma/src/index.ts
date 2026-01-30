@@ -1,7 +1,6 @@
 
 // Credentials
 export * from './credentials/ClaimSet';
-export * from './credentials/Requirements';
 export * from './credentials/Credential';
 export * from './credentials/CredentialParser';
 export * from './credentials/Formats';
@@ -18,11 +17,15 @@ export * from './credentials/verify/JwtVerifier';
 export * from './credentials/verify/IriVerifier';
 
 // Dialog
+export * from './dialog/AggregatorNegotiator';
 export * from './dialog/Input';
 export * from './dialog/Output';
 export * from './dialog/Negotiator';
 export * from './dialog/BaseNegotiator';
 export * from './dialog/ContractNegotiator';
+
+// Errors
+export * from './errors/NeedInfoError';
 
 // Authorizers
 export * from './policies/authorizers/Authorizer';
@@ -52,13 +55,14 @@ export * from './routes/ClientRegistration';
 
 // Tickets
 export * from './ticketing/Ticket';
+export * from './ticketing/strategy/AggregatorStrategy';
 export * from './ticketing/strategy/TicketingStrategy';
-export * from './ticketing/strategy/ClaimEliminationStrategy';
 export * from './ticketing/strategy/ImmediateAuthorizerStrategy';
 
 // Tokens
 export * from './tokens/AccessToken';
 export * from './tokens/JwtTokenFactory';
+export * from './tokens/OpaqueTokenFactory';
 export * from './tokens/TokenFactory';
 
 // Views
@@ -91,6 +95,7 @@ export * from './ucp/util/Util';
 export * from './ucp/util/Vocabularies';
 
 // Util
+export * from './util/AggregatorUtil';
 export * from './util/ConvertUtil';
 export * from './util/HttpMessageSignatures';
 export * from './util/RegistrationStore';

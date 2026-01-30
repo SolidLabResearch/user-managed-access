@@ -5,11 +5,16 @@
   "@graph": [
     {
       "@id": "urn:uma:default:Negotiator",
-      "@type": "ContractNegotiator",
-      "verifier": { "@id": "urn:uma:default:Verifier" },
+      "@type": "AggregatorNegotiator",
       "ticketStore": { "@id": "urn:uma:default:TicketStore" },
-      "ticketingStrategy": { "@id": "urn:uma:default:TicketingStrategy" },
-      "tokenFactory": { "@id": "urn:uma:default:TokenFactory" }
+      "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
+      "negotiator": {
+        "@type": "BaseNegotiator",
+        "verifier": { "@id": "urn:uma:default:Verifier" },
+        "ticketStore": { "@id": "urn:uma:default:TicketStore" },
+        "ticketingStrategy": { "@id": "urn:uma:default:TicketingStrategy" },
+        "tokenFactory": { "@id": "urn:uma:default:TokenFactory" }
+      }
     }
   ]
 }

@@ -133,6 +133,7 @@ export const ODRL = createVocabulary(
     'lt',
     'eq',
     'uid',
+    'read',
 );
 
 export const ODRL_P = createVocabulary(
@@ -143,4 +144,10 @@ export const ODRL_P = createVocabulary(
 export const OWL = createVocabulary(
   'http://www.w3.org/2002/07/owl#',
   'inverseOf',
+);
+
+export const UMA_SCOPES = createVocabulary(
+  'urn:knows:uma:scopes:',
+  'derivation-creation',
+  'derivation-read',
 );

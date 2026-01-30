@@ -1,4 +1,4 @@
-import { App, joinUrl } from '@solid/community-server';
+import { App } from '@solid/community-server';
 import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
 import { Parser, Writer } from 'n3';
 import { readFile } from 'node:fs/promises';
@@ -25,17 +25,16 @@ describe('A server setup', (): void => {
         'urn:uma:variables:eyePath': 'eye',
         'urn:uma:variables:backupFilePath': '',
       }
-    ) as App;
+    );
 
     cssApp = await instantiateFromConfig(
       'urn:solid-server:default:App',
       path.join(__dirname, '../../packages/css/config/default.json'),
       {
         ...getDefaultCssVariables(cssPort),
-        'urn:solid-server:uma:variable:AuthorizationServer': `http://localhost:${umaPort}/`,
         'urn:solid-server:default:variable:seedConfig':  path.join(__dirname, '../../packages/css/config/seed.json'),
       },
-    ) as App;
+    );
 
     await Promise.all([ umaApp.start(), cssApp.start() ]);
   });
