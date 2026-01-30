@@ -6,6 +6,7 @@
   "Buffer",
   "Error",
   "EventEmitter",
+  "ForbiddenHttpError",
   "Map",
   "NodeJS.Dict",
   "Permission",

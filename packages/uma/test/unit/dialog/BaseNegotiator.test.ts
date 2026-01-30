@@ -1,10 +1,10 @@
-import { BadRequestHttpError, ForbiddenHttpError, KeyValueStorage } from '@solid/community-server';
+import { ForbiddenHttpError, KeyValueStorage } from '@solid/community-server';
 import { Mocked } from 'vitest';
 import { ClaimSet } from '../../../src/credentials/ClaimSet';
 import { Verifier } from '../../../src/credentials/verify/Verifier';
 import { BaseNegotiator } from '../../../src/dialog/BaseNegotiator';
 import { DialogInput } from '../../../src/dialog/Input';
-import { NeedInfoError, RequiredClaimsInfo } from '../../../src/errors/NeedInfoError';
+import { NeedInfoError } from '../../../src/errors/NeedInfoError';
 import { TicketingStrategy } from '../../../src/ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../../../src/ticketing/Ticket';
 import { SerializedToken, TokenFactory } from '../../../src/tokens/TokenFactory';
@@ -19,7 +19,6 @@ describe('BaseNegotiator', (): void => {
   const claims: ClaimSet = { claim1: 'value1', claim2: 'value2' };
   const ticket: Ticket = {
     permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ],
-    required: [],
     provided: { claim: 'value' },
   };
   const token: SerializedToken = { token: 'token', tokenType: 'type' };
@@ -95,15 +94,14 @@ describe('BaseNegotiator', (): void => {
     ticketingStrategy.initializeTicket.mockResolvedValueOnce({
       permissions: [],
       provided: {},
-      required: [{ fn: async() => false }],
     })
-    ticketingStrategy.resolveTicket.mockResolvedValueOnce({ success: false, value: [] });
+    ticketingStrategy.resolveTicket.mockResolvedValueOnce({ success: false, value: [{ name: 'missing' }] });
     try {
       await negotiator.negotiate(input);
     } catch (error) {
       expect(error).toBeInstanceOf(NeedInfoError);
       expect((error as NeedInfoError).additionalParams).toEqual({
-        required_claims: { claim_token_format: [['fn']] },
+        required_claims: [{ name: 'missing' }],
       });
     }
     expect(ticketStore.set).toHaveBeenCalledTimes(1);

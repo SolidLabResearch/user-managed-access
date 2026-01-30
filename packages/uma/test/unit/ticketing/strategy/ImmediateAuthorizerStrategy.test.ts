@@ -1,6 +1,5 @@
 import { Mocked } from 'vitest';
 import { ClaimSet } from '../../../../src/credentials/ClaimSet';
-import { Requirements } from '../../../../src/credentials/Requirements';
 import { Authorizer } from '../../../../src/policies/authorizers/Authorizer';
 import { ImmediateAuthorizerStrategy } from '../../../../src/ticketing/strategy/ImmediateAuthorizerStrategy';
 import { Ticket } from '../../../../src/ticketing/Ticket';
@@ -14,7 +13,6 @@ describe('ImmediateAuthorizerStrategy', (): void => {
 
   beforeEach(async(): Promise<void> => {
     authorizer = {
-      credentials: vi.fn(),
       permissions: vi.fn().mockResolvedValue(permissions),
     };
 
@@ -24,7 +22,6 @@ describe('ImmediateAuthorizerStrategy', (): void => {
   it('initializes a ticket with empty requirements.', async(): Promise<void> => {
     await expect(strategy.initializeTicket(permissions)).resolves.toEqual({
       permissions,
-      required: [{}],
       provided: {},
     });
   });
@@ -33,13 +30,11 @@ describe('ImmediateAuthorizerStrategy', (): void => {
     const ticket: Ticket = {
       permissions,
       provided: {},
-      required: [],
     };
     const claims: ClaimSet = { claim1: 'val1', claim2: 'val2' };
     await expect(strategy.validateClaims(ticket, claims)).resolves.toEqual({
       permissions,
       provided: { claim1: 'val1', claim2: 'val2' },
-      required: [],
     });
   });
 
@@ -47,28 +42,26 @@ describe('ImmediateAuthorizerStrategy', (): void => {
     const ticket: Ticket = {
       permissions,
       provided: {},
-      required: [],
     };
     const authResponse: Permission[] = [
-      { resource_id: 'id1', resource_scopes: [ 'scopes' ] },
-      { resource_id: 'id2', resource_scopes: [] }
+      { resource_id: 'id', resource_scopes: [ 'scopes' ] }
     ];
     authorizer.permissions.mockResolvedValueOnce(authResponse);
     await expect(strategy.resolveTicket(ticket)).resolves
-      .toEqual({ success: true, value: [{ resource_id: 'id1', resource_scopes: [ 'scopes' ] }] });
+      .toEqual({ success: true, value: [{ resource_id: 'id', resource_scopes: [ 'scopes' ] }] });
   });
 
   it('rejects a ticket if it does not provide permissions.', async(): Promise<void> => {
     const ticket: Ticket = {
       permissions,
       provided: {},
-      required: [],
     };
     const authResponse: Permission[] = [
-      { resource_id: 'id1', resource_scopes: [] },
-      { resource_id: 'id2', resource_scopes: [] }
+      { resource_id: 'id1', resource_scopes: [ 'scope1' ] },
+      { resource_id: 'id2', resource_scopes: [ 'scope2' ] }
     ];
     authorizer.permissions.mockResolvedValueOnce(authResponse);
-    await expect(strategy.resolveTicket(ticket)).resolves.toEqual({ success: false, value: [] });
+    await expect(strategy.resolveTicket(ticket)).resolves
+      .toEqual({ success: false, value: [{ resource_scopes: ['scopes'] }] });
   });
 });

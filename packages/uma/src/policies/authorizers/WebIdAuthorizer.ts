@@ -1,6 +1,5 @@
 import { ANY_RESOURCE, ANY_SCOPE, Authorizer } from './Authorizer';
 import { Permission } from '../../views/Permission';
-import { Requirements } from '../../credentials/Requirements';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { WEBID } from '../../credentials/Claims';
 import { getLoggerFor } from 'global-logger-factory';
@@ -34,16 +33,5 @@ export class WebIdAuthorizer implements Authorizer {
         resource_scopes: permission.resource_scopes ?? [ ANY_SCOPE ]
       })
     );
-  }
-
-  /** @inheritdoc */
-  public async credentials(permissions: Permission[], query?: Requirements): Promise<Requirements[]> {
-    this.logger.info(`Calculating credentials. ${JSON.stringify({ permissions, query })}`);
-
-    if (query && !Object.keys(query).includes(WEBID)) return [];
-
-    return [{
-      [WEBID]: async (webid) => typeof webid === 'string' && this.webids.includes(webid),
-    }];
   }
 }

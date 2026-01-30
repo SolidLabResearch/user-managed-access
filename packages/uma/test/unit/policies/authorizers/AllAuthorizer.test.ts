@@ -21,8 +21,4 @@ describe('AllAuthorizer', (): void => {
       { resource_id: 'urn:solidlab:uma:resources:any', resource_scopes: [ 'scope3' ]},
     ]);
   });
-
-  it('has no requirements.', async(): Promise<void> => {
-    await expect(authorizer.credentials([])).resolves.toEqual([{}]);
-  });
 });
