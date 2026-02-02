@@ -458,5 +458,6 @@ To enable this, you have to edit the Components.js variables
 which get passed along in [`packages/uma/bin/main.js`](../packages/uma/bin/main.js).
 You want to change the line that defines the `urn:uma:variables:backupFilePath` variable,
 and set the string value to the path where you want the backup file to be stored,
-e.g., `backup.ttl`.
+e.g., `backup.ttl`,
+or you can use the `-f` CLI option when starting the server.
 When restarting the server, the contents of that file will be read to initialize policies on the server.
