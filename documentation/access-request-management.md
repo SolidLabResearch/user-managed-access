@@ -1,134 +1,85 @@
 # Access Request Management
 
-This document describes the *access request administration endpoint*.
-It contains the methods to describe how to create, read, update and delete access requests.
-Example cURL-requests are provided for ease of use.
+Access requests can be used for users to request access to certain resources.
+The Resource Owner (RO) can then decide to grant or deny this access.
 
-The general flow of access requests and grants looks like this:
+This API is a work in progress, and will probably change in the future.
 
-![Access requests and grants flow](./figures/access_grants_requests_fsm.png)
+In the default configuration of the UMA server, the endpoint can be found at `/uma/requests`.
 
-The document makes use of these parties and identifiers:
+All requests require an **Authorization** header to identify the user performing the request.
+The available options are described in
+the [getting started documentation](getting-started.md#authenticating-as-resource-owner).
 
-- **Resource Owner**: `https://pod.example.com/profile/card#me`
-- **Authorization Server**: `http://localhost:4000`
-- **Resource Server**: `http://localhost:3000/resources`
-- **Requesting Party**: `https://example.pod.knows.idlab.ugent.be/profile/card#me`
+## Requesting access
 
-The examples provided below make use of `text/turtle` and `application/sparql-update` messages.
-The access request used in the examples below looks like this:
+A user can request access to a resource by performing a POST request to the endpoint.
+The body of this request should be a JSON object,
+describing the resource and the requested scopes:
+```json
+{
+  "resource_id": "http://example.org/document",
+  "resource_scopes": [ "http://www.w3.org/ns/odrl/2/read" ]
+}
+```
 
+The `resource_id` field needs to be the identifier of the resource as known by the AS.
+At the time of writing this is the same identifier as the one used by the RS.
+
+This request will generate a request to allow the user creating this request to perform those scopes.
+
+### Constraints
+
+In case the user wants to request access, but with certain constraints,
+these can be added in an additional field of the request:
+```json
+{
+  "resource_id": "http://example.org/document",
+  "resource_scopes": [ "http://www.w3.org/ns/odrl/2/read" ],
+  "constraints": [
+    [ "http://www.w3.org/ns/odrl/2/purpose", "http://www.w3.org/ns/odrl/2/eq", "http://example.org/purpose" ]
+  ]
+}
+```
+
+## Viewing requests
+
+By performing a GET request to the endpoint, a user can see all requests they have created,
+and all requests that target a resource they are the owner of.
+This way a RO can see if there are still pending requests.
+
+An example request would look as follows:
 ```turtle
 @prefix sotw: <https://w3id.org/force/sotw#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
-@prefix ex: <http://example.org/> .
 
-ex:request a sotw:EvaluationRequest ;
-      sotw:requestedTarget <http://localhost:3000/resources/resource.txt> ;
+<http://example.org/request> a sotw:EvaluationRequest ;
+      sotw:requestedTarget <http://example.org/document> ;
       sotw:requestedAction odrl:read ;
-      sotw:requestingParty <https://example.pod.knows.idlab.ugent.be/profile/card#me> ;
-      ex:requestStatus ex:requested .
+      sotw:requestingParty <https://example.org/bob> ;
+      sotw:requestStatus sotw:requested .
 ```
 
-## Supported endpoints
+There are no notifications, so the RO has to perform this request to discover a new request was made.
+Similarly, a user has to perform this request to find out if the request was granted.
 
-The current implementation supports the following requests to the `uma/requests` and `/uma/requests/:id` endpoints
+## Granting or rejecting requests
 
-- [**GET**](#reading-access-requests)
-- [**POST**](#creating-access-requests)
-- [**PATCH**](#managing-access-requests)
-- [**DELETE**](#deleting-access-requests)
+A RO can accept or deny a request by performing a PATCH request targeting the URL of a single request.
+This URL is formed by appending the URL-encoded string of the request identifier to the endpoint.
+For example, in the above case this would be `/uma/requests/http%3A%2F%2Fexample.org%2Frequest`.
 
-## Creating access requests
+The body of the PATCH request needs to be either `{ "status": "accepted" }` or `{ "status": "denied" }`.
+In case the RO accepts the request,
+a new policy will automatically be generated to grant the requested scopes to the requestee.
 
-Create an access request/multiple access requests by sending a **POST** request to `uma/requests`.
-Apart from its `Authorization` header, the `Content-Type` header must be set to the RDF serialization format in which the body is written.
-The accepted formats are those accepted by the [N3 Parser](https://github.com/rdfjs/N3.js/?tab=readme-ov-file#parsing), represented by the following content types:
+## Implementation Notes
 
-- `text/turtle`
-- `application/trig`
-- `application/n-triples`
-- `application/n-quads`
-- `text/n3`
-
-The body is expected to represent a valid ODRL access request.
-No sanitization is currently applied.
-Upon success, the server responds with **status code 201**.
-Bad requests, possibly due to improper access request definition, will respond with **status code 400** (to be implemented) <!-- TODO: implement -->
-When the access requested has been validated (to be implemented), but the storage fails, the response will have **status code 500**.
-
-### Example POST request
-
-This example creates an access request `ex:request` for the RP `https://example.pod.knows.idlab.ugent.be/profile/card#me`:
-
-```shell-session
-curl --location 'http://localhost:4000/uma/requests' \
---header 'Authorization: https://example.pod.knows.idlab.ugent.be/profile/card#me' \
---header 'Content-Type: text/turtle' \
---data-raw '
-@prefix sotw: <https://w3id.org/force/sotw#> .
-@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix ex: <http://example.org/> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-
-ex:request a sotw:EvaluationRequest ;
-      sotw:requestedTarget <http://localhost:3000/resources/resource.txt> ;
-      sotw:requestedAction odrl:write ;
-      sotw:requestingParty <https://example.pod.knows.idlab.ugent.be/profile/card#me> ;
-      ex:requestStatus ex:requested .'
-```
-
-## Reading access requests
-
-To read policies, a single endpoint is currently implemented.
-This endpoint currently returns the list of access requests where the WebID provided in the `Authorization` header is marked as the requesting party.
-An example request to this endpoint is:
-
-```shell-session
-curl -X GET --location 'http://localhost:4000/uma/requests' \
---header 'Authorization: https://example.pod.knows.idlab.ugent.be/profile/card#me'
-```
-
-## Managing access requests
-
-The RO can accept or deny the access requests, which is done by updating the status triple.
-
-Updating policies can be done through a **PATCH** request.
-The body must hold the content type `application/json`.
-The example below shows how to update the access request's status from `requested` to `accepted`:
-
-```shell-session
-curl -X PATCH --location 'http://localhost:4000/uma/requests/http%3A%2F%2Fexample.org%2Frequest' \
---header 'Authorization: https://pod.example.com/profile/card#me' \
---header 'Content-Type: application/json' \
---data-raw '{ "status": "accepted" }' # can be changed to `denied` too.
-```
-
-Once an access request's status has been changed from `requested` to `accepted`, the backend will automatically create a new policy including the correct rules to allow the RP access to the resource.
-After this, the RP will be able to use the resource following the UMA protocol.
-
-## Deleting access requests
-
-Currently, access requests cannot be deleted. The reason being that it from a governance decision a decision need to be made who is allowed to delete it.
-
-Is it the requesting party? Or is it the resource owner?
-From the start. It makes more sense for the RP. However, if the RO made a decision, it does not make sense that the RP can remove this.
+* Request can not be deleted, as it is not yet clear who should be responsible for this.
+* Requests can not be modified once accepted or denied.
+* The generated policies can be found and modified through the policy API as usual.
 
 
-## Important Notes
 
-### Undefined behavior for **PATCH/DELETE** request
-
-Upon the first **PATCH** request which changes an access request's status from `requested` to `accepted` a new policy and permission are created.
-When a new **PATCH** request would change the status to denied, nothing is currently done with the policy.
-Even when the access request would be deleted, the backend currently doesn't do anything to the policy.
-This is undefined behavior and should be treated as such.
-This works in both directions: if the policy is changed in some way, nothing is changed to the access request either.
-
-## Future work
-
-### Discrepancies between [earlier descriptions](https://github.com/bramcomyn/loama/blob/feat/odrl/documentation/access_grants_vs_dsnp.md) and this implementation
-
-This file counts as authorative resource for the access request management.
-Other documentation should point to this file as the latest and correct documentation.
+This document describes the *access request administration endpoint*.
+It contains the methods to describe how to create, read, update and delete access requests.

@@ -1,7 +1,9 @@
+import { ConflictHttpError } from '@solid/community-server';
 import { UCRulesStorage } from "../ucp/storage/UCRulesStorage";
 import { getLoggerFor } from 'global-logger-factory';
 import { Parser, Store } from 'n3';
 import { writeStore } from "../util/ConvertUtil";
+import { HttpHandlerResponse } from '../util/http/models/HttpHandler';
 import { noAlreadyDefinedSubjects } from "../util/routeSpecific/sanitizeUtil";
 
 /**
@@ -10,16 +12,15 @@ import { noAlreadyDefinedSubjects } from "../util/routeSpecific/sanitizeUtil";
  */
 export abstract class BaseController {
 
-    private readonly logger = getLoggerFor(this);
+    protected readonly logger = getLoggerFor(this);
 
     constructor(
         protected readonly store: UCRulesStorage,
-        protected readonly conflictMessage: string,
-        protected readonly sanitizePost: (store: Store, clientID: string) => Promise<Store>,
-        protected readonly sanitizeDelete: (store: Store, entityID: string, clientID: string) => Promise<void>,
-        protected readonly sanitizeGets: (store: Store, clientID: string) => Promise<Store>,
-        protected readonly sanitizeGet: (store: Store, entityID: string, clientID: string) => Promise<Store>,
-        protected readonly sanitizePatch: (store: Store, entityID: string, clientID: string, patchInformation: string) => Promise<void>
+        protected sanitizePost: (store: Store, clientID: string) => Promise<{ result: Store, id: string }>,
+        protected sanitizeDelete: (store: Store, entityID: string, clientID: string) => Promise<void>,
+        protected sanitizeGets: (store: Store, clientID: string) => Promise<Store>,
+        protected sanitizeGet: (store: Store, entityID: string, clientID: string) => Promise<Store>,
+        protected sanitizePatch: (store: Store, entityID: string, clientID: string, patchInformation: string) => Promise<void>
     ) { }
 
     /**
@@ -29,25 +30,18 @@ export abstract class BaseController {
      * @returns results serialized in Turtle and status code 200,
      *          or an empty body with status 404 if nothing was found
      */
-    private async get(sanitizeGet: Function): Promise<{ message: string, status: number }> {
-        try {
-            const store = await sanitizeGet();
+    private async get(sanitizeGet: () => Promise<Store>): Promise<{ message: string, status: number }> {
+        const store = await sanitizeGet();
 
-            const message = store.size > 0
-                ? await writeStore(store)
-                : '';
-
-            const status = 200;
-            return { message, status };
-        } catch (_e) {
-            return { message: '', status: 200 }
-        }
+        const message = store.size > 0 ? await writeStore(store) : '';
+        const status = 200;
+        return { message, status };
     }
 
     /**
      * Retrieve all policies (including rules) or all access requests belonging to a given `clientID`.
      *
-     * @param clientID ID of the resource owner (RO) or requesting party (RP)
+     * @param clientID ID of the requesting party (RP)
      * @returns a Turtle-serialized store of all policies or access requests,
      *          and an HTTP status code indicating success (200) or not found (404)
      */
@@ -59,7 +53,7 @@ export abstract class BaseController {
      * Retrieve a single policy (including its rules) or access request identified by `entityID` for a given `clientID`.
      *
      * @param entityID ID pointing to the policy or access request
-     * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
+     * @param clientID ID pointing to the requesting party (RP)
      * @returns a Turtle-serialized representation of the policy/access request and HTTP status code (200),
      *          or an empty body with status 404 if not found
      */
@@ -72,31 +66,28 @@ export abstract class BaseController {
      * Ensures no duplicate subjects already exist in the store.
      *
      * @param data RDF data in Turtle/N3 format representing the new policy or access request
-     * @param clientID ID of the resource owner (RO) or requesting party (RP) creating the entity
+     * @param clientID ID of the requesting party (RP) creating the entity
      * @returns a status code:
      *          - 201 if creation was successful
      *          - 409 if a conflict occurred (duplicate subject)
      */
-    public async addEntity(data: string, clientID: string): Promise<{ status: number, message:string }> {
+    public async addEntity(data: string, clientID: string):
+        Promise<{ status: number, message?: string, id: string }> {
         const store = new Store(new Parser().parse(data));
 
-        try {
-            const sanitizedStore = await this.sanitizePost(store, clientID);
-            if (noAlreadyDefinedSubjects(await this.store.getStore(), sanitizedStore))
-                this.store.addRule(sanitizedStore);
-            else return { status: 409, message: ''  }; // conflict
-        } catch (e) {
-            return { status: e.statusCode || 500, message: e.message }; // the message of this error will contain the reason this query failed
-        }
+        const { result, id } = await this.sanitizePost(store, clientID);
+        if (noAlreadyDefinedSubjects(await this.store.getStore(), result))
+            this.store.addRule(result);
+        else throw new ConflictHttpError();
 
-        return { status: 201, message: ''  }; // success
+        return { status: 201, id  }; // success
     }
 
     /**
      * Delete a single policy (including rules) or access request identified by `entityID` for a given `clientID`.
      *
      * @param entityID ID pointing to the policy or access request
-     * @param clientID ID of the resource owner (RO) or requesting party (RP) making the deletion
+     * @param clientID ID of the requesting party (RP) making the deletion
      * @returns a status code:
      *          - 204 if deletion was successful
      */
@@ -116,13 +107,13 @@ export abstract class BaseController {
      *
      * @param entityID ID pointing to the policy or access request
      * @param patchInformation information describing the patch to be applied (query or JSON, but content type of request must match this.contentType)
-     * @param clientID ID of the resource owner (RO) or requesting party (RP) making the patch
+     * @param clientID ID of the requesting party (RP) making the patch
      * @param isolate whether to isolate the entity's quads during patching (defaults to true)
      * @returns a status code:
      *          - 204 if patching was successful
      */
-    public async patchEntity(entityID: string, patchInformation: string, clientID: string, isolate: boolean = true): Promise<{ status: number, message: string }> {
-        let response = { status: 204, message: '' };
+    public async patchEntity(entityID: string, patchInformation: string, clientID: string, isolate: boolean = true): Promise<HttpHandlerResponse<string>> {
+        let response: HttpHandlerResponse<string> = { status: 204, body: '' };
         let filteredStore = new Store(await this.store.getStore());
         let omitStore: Store;
 
@@ -132,11 +123,7 @@ export abstract class BaseController {
             omitStore.removeQuads([ ...filteredStore]);
         }
 
-        try {
-            await this.sanitizePatch(filteredStore, entityID, clientID, patchInformation);
-        } catch (e) {
-            response = { status: e.status || 500, message: e.message };
-        }
+        await this.sanitizePatch(filteredStore, entityID, clientID, patchInformation);
 
         if (isolate) {
             // isolate all information about the store again, because queries could insert information
@@ -151,6 +138,7 @@ export abstract class BaseController {
         const originalStore = await this.store.getStore();
         const remove = originalStore.difference(filteredStore);
         const add = filteredStore.difference(originalStore);
+
         if (remove.size > 0) {
             await this.store.removeData(remove as Store);
         }
@@ -166,9 +154,9 @@ export abstract class BaseController {
      *
      * Currently, this is only implemented for policies.
      *
-     * @param data RDF data in Turtle/N3 format representing a policy or acccess request
+     * @param data RDF data in Turtle/N3 format representing a policy or access request
      * @param entityID ID pointing to the policy or access request
-     * @param clientID ID pointing to the resource owner (RO) or requesting party making the put
+     * @param clientID ID pointing to requesting party making the put
      * @returns a status code:
      *          - 204 if put was successful
      */
@@ -179,11 +167,11 @@ export abstract class BaseController {
 
         // parse the entity through a POST request and check the results
         const store = new Store(new Parser().parse(data));
-        const sanitizedStore = await this.sanitizePost(store, clientID);
+        const { result } = await this.sanitizePost(store, clientID);
 
         // delete the old rule and insert the new
         await this.deleteEntity(entityID, clientID);
-        await this.store.addRule(sanitizedStore);
+        await this.store.addRule(result);
         return { status: 204 };
     }
 }

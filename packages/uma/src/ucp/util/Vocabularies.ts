@@ -146,6 +146,18 @@ export const OWL = createVocabulary(
   'inverseOf',
 );
 
+export const SOTW = createVocabulary(
+  'https://w3id.org/force/sotw#',
+  'EvaluationRequest',
+  'accepted',
+  'denied',
+  'requested',
+  'requestedAction',
+  'requestedTarget',
+  'requestingParty',
+  'requestStatus',
+);
+
 export const UMA_SCOPES = createVocabulary(
   'urn:knows:uma:scopes:',
   'derivation-creation',

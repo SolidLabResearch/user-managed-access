@@ -229,7 +229,7 @@ describe('A policy server setup', (): void => {
     expect(response.status).toBe(200);
     expect(await response.text()).toHaveLength(0);
 
-    response = await fetchPolicy('GET', webIds.b, 'unknown');
+    response = await fetchPolicy('GET', webIds.b, 'http://example.org/unknown');
     expect(response.status).toBe(200);
     expect(await response.text()).toHaveLength(0);
   });
@@ -299,7 +299,6 @@ describe('A policy server setup', (): void => {
     // Rules in above policy assigned by b should still be there
     // response = await fetchPolicy('GET', webIds.b, 'urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc');
     // expect(response.status).toBe(200);
-    // console.log(await response.text());
     // let store = new Store(new Parser().parse(await response.text()));
     // let policies = store.getSubjects(ODRL.terms.uid, null, null);
     // expect(policies.map((term) => term.value)).toEqual([ 'urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc' ]);

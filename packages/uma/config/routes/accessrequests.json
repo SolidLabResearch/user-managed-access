@@ -6,7 +6,8 @@
         {
             "@id": "urn:uma:default:AccessRequestController",
             "@type": "AccessRequestController",
-            "store": { "@id": "urn:uma:default:RulesStorage" }
+            "store": { "@id": "urn:uma:default:RulesStorage" },
+            "ownershipStore": { "@id": "urn:uma:default:OwnershipStore" }
         },
         {
             "@id": "urn:uma:default:AccessRequestHandler",

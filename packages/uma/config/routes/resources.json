@@ -8,6 +8,7 @@
       "@type": "ResourceRegistrationRequestHandler",
       "derivationStore": { "@id": "urn:uma:default:DerivationStore" },
       "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
+      "ownershipStore": { "@id": "urn:uma:default:OwnershipStore" },
       "policies": { "@id": "urn:uma:default:RulesStorage" },
       "validator": { "@id": "urn:uma:default:RequestValidator" }
     },
