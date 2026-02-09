@@ -1,4 +1,5 @@
 import { Store, DataFactory } from "n3";
+import { ODRL } from 'odrl-evaluator';
 import {queryEngine} from './index';
 import { BadRequestHttpError, ForbiddenHttpError, RDF, XSD } from "@solid/community-server";
 const {literal, namedNode} = DataFactory
@@ -89,59 +90,13 @@ const buildPolicyCreationQuery = (resourceOwner: string) => `
  * @param resourceOwner identifier of the client (assigner)
  * @returns the validated policy as a store
  */
-export const postPolicy = async (store: Store, resourceOwner: string): Promise<Store> => {
+export const postPolicy = async (store: Store, resourceOwner: string):
+    Promise<{ result: Store, id: string }> => {
     const isOwner = store.countQuads(null, 'http://www.w3.org/ns/odrl/2/assigner', resourceOwner, null) !== 0;
     if (!isOwner) throw new ForbiddenHttpError();
 
     const result = await executePost(store, buildPolicyCreationQuery(resourceOwner), ["p", "r"]);
 
-    return result;
-}
-
-/**
- * Build a query to retrieve a newly posted request,
- * ensuring it has correct status and is linked to the client
- * as the requesting party.
- *
- * @param requestingParty identifier of the client
- * @returns a query string
- */
-const buildAccessRequestCreationQuery = (requestingParty: string) => `
-    PREFIX ex: <http://example.org/>
-    PREFIX sotw: <https://w3id.org/force/sotw#>
-    PREFIX dcterms: <http://purl.org/dc/terms/>
-    PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
-
-    SELECT ?r
-    WHERE {
-        ?r a sotw:EvaluationRequest ;
-           dcterms:issued ?date ;
-           sotw:requestedTarget ?target ;
-           sotw:requestedAction ?action ;
-           sotw:requestingParty <${requestingParty}> ;
-           ex:requestStatus ex:requested .
-    }
-`;
-
-/**
- * Validate and retrieve a newly posted request.
- *
- * Requires that the request has correct status (`requested`),
- * is issued, and is linked to the given client as requesting party.
- *
- * @param store the source store
- * @param requestingParty identifier of the client
- * @returns the validated request as a store
- */
-export const postAccessRequest = async (store: Store, requestingParty: string): Promise<Store>  =>{
-    const hasTime = store.countQuads(null, "http://purl.org/dc/terms/issued", null, null) !== 0;
-    if (hasTime) throw new BadRequestHttpError("Time is managed by the server");
-
-    const requestIds = store.getSubjects(RDF.type, "https://w3id.org/force/sotw#EvaluationRequest", null);
-    if (requestIds.length !==1) {
-        throw new BadRequestHttpError("Expected one acces request.");
-    }
-
-    store.addQuad(requestIds[0], namedNode("http://purl.org/dc/terms/issued"), literal(new Date().toISOString(), XSD.terms.dateTime))
-    return await executePost(store, buildAccessRequestCreationQuery(requestingParty), ["r"]);
+    // TODO: at least currently it is allowed to add multiple policies in a single POST so we can't really return an ID
+    return { result, id: '' };
 }

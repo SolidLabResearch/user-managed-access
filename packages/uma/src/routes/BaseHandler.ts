@@ -1,8 +1,7 @@
-import { BadRequestHttpError, ForbiddenHttpError, MethodNotAllowedHttpError } from '@solid/community-server';
+import { BadRequestHttpError, ForbiddenHttpError, joinUrl, MethodNotAllowedHttpError } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { BaseController } from '../controller/BaseController';
 import { WEBID } from '../credentials/Claims';
-import { ClaimSet } from '../credentials/ClaimSet';
 import { CredentialParser } from '../credentials/CredentialParser';
 import { Verifier } from '../credentials/verify/Verifier';
 import {
@@ -99,7 +98,7 @@ export class BaseHandler extends HttpHandler {
      * Retrieve a single policy (including its rules) or a single access request identified by `entityID`.
      *
      * @param entityID ID pointing to the policy or access request
-     * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
+     * @param clientID ID pointing to the requesting party (RP)
      * @returns a response with status (200 if found, 404 if not) and Turtle body containing the entity
      */
     private async handleSingleGet(entityID: string, clientID: string): Promise<HttpHandlerResponse<string>> {
@@ -117,12 +116,12 @@ export class BaseHandler extends HttpHandler {
      *
      * @param request HttpHandlerRequest containing the PATCH body
      * @param entityID ID of the policy or access request to patch
-     * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
+     * @param clientID ID pointing to the requesting party (RP)
      * @returns a response with status code 204 if successful, or error status otherwise
      * @throws BadRequestHttpError if request body is missing or invalid
      */
-    private async handlePatch(request: HttpHandlerRequest<string>, entityID: string, clientID: string): Promise<HttpHandlerResponse<void>> {
-        let response = { status: 204, message: '' };
+    private async handlePatch(request: HttpHandlerRequest<string>, entityID: string, clientID: string): Promise<HttpHandlerResponse<string>> {
+        let response: HttpHandlerResponse<string> = { status: 204, body: '' };
 
         if (!request.body) throw new BadRequestHttpError();
         if (this.patchContentType === 'application/json') {
@@ -138,7 +137,7 @@ export class BaseHandler extends HttpHandler {
      * Rewrite a single policy (including rules) or access request identified by `entityID`.
      *
      * @param entityID ID pointing to the policy or access request
-     * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
+     * @param clientID ID pointing to the requesting party (RP)
      * @returns a response with status 204 upon success
      */
     private async handlePut(request: HttpHandlerRequest<string>, entityID: string, clientID: string): Promise<HttpHandlerResponse<void>> {
@@ -154,7 +153,7 @@ export class BaseHandler extends HttpHandler {
      * Remove a single policy (including rules) or access request identified by `entityID`.
      *
      * @param entityID ID pointing to the policy or access request
-     * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
+     * @param clientID ID pointing to the requesting party (RP)
      * @returns a response with status 204 if deletion was successful
      */
     private async handleDelete(entityID: string, clientID: string): Promise<HttpHandlerResponse<void>> {
@@ -168,7 +167,7 @@ export class BaseHandler extends HttpHandler {
     /**
      * Retrieve all policies (including rules) or all access requests for a given `clientID`.
      *
-     * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
+     * @param clientID ID pointing to the requesting party (RP)
      * @returns a response with status (200 if found, 404 if not) and Turtle body containing all entities
      */
     private async handleGet(clientID: string): Promise<HttpHandlerResponse<string>> {
@@ -184,16 +183,17 @@ export class BaseHandler extends HttpHandler {
      * Create a new policy (with at least one rule) or a new access request for a given `clientID`.
      *
      * @param request HttpHandlerRequest containing RDF body representing the entity
-     * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
+     * @param clientID ID pointing to the requesting party (RP)
      * @returns a response with status code 201 if successful, 409 if conflict occurred, or error otherwise
      * @throws BadRequestHttpError if request body is missing
      */
     private async handlePost(request: HttpHandlerRequest<string>, clientID: string): Promise<HttpHandlerResponse<string>> {
         if (!request.body) throw new BadRequestHttpError();
-        const { status, message } = await this.controller.addEntity(request.body.toString(), clientID);
+        const { status, message, id } = await this.controller.addEntity(request.body.toString(), clientID);
 
         return {
             status: status,
+            headers: { location: joinUrl(request.url.href, id) },
             body: message
         };
     }

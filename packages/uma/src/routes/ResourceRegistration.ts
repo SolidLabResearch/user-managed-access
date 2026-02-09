@@ -43,12 +43,14 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
   /**
    * @param derivationStore - Key/value store linking derivation_resource_ids to their issuer.
    * @param registrationStore - Key/value store containing the {@link ResourceDescription}s.
+   * @param ownershipStore - Key/value store that links owners to their resources.
    * @param policies - Policy store to contain the asset relation triples.
    * @param validator - Validates that the request is valid.
    */
   constructor(
     protected readonly derivationStore: KeyValueStorage<string, string>,
     protected readonly registrationStore: RegistrationStore,
+    protected readonly ownershipStore: KeyValueStorage<string, string[]>,
     protected readonly policies: UCRulesStorage,
     protected readonly validator: RequestValidator,
   ) {
@@ -92,6 +94,10 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
 
     // Set the resource metadata
     await this.setResourceMetadata(resource, body, owner);
+
+    const ownedResources = await this.ownershipStore.get(owner) ?? [];
+    ownedResources.push(resource);
+    await this.ownershipStore.set(owner, ownedResources);
 
     return ({
       status: 201,
@@ -153,6 +159,16 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     await this.registrationStore.delete(parameters.id);
     this.logger.info(`Deleted resource ${parameters.id}.`);
 
+    const ownedResources = await this.ownershipStore.get(owner) ?? [];
+    const idx = ownedResources.indexOf(parameters.id);
+    if (idx >= 0) {
+      ownedResources.splice(idx, 1);
+      if (ownedResources.length === 0) {
+        await this.ownershipStore.delete(owner);
+      } else {
+        await this.ownershipStore.set(owner, ownedResources);
+      }
+    }
     return ({ status: 204 });
   }
 

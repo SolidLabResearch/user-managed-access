@@ -1,4 +1,6 @@
-import { Store } from "n3";
+import { Quad } from '@rdfjs/types';
+import { DataFactory as DF, Quad_Subject, Store } from 'n3';
+import { ODRL } from 'odrl-evaluator';
 import {queryEngine} from './index';
 
 /**
@@ -34,7 +36,7 @@ const executeGet = async (
                 break;
             }
 
-            subStore.addQuads(store.getQuads(term, null, null, null));
+            subStore.addQuads(permissionToQuads(store, term));
         }
 
         if (valid) results.push(subStore)
@@ -116,87 +118,21 @@ const buildPoliciesRetrievalQuery = (resourceOwner: string) => `
  * @returns a store containing all policies and their permissions
  */
 export const getPolicies = (store: Store, resourceOwner: string) =>
-    executeGet(store, buildPoliciesRetrievalQuery(resourceOwner), ['policy', 'perm']);
+    executeGet(store, buildPoliciesRetrievalQuery(resourceOwner), ['perm']);
 
-// ! There is not necessarily a link between resource owner and resource through a policy
-// ! Currently, only the requests where the client is requesting party will be given,
-// ! for requested targets that aren't included in some policy already.
-
-/**
- * Build a query to retrieve a single request,
- * provided that the client is either the requesting party
- * or the assigner of a policy targeting the same resource.
- *
- * @param requestID identifier of the request
- * @param requestingPartyOrResourceOwner identifier of the client
- * @returns a query string
- */
-const buildAccessRequestRetrievalQuery = (requestID: string, requestingPartyOrResourceOwner: string) => `
-    PREFIX sotw: <https://w3id.org/force/sotw#>
-    PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
-
-    SELECT DISTINCT ?req
-    WHERE {
-        {
-            <${requestID}> sotw:requestingParty <${requestingPartyOrResourceOwner}> .
-        } 
-        UNION
-        {
-            <${requestID}> sotw:requestedTarget ?target .
-            ?pol a odrl:Agreement ;
-                 odrl:permission ?per .
-            ?per odrl:target ?target ;
-                 odrl:assigner <${requestingPartyOrResourceOwner}> .
-        }
+// TODO: slight improvement over existing solution so constraints get returned but definitely not ideal yet
+function permissionToQuads(store: Store, permission: Quad_Subject): Quad[] {
+    const result: Quad[] = [];
+    const policies = store.getSubjects(ODRL.terms.permission, permission, null);
+    for (const policy of policies) {
+        result.push(...store.getQuads(policy, null, null, null));
     }
-`;
+    result.push(...store.getQuads(permission, null, null, null));
 
-/**
- * Retrieve a single request by ID,
- * if the client is the requesting party or assigner of the target.
- *
- * @param store the source store
- * @param accessRequestID identifier of the request
- * @param requestingPartyOrResourceOwner identifier of the client
- * @returns a store containing the request
- */
-export const getAccessRequest = (store: Store, accessRequestID: string, requestingPartyOrResourceOwner: string) =>
-    executeGet(store, buildAccessRequestRetrievalQuery(accessRequestID, requestingPartyOrResourceOwner), ['req']);
+    // Constraints
+    result.push(
+      ...store.getObjects(permission, ODRL.terms.constraint, null).flatMap((constraint) =>
+          store.getQuads(constraint, null, null, null)));
 
-/**
- * Build a query to retrieve all requests for a client,
- * either as requesting party or as assigner of the requested target.
- *
- * @param requestingPartyOrResourceOwner identifier of the client
- * @returns a query string
- */
-const buildAccessRequestsRetrievalQuery = (requestingPartyOrResourceOwner: string) => `
-    PREFIX sotw: <https://w3id.org/force/sotw#>
-    PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
-
-    SELECT DISTINCT ?req
-    WHERE {
-        {
-            ?req sotw:requestingParty <${requestingPartyOrResourceOwner}> .
-        } 
-        UNION
-        {
-            ?req sotw:requestedTarget ?target .
-            ?pol a odrl:Agreement ;
-                 odrl:permission ?per .
-            ?per odrl:target ?target ;
-                 odrl:assigner <${requestingPartyOrResourceOwner}> .
-        }
-    }
-`;
-
-/**
- * Retrieve all requests for a client,
- * either as requesting party or as assigner of the requested targets.
- *
- * @param store the source store
- * @param requestingPartyOrResourceOwner identifier of the client
- * @returns a store containing the requests
- */
-export const getAccessRequests = (store: Store, requestingPartyOrResourceOwner: string) =>
-    executeGet(store, buildAccessRequestsRetrievalQuery(requestingPartyOrResourceOwner), ['req']);
+    return result;
+}

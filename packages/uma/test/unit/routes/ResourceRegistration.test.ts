@@ -28,6 +28,7 @@ describe('ResourceRegistration', (): void => {
 
   let derivationStore: Mocked<KeyValueStorage<string, string>>;
   let registrationStore: Mocked<RegistrationStore>;
+  let ownershipStore: Mocked<KeyValueStorage<string, string[]>>
   let policies: Mocked<UCRulesStorage>;
   let validator: Mocked<RequestValidator>;
 
@@ -59,6 +60,12 @@ describe('ResourceRegistration', (): void => {
       delete: vi.fn(),
     } satisfies Partial<KeyValueStorage<string, ResourceDescription>> as any;
 
+    ownershipStore = {
+      get: vi.fn().mockResolvedValue([]),
+      set: vi.fn(),
+      delete: vi.fn(),
+    } satisfies Partial<KeyValueStorage<string, string[]>> as any;
+
     policies = {
       getStore: vi.fn().mockResolvedValue(policyStore),
       addRule: vi.fn(),
@@ -69,7 +76,7 @@ describe('ResourceRegistration', (): void => {
       handleSafe: vi.fn().mockResolvedValue({ owner }),
     } satisfies Partial<RequestValidator> as any;
 
-    handler = new ResourceRegistrationRequestHandler(derivationStore, registrationStore, policies, validator);
+    handler = new ResourceRegistrationRequestHandler(derivationStore, registrationStore, ownershipStore, policies, validator);
   });
 
   it('throws an error if the method is not allowed.', async(): Promise<void> => {

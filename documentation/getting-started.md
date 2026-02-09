@@ -49,6 +49,7 @@ so some information might change depending on which version and branch you're us
   * [Adding or changing policies](#adding-or-changing-policies)
   * [Policy backups](#policy-backups)
   * [Data aggregation](#data-aggregation)
+  * [Access requests](#access-requests)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
@@ -466,3 +467,8 @@ When restarting the server, the contents of that file will be read to initialize
 ## Data aggregation
 
 The UMA server implements the [Aggregator Specification](https://spec.knows.idlab.ugent.be/aggregator-protocol/latest/).
+
+## Access Requests
+
+A user can request access to a resource through access requests,
+more information on this can be found in the [relevant documentation](./access-request-management.md).

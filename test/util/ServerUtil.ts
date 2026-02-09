@@ -4,6 +4,7 @@ import * as path from 'node:path';
 
 
 const portNames = [
+  'AccessRequests',
   'Aggregation',
   'AggregationSource',
   'Base',

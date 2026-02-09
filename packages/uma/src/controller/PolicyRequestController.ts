@@ -17,7 +17,6 @@ export class PolicyController extends BaseController {
     ) {
         super(
             store,
-            "Already existing policies found",
             postPolicy,
             deletePolicy,
             getPolicies,
