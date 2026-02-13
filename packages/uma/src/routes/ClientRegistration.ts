@@ -2,6 +2,7 @@ import {
   BadRequestHttpError,
   ConflictHttpError,
   createErrorMessage,
+  ForbiddenHttpError,
   IndexedStorage,
   InternalServerError,
   joinUrl,
@@ -145,12 +146,15 @@ export class ClientRegistrationRequestHandler extends HttpHandler {
       throw new InternalServerError('URI for DELETE operation should include an id.');
     }
 
-    const matches = await this.storage.findIds(CLIENT_REGISTRATION_STORAGE_TYPE, { clientId: request.parameters.id });
+    const matches = await this.storage.find(CLIENT_REGISTRATION_STORAGE_TYPE, { clientId: request.parameters.id });
     if (matches.length === 0) {
       throw new NotFoundHttpError();
     }
+    if (matches[0].userId !== userId) {
+      throw new ForbiddenHttpError();
+    }
 
-    await this.storage.delete(CLIENT_REGISTRATION_STORAGE_TYPE, matches[0]);
+    await this.storage.delete(CLIENT_REGISTRATION_STORAGE_TYPE, matches[0].id);
 
     return { status: 204 };
   }

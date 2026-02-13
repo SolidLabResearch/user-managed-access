@@ -1,6 +1,6 @@
 import {
   BadRequestHttpError,
-  ConflictHttpError,
+  ConflictHttpError, ForbiddenHttpError,
   IndexedStorage, InternalServerError,
   joinUrl, NotFoundHttpError,
   UnauthorizedHttpError
@@ -136,7 +136,7 @@ describe('ClientRegistration', (): void => {
   it('can remove a registration on DELETE requests.', async(): Promise<void> => {
     request.method = 'DELETE';
     request.parameters = { id: 'id' };
-    storage.findIds.mockResolvedValueOnce([ 'match' ]);
+    storage.find.mockResolvedValueOnce([ { id: 'match', userId: webId } ]);
 
     await expect(handler.handle({ request })).resolves.toEqual({ status: 204 });
     expect(storage.delete).toHaveBeenCalledTimes(1);
@@ -146,7 +146,6 @@ describe('ClientRegistration', (): void => {
   it('errors if there is no ID when deleting.', async(): Promise<void> => {
     request.method = 'DELETE';
     request.parameters = {};
-    storage.findIds.mockResolvedValueOnce([ 'match' ]);
 
     await expect(handler.handle({ request })).rejects.toThrow(InternalServerError);
     expect(storage.delete).toHaveBeenCalledTimes(0);
@@ -155,9 +154,18 @@ describe('ClientRegistration', (): void => {
   it('errors if the ID is unknown when deleting.', async(): Promise<void> => {
     request.method = 'DELETE';
     request.parameters = { id: 'id' };
-    storage.findIds.mockResolvedValueOnce([]);
+    storage.find.mockResolvedValueOnce([]);
 
     await expect(handler.handle({ request })).rejects.toThrow(NotFoundHttpError);
+    expect(storage.delete).toHaveBeenCalledTimes(0);
+  });
+
+  it('errors if the user is not the owner of the ID when deleting.', async(): Promise<void> => {
+    request.method = 'DELETE';
+    request.parameters = { id: 'id' };
+    storage.find.mockResolvedValueOnce([ { id: 'match', userId: 'someone-else' } ]);
+
+    await expect(handler.handle({ request })).rejects.toThrow(ForbiddenHttpError);
     expect(storage.delete).toHaveBeenCalledTimes(0);
   });
 });
