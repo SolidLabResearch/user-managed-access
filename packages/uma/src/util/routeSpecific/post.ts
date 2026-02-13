@@ -60,7 +60,7 @@ const executePost = async (
 const buildPolicyCreationQuery = (resourceOwner: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
 
-    SELECT DISTINCT ?p ?r
+    SELECT DISTINCT ?p ?r ?target
     WHERE {
         {
             ?p a odrl:Agreement ;
