@@ -82,6 +82,16 @@ All these triples then get passed to the ODRL evaluator when policies need to be
 Any policy that targets a collection ID will apply to all resources that are part of that collection.
 If the relation was reversed, the relation object would be `[ owl:inverseOf <http://www.w3.org/ns/ldp#contains> ]`.
 
+### Finding collection identifiers
+
+Currently, there is no API yet to request a list of all the automatically registered collections described above.
+As a workaround, the generated collection identifiers are fixed, based on the relevant identifiers.
+A collection with source `http://example.com/container/` and relation `http://www.w3.org/ns/ldp#contains`,
+would have as collection identifier `collection:http://example.com/container/:http://www.w3.org/ns/ldp#contains`.
+In case of a reverse relationship, this would instead be
+`collection:http://www.w3.org/ns/ldp#contains:http://example.com/container/`.
+These are the identifiers to then use as targets in a policy.
+
 ## Updating collection triples
 
 Every time a resource is updated, the corresponding collection triples are updated accordingly.

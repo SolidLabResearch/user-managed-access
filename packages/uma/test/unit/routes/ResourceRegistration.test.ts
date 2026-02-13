@@ -113,9 +113,10 @@ describe('ResourceRegistration', (): void => {
     });
 
     it('stores newly created asset collections.', async(): Promise<void> => {
-      const crypto = await import('node:crypto');
-      let count = 0;
-      vi.mocked(crypto.randomUUID).mockImplementation(() => `${++count}` as any);
+      // TODO: not needed while collection identifiers are fixed
+      // const crypto = await import('node:crypto');
+      // let count = 0;
+      // vi.mocked(crypto.randomUUID).mockImplementation(() => `${++count}` as any);
       input.request.body!.resource_defaults = { pred: [ 'scope' ], '@reverse': { 'rPred': [ 'otherScope' ]}};
       await expect(handler.handle(input)).resolves.toEqual({
         status: 201,
@@ -125,12 +126,12 @@ describe('ResourceRegistration', (): void => {
       expect(policies.addRule).toHaveBeenCalledTimes(1);
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
-        DF.quad(DF.namedNode('collection:1'), RDF.terms.type, ODRL.terms.AssetCollection),
-        DF.quad(DF.namedNode('collection:1'), ODRL.terms.source, DF.namedNode('name')),
-        DF.quad(DF.namedNode('collection:1'), ODRL_P.terms.relation, DF.namedNode('pred')),
-        DF.quad(DF.namedNode('collection:2'), RDF.terms.type, ODRL.terms.AssetCollection),
-        DF.quad(DF.namedNode('collection:2'), ODRL.terms.source, DF.namedNode('name')),
-        DF.quad(DF.namedNode('collection:2'), ODRL_P.terms.relation, DF.blankNode('n3-0')),
+        DF.quad(DF.namedNode('collection:name:pred'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:name:pred'), ODRL.terms.source, DF.namedNode('name')),
+        DF.quad(DF.namedNode('collection:name:pred'), ODRL_P.terms.relation, DF.namedNode('pred')),
+        DF.quad(DF.namedNode('collection:rPred:name'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:rPred:name'), ODRL.terms.source, DF.namedNode('name')),
+        DF.quad(DF.namedNode('collection:rPred:name'), ODRL_P.terms.relation, DF.blankNode('n3-0')),
         DF.quad(DF.blankNode('n3-0'), OWL.terms.inverseOf, DF.namedNode('rPred')),
       ]);
     });
@@ -221,9 +222,10 @@ describe('ResourceRegistration', (): void => {
     });
 
     it('stores newly created asset collections.', async(): Promise<void> => {
-      const crypto = await import('node:crypto');
-      let count = 0;
-      vi.mocked(crypto.randomUUID).mockImplementation(() => `${++count}` as any);
+      // TODO: not needed while collection identifiers are fixed
+      // const crypto = await import('node:crypto');
+      // let count = 0;
+      // vi.mocked(crypto.randomUUID).mockImplementation(() => `${++count}` as any);
       input.request.body!.resource_defaults = { pred: [ 'scope' ], '@reverse': { 'rPred': [ 'otherScope' ]}};
       await expect(handler.handle(input)).resolves.toEqual({
         status: 200,
@@ -232,12 +234,12 @@ describe('ResourceRegistration', (): void => {
       expect(policies.addRule).toHaveBeenCalledTimes(1);
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
-        DF.quad(DF.namedNode('collection:1'), RDF.terms.type, ODRL.terms.AssetCollection),
-        DF.quad(DF.namedNode('collection:1'), ODRL.terms.source, DF.namedNode('name')),
-        DF.quad(DF.namedNode('collection:1'), ODRL_P.terms.relation, DF.namedNode('pred')),
-        DF.quad(DF.namedNode('collection:2'), RDF.terms.type, ODRL.terms.AssetCollection),
-        DF.quad(DF.namedNode('collection:2'), ODRL.terms.source, DF.namedNode('name')),
-        DF.quad(DF.namedNode('collection:2'), ODRL_P.terms.relation, DF.blankNode('n3-0')),
+        DF.quad(DF.namedNode('collection:name:pred'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:name:pred'), ODRL.terms.source, DF.namedNode('name')),
+        DF.quad(DF.namedNode('collection:name:pred'), ODRL_P.terms.relation, DF.namedNode('pred')),
+        DF.quad(DF.namedNode('collection:rPred:name'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:rPred:name'), ODRL.terms.source, DF.namedNode('name')),
+        DF.quad(DF.namedNode('collection:rPred:name'), ODRL_P.terms.relation, DF.blankNode('n3-0')),
         DF.quad(DF.blankNode('n3-0'), OWL.terms.inverseOf, DF.namedNode('rPred')),
       ]);
     });
