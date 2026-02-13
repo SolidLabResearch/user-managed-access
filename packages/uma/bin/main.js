@@ -14,8 +14,7 @@ const argv = yargs(hideBin(process.argv))
   .option('baseUrl', {
     alias: 'b',
     type: 'string',
-    description: 'Base URL for the UMA server',
-    default: `http://localhost:${argv.port}/uma`
+    description: 'Base URL for the UMA server. Defaults to http://localhost:$PORT/uma',
   })
   .option('loggingLevel', {
     alias: 'l',
@@ -39,7 +38,7 @@ const launch = async () => {
   const variables = {};
 
   variables['urn:uma:variables:port'] = argv.port;
-  variables['urn:uma:variables:baseUrl'] = argv.baseUrl;
+  variables['urn:uma:variables:baseUrl'] = argv.baseUrl ?? `http://localhost:${argv.port}/uma`;
   variables['urn:uma:variables:eyePath'] = 'eye';
   variables['urn:uma:variables:backupFilePath'] = argv.backupFilePath;
 
