@@ -8,6 +8,7 @@ const portNames = [
   'Aggregation',
   'AggregationSource',
   'Base',
+  'Collections',
   'Demo',
   'ODRL',
   'OIDC',
