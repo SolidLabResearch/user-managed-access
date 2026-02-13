@@ -242,7 +242,11 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
       if (collections.length > 0) {
         delete add[key];
       } else {
-        addQuads.push(...this.generateCollectionTriples(entry));
+        // TODO: currently generating fixed collection ID as there is no API to get them
+        addQuads.push(...this.generateCollectionTriples(entry, DF.namedNode(`collection:${entry.reverse ? 
+          entry.relation.value + ':' + entry.source.value :
+          entry.source.value + ':' + entry.relation.value
+        }`)));
       }
     }
 
