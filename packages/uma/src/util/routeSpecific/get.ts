@@ -61,11 +61,12 @@ const executeGet = async (
 const buildPolicyRetrievalQuery = (policyID: string, resourceOwner: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
     
-    SELECT DISTINCT ?policy ?perm
+    SELECT DISTINCT ?policy ?perm ?target
     WHERE {
         ?policy odrl:uid <${policyID}> ;
                 odrl:permission ?perm .
-        ?perm odrl:assigner <${resourceOwner}> .
+        ?perm odrl:assigner <${resourceOwner}> ;
+              odrl:target ?target .
 
         {
             ?policy a odrl:Agreement .
@@ -85,7 +86,7 @@ const buildPolicyRetrievalQuery = (policyID: string, resourceOwner: string) => `
  * @returns a store containing the policy and its permissions
  */
 export const getPolicy = (store: Store, policyID: string, resourceOwner: string) =>
-    executeGet(store, buildPolicyRetrievalQuery(policyID, resourceOwner), ['policy', 'perm']);
+    executeGet(store, buildPolicyRetrievalQuery(policyID, resourceOwner), ['policy', 'perm', 'target']);
 
 /**
  * Build a query to retrieve all policies for a given client.
@@ -97,10 +98,11 @@ export const getPolicy = (store: Store, policyID: string, resourceOwner: string)
 const buildPoliciesRetrievalQuery = (resourceOwner: string) => `
     PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
     
-    SELECT DISTINCT ?policy ?perm
+    SELECT DISTINCT ?policy ?perm ?target
     WHERE {
         ?policy odrl:permission ?perm .
-        ?perm odrl:assigner <${resourceOwner}> .
+        ?perm odrl:assigner <${resourceOwner}> ;
+              odrl:target ?target .
 
         {
             ?policy a odrl:Agreement .
@@ -118,7 +120,7 @@ const buildPoliciesRetrievalQuery = (resourceOwner: string) => `
  * @returns a store containing all policies and their permissions
  */
 export const getPolicies = (store: Store, resourceOwner: string) =>
-    executeGet(store, buildPoliciesRetrievalQuery(resourceOwner), ['perm']);
+    executeGet(store, buildPoliciesRetrievalQuery(resourceOwner), ['perm', 'target']);
 
 // TODO: slight improvement over existing solution so constraints get returned but definitely not ideal yet
 function permissionToQuads(store: Store, permission: Quad_Subject): Quad[] {
