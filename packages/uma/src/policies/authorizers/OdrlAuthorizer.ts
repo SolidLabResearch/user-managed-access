@@ -1,7 +1,7 @@
 import { BadRequestHttpError, DC, RDF } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory, Quad, Store, Writer } from 'n3';
-import { EyeReasoner, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator';
+import { EyelingReasoner, EyeReasoner, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator';
 import { CLIENTID, WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { basicPolicy } from '../../ucp/policy/ODRL';
@@ -41,16 +41,11 @@ export class OdrlAuthorizer implements Authorizer {
      *
      *
      * @param policies - A store containing the ODRL policy rules.
-     * @param eyePath - The path to run the local EYE reasoner, if there is one.
      */
     constructor(
         private readonly policies: UCRulesStorage,
-        eyePath?: string,
     ) {
-        const engine = eyePath ?
-            new ODRLEngineMultipleSteps({ reasoner: new EyeReasoner(eyePath, ["--quiet", "--nope", "--pass-only-new"]) }) :
-            new ODRLEngineMultipleSteps();
-        this.odrlEvaluator = new ODRLEvaluator(engine);
+        this.odrlEvaluator = new ODRLEvaluator(new ODRLEngineMultipleSteps({ reasoner: new EyelingReasoner()}));
         this.strategy = new PrioritizeProhibitionStrategy();
     }
 

@@ -17,7 +17,6 @@ const launch = async () => {
 
     variables['urn:uma:variables:policyBaseIRI'] = 'http://localhost:3000/';
     variables['urn:uma:variables:policyDir'] = path.join(rootDir, './config/rules/odrl');
-    variables['urn:uma:variables:eyePath'] = 'eye';
     variables['urn:uma:variables:backupFilePath'] = '';
 
     const configPath = path.join(rootDir, './config/odrl.json');
