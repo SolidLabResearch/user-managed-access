@@ -39,7 +39,6 @@ const launch = async () => {
 
   variables['urn:uma:variables:port'] = argv.port;
   variables['urn:uma:variables:baseUrl'] = argv.baseUrl ?? `http://localhost:${argv.port}/uma`;
-  variables['urn:uma:variables:eyePath'] = 'eye';
   variables['urn:uma:variables:backupFilePath'] = argv.backupFilePath;
 
   const configPath = path.join(rootDir, './config/default.json');
