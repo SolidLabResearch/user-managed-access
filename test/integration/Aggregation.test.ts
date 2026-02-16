@@ -273,7 +273,7 @@ describe('An aggregation setup', (): void => {
     // Update registration with derivation ID
     const description: ResourceDescription = {
       name: `http://localhost:${aggregatorPort}/resource`,
-      resource_scopes: [ 'read' ],
+      resource_scopes: [ 'http://www.w3.org/ns/odrl/2/read' ],
       derived_from: [{
         issuer: srcConfig.issuer,
         derivation_resource_id: derivationId,
@@ -290,6 +290,28 @@ describe('An aggregation setup', (): void => {
       body: JSON.stringify(description),
     });
     expect(response.status).toBe(200);
+  });
+
+  it('can read the resource registration on the AS.', async(): Promise<void> => {
+    let response = await fetch(aggConfig.resource_registration_endpoint, {
+      headers: { authorization: pat }
+    });
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual([aggregatedResourceId]);
+
+    const url = joinUrl(aggConfig.resource_registration_endpoint, encodeURIComponent(aggregatedResourceId));
+    response = await fetch(url, {
+      headers: { authorization: pat  },
+    });
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      name: `http://localhost:${aggregatorPort}/resource`,
+      resource_scopes: [ 'http://www.w3.org/ns/odrl/2/read' ],
+      derived_from: [{
+        issuer: srcConfig.issuer,
+        derivation_resource_id: derivationId,
+      }],
+    });
   });
 
   it('a client cannot read an aggregated resource without the necessary tokens.', async(): Promise<void> => {

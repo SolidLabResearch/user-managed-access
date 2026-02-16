@@ -23,6 +23,7 @@ vi.mock('node:crypto', () => ({
 
 describe('ResourceRegistration', (): void => {
   const owner = 'owner';
+  const resource = 'http://example.com/resource';
   let input: HttpHandlerContext<ResourceDescription>;
   let policyStore: Store;
 
@@ -61,7 +62,7 @@ describe('ResourceRegistration', (): void => {
     } satisfies Partial<KeyValueStorage<string, ResourceDescription>> as any;
 
     ownershipStore = {
-      get: vi.fn().mockResolvedValue([]),
+      get: vi.fn().mockResolvedValue([ resource ]),
       set: vi.fn(),
       delete: vi.fn(),
     } satisfies Partial<KeyValueStorage<string, string[]>> as any;
@@ -80,7 +81,36 @@ describe('ResourceRegistration', (): void => {
   });
 
   it('throws an error if the method is not allowed.', async(): Promise<void> => {
+    input.request.method = 'PATCH';
     await expect(handler.handle(input)).rejects.toThrow(MethodNotAllowedHttpError);
+  });
+
+  describe('with GET requests', (): void => {
+    it('can return a list of owned resource identifiers.', async(): Promise<void> => {
+      await expect(handler.handle(input)).resolves.toEqual({ status: 200, body: [ resource ] });
+      expect(ownershipStore.get).toHaveBeenCalledExactlyOnceWith(owner);
+    });
+
+    it('can return the details of a single resource.', async(): Promise<void> => {
+      input.request.parameters = { id: resource };
+      await expect(handler.handle(input)).resolves
+        .toEqual({ status: 200, body: input.request.body });
+      expect(registrationStore.get).toHaveBeenCalledExactlyOnceWith(resource);
+    });
+
+    it('returns a 404 for unknown resource identifiers.', async(): Promise<void> => {
+      input.request.parameters = { id: resource };
+      registrationStore.get.mockResolvedValueOnce(undefined);
+      await expect(handler.handle(input)).rejects.toThrow(NotFoundHttpError);
+      expect(registrationStore.get).toHaveBeenCalledExactlyOnceWith(resource);
+    });
+
+    it('returns a 403 if the user is not the actual owner.', async(): Promise<void> => {
+      input.request.parameters = { id: resource };
+      registrationStore.get.mockResolvedValueOnce({ owner: 'someone else' } as any);
+      await expect(handler.handle(input)).rejects.toThrow(ForbiddenHttpError);
+      expect(registrationStore.get).toHaveBeenCalledExactlyOnceWith(resource);
+    });
   });
 
   describe('with POST requests', (): void => {
