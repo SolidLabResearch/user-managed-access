@@ -61,11 +61,30 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     const { owner } = await this.validator.handleSafe({ request });
 
     switch (request.method) {
+      case 'GET': return this.handleGet(request, owner);
       case 'POST': return this.handlePost(request, owner);
       case 'PUT': return this.handlePut(request, owner);
       case 'DELETE': return this.handleDelete(request, owner);
       default: throw new MethodNotAllowedHttpError([ request.method ]);
     }
+  }
+
+  protected async handleGet(request: HttpHandlerRequest, owner: string): Promise<HttpHandlerResponse> {
+    const id = request.parameters?.id;
+    if (id) {
+      const registration = await this.registrationStore.get(id);
+      if (!registration) {
+        throw new NotFoundHttpError();
+      }
+      if (registration.owner !== owner) {
+        throw new ForbiddenHttpError()
+      }
+      return { status: 200, body: registration.description };
+    }
+
+    // No ID so return the list of all owned resources
+    const identifiers = await this.ownershipStore.get(owner) ?? [];
+    return { status: 200, body: identifiers };
   }
 
   protected async handlePost(request: HttpHandlerRequest, owner: string): Promise<HttpHandlerResponse> {
