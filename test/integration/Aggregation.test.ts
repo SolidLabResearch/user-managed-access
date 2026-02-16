@@ -26,7 +26,6 @@ function getUmaApp(port: number): Promise<App> {
     {
       'urn:uma:variables:port': port,
       'urn:uma:variables:baseUrl': `http://localhost:${port}/uma`,
-      'urn:uma:variables:eyePath': 'eye',
       'urn:uma:variables:backupFilePath': '',
     }
   );

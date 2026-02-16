@@ -1,13 +1,6 @@
 FROM node:22
 ENV NODE_ENV=production
 
-# Install EYE reasoner
-RUN apt-get update  \
- && apt-get install swi-prolog -y \
- && git clone https://github.com/eyereasoner/eye.git \
- && /eye/install.sh --prefix=/usr/local \
- && rm -r /eye
-
 WORKDIR /usr/src/app
 COPY . .
 

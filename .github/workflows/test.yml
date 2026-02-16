@@ -29,17 +29,6 @@ jobs:
 
     steps:
 
-      - name: Install prolog
-        uses: logtalk-actions/setup-swi-prolog@master
-
-      - name: Clone EYE repo
-        uses: actions/checkout@v4
-        with:
-          repository: eyereasoner/eye
-
-      - name: Build EYE
-        run: bash install.sh --prefix=$HOME/.local # This folder is available on $PATH already
-
       - name: Checkout main branch
         uses: actions/checkout@v4
 

@@ -12,7 +12,6 @@
       "overrideInstance": { "@id": "urn:uma:default:Authorizer" },
       "overrideParameters": {
         "@type": "OdrlAuthorizer",
-        "eyePath": { "@id": "urn:uma:variables:eyePath" },
         "policies": {
           "@id": "urn:uma:default:RulesStorage"
         }
