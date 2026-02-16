@@ -210,7 +210,6 @@ describe('A server setup', (): void => {
         headers: { authorization: `WebID ${encodeURIComponent(owner)}`, 'content-type': 'text/turtle' },
         body: policy,
       });
-      console.log(await policyResponse.text());
       expect(policyResponse.status).toBe(201);
 
       const putResponse = await fetch(collectionResource, {
@@ -247,7 +246,6 @@ describe('A server setup', (): void => {
         headers: { authorization: `WebID ${encodeURIComponent(owner)}`, 'content-type': 'text/turtle' },
         body: policy,
       });
-      console.log(await policyResponse.text());
       expect(policyResponse.status).toBe(201);
 
       const putResponse = await fetch(collectionResource, {
@@ -255,7 +253,6 @@ describe('A server setup', (): void => {
         headers: { 'content-type': 'text/plain' },
         body: 'Some new text!',
       });
-      console.log(await putResponse.text());
       expect(putResponse.status).toBe(205);
 
       const getResponse = await fetch(collectionResource);
