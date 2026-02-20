@@ -5656,7 +5656,8 @@ __metadata:
     logform: "npm:^2.6.0"
     ms: "npm:^2.1.3"
     n3: "npm:^1.17.2"
-    odrl-evaluator: "npm:^0.5.0"
+    odrl-evaluator: "npm:^0.6.0"
+    policy-conflict-resolver: "npm:^0.0.3"
     rdf-string: "npm:^2.0.1"
     rdf-vocabulary: "npm:^1.0.1"
     uri-template-lite: "npm:^23.4.0"
@@ -5839,10 +5840,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/emscripten@npm:^1.39.13":
-  version: 1.40.1
-  resolution: "@types/emscripten@npm:1.40.1"
-  checksum: 10c0/0d6cd29e551f85ba49a0e7d58de16c857960d40e57553e7cc2860b7d80c4210c992ed292998ec3fd3bdc3b41d96541e91d01a6c232106ac0ad79b4710e87f38d
+"@types/emscripten@npm:^1.41.5":
+  version: 1.41.5
+  resolution: "@types/emscripten@npm:1.41.5"
+  checksum: 10c0/ae816da716f896434e59df7a71b67c71ae7e85ca067a32aef1616572fc4757459515d42ade6f5b8fd8d69733a9dbd0cf23010fec5b2f41ce52c09501aa350e45
   languageName: node
   linkType: hard
 
@@ -8567,17 +8568,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eyereasoner@npm:^16.18.4":
-  version: 16.34.1
-  resolution: "eyereasoner@npm:16.34.1"
+"eyeling@npm:^1.10.6":
+  version: 1.10.14
+  resolution: "eyeling@npm:1.10.14"
+  bin:
+    eyeling: eyeling.js
+  checksum: 10c0/fa6787a209b38029b14318d16ea667a8ec5e324570477bc4d688200416595b34762383a454f7610fbd06a8ea4f290d42dcc93aa5695c145691f50772baa1bf1a
+  languageName: node
+  linkType: hard
+
+"eyereasoner@npm:^19.0.1":
+  version: 19.0.1
+  resolution: "eyereasoner@npm:19.0.1"
   dependencies:
     n3: "npm:^1.16.3"
-    swipl-wasm: "npm:4.0.13"
+    swipl-wasm: "npm:6.0.0"
   peerDependencies:
     "@rdfjs/types": ^1.1.0
   bin:
     eyereasoner: dist/bin/index.js
-  checksum: 10c0/a1c78114edc20d94b7cb052305d97bc16e49ece53b7c221cda4309c6e92deb1ed485ba31fff728e4bd1195ee16421e1cf25f5da43225e52939ddac2bca9678ba
+  checksum: 10c0/320d4d40a9941d979861fb24a949485f3b0655bd85c9519a039e83a4c7da5162fc30bc9d39f43231075ff5557d083bb3317ee8aeb2630b54406ed2ac14eecb25
   languageName: node
   linkType: hard
 
@@ -10758,6 +10768,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"n3@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "n3@npm:2.0.1"
+  dependencies:
+    buffer: "npm:^6.0.3"
+    readable-stream: "npm:^4.0.0"
+  checksum: 10c0/f8c6de2052004c83b8870445e844ce6022d34a91807003b407c696b12e56cc8d74c987fa4103fef05a3544b4a70b44b7219500f609808181207fde34faac0a32
+  languageName: node
+  linkType: hard
+
 "nanoid@npm:^3.3.11":
   version: 3.3.11
   resolution: "nanoid@npm:3.3.11"
@@ -10979,15 +10999,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"odrl-evaluator@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "odrl-evaluator@npm:0.5.0"
+"odrl-evaluator@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "odrl-evaluator@npm:0.6.0"
   dependencies:
     "@jeswr/pretty-turtle": "npm:^1.8.2"
     "@rdfjs/types": "npm:^1.1.0"
     "@types/n3": "npm:^1.16.3"
     commit-and-tag-version: "npm:^12.6.0"
-    eyereasoner: "npm:^16.18.4"
+    eyeling: "npm:^1.10.6"
+    eyereasoner: "npm:^19.0.1"
     n3: "npm:^1.20.4"
     odrl-atomizer: "npm:^0.1.2"
     rdf-isomorphic: "npm:^1.3.1"
@@ -10998,7 +11019,7 @@ __metadata:
     streamify-string: "npm:^1.0.1"
     tmp: "npm:^0.2.3"
     uuidv4: "npm:^6.2.13"
-  checksum: 10c0/38058c3d7342a939a65bf93de6b23ee332497966c4043543246cf10f6238cec72d10115b19dbf647cad4a4fe55e43f9e18f3482cbaf31ae71ff6fc894e0c3ca5
+  checksum: 10c0/0df8d6cb738d159e83ae742af1d70c704c2c865e244c2761f1ab45d7d63ce5f974909f77bfc3659271002b326e0bc4e894f1d8785ce54caf6b2d638b33e47a31
   languageName: node
   linkType: hard
 
@@ -11357,6 +11378,19 @@ __metadata:
   version: 3.0.0
   resolution: "pify@npm:3.0.0"
   checksum: 10c0/fead19ed9d801f1b1fcd0638a1ac53eabbb0945bf615f2f8806a8b646565a04a1b0e7ef115c951d225f042cca388fdc1cd3add46d10d1ed6951c20bd2998af10
+  languageName: node
+  linkType: hard
+
+"policy-conflict-resolver@npm:^0.0.3":
+  version: 0.0.3
+  resolution: "policy-conflict-resolver@npm:0.0.3"
+  dependencies:
+    "@rdfjs/types": "npm:^2.0.1"
+    "@types/n3": "npm:^1.21.1"
+    asynchronous-handlers: "npm:^1.0.2"
+    n3: "npm:^2.0.1"
+    rdf-vocabulary: "npm:^1.0.0"
+  checksum: 10c0/e96677faf1a1e136ee41574d85ba7ce6953ce8bce7ad47376f1548183375e951f1abae2d52c1e44de8afb1902936578972faa469b90623a905becb285174ca96
   languageName: node
   linkType: hard
 
@@ -12986,14 +13020,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swipl-wasm@npm:4.0.13":
-  version: 4.0.13
-  resolution: "swipl-wasm@npm:4.0.13"
+"swipl-wasm@npm:6.0.0":
+  version: 6.0.0
+  resolution: "swipl-wasm@npm:6.0.0"
   dependencies:
-    "@types/emscripten": "npm:^1.39.13"
+    "@types/emscripten": "npm:^1.41.5"
   bin:
     swipl-generate: dist/bin/index.js
-  checksum: 10c0/ea61942ceb60883bddd213d029ce21bb7010860621b69dfd1e13209b17948c90bc3c422153244a8662f5eb89275135b3905be5274d827ce4f2effac6a383f038
+  checksum: 10c0/89db476938488e4a24e417ebc813a427f204520b9829383995e8ca26a1796859fcc6f32481acbeaac95b78e7d6e377dbffb2096cefa6dc18870b71902ad1eeb8
   languageName: node
   linkType: hard
 
