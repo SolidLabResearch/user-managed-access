@@ -62,25 +62,30 @@ When registering a resource,
 the UMA server immediately generates all necessary triples to keep track of all collections a resource is part of.
 First it generates the necessary asset collections based on the `resource_defaults` field,
 and then generate the relation triples based on the `resource_relations` field.
-With the example above, the following triples would be generated:
 
+Assuming a resource `my:parent:resource` is registered with a `http://www.w3.org/ns/ldp#contains` `resource_default`,
+the following triples would be generated:
 ```ttl
 @prefix odrl:   <http://www.w3.org/ns/odrl/2/>.
 @prefix odrl_p: <https://w3id.org/force/odrl3proposal#>.
 
-<urn:1:2:3> a odrl:AssetCollection ;
-  odrl:source <my:new:resource> ;
+<collection:my:parent:resource:http://www.w3.org/ns/ldp#contains> a odrl:AssetCollection ;
+  odrl:source <my:parent:resource> ;
   odrl_p:relation <http://www.w3.org/ns/ldp#contains> .
-
-<my:new:resource> odrl:partOf <collection:12345> ;
-                  odrl:partOf <collection:5678:reverse> .
 ```
-This assumes that the collection IDs used above, `collection:12345` and `collection:5678:reverse`, already exist.
-If these collections were not yet generated,
-the registration request would fail with an error.
-All these triples then get passed to the ODRL evaluator when policies need to be processed.
-Any policy that targets a collection ID will apply to all resources that are part of that collection.
 If the relation was reversed, the relation object would be `[ owl:inverseOf <http://www.w3.org/ns/ldp#contains> ]`.
+
+
+Then, if another resource, `my:new:resource` is registered,
+with a reverse `http://www.w3.org/ns/ldp#contains` relation targeting `my:parent:resource`,
+the following additional triple would be generated:
+```ttl
+@prefix odrl:   <http://www.w3.org/ns/odrl/2/>.
+<my:new:resource> odrl:partOf <collection:my:parent:resource:http://www.w3.org/ns/ldp#contains> .
+```
+
+All these triples get passed to the ODRL evaluator when policies need to be processed.
+Any policy that targets a collection ID will apply to all resources that are part of that collection.
 
 ### Finding collection identifiers
 
@@ -131,45 +136,12 @@ The Resource Server informs the UMA server of the identifiers by using the `name
 
 ### Asset Collection identifiers
 
-For asset collections, there is a similar problem where the user doesn't know which identifiers to use.
-To work around this,
-users can create their own asset collections and add them to policies.
-Take the following policy for example:
-
-```ttl
-@prefix ex:     <http://example.org/> .
-@prefix ldp:    <http://www.w3.org/ns/ldp#>.
-@prefix odrl:   <http://www.w3.org/ns/odrl/2/>.
-@prefix odrl_p: <https://w3id.org/force/odrl3proposal#>.
-
-<urn:uuid:e30bcd34-0d5c-43d1-b229-bf68afcae5ae> a odrl:Set ;
-  odrl:uid <urn:uuid:e30bcd34-0d5c-43d1-b229-bf68afcae5ae> ;
-  odrl:permission <urn:uuid:f4cb5007-e834-4a9c-a62a-091891350c04> .
-
-<urn:uuid:f4cb5007-e834-4a9c-a62a-091891350c04> a odrl:Permission ;
-  odrl:assignee ex:alice ;
-  odrl:action odrl:read ;
-  odrl:target ex:assetCollection .
-
-ex:assetCollection a odrl:AssetCollection ;
-  odrl:source <http://localhost:3000/container/> ;
-  odrl_p:relation  ldp:contains .
-```
-
-The above policy gives Alice read permission on all resources in `http://localhost:3000/container/`.
-Here the user chose the identifier `ex:assetCollection` for the collection with the given parameters.
-When new resources are registered,
-the UMA server will detect that this collection already exists,
-and use that identifier for the new metadata triples.
-It is important that this definition already exists in the policies before any resources get registered to it,
-so this solution is better for static policy solutions,
-where all policies are already defined on server initialization.
-The server will error if there are multiple asset collections with the same parameters,
-so make sure to only define identifier per combination.
+[As mentioned above](#finding-collection-identifiers), there is no API yet for accessing collections,
+so a fixed URI format is used for automatically generated collections.
 
 ### Parent containers not yet registered
 
-Resource registration happens asynchronously.
+Resource registration happens asynchronously in the CSS RS implementation.
 As a consequence, it is possible when registering a resource,
 that the registration of its parent container was not yet completed.
 This is a problem since the UMA ID of this parent is necessary to link to the correct relation.
@@ -180,7 +152,7 @@ where the registration is updated with the now available parent UMA ID.
 
 ### Accessing resources before they are registered
 
-An additional consequence of asynchronous resource registration,
+An additional consequence of asynchronous resource registration in the CSS RS,
 is that a client might try to access a resource before its registration is finished.
 This would cause an error as the Resource Server needs the UMA ID to request a ticket,
 but doesn't know it yet.
@@ -190,7 +162,7 @@ A timeout is added to prevent the connection from getting stuck should something
 
 ### Policies for resources that do not yet exist
 
-When creating a new resource on the RS, using PUT for example,
+When creating a new resource on the CSS RS, using PUT for example,
 it is necessary to know if that action is allowed.
 It is not possible to generate a ticket with this potentially new resource as a target though,
 as it does not have an UMA ID yet.
