@@ -17,8 +17,8 @@ import { Fetcher } from '../../../src/util/fetch/Fetcher';
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 class PublicUmaClient extends UmaClient {
-  public inProgressResources: Set<string> = new Set();
-  public registerEmitter: EventEmitter = new EventEmitter();
+  public inProgress: Set<string> = new Set();
+  public emitter: EventEmitter = new EventEmitter();
   public configCache: NodeJS.Dict<{ config: UmaConfig, expiration: number }> = {};
   public patStorage: NodeJS.Dict<{ pat: string, expiration: number }> = {};
 }
@@ -257,11 +257,11 @@ describe('UmaClient', (): void => {
       umaIdStore.get.mockResolvedValueOnce('uma2');
 
       const publicClient = new PublicUmaClient(umaIdStore, fetcher, identifierStrategy, resourceSet, baseUrl);
-      publicClient.inProgressResources.add('target1');
+      publicClient.inProgress.add('target1');
       const prom = publicClient.fetchTicket(permissions, issuer, credentials);
       await flushPromises();
       vi.advanceTimersByTime(1000);
-      publicClient.registerEmitter.emit('target1');
+      publicClient.emitter.emit('target1');
 
       await expect(prom).resolves.toBeUndefined();
       expect(fetcher.fetch).toHaveBeenNthCalledWith(3, umaConfig.permission_endpoint, {
@@ -287,7 +287,7 @@ describe('UmaClient', (): void => {
       umaIdStore.get.mockResolvedValueOnce('uma2');
 
       const publicClient = new PublicUmaClient(umaIdStore, fetcher, identifierStrategy, resourceSet, baseUrl);
-      publicClient.inProgressResources.add('target1');
+      publicClient.inProgress.add('target1');
       const prom = publicClient.fetchTicket(permissions, issuer, credentials);
       await flushPromises();
       vi.advanceTimersByTime(3000);
