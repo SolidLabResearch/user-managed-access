@@ -175,9 +175,11 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
       throw new ForbiddenHttpError(`${owner} is not the owner of this resource.`);
     }
 
+    // Remove registration
     await this.registrationStore.delete(parameters.id);
     this.logger.info(`Deleted resource ${parameters.id}.`);
 
+    // Remove references from ownership store
     const ownedResources = await this.ownershipStore.get(owner) ?? [];
     const idx = ownedResources.indexOf(parameters.id);
     if (idx >= 0) {
@@ -188,6 +190,12 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
         await this.ownershipStore.set(owner, ownedResources);
       }
     }
+
+    // Remove from collections
+    const store = await this.policies.getStore()
+    const remove = new Store(store.getQuads(parameters.id, ODRL.terms.partOf, null, null));
+    await this.policies.removeData(remove);
+
     return ({ status: 204 });
   }
 
