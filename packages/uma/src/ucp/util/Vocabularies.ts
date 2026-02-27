@@ -1,4 +1,7 @@
-import { createVocabulary } from 'rdf-vocabulary';
+import { DC as DC_CSS } from '@solid/community-server';
+import { createVocabulary, extendVocabulary } from 'rdf-vocabulary';
+
+export const DC = extendVocabulary(DC_CSS,'creator');
 
 export const ODRL = createVocabulary(
     'http://www.w3.org/ns/odrl/2/',

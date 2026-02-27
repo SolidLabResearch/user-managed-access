@@ -11,7 +11,7 @@ import { ODRL } from 'odrl-evaluator';
 import { Mocked } from 'vitest';
 import { ResourceRegistrationRequestHandler } from '../../../src/routes/ResourceRegistration';
 import { UCRulesStorage } from '../../../src/ucp/storage/UCRulesStorage';
-import { ODRL_P, OWL } from '../../../src/ucp/util/Vocabularies';
+import { DC, ODRL_P, OWL } from '../../../src/ucp/util/Vocabularies';
 import { HttpHandlerContext } from '../../../src/util/http/models/HttpHandler';
 import { RequestValidator } from '../../../src/util/http/validate/RequestValidator';
 import { RegistrationStore } from '../../../src/util/RegistrationStore';
@@ -157,9 +157,11 @@ describe('ResourceRegistration', (): void => {
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
         DF.quad(DF.namedNode('collection:name:pred'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:name:pred'), DC.terms.creator, DF.namedNode(owner)),
         DF.quad(DF.namedNode('collection:name:pred'), ODRL.terms.source, DF.namedNode('name')),
         DF.quad(DF.namedNode('collection:name:pred'), ODRL_P.terms.relation, DF.namedNode('pred')),
         DF.quad(DF.namedNode('collection:rPred:name'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:rPred:name'), DC.terms.creator, DF.namedNode(owner)),
         DF.quad(DF.namedNode('collection:rPred:name'), ODRL.terms.source, DF.namedNode('name')),
         DF.quad(DF.namedNode('collection:rPred:name'), ODRL_P.terms.relation, DF.blankNode('n3-0')),
         DF.quad(DF.blankNode('n3-0'), OWL.terms.inverseOf, DF.namedNode('rPred')),
@@ -265,9 +267,11 @@ describe('ResourceRegistration', (): void => {
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
         DF.quad(DF.namedNode('collection:name:pred'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:name:pred'), DC.terms.creator, DF.namedNode(owner)),
         DF.quad(DF.namedNode('collection:name:pred'), ODRL.terms.source, DF.namedNode('name')),
         DF.quad(DF.namedNode('collection:name:pred'), ODRL_P.terms.relation, DF.namedNode('pred')),
         DF.quad(DF.namedNode('collection:rPred:name'), RDF.terms.type, ODRL.terms.AssetCollection),
+        DF.quad(DF.namedNode('collection:rPred:name'), DC.terms.creator, DF.namedNode(owner)),
         DF.quad(DF.namedNode('collection:rPred:name'), ODRL.terms.source, DF.namedNode('name')),
         DF.quad(DF.namedNode('collection:rPred:name'), ODRL_P.terms.relation, DF.blankNode('n3-0')),
         DF.quad(DF.blankNode('n3-0'), OWL.terms.inverseOf, DF.namedNode('rPred')),

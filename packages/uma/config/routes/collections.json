@@ -1,0 +1,29 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:default:CollectionHandler",
+      "@type": "CollectionRequestHandler",
+      "credentialParser": { "@id": "urn:uma:default:CredentialParser" },
+      "verifier": { "@id": "urn:uma:default:Verifier" },
+      "ownershipStore": { "@id": "urn:uma:default:OwnershipStore" },
+      "policies": { "@id": "urn:uma:default:RulesStorage" }
+    },
+    {
+      "@id": "urn:uma:default:CollectionRoute",
+      "@type": "HttpHandlerRoute",
+      "methods": [ "GET", "POST" ],
+      "handler": { "@id": "urn:uma:default:CollectionHandler" },
+      "path": "/uma/collections"
+    },
+    {
+      "@id": "urn:uma:default:CollectionIdRoute",
+      "@type": "HttpHandlerRoute",
+      "methods": [ "GET", "PUT", "DELETE" ],
+      "handler": { "@id": "urn:uma:default:CollectionHandler" },
+      "path": "/uma/collections/{id}"
+    }
+  ]
+}
