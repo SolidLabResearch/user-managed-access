@@ -1,21 +1,104 @@
 # ODRL policies targeting collections
 
 This document describes how this UMA server supports ODRL collections.
-The implementation is based on the [A4DS specification](https://spec.knows.idlab.ugent.be/A4DS/L1/latest/).
-Much of the information in this document can also be found there.
+There are 2 main kinds of collections:
+custom collections created by a user through the collection API,
+and automatically generated collections based on registering resource relations.
 
-## WAC / ACP
+## Collection API
 
-The initial idea for implementing collections is that we want to be able
-to create policies that target the contents of a container,
-similar to how WAC and ACP do this.
-We do not want the UMA server to be tied to the LDP interface though,
-so the goal is to have a generic solution that can handle any kind of relationship between resources.
+The UMA server exposes the collection API through the `/collections` URl.
+Individual collections can be accessed through `/collections/{id}`.
+All CRUD operations are supported for both asset and party collections.
 
-## New resource description fields
+All requests require authentication as
+described in the [getting started documentation](getting-started.md#authenticating-as-resource-owner).
 
-To support collections, the RS now includes two additional fields when registering a resource,
-in addition to those defined in the UMA specification.
+### Create
+
+New collections are with POST requests to the collection API.
+The request body should be JSON, with the contents depending on the type of collection.
+The description field is always optional.
+
+If successful, the response will have status code 201
+with the identifier of the new collection in the location header.
+This identifier is the full URL to be used when sending requests to update or read this specific collection.
+
+#### Asset collections
+
+```json
+{
+  "description": "My asset collection",
+  "type": "asset",
+  "parts": [ "http://example.com/my-resource", "http://example.com/my-other-resource" ]
+}
+```
+
+The identifiers in the `parts` array need to be the UMA identifiers of the resources.
+The client performing the request needs to be authenticated as the Resource Owner of all resources in the array,
+or the request will be rejected.
+
+#### Party collections
+
+```json
+{
+  "description": "My asset collection",
+  "type": "party",
+  "owners": [ "http://example.com/alice/card#me" ],
+  "parts": [ "http://example.com/alice/card#me", "http://example.com/bob/card#me" ]
+}
+```
+
+The `owners` array defines who will be allowed to modify the collection,
+and can not be empty.
+The client performing the request needs to be one of the owners.
+
+### Update
+
+A collection can be updated by performing a put request to `/policies/{id}`.
+This full URL is also the URL that will be returned in the location header when performing a POST request.
+The body should be the same as above, and will replace the existing collection.
+A collection can only be modified by one of the owners,
+in case of an asset collection, this is the owner of the collected resources.
+
+### Read
+
+All owned collections can be seen by performing a GET request to the collection API.
+A single collection can be seen by performing a GET to its specific URL.
+A result would look as follows:
+
+```ttl
+@prefix dc: <http://purl.org/dc/terms/>.
+@prefix odrl: <http://www.w3.org/ns/odrl/2/>.
+
+<http://example.com/assets> a odrl:AssetCollection ;
+  dc:description "My assets" ;
+  dc:creator <http://example.com/alice/card#me> .
+<http://example.com/alice/> odrl:partOf <http://example.com/assets> .
+<http://example.com/alice/README> odrl:partOf <http://example.com/assets> .
+
+<http://example.com/party> a odrl:PartyCollection ;
+  dc:description "My party" ;
+  dc:creator <http://example.com/alice/card#me> .
+<http://example.com/alice/card#me> odrl:partOf <http://example.com/party> .
+<http://example.com/bob/card#me> odrl:partOf <http://example.com/party> .
+```
+
+### Delete
+
+A collection can be removed by performing a DELETE request to the URL of the collection.
+Similar to updates, this can only be done by one of the owners.
+
+## Relation collections
+
+The UMA server will automatically generate collections,
+based on [relation metadata](https://spec.knows.idlab.ugent.be/A4DS/L1/latest/#dom-resourcedescription-resource_relations)
+provided during resource registration.
+
+
+### New resource description fields
+
+To support collections, the RS can include two additional fields when registering a resource.
 
 * `resource_defaults`: A key/value map describing the scopes of collections having the registered resource as a source.
   The keys are the relations where the resource is the subject,
@@ -24,7 +107,6 @@ in addition to those defined in the UMA specification.
   The keys are the relations and the values are the UMA IDs of the relation targets.
   The resource itself is the object of the relations,
   and the values in the arrays are the subject.
-  Note that this is the reverse of the `resource_defaults` fields.
 
 For both of the above, one of the keys can be `@reverse`,
 which takes as value a similar key/value object,
@@ -48,20 +130,19 @@ An example of such an extended resource description:
 
 The above example tells the UMA server that the available scopes for this new resource are `read` and `write`,
 as defined in the UMA specification.
-The new field `resource_defaults` tells the server that all containers for
-the `http://www.w3.org/ns/ldp#contains` relation
-that have this resource as the source,
-have `read` as an available scope.
+The `resource_defaults` field indicates that the collection corresponding to all resources
+this resource has the `http://www.w3.org/ns/ldp#contains` relation to, have the `read` scope.
+
 The `resource_relations` field indicates that this resource
-has the `http://www.w3.org/ns/ldp#contains` relation with as target `assets:5678`,
+has the `http://www.w3.org/ns/ldp#contains` relation with as target `assets:1234`,
 while the other entry indicates it is the target of the `my:other:relation` with `assets:5678` as subject.
 
-## Generating collection triples
+### Generating collection triples
 
 When registering a resource,
 the UMA server immediately generates all necessary triples to keep track of all collections a resource is part of.
 First it generates the necessary asset collections based on the `resource_defaults` field,
-and then generate the relation triples based on the `resource_relations` field.
+and then generates the relation triples based on the `resource_relations` field.
 
 Assuming a resource `my:parent:resource` is registered with a `http://www.w3.org/ns/ldp#contains` `resource_default`,
 the following triples would be generated:
@@ -75,8 +156,7 @@ the following triples would be generated:
 ```
 If the relation was reversed, the relation object would be `[ owl:inverseOf <http://www.w3.org/ns/ldp#contains> ]`.
 
-
-Then, if another resource, `my:new:resource` is registered,
+Then, if another resource, `my:new:resource`, is registered
 with a reverse `http://www.w3.org/ns/ldp#contains` relation targeting `my:parent:resource`,
 the following additional triple would be generated:
 ```ttl
@@ -89,15 +169,16 @@ Any policy that targets a collection ID will apply to all resources that are par
 
 ### Finding collection identifiers
 
-Currently, there is no API yet to request a list of all the automatically registered collections described above.
-As a workaround, the generated collection identifiers are fixed, based on the relevant identifiers.
+Collection identifiers can be found through the policy API, described above.
+For now, the generated collection identifiers are fixed, based on the relevant identifiers,
+but it should be assumed that these can change in the future.
 A collection with source `http://example.com/container/` and relation `http://www.w3.org/ns/ldp#contains`,
 would have as collection identifier `collection:http://example.com/container/:http://www.w3.org/ns/ldp#contains`.
 In case of a reverse relationship, this would instead be
 `collection:http://www.w3.org/ns/ldp#contains:http://example.com/container/`.
 These are the identifiers to then use as targets in a policy.
 
-## Updating collection triples
+### Updating collection triples
 
 Every time a resource is updated, the corresponding collection triples are updated accordingly.
 If an update removes some of the `resource_relations` entries,
@@ -134,11 +215,6 @@ To make things easier until that is resolved,
 the servers are configured so the generated UMA identifiers correspond to the actual resource identifiers.
 The Resource Server informs the UMA server of the identifiers by using the `name` field when registering a resource.
 
-### Asset Collection identifiers
-
-[As mentioned above](#finding-collection-identifiers), there is no API yet for accessing collections,
-so a fixed URI format is used for automatically generated collections.
-
 ### Parent containers not yet registered
 
 Resource registration happens asynchronously in the CSS RS implementation.
@@ -152,19 +228,18 @@ where the registration is updated with the now available parent UMA ID.
 
 ### Accessing resources before they are registered
 
-An additional consequence of asynchronous resource registration in the CSS RS,
+An additional consequence of asynchronous resource registration in the CSS RS implementation,
 is that a client might try to access a resource before its registration is finished.
 This would cause an error as the Resource Server needs the UMA ID to request a ticket,
 but doesn't know it yet.
-To prevent issues, the RS will wait until registration of the corresponding resource is finished,
-or even start registration should it not have happened yet for some reason.
+To prevent issues, the RS will wait until registration of the corresponding resource is finished.
 A timeout is added to prevent the connection from getting stuck should something go wrong.
 
 ### Policies for resources that do not yet exist
 
 When creating a new resource on the CSS RS, using PUT for example,
 it is necessary to know if that action is allowed.
-It is not possible to generate a ticket with this potentially new resource as a target though,
-as it does not have an UMA ID yet.
+It is not possible to generate a ticket with this new resource as a target though,
+as it does not have a UMA ID yet.
 The current implementation instead generates a ticket targeting the first existing (grand)parent container,
 and requests the `create` scope.

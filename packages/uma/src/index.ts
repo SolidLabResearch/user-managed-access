@@ -52,6 +52,7 @@ export * from './routes/VC';
 export * from './routes/Contract';
 export * from './routes/BaseHandler';
 export * from './routes/ClientRegistration';
+export * from './routes/Collection';
 
 // Tickets
 export * from './ticketing/Ticket';
