@@ -85,6 +85,8 @@ export * from './util/http/validate/RequestValidator';
 
 // UCP
 export * from './ucp/policy/ODRL';
+export * from './ucp/policy/Strategy'
+export * from './ucp/policy/PrioritizeProhibitionStrategy'
 export * from './ucp/policy/UsageControlPolicy';
 export * from './ucp/storage/ContainerUCRulesStorage';
 export * from './ucp/storage/DirectoryUCRulesStorage';
