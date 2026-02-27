@@ -11,7 +11,7 @@ export function switchODRLandCSSPermission(permission: string): string {
     } else if(permission.startsWith("https://w3id.org/oac#")) {
         return permission.replace("https://w3id.org/oac#", "urn:example:css:modes:");
     } else {
-        throw new Error(`Permission ${permission} not recognized`)
+        return permission;
     }
 }
 

@@ -9,7 +9,7 @@
       "ticketStore": { "@id": "urn:uma:default:TicketStore" },
       "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
       "negotiator": {
-        "@type": "BaseNegotiator",
+        "@type": "ContractNegotiator",
         "verifier": { "@id": "urn:uma:default:Verifier" },
         "ticketStore": { "@id": "urn:uma:default:TicketStore" },
         "ticketingStrategy": { "@id": "urn:uma:default:TicketingStrategy" },
