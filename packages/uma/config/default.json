@@ -14,6 +14,7 @@
     "sai-uma:config/routes/discovery.json",
     "sai-uma:config/routes/introspection.json",
     "sai-uma:config/routes/client-registration.json",
+    "sai-uma:config/routes/collections.json",
     "sai-uma:config/routes/keys.json",
     "sai-uma:config/routes/resources.json",
     "sai-uma:config/routes/tickets.json",
@@ -142,7 +143,9 @@
                   { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
                   { "@id": "urn:uma:default:IntrospectionRoute" },
                   { "@id": "urn:uma:default:ClientRegistrationRoute" },
-                  { "@id": "urn:uma:default:ClientRegistrationIdRoute" }
+                  { "@id": "urn:uma:default:ClientRegistrationIdRoute" },
+                  { "@id": "urn:uma:default:CollectionRoute" },
+                  { "@id": "urn:uma:default:CollectionIdRoute" }
                 ]
               }
             },

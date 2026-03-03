@@ -1,5 +1,6 @@
-import { Store, Writer } from 'n3';
+import { Prefixes, Store, Writer } from 'n3';
 import { parse, stringify } from 'node:querystring';
+import { NamedNode } from '@rdfjs/types';
 
 /**
  * Converts a x-www-form-urlencoded string to a JSON object.
@@ -48,8 +49,8 @@ export function isIri(input: string): boolean {
 /**
  * Write an N3 store to a string (in turtle format)
  */
-export async function writeStore(store: Store): Promise<string> {
-  const writer = new Writer({ format: 'text/turtle' });
+export async function writeStore(store: Store, prefixes: Prefixes<NamedNode | string> = {}): Promise<string> {
+  const writer = new Writer({ format: 'text/turtle', prefixes });
   writer.addQuads(store.getQuads(null, null, null, null));
 
   return new Promise<string>((resolve, reject) => {

@@ -14,7 +14,7 @@ import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory as DF, NamedNode, Quad, Quad_Subject, Store } from 'n3';
 import { randomUUID } from 'node:crypto';
 import { UCRulesStorage } from '../ucp/storage/UCRulesStorage';
-import { ODRL, ODRL_P, OWL } from '../ucp/util/Vocabularies';
+import { DC, ODRL, ODRL_P, OWL } from '../ucp/util/Vocabularies';
 import {
   HttpHandler,
   HttpHandlerContext,
@@ -175,9 +175,11 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
       throw new ForbiddenHttpError(`${owner} is not the owner of this resource.`);
     }
 
+    // Remove registration
     await this.registrationStore.delete(parameters.id);
     this.logger.info(`Deleted resource ${parameters.id}.`);
 
+    // Remove references from ownership store
     const ownedResources = await this.ownershipStore.get(owner) ?? [];
     const idx = ownedResources.indexOf(parameters.id);
     if (idx >= 0) {
@@ -188,6 +190,12 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
         await this.ownershipStore.set(owner, ownedResources);
       }
     }
+
+    // Remove from collections
+    const store = await this.policies.getStore()
+    const remove = new Store(store.getQuads(parameters.id, ODRL.terms.partOf, null, null));
+    await this.policies.removeData(remove);
+
     return ({ status: 204 });
   }
 
@@ -201,7 +209,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
   protected async setResourceMetadata(id: string, description: ResourceDescription, owner: string,
     previous?: ResourceDescription): Promise<void> {
     const policyStore = await this.policies.getStore();
-    const collectionQuads = await this.updateCollections(policyStore, id, description, previous);
+    const collectionQuads = await this.updateCollections(policyStore, id, owner, description, previous);
     const relationQuads = await this.updateRelations(policyStore, id, description, previous);
     const addQuads = [ ...collectionQuads.add, ...relationQuads.add ];
     if (addQuads.length > 0) {
@@ -235,12 +243,14 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
    *
    * @param policyStore - RDF store that contains all the know collection metadata.
    * @param id - The identifier of the resource.
+   * @param owner - The owner of the resource.
    * @param description - The new {@link ResourceDescription} for the resource.
    * @param previous - The previous {@link ResourceDescription}, in case this is an update.
    */
   protected async updateCollections(
     policyStore: Store,
     id: string,
+    owner: string,
     description: ResourceDescription,
     previous?: ResourceDescription
   ): Promise<{ add: Quad[], remove: Quad[] }> {
@@ -262,7 +272,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
         delete add[key];
       } else {
         // TODO: currently generating fixed collection ID as there is no API to get them
-        addQuads.push(...this.generateCollectionTriples(entry, DF.namedNode(`collection:${entry.reverse ? 
+        addQuads.push(...this.generateCollectionTriples(entry, owner, DF.namedNode(`collection:${entry.reverse ? 
           entry.relation.value + ':' + entry.source.value :
           entry.source.value + ':' + entry.relation.value
         }`)));
@@ -278,7 +288,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
         if (policyStore.countQuads(null, ODRL.terms.partOf, collection, null) > 0) {
           throw new ConflictHttpError(`Unable to remove collection ${collection.value} as it is not empty.`);
         }
-        removeQuads.push(...this.generateCollectionTriples(entry, collection));
+        removeQuads.push(...this.generateCollectionTriples(entry, owner, collection));
       }
     }
 
@@ -447,11 +457,12 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
    * Generates all the triples necessary for an asset collection based on a relation.
    * If no ID is provided for the collection, a new one will be minted.
    */
-  protected generateCollectionTriples(entry: CollectionMetadata, id?: Quad_Subject): Quad[] {
+  protected generateCollectionTriples(entry: CollectionMetadata, owner: string, id?: Quad_Subject): Quad[] {
     const result: Quad[] = [];
     const collectionId = id ?? DF.namedNode(`collection:${randomUUID()}`);
     result.push(DF.quad(collectionId, RDF.terms.type, ODRL.terms.AssetCollection));
     result.push(DF.quad(collectionId, ODRL.terms.source, entry.source));
+    result.push(DF.quad(collectionId, DC.terms.creator, DF.namedNode(owner)));
     if (entry.reverse) {
       const blank = DF.blankNode();
       result.push(DF.quad(collectionId, ODRL_P.terms.relation, blank));

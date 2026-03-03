@@ -57,6 +57,7 @@ interface TokenResponse {
 export type UmaVerificationOptions = Omit<JWTVerifyOptions, 'iss' | 'aud' | 'sub' | 'iat'>;
 
 const UMA_DISCOVERY = '/.well-known/uma2-configuration';
+const PAT_EVENT = 'PAT_EVENT';
 
 const REQUIRED_METADATA = [
   'issuer',
@@ -75,10 +76,12 @@ const REQUIRED_METADATA = [
 export class UmaClient implements SingleThreaded {
   protected readonly logger = getLoggerFor(this);
 
-  // Keeps track of resources that are being registered to prevent duplicate registration calls.
-  protected readonly inProgressResources: Set<string> = new Set();
-  // Used to notify when registration finished for a resource. The event will be the identifier of the resource.
-  protected readonly registerEmitter: EventEmitter = new EventEmitter();
+  /* Keeps track of resources that are being registered to prevent duplicate registration calls.
+  *  Also keeps track if a PAT registration is going on. */
+  protected readonly inProgress: Set<string> = new Set();
+  /* Used to notify when registration finished for a resource. The event will be the identifier of the resource.
+  *  Also used to notify when a PAT was acquired. */
+  protected readonly emitter: EventEmitter = new EventEmitter();
 
   protected readonly configCache: NodeJS.Dict<{ config: UmaConfig, expiration: number }> = {};
   protected readonly patStorage: NodeJS.Dict<{ pat: string, expiration: number }> = {};
@@ -101,7 +104,7 @@ export class UmaClient implements SingleThreaded {
   ) {
     // This number can potentially get very big when seeding a bunch of pods.
     // This is not really an issue, but it is still preferable to not have a warning printed.
-    this.registerEmitter.setMaxListeners(20);
+    this.emitter.setMaxListeners(20);
   }
 
   public async getPat(issuer: string, credentials: string): Promise<string> {
@@ -109,6 +112,11 @@ export class UmaClient implements SingleThreaded {
     if (cached && cached.expiration > Date.now()) {
       return cached.pat;
     }
+    if (this.inProgress.has(PAT_EVENT)) {
+      await once(this.emitter, PAT_EVENT);
+      return this.getPat(issuer, credentials);
+    }
+    this.inProgress.add(PAT_EVENT);
 
     const config = await this.fetchUmaConfig(issuer);
     const response = await this.fetcher.fetch(config.token_endpoint, {
@@ -128,6 +136,9 @@ export class UmaClient implements SingleThreaded {
     const pat = `${token_type} ${access_token}`;
     const expiration = Date.now() + expires_in * 1000;
     this.patStorage[credentials] = { pat, expiration };
+
+    this.inProgress.delete(PAT_EVENT);
+    this.emitter.emit(PAT_EVENT);
 
     return pat;
   }
@@ -170,13 +181,13 @@ export class UmaClient implements SingleThreaded {
     const body = [];
     for (const [ target, modes ] of permissions.entrySets()) {
       let umaId = await this.umaIdStore.get(target.path);
-      if (!umaId && this.inProgressResources.has(target.path)) {
+      if (!umaId && this.inProgress.has(target.path)) {
         // Wait for the resource to finish registration if it is still being registered, and there is no UMA ID yet.
         // Time out after 2s to prevent getting stuck in case something goes wrong during registration.
         const timeoutPromise = promises.setTimeout(2000, '').then(() => {
           throw new InternalServerError(`Unable to finish registration for ${target.path}.`)
         });
-        await Promise.race([timeoutPromise, once(this.registerEmitter, target.path)]);
+        await Promise.race([timeoutPromise, once(this.emitter, target.path)]);
         umaId = await this.umaIdStore.get(target.path);
       }
       if (!umaId) {
@@ -350,14 +361,14 @@ export class UmaClient implements SingleThreaded {
    * and updated with the relations once the parent registration is finished.
    */
   public async registerResource(resource: ResourceIdentifier, issuer: string, credentials: string): Promise<void> {
-    if (this.inProgressResources.has(resource.path)) {
+    if (this.inProgress.has(resource.path)) {
       // It is possible a resource is still being registered when an updated registration is already requested.
       // To prevent duplicate registrations of the same resource,
       // the next call will only happen when the first one is finished.
-      await once(this.registerEmitter, resource.path);
+      await once(this.emitter, resource.path);
       return this.registerResource(resource, issuer, credentials);
     }
-    this.inProgressResources.add(resource.path);
+    this.inProgress.add(resource.path);
     let { resource_registration_endpoint: endpoint } = await this.fetchUmaConfig(issuer);
     const knownUmaId = await this.umaIdStore.get(resource.path);
     if (knownUmaId) {
@@ -394,12 +405,12 @@ export class UmaClient implements SingleThreaded {
           resource.path} due to missing parent ID. Waiting for parent registration.`);
 
         promises.push(
-          once(this.registerEmitter, parentIdentifier.path)
+          once(this.emitter, parentIdentifier.path)
             .then(() => this.registerResource(resource, issuer, credentials)),
         );
         // It is possible the parent is not yet being registered.
         // We need to force a registration in such a case, otherwise the above event will never be fired.
-        if (!this.inProgressResources.has(parentIdentifier.path)) {
+        if (!this.inProgress.has(parentIdentifier.path)) {
           promises.push(this.registerResource(parentIdentifier, issuer, credentials));
         }
       }
@@ -439,8 +450,8 @@ export class UmaClient implements SingleThreaded {
         this.logger.info(`Registered resource ${resource.path} with UMA ID ${umaId}`);
       }
       // Indicate this resource finished registration
-      this.inProgressResources.delete(resource.path);
-      this.registerEmitter.emit(resource.path);
+      this.inProgress.delete(resource.path);
+      this.emitter.emit(resource.path);
     });
 
     // Execute all the required promises.
