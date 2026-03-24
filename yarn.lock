@@ -4939,7 +4939,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inrupt/solid-client-authn-core@npm:^3.1.0, @inrupt/solid-client-authn-core@npm:^3.1.1":
+"@inrupt/solid-client-authn-core@npm:^3.1.1":
   version: 3.1.1
   resolution: "@inrupt/solid-client-authn-core@npm:3.1.1"
   dependencies:
@@ -4950,7 +4950,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inrupt/solid-client-authn-node@npm:^3.1.0":
+"@inrupt/solid-client-authn-node@npm:^3.1.1":
   version: 3.1.1
   resolution: "@inrupt/solid-client-authn-node@npm:3.1.1"
   dependencies:
@@ -5695,8 +5695,8 @@ __metadata:
     "@commitlint/cli": "npm:^16.1.0"
     "@commitlint/config-conventional": "npm:^16.0.0"
     "@comunica/bus-rdf-parse-html": "npm:^4.4.0"
-    "@inrupt/solid-client-authn-core": "npm:^3.1.0"
-    "@inrupt/solid-client-authn-node": "npm:^3.1.0"
+    "@inrupt/solid-client-authn-core": "npm:^3.1.1"
+    "@inrupt/solid-client-authn-node": "npm:^3.1.1"
     "@types/node": "npm:^20.19.1"
     "@typescript-eslint/eslint-plugin": "npm:^5.12.1"
     "@typescript-eslint/parser": "npm:^5.12.1"
