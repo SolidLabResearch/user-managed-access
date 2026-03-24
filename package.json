@@ -79,6 +79,8 @@
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
     "@comunica/bus-rdf-parse-html": "^4.4.0",
+    "@inrupt/solid-client-authn-core": "^3.1.1",
+    "@inrupt/solid-client-authn-node": "^3.1.1",
     "@types/node": "^20.19.1",
     "@typescript-eslint/eslint-plugin": "^5.12.1",
     "@typescript-eslint/parser": "^5.12.1",

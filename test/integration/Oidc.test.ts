@@ -6,6 +6,7 @@ import { createServer, Server } from 'node:http';
 import path from 'node:path';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
 import { findTokenEndpoint, noTokenFetch, generateCredentials } from '../util/UmaUtil';
+import { generateCssClientCredentials, generateCssClientCredentialsToken } from '../util/Util';
 
 const [ cssPort, umaPort ] = getPorts('OIDC');
 const idpPort = umaPort + 100;
@@ -21,7 +22,7 @@ describe('A server supporting OIDC tokens', (): void => {
   const oidcFormat = 'http://openid.net/specs/openid-connect-core-1_0.html#IDToken';
 
   beforeAll(async(): Promise<void> => {
-    setGlobalLoggerFactory(new WinstonLoggerFactory('off'));
+    setGlobalLoggerFactory(new WinstonLoggerFactory('info'));
 
     umaApp = await instantiateFromConfig(
       'urn:uma:default:App',
@@ -229,8 +230,7 @@ describe('A server supporting OIDC tokens', (): void => {
 
   describe('accessing a resource using a Solid OIDC token.', (): void => {
     const resource = `http://localhost:${cssPort}/alice/solid`;
-    // Using dummy server so we can spoof WebID
-    const alice =  idpUrl + 'alice/profile/card#me';
+    const alice =  `http://localhost:${cssPort}/alice/profile/card#me`;
     const policy = `
       @prefix ex: <http://example.org/>.
       @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
@@ -254,7 +254,6 @@ describe('A server supporting OIDC tokens', (): void => {
       expect(response.status).toBe(201);
     });
 
-    // TODO: might want a test with an actual token from the RS IDP, but would require more steps and dependencies
     it('can get an access token.', async(): Promise<void> => {
       const { as_uri, ticket } = await noTokenFetch(resource, {
         method: 'PUT',
@@ -262,22 +261,14 @@ describe('A server supporting OIDC tokens', (): void => {
         body: 'hello',
       });
       const endpoint = await findTokenEndpoint(as_uri);
-
-      const jwk = await importJWK(privateKey, privateKey.alg);
-      const jwt = await new SignJWT({ webid: alice })
-        .setSubject(alice)
-        .setProtectedHeader({ alg: privateKey.alg, kid: privateKey.kid })
-        .setIssuedAt()
-        .setIssuer(idpUrl)
-        .setAudience([ 'solid', `http://localhost:${umaPort}/uma` ])
-        .setJti(randomUUID())
-        .setExpirationTime(Date.now() + 5000)
-        .sign(jwk);
+      const credentials = await generateCssClientCredentials(
+        `http://localhost:${cssPort}/`, 'alice@example.org', 'abc123', alice);
+      const token = await generateCssClientCredentialsToken(`http://localhost:${cssPort}/`, credentials.id, credentials.secret);
 
       const content: Record<string, string> = {
         grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
         ticket: ticket,
-        claim_token: jwt,
+        claim_token: token,
         claim_token_format: oidcFormat,
       };
 
@@ -332,6 +323,7 @@ describe('A server supporting OIDC tokens', (): void => {
       });
       const endpoint = await findTokenEndpoint(as_uri);
 
+      // Not using client credentials as we can't set the client_id that way (or I forgot how to do it)
       const jwk = await importJWK(privateKey, privateKey.alg);
       const jwt = await new SignJWT({ webid: bob, azp: client })
         .setSubject(bob)
