@@ -1,7 +1,14 @@
-import { DC as DC_CSS } from '@solid/community-server';
+import { DC as DC_CSS, RDF as RDF_CSS } from '@solid/community-server';
 import { createVocabulary, extendVocabulary } from 'rdf-vocabulary';
 
-export const DC = extendVocabulary(DC_CSS,'creator');
+export const DC = extendVocabulary(
+  DC_CSS,
+  'coverage',
+  'creator',
+  'isReplacedBy',
+  'issued',
+  'replaces',
+);
 
 export const ODRL = createVocabulary(
     'http://www.w3.org/ns/odrl/2/',
@@ -44,6 +51,8 @@ export const OWL = createVocabulary(
   'http://www.w3.org/2002/07/owl#',
   'inverseOf',
 );
+
+export const RDF = extendVocabulary(RDF_CSS,'value');
 
 export const SOTW = createVocabulary(
   'https://w3id.org/force/sotw#',

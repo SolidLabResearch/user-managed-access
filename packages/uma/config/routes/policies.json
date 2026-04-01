@@ -6,7 +6,10 @@
         {
             "@id": "urn:uma:default:PolicyController",
             "@type": "PolicyController",
-            "store": { "@id": "urn:uma:default:RulesStorage" }
+            "baseUrl": { "@id": "urn:uma:variables:baseUrl" },
+            "policySuffix": "/policies/",
+            "store": { "@id": "urn:uma:default:RulesStorage" },
+            "ownershipStore": { "@id": "urn:uma:default:OwnershipStore" }
         },
         {
             "@id": "urn:uma:default:PolicyHandler",

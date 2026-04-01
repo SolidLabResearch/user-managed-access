@@ -93,7 +93,6 @@ describe('A server setup', (): void => {
 
   describe('using public namespace authorization', (): void => {
     it('RS: provides immediate read access.', async(): Promise<void> => {
-      await promises.setTimeout(1000);
       const publicResource = `http://localhost:${cssPort}/alice/profile/card`;
 
       const publicResponse = await fetch(publicResource);

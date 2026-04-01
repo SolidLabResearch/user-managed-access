@@ -99,6 +99,7 @@ export * from './ucp/util/Vocabularies';
 export * from './util/AggregatorUtil';
 export * from './util/ConvertUtil';
 export * from './util/HttpMessageSignatures';
+export * from './util/PolicyParser';
 export * from './util/RegistrationStore';
 export * from './util/Result';
 export * from './util/ReType';
