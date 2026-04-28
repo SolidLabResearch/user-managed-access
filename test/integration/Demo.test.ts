@@ -78,7 +78,7 @@ describe('A demo server setup', (): void => {
     ex:usagePolicy a odrl:Agreement ;
                    odrl:permission ex:permission .
     ex:permission a odrl:Permission ;
-                  odrl:action odrl:create, odrl:append ;
+                  odrl:action odrl:create, odrl:modify ;
                   odrl:target <http://localhost:${cssPort}/ruben/> ,
                               <http://localhost:${cssPort}/ruben/medical/> ,
                               <http://localhost:${cssPort}/ruben/medical/smartwatch.ttl> ,

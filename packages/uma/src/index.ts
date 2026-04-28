@@ -33,6 +33,7 @@ export * from './policies/authorizers/AllAuthorizer';
 export * from './policies/authorizers/NamespacedAuthorizer';
 export * from './policies/authorizers/NoneAuthorizer';
 export * from './policies/authorizers/OdrlAuthorizer';
+export * from './policies/authorizers/SimpleOdrlAuthorizer';
 export * from './policies/authorizers/WebIdAuthorizer';
 
 // Contracts

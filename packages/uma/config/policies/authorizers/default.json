@@ -50,12 +50,17 @@
         }
       ],
       "fallback": {
-        "@id": "urn:uma:default:OdrlAuthorizer",
-        "@type": "OdrlAuthorizer",
+        "@id": "urn:uma:default:SimpleOdrlAuthorizer",
+        "@type": "SimpleOdrlAuthorizer",
         "policies": {
           "@id": "urn:uma:default:RulesStorage",
           "@type": "FileBackupUCRulesStorage",
           "filePath": { "@id": "urn:uma:variables:backupFilePath" }
+        },
+        "authorizer": {
+          "@id": "urn:uma:default:OdrlAuthorizer",
+          "@type": "OdrlAuthorizer",
+          "policies": { "@id": "urn:uma:default:RulesStorage" }
         }
       },
       "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
