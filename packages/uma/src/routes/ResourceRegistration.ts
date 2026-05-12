@@ -13,7 +13,7 @@ import {
 import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory as DF, NamedNode, Quad, Quad_Subject, Store } from 'n3';
 import { randomUUID } from 'node:crypto';
-import { UCRulesStorage } from '../ucp/storage/UCRulesStorage';
+import { ReadOnlyStore, UCRulesStorage } from '../ucp/storage/UCRulesStorage';
 import { DC, ODRL, ODRL_P, OWL } from '../ucp/util/Vocabularies';
 import {
   HttpHandler,
@@ -248,7 +248,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
    * @param previous - The previous {@link ResourceDescription}, in case this is an update.
    */
   protected async updateCollections(
-    policyStore: Store,
+    policyStore: ReadOnlyStore,
     id: string,
     owner: string,
     description: ResourceDescription,
@@ -307,7 +307,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
    * @param previous - The previous {@link ResourceDescription}, in case this is an update.
    */
   protected async updateRelations(
-    policyStore: Store,
+    policyStore: ReadOnlyStore,
     id: string,
     description: ResourceDescription,
     previous?: ResourceDescription
@@ -417,7 +417,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
    * @param entries - {@link CollectionMetadata} objects to parse.
    * @param policyStore - {@link Store} with the relevant triples to update.
    */
-  protected generatePartOfTriples(part: NamedNode, entries: CollectionMetadata[], policyStore: Store): Quad[] {
+  protected generatePartOfTriples(part: NamedNode, entries: CollectionMetadata[], policyStore: ReadOnlyStore): Quad[] {
     const quads: Quad[] = [];
     for (const entry of entries) {
       const collectionIds = this.findCollectionIds(entry, policyStore);
@@ -439,7 +439,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
    * @param entry - Relevant {@link CollectionMetadata}.
    * @param data - {@link Store} in which to find the matching triples.
    */
-  protected findCollectionIds(entry: CollectionMetadata, data: Store): Quad_Subject[] {
+  protected findCollectionIds(entry: CollectionMetadata, data: ReadOnlyStore): Quad_Subject[] {
     const sourceMatches = data.getSubjects(ODRL.terms.source, entry.source, null);
     if (entry.reverse) {
       const blankQuads = sourceMatches.flatMap((subject): Quad[] =>

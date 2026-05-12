@@ -3,7 +3,6 @@ import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-fact
 import { Parser, Writer } from 'n3';
 import { readFile } from 'node:fs/promises';
 import * as path from 'node:path';
-import { promises } from 'node:timers';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
 import { generateCredentials } from '../util/UmaUtil';
 
@@ -92,7 +91,6 @@ describe('A server setup', (): void => {
 
   describe('using public namespace authorization', (): void => {
     it('RS: provides immediate read access.', async(): Promise<void> => {
-      await promises.setTimeout(1000);
       const publicResource = `http://localhost:${cssPort}/alice/profile/card`;
 
       const publicResponse = await fetch(publicResource);
