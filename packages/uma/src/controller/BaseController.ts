@@ -1,5 +1,5 @@
 import { ConflictHttpError } from '@solid/community-server';
-import { UCRulesStorage } from "../ucp/storage/UCRulesStorage";
+import { ReadOnlyStore, UCRulesStorage } from '../ucp/storage/UCRulesStorage';
 import { getLoggerFor } from 'global-logger-factory';
 import { Parser, Store } from 'n3';
 import { writeStore } from "../util/ConvertUtil";
@@ -18,8 +18,8 @@ export abstract class BaseController {
         protected readonly store: UCRulesStorage,
         protected sanitizePost: (store: Store, clientID: string) => Promise<{ result: Store, id: string }>,
         protected sanitizeDelete: (store: Store, entityID: string, clientID: string) => Promise<void>,
-        protected sanitizeGets: (store: Store, clientID: string) => Promise<Store>,
-        protected sanitizeGet: (store: Store, entityID: string, clientID: string) => Promise<Store>,
+        protected sanitizeGets: (store: ReadOnlyStore, clientID: string) => Promise<ReadOnlyStore>,
+        protected sanitizeGet: (store: ReadOnlyStore, entityID: string, clientID: string) => Promise<ReadOnlyStore>,
         protected sanitizePatch: (store: Store, entityID: string, clientID: string, patchInformation: string) => Promise<void>
     ) { }
 
@@ -30,7 +30,7 @@ export abstract class BaseController {
      * @returns results serialized in Turtle and status code 200,
      *          or an empty body with status 404 if nothing was found
      */
-    private async get(sanitizeGet: () => Promise<Store>): Promise<{ message: string, status: number }> {
+    private async get(sanitizeGet: () => Promise<ReadOnlyStore>): Promise<{ message: string, status: number }> {
         const store = await sanitizeGet();
 
         const message = store.size > 0 ? await writeStore(store) : '';
@@ -92,7 +92,7 @@ export abstract class BaseController {
      *          - 204 if deletion was successful
      */
     public async deleteEntity(entityID: string, clientID: string): Promise<{ status: number }> {
-        const filteredStore = new Store(await this.store.getStore());
+        const filteredStore = new Store(await this.store.getStore() as Store);
         await this.sanitizeDelete(filteredStore, entityID, clientID);
         const diff = (await this.store.getStore()).difference(filteredStore);
         await this.store.removeData(diff as Store);
@@ -114,12 +114,12 @@ export abstract class BaseController {
      */
     public async patchEntity(entityID: string, patchInformation: string, clientID: string, isolate: boolean = true): Promise<HttpHandlerResponse<string>> {
         let response: HttpHandlerResponse<string> = { status: 204, body: '' };
-        let filteredStore = new Store(await this.store.getStore());
+        let filteredStore = new Store(await this.store.getStore() as Store);
         let omitStore: Store;
 
         if (isolate) { // requires isolating all information about the entity provided, as e.g. the patchinformation has a query to be executed
-            filteredStore = await this.sanitizeGet(filteredStore, entityID, clientID);
-            omitStore = new Store(await this.store.getStore());
+            filteredStore = await this.sanitizeGet(filteredStore, entityID, clientID) as Store;
+            omitStore = new Store(await this.store.getStore() as Store);
             omitStore.removeQuads([ ...filteredStore]);
         }
 
@@ -130,14 +130,14 @@ export abstract class BaseController {
             // * bonus: filters out extra quads
             // ! drawback: PATCH may still be used to DELETE all information about the entity
             // TODO: check if PATCH is smth we want for all resources, make patchEntity optional otherwise
-            filteredStore = await this.sanitizeGet(filteredStore, entityID, clientID) || filteredStore;
+            filteredStore = await this.sanitizeGet(filteredStore, entityID, clientID) as Store || filteredStore;
             omitStore!.addAll(filteredStore);
             filteredStore = omitStore!;
         }
 
         const originalStore = await this.store.getStore();
         const remove = originalStore.difference(filteredStore);
-        const add = filteredStore.difference(originalStore);
+        const add = filteredStore.difference(originalStore as Store);
 
         if (remove.size > 0) {
             await this.store.removeData(remove as Store);

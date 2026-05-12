@@ -1,6 +1,6 @@
 import { DataFactory, Store } from 'n3';
 import { extractQuadsRecursive } from '../util/Util';
-import { UCRulesStorage } from './UCRulesStorage';
+import { ReadOnlyStore, UCRulesStorage } from './UCRulesStorage';
 
 const { namedNode } = DataFactory;
 
@@ -11,16 +11,16 @@ export class MemoryUCRulesStorage implements UCRulesStorage {
         this.store = new Store();
     }
 
-    public async getStore(): Promise<Store> {
-        return new Store(this.store);
+    public async getStore(): Promise<ReadOnlyStore> {
+        return this.store;
     }
 
 
-    public async addRule(rule: Store): Promise<void> {
+    public async addRule(rule: ReadOnlyStore): Promise<void> {
         this.store.addQuads(rule.getQuads(null, null, null, null))
     }
 
-    public async getRule(identifier: string): Promise<Store> {
+    public async getRule(identifier: string): Promise<ReadOnlyStore> {
         // currently doesn't check whether it is actually an odrl:rule
         return extractQuadsRecursive(this.store, identifier)
     }
@@ -36,7 +36,7 @@ export class MemoryUCRulesStorage implements UCRulesStorage {
         this.deleteRule(ruleID);
     }
 
-    public async removeData(data: Store): Promise<void> {
+    public async removeData(data: ReadOnlyStore): Promise<void> {
         this.store.removeQuads(data.getQuads(null, null, null, null));
     }
 }

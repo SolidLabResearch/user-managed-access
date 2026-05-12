@@ -4,7 +4,7 @@ import { DataFactory as DF, Quad_Subject, Store } from 'n3';
 import { ODRL } from 'odrl-evaluator';
 import { CLIENTID, WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
-import { UCRulesStorage } from '../../ucp/storage/UCRulesStorage';
+import { ReadOnlyStore, UCRulesStorage } from '../../ucp/storage/UCRulesStorage';
 import { Permission } from '../../views/Permission';
 import { Authorizer } from './Authorizer';
 
@@ -63,7 +63,7 @@ export class SimpleOdrlAuthorizer implements Authorizer {
     return permissions;
   }
 
-  protected getPermissions(policies: Store, claims: ClaimSet, resource: string, scope: string):
+  protected getPermissions(policies: ReadOnlyStore, claims: ClaimSet, resource: string, scope: string):
     Permission[] | undefined {
     this.logger.info(`Evaluating Request ${scope}, ${resource} with claims ${JSON.stringify(claims)}`);
     const targets = [ DF.namedNode(resource), ...policies.getObjects(resource, ODRL.terms.partOf, null)];
@@ -153,7 +153,7 @@ export class SimpleOdrlAuthorizer implements Authorizer {
    * and undefined if any constraint is too complex to evaluate.
    * Only supports purpose (for client ID) and dateTime constraints.
    */
-  protected validateConstraints(rule: Quad_Subject, policies: Store, claims: ClaimSet): boolean | undefined {
+  protected validateConstraints(rule: Quad_Subject, policies: ReadOnlyStore, claims: ClaimSet): boolean | undefined {
     const constraints = policies.getObjects(rule, ODRL.terms.constraint, null).map(constraint => ({
       leftOperand: policies.getObjects(constraint, ODRL.terms.leftOperand, null)[0],
       operator: policies.getObjects(constraint, ODRL.terms.operator, null)[0],
