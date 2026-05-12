@@ -1,4 +1,5 @@
 import { Store } from "n3";
+import { ReadOnlyStore } from '../storage/UCRulesStorage';
 
 /**
  * A recursive search algorithm that gives all quads that a subject can reach (working with circles)
@@ -7,7 +8,7 @@ import { Store } from "n3";
  * @param subjectIRI
  * @param existing IRIs that already have done the recursive search (IRIs in there must not be searched for again)
  */
-export function extractQuadsRecursive(store: Store, subjectIRI: string, existing?: string[]): Store {
+export function extractQuadsRecursive(store: ReadOnlyStore, subjectIRI: string, existing?: string[]): Store {
     const tempStore = new Store();
     const subjectIRIQuads = store.getQuads(subjectIRI, null, null, null);
 

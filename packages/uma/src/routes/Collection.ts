@@ -16,7 +16,7 @@ import { ODRL } from 'odrl-evaluator';
 import { WEBID } from '../credentials/Claims';
 import { CredentialParser } from '../credentials/CredentialParser';
 import { Verifier } from '../credentials/verify/Verifier';
-import { UCRulesStorage } from '../ucp/storage/UCRulesStorage';
+import { ReadOnlyStore, UCRulesStorage } from '../ucp/storage/UCRulesStorage';
 import { DC, ODRL_P, OWL } from '../ucp/util/Vocabularies';
 import { writeStore } from '../util/ConvertUtil';
 import {
@@ -178,7 +178,7 @@ export class CollectionRequestHandler extends HttpHandler {
   /**
    * Verifies if the user is allowed to modify the given collection.
    */
-  protected async verifyOwnership(subject: NamedNode, userId: string, store?: Store): Promise<void> {
+  protected async verifyOwnership(subject: NamedNode, userId: string, store?: ReadOnlyStore): Promise<void> {
     const userNode = DF.namedNode(userId);
     store = store ?? await this.policies.getStore();
 

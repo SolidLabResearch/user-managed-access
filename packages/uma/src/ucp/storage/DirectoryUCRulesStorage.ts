@@ -1,5 +1,5 @@
 import { extractQuadsRecursive } from '../util/Util';
-import { UCRulesStorage } from "./UCRulesStorage";
+import { ReadOnlyStore, UCRulesStorage } from './UCRulesStorage';
 import * as path from 'path'
 import * as fs from 'fs'
 import { Parser, Store, Writer } from 'n3';
@@ -28,9 +28,9 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
         this.baseIRI = baseIRI;
     }
 
-    public async getStore(): Promise<Store> {
+    public async getStore(): Promise<ReadOnlyStore> {
         if (this.filesRead) {
-            return new Store(this.store);
+            return this.store;
         }
 
         const parser = new Parser({ baseIRI: this.baseIRI });
@@ -51,13 +51,13 @@ export class DirectoryUCRulesStorage implements UCRulesStorage {
     }
 
 
-    public async removeData(data: Store): Promise<void> {
+    public async removeData(data: ReadOnlyStore): Promise<void> {
         // Make sure the files have been read into memory
         await this.getStore();
         this.store.removeQuads(data.getQuads(null, null, null, null));
     }
 
-    public async getRule(identifier: string): Promise<Store> {
+    public async getRule(identifier: string): Promise<ReadOnlyStore> {
       const allRules = await this.getStore()
       return extractQuadsRecursive(allRules, identifier);
     }

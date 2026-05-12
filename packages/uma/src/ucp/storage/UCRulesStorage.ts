@@ -1,19 +1,40 @@
 import { Store } from "n3";
 
+/**
+ * A read-only view of an N3 Store.
+ * All write/mutation methods are excluded.
+ */
+export type ReadOnlyStore = Omit<
+  Store,
+  | 'addAll'
+  | 'deleteMatches'
+  | 'add'
+  | 'addQuad'
+  | 'addQuads'
+  | 'delete'
+  | 'import'
+  | 'removeQuad'
+  | 'removeQuads'
+  | 'remove'
+  | 'removeMatches'
+  | 'deleteGraph'
+  | 'clear'
+>;
+
 export interface UCRulesStorage {
-    getStore: () => Promise<Store>;
+    getStore: () => Promise<ReadOnlyStore>;
     /**
      * Add a single Usage Control Rule to the storage
      * @param rule
      * @returns
      */
-    addRule: (rule: Store) => Promise<void>;
+    addRule: (rule: ReadOnlyStore) => Promise<void>;
     /**
      * Get a Usage Control Rule from the storage
      * @param identifier
      * @returns
      */
-    getRule: (identifier: string) => Promise<Store>;
+    getRule: (identifier: string) => Promise<ReadOnlyStore>;
     /**
      * Delete a Usage Control Rule from the storage
      * @param identifier
@@ -30,5 +51,5 @@ export interface UCRulesStorage {
      * Removes specific triples from the storage.
      * @param data
      */
-    removeData: (data: Store) => Promise<void>;
+    removeData: (data: ReadOnlyStore) => Promise<void>;
 }
