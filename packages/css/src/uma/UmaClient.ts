@@ -350,6 +350,11 @@ export class UmaClient implements SingleThreaded {
    * and updated with the relations once the parent registration is finished.
    */
   public async registerResource(resource: ResourceIdentifier, issuer: string, credentials: string): Promise<void> {
+    if (this.identifierStrategy.isRootContainer(resource)) {
+      this.logger.debug(`Skipping UMA registration for root container <${resource.path}>.`);
+      return;
+    }
+
     if (this.inProgressResources.has(resource.path)) {
       // It is possible a resource is still being registered when an updated registration is already requested.
       // To prevent duplicate registrations of the same resource,
@@ -384,8 +389,8 @@ export class UmaClient implements SingleThreaded {
     // This function can potentially cause multiple asynchronous calls to be required.
     // These will be stored in this array so they can be executed simultaneously.
     const promises: Promise<void>[] = [];
-    if (!this.identifierStrategy.isRootContainer(resource)) {
-      const parentIdentifier = this.identifierStrategy.getParentContainer(resource);
+    const parentIdentifier = this.identifierStrategy.getParentContainer(resource);
+    if (!this.identifierStrategy.isRootContainer(parentIdentifier)) {
       const parentId = await this.umaIdStore.get(parentIdentifier.path);
       if (parentId) {
         description.resource_relations = { '@reverse': { 'http://www.w3.org/ns/ldp#contains': [ parentId ] } };

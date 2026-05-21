@@ -4,7 +4,8 @@ import {
   ForbiddenHttpError,
   HttpError,
   IdentifierSetMultiMap,
-  InternalServerError
+  InternalServerError,
+  NotFoundHttpError
 } from '@solid/community-server';
 import { PERMISSIONS } from '@solidlab/policy-engine';
 import { Mocked } from 'vitest';
@@ -116,5 +117,14 @@ describe('UmaAuthorizer', (): void => {
 
     await expect(authorizer.handle({ requestedModes } as any)).rejects
       .toThrow(`Error while requesting UMA header: bad data.`);
+  });
+
+  it('preserves HTTP errors thrown while fetching a ticket.', async(): Promise<void> => {
+    source.handleSafe.mockRejectedValueOnce(new ForbiddenHttpError());
+    ownerUtil.findCommonOwner.mockResolvedValueOnce('owner');
+    client.fetchTicket.mockRejectedValueOnce(new NotFoundHttpError());
+    const requestedModes: AccessMap = new IdentifierSetMultiMap<string>([[ { path: 'missing' }, PERMISSIONS.Read ]]);
+
+    await expect(authorizer.handle({ requestedModes } as any)).rejects.toThrow(NotFoundHttpError);
   });
 });

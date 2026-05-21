@@ -28,7 +28,10 @@
           {
             "comment": "The main reader, checks permissions from UMA token.",
             "@id": "urn:solid-server:default:UmaPermissionReader",
-            "@type": "UmaPermissionReader"
+            "@type": "UmaPermissionReader",
+            "ownerUtil": {
+              "@id": "urn:solid-server:default:OwnerUtil"
+            }
           }
         ]
       }

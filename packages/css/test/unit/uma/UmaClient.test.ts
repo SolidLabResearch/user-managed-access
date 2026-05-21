@@ -500,14 +500,21 @@ describe('UmaClient', (): void => {
       });
     });
 
-    it('can register the root container.', async(): Promise<void> => {
+    it('does not register the root container.', async(): Promise<void> => {
+      await expect(client.registerResource({ path: '/' }, issuer, credentials)).resolves.toBeUndefined();
+      expect(umaIdStore.get).toHaveBeenCalledTimes(0);
+      expect(umaIdStore.set).toHaveBeenCalledTimes(0);
+      expect(fetcher.fetch).toHaveBeenCalledTimes(0);
+    });
+
+    it('does not register the server root as parent of a top-level container.', async(): Promise<void> => {
       const resp = { ...response, status: 201, json: vi.fn().mockResolvedValueOnce({ _id: umaId }) };
       fetcher.fetch.mockResolvedValueOnce(resp);
-      await expect(client.registerResource({ path: '/' }, issuer, credentials)).resolves.toBeUndefined();
+      await expect(client.registerResource({ path: '/foo/' }, issuer, credentials)).resolves.toBeUndefined();
       expect(umaIdStore.get).toHaveBeenCalledTimes(1);
-      expect(umaIdStore.get).toHaveBeenLastCalledWith('/');
+      expect(umaIdStore.get).toHaveBeenLastCalledWith('/foo/');
       expect(umaIdStore.set).toHaveBeenCalledTimes(1);
-      expect(umaIdStore.set).toHaveBeenLastCalledWith('/', umaId);
+      expect(umaIdStore.set).toHaveBeenLastCalledWith('/foo/', umaId);
       expect(fetcher.fetch).toHaveBeenCalledTimes(3);
       expect(fetcher.fetch).toHaveBeenNthCalledWith(3, umaConfig.resource_registration_endpoint, {
         method: 'POST',
@@ -516,15 +523,15 @@ describe('UmaClient', (): void => {
           'Accept': 'application/json',
           'Authorization': 'Bearer pat_token',
         },
-        body: JSON.stringify({ name: '/', resource_scopes, resource_defaults }),
+        body: JSON.stringify({ name: '/foo/', resource_scopes, resource_defaults }),
       });
     });
 
     it('updates a resource if it was already registered.', async(): Promise<void> => {
       umaIdStore.get.mockResolvedValueOnce(umaId);
-      await expect(client.registerResource({ path: '/' }, issuer, credentials)).resolves.toBeUndefined();
+      await expect(client.registerResource({ path: '/foo/' }, issuer, credentials)).resolves.toBeUndefined();
       expect(umaIdStore.get).toHaveBeenCalledTimes(1);
-      expect(umaIdStore.get).toHaveBeenLastCalledWith('/');
+      expect(umaIdStore.get).toHaveBeenLastCalledWith('/foo/');
       expect(umaIdStore.set).toHaveBeenCalledTimes(0);
       expect(fetcher.fetch).toHaveBeenCalledTimes(3);
       expect(fetcher.fetch).toHaveBeenNthCalledWith(3, umaConfig.resource_registration_endpoint + umaId, {
@@ -534,20 +541,20 @@ describe('UmaClient', (): void => {
           'Accept': 'application/json',
           'Authorization': 'Bearer pat_token',
         },
-        body: JSON.stringify({ name: '/', resource_scopes, resource_defaults }),
+        body: JSON.stringify({ name: '/foo/', resource_scopes, resource_defaults }),
       });
     });
 
     it('includes parent relations if the parent is registered.', async(): Promise<void> => {
-      umaIdStore.get.mockImplementation(async(id) => id === '/' ? 'parentId' : undefined);
+      umaIdStore.get.mockImplementation(async(id) => id === '/foo/' ? 'parentId' : undefined);
       const resp = { ...response, status: 201, json: vi.fn().mockResolvedValueOnce({ _id: umaId }) };
       fetcher.fetch.mockResolvedValueOnce(resp);
-      await expect(client.registerResource({ path: '/foo' }, issuer, credentials)).resolves.toBeUndefined();
+      await expect(client.registerResource({ path: '/foo/bar' }, issuer, credentials)).resolves.toBeUndefined();
       expect(umaIdStore.get).toHaveBeenCalledTimes(2);
-      expect(umaIdStore.get).nthCalledWith(1, '/foo');
-      expect(umaIdStore.get).nthCalledWith(2, '/');
+      expect(umaIdStore.get).nthCalledWith(1, '/foo/bar');
+      expect(umaIdStore.get).nthCalledWith(2, '/foo/');
       expect(umaIdStore.set).toHaveBeenCalledTimes(1);
-      expect(umaIdStore.set).toHaveBeenLastCalledWith('/foo', umaId);
+      expect(umaIdStore.set).toHaveBeenLastCalledWith('/foo/bar', umaId);
       expect(fetcher.fetch).toHaveBeenCalledTimes(3);
       expect(fetcher.fetch).toHaveBeenNthCalledWith(3, umaConfig.resource_registration_endpoint, {
         method: 'POST',
@@ -556,7 +563,7 @@ describe('UmaClient', (): void => {
           'Accept': 'application/json',
           'Authorization': 'Bearer pat_token',
         },
-        body: JSON.stringify({ name: '/foo', resource_scopes, resource_relations: { '@reverse': { 'http://www.w3.org/ns/ldp#contains': [ 'parentId' ] }}}),
+        body: JSON.stringify({ name: '/foo/bar', resource_scopes, resource_relations: { '@reverse': { 'http://www.w3.org/ns/ldp#contains': [ 'parentId' ] }}}),
       });
     });
 
@@ -569,15 +576,15 @@ describe('UmaClient', (): void => {
       const registerParent = { ...response, status: 201, json: vi.fn().mockResolvedValueOnce({ _id: 'parentId' }) };
       fetcher.fetch.mockImplementation(async(target, req) => {
         if (target === umaConfig.resource_registration_endpoint) {
-          return JSON.parse(req!.body as string).name === '/' ? registerParent : registerChild;
+          return JSON.parse(req!.body as string).name === '/foo/' ? registerParent : registerChild;
         }
         return response;
       });
 
-      await expect(client.registerResource({ path: '/foo' }, issuer, credentials)).resolves.toBeUndefined();
+      await expect(client.registerResource({ path: '/foo/bar' }, issuer, credentials)).resolves.toBeUndefined();
       expect(umaIdStore.set).toHaveBeenCalledTimes(2);
-      expect(umaIdStore.set).toHaveBeenCalledWith('/foo', umaId);
-      expect(umaIdStore.set).toHaveBeenCalledWith('/', 'parentId');
+      expect(umaIdStore.set).toHaveBeenCalledWith('/foo/bar', umaId);
+      expect(umaIdStore.set).toHaveBeenCalledWith('/foo/', 'parentId');
       expect(fetcher.fetch).toHaveBeenCalledTimes(5);
       expect(fetcher.fetch).toHaveBeenCalledWith(umaConfig.resource_registration_endpoint, {
         method: 'POST',
@@ -586,7 +593,7 @@ describe('UmaClient', (): void => {
           'Accept': 'application/json',
           'Authorization': 'Bearer pat_token',
         },
-        body: JSON.stringify({ name: '/foo', resource_scopes }),
+        body: JSON.stringify({ name: '/foo/bar', resource_scopes }),
       });
       expect(fetcher.fetch).toHaveBeenCalledWith(umaConfig.resource_registration_endpoint, {
         method: 'POST',
@@ -595,7 +602,7 @@ describe('UmaClient', (): void => {
           'Accept': 'application/json',
           'Authorization': 'Bearer pat_token',
         },
-        body: JSON.stringify({ name: '/', resource_scopes, resource_defaults }),
+        body: JSON.stringify({ name: '/foo/', resource_scopes, resource_defaults }),
       });
       expect(fetcher.fetch).toHaveBeenCalledWith(umaConfig.resource_registration_endpoint + umaId, {
         method: 'PUT',
@@ -604,7 +611,7 @@ describe('UmaClient', (): void => {
           'Accept': 'application/json',
           'Authorization': 'Bearer pat_token',
         },
-        body: JSON.stringify({ name: '/foo', resource_scopes, resource_relations: { '@reverse': { 'http://www.w3.org/ns/ldp#contains': [ 'parentId' ] }}}),
+        body: JSON.stringify({ name: '/foo/bar', resource_scopes, resource_relations: { '@reverse': { 'http://www.w3.org/ns/ldp#contains': [ 'parentId' ] }}}),
       });
     });
   });

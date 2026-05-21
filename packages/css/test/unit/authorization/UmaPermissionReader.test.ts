@@ -2,6 +2,7 @@ import { IdentifierMap, PermissionReaderInput } from '@solid/community-server';
 import { PERMISSIONS } from '@solidlab/policy-engine';
 import { UmaPermissionReader } from '../../../src/authorization/UmaPermissionReader';
 import { UmaClaims } from '../../../src/uma/UmaClient';
+import { OwnerUtil } from '../../../src/util/OwnerUtil';
 
 describe('UmaPermissionReader', (): void => {
   let rpt: UmaClaims = {};
@@ -85,5 +86,25 @@ describe('UmaPermissionReader', (): void => {
       [ { path: 'id1' }, { [PERMISSIONS.Read]: true, [PERMISSIONS.Modify]: true } ],
       [ { path: 'id2' }, { [PERMISSIONS.Create]: true } ],
     ]));
+  });
+
+  it('only accepts permissions from the resource owner\'s UMA issuer.', async(): Promise<void> => {
+    const ownerUtil = {
+      findOwners: vi.fn().mockResolvedValue([ 'owner' ]),
+      findUmaSettings: vi.fn().mockResolvedValue({ issuer: 'issuer' }),
+    } satisfies Partial<OwnerUtil> as any;
+    const validatingReader = new UmaPermissionReader(ownerUtil);
+
+    rpt.iss = 'issuer';
+    rpt.permissions = [
+      { resource_id: 'id1', resource_scopes: [ 'urn:example:css:modes:read' ]},
+    ];
+
+    await expect(validatingReader.handle(input)).resolves.toEqual(new IdentifierMap([
+      [ { path: 'id1' }, { [PERMISSIONS.Read]: true } ],
+    ]));
+
+    rpt.iss = 'other';
+    await expect(validatingReader.handle(input)).resolves.toEqual(new IdentifierMap());
   });
 });

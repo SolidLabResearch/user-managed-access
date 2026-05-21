@@ -1,9 +1,17 @@
-import { IdentifierMap, MultiPermissionMap, PermissionReader, PermissionReaderInput } from '@solid/community-server';
+import {
+  createErrorMessage,
+  IdentifierMap,
+  MultiPermissionMap,
+  PermissionReader,
+  PermissionReaderInput,
+  ResourceIdentifier,
+} from '@solid/community-server';
 import { PermissionMap } from '@solidlab/policy-engine';
 import { getLoggerFor } from 'global-logger-factory';
 import { VocabularyValue } from 'rdf-vocabulary';
 import { toCssMode } from '../uma/ScopeUtil';
 import { UmaClaims } from '../uma/UmaClient';
+import { OwnerUtil } from '../util/OwnerUtil';
 import { MODES } from '../util/Vocabularies';
 
 /**
@@ -11,6 +19,12 @@ import { MODES } from '../util/Vocabularies';
  */
 export class UmaPermissionReader extends PermissionReader {
   protected readonly logger = getLoggerFor(this);
+
+  public constructor(
+    protected readonly ownerUtil?: OwnerUtil,
+  ) {
+    super();
+  }
 
   /**
      * Converts ticket to PermissionMap
@@ -38,6 +52,11 @@ export class UmaPermissionReader extends PermissionReader {
     }
 
     for (const { resource_id, resource_scopes, iat: p_iat, exp: p_exp, nbf: p_nbf } of permissions ?? []) {
+      if (!await this.isIssuerAllowed({ path: resource_id }, rpt.iss)) {
+        this.logger.warn(`Ignoring UMA permission for ${resource_id}: token issuer is not linked to the resource.`);
+        continue;
+      }
+
       const permissionSet = Object.fromEntries(resource_scopes.map(scope => {
         if (!scope.startsWith(MODES.namespace)) {
           this.logger.error(`Received unknown scope ${scope}`);
@@ -59,6 +78,26 @@ export class UmaPermissionReader extends PermissionReader {
       result.set({ path: resource_id }, permissionSet);
     }
     return result;
+  }
+
+  protected async isIssuerAllowed(resource: ResourceIdentifier, issuer?: string): Promise<boolean> {
+    if (!this.ownerUtil) {
+      return true;
+    }
+    if (!issuer) {
+      return false;
+    }
+
+    const ownerUtil = this.ownerUtil;
+    try {
+      const owners = await ownerUtil.findOwners(resource);
+      const issuers = await Promise.all(owners.map(async owner => (await ownerUtil.findUmaSettings(owner)).issuer));
+
+      return issuers.includes(issuer);
+    } catch (error: unknown) {
+      this.logger.warn(`Unable to verify UMA token issuer for ${resource.path}: ${createErrorMessage(error)}`);
+      return false;
+    }
   }
 
 }

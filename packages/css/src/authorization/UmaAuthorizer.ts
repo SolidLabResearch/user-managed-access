@@ -3,6 +3,7 @@ import {
   Authorizer,
   createErrorMessage,
   ForbiddenHttpError,
+  HttpError,
   InternalServerError,
   UnauthorizedHttpError
 } from '@solid/community-server';
@@ -76,6 +77,9 @@ export class UmaAuthorizer extends Authorizer {
       const ticket = await this.umaClient.fetchTicket(requestedModes, issuer, credentials);
       return ticket ? `UMA realm="solid", as_uri="${issuer}", ticket="${ticket}"` : undefined;
     } catch (e) {
+      if (HttpError.isInstance(e)) {
+        throw e;
+      }
       this.logger.error(`Error while requesting UMA header: ${(e as Error).message}`);
       throw new InternalServerError(`Error while requesting UMA header: ${(e as Error).message}.`);
     }
