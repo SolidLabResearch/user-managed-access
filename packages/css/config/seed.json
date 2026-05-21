@@ -6,7 +6,7 @@
       "name": "alice"
     }],
     "authz": {
-      "server": "http://localhost:4000/uma"
+      "server": "http://uma.local:4000/uma"
     }
   },
   {
@@ -18,7 +18,7 @@
       }
     ],
     "authz": {
-      "server": "http://localhost:4000/uma"
+      "server": "http://uma.local:4000/uma"
     }
   },
   {
@@ -30,7 +30,7 @@
       }
     ],
     "authz": {
-      "server": "http://localhost:4000/uma"
+      "server": "http://uma.local:4000/uma"
     }
   },
   {
@@ -42,7 +42,7 @@
       }
     ],
     "authz": {
-      "server": "http://localhost:4000/uma"
+      "server": "http://uma.local:4000/uma"
     }
   }
 ]

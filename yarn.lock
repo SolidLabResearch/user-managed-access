@@ -5497,29 +5497,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solid/access-token-verifier@npm:^1.2.0":
-  version: 1.2.9
-  resolution: "@solid/access-token-verifier@npm:1.2.9"
-  dependencies:
-    jose: "npm:^4.7.0"
-    lru-cache: "npm:^6.0.0"
-    n3: "npm:^1.16.1"
-    node-fetch: "npm:^2.6.7"
-    ts-guards: "npm:^0.5.1"
-  checksum: 10c0/b9727907208b50d4668d3d897939a5cbb5c3e01da97a74588a2773eadb871be127de9c2850ee1184d2509f2b3df8c59702c0c532e634a34f96f42ff81579a8e7
-  languageName: node
-  linkType: hard
-
-"@solid/access-token-verifier@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "@solid/access-token-verifier@npm:2.1.0"
+"@solid/access-token-verifier@npm:access-token-verifier-local@^2.1.1":
+  version: 2.1.1
+  resolution: "access-token-verifier-local@npm:2.1.1"
   dependencies:
     jose: "npm:^5.1.3"
     lru-cache: "npm:^6.0.0"
     n3: "npm:^1.17.1"
     node-fetch: "npm:^2.7.0"
     ts-guards: "npm:^0.5.1"
-  checksum: 10c0/1741eed98569c957b59de717bfc39964035d64d298f987c8e05d73982265518afcb9949c282316cce41d6fc2abc98dfaba12247ade841e42bda0c611a30e6119
+  checksum: 10c0/812a263657adebe2120793f3f809dab5418d7cade6d861bb2ef248b78619af0939a4034b8d989f8dbfc88ce065fa0665e4a33320790531f6153011d08df5f4e2
   languageName: node
   linkType: hard
 
@@ -5643,7 +5630,7 @@ __metadata:
   dependencies:
     "@comunica/query-sparql": "npm:^4.4.1"
     "@httpland/authorization-parser": "npm:^1.1.0"
-    "@solid/access-token-verifier": "npm:^1.2.0"
+    "@solid/access-token-verifier": "npm:access-token-verifier-local@^2.1.1"
     "@solid/community-server": "npm:^8.0.0-alpha.1"
     "@types/ms": "npm:^2.1.0"
     "@types/n3": "npm:^1.16.4"
@@ -9834,13 +9821,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:^4.7.0":
-  version: 4.15.4
-  resolution: "jose@npm:4.15.4"
-  checksum: 10c0/ce8b29f84d6172a566b12b599dafa82f3bef0f16278bb76d562490ac1516fcc14017b05a39d20ffad25ed504f4996d4af4c9d3e0273d95b2d5559bf6d1112bc0
-  languageName: node
-  linkType: hard
-
 "jose@npm:^5.1.3, jose@npm:^5.2.2":
   version: 5.2.2
   resolution: "jose@npm:5.2.2"
@@ -10747,7 +10727,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"n3@npm:^1.0.0, n3@npm:^1.16.1, n3@npm:^1.16.3, n3@npm:^1.17.0, n3@npm:^1.17.1, n3@npm:^1.17.2, n3@npm:^1.20.4, n3@npm:^1.21.1, n3@npm:^1.23.1, n3@npm:^1.25.2, n3@npm:^1.26.0, n3@npm:^1.3.5":
+"n3@npm:^1.0.0, n3@npm:^1.16.3, n3@npm:^1.17.0, n3@npm:^1.17.1, n3@npm:^1.17.2, n3@npm:^1.20.4, n3@npm:^1.21.1, n3@npm:^1.23.1, n3@npm:^1.25.2, n3@npm:^1.26.0, n3@npm:^1.3.5":
   version: 1.26.0
   resolution: "n3@npm:1.26.0"
   dependencies:
@@ -10817,7 +10797,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.12, node-fetch@npm:^2.6.7, node-fetch@npm:^2.7.0":
+"node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.12, node-fetch@npm:^2.7.0":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
   dependencies:

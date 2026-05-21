@@ -53,14 +53,14 @@
     "build": "yarn build:ts && yarn build:components",
     "build:ts": "yarn run -T tsc",
     "build:components": "yarn run -T componentsjs-generator -r sai-uma -s src -c dist/components -i .componentsignore --lenient",
-    "start": "node bin/main.js",
+    "start": "node bin/main.js -p 4000 -b http://uma.local:4000/uma",
     "start:odrl": "node bin/odrl.js",
     "demo": "node bin/demo.js"
   },
   "dependencies": {
     "@comunica/query-sparql": "^4.4.1",
     "@httpland/authorization-parser": "^1.1.0",
-    "@solid/access-token-verifier": "^1.2.0",
+    "@solid/access-token-verifier": "npm:access-token-verifier-local@^2.1.1",
     "@solid/community-server": "^8.0.0-alpha.1",
     "@types/ms": "^2.1.0",
     "@types/n3": "^1.16.4",

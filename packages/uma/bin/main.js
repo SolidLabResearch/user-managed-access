@@ -15,7 +15,7 @@ const argv = yargs(hideBin(process.argv))
     alias: 'b',
     type: 'string',
     description: 'Base URL for the UMA server',
-    default: `http://localhost:${argv.port}/uma`
+    default: `http://localhost:4000/uma`
   })
   .option('loggingLevel', {
     alias: 'l',
