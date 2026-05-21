@@ -7,6 +7,7 @@ export interface RequestValidatorInput {
 
 export interface RequestValidatorOutput {
   owner: string;
+  resourceServer?: string;
 }
 
 /**

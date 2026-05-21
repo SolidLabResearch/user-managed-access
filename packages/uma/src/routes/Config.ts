@@ -27,6 +27,8 @@ export type OAuthConfiguration = {
 export type UmaConfiguration = OAuthConfiguration & {
   uma_profiles_supported: string[],
   resource_registration_endpoint: string,
+  resource_owner_assets_endpoint: string,
+  policy_management_endpoint: string,
   permission_endpoint: string,
   introspection_endpoint: string,
 }
@@ -69,6 +71,8 @@ export class ConfigRequestHandler extends HttpHandler {
       permission_endpoint: joinUrl(this.baseUrl, 'ticket'),
       introspection_endpoint: joinUrl(this.baseUrl, 'introspect'),
       resource_registration_endpoint: joinUrl(this.baseUrl, 'resources/'),
+      resource_owner_assets_endpoint: joinUrl(this.baseUrl, 'resource-owner/assets'),
+      policy_management_endpoint: joinUrl(this.baseUrl, 'policies'),
       uma_profiles_supported: ['http://openid.net/specs/openid-connect-core-1_0.html#IDToken'],
       dpop_signing_alg_values_supported: [...ASYMMETRIC_CRYPTOGRAPHIC_ALGORITHM],
       response_types_supported: [ResponseType.Token],

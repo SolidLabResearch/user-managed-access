@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { promises } from 'node:timers';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
-import { generateCredentials } from '../util/UmaUtil';
+import { generateCredentials, umaFetch } from '../util/UmaUtil';
 
 const [ cssPort, umaPort ] = getPorts('Base');
 
@@ -45,6 +45,26 @@ describe('A server setup', (): void => {
   });
 
   describe('initializing the servers', (): void => {
+    it('RS: exposes Solid notification discovery without UMA authorization.', async(): Promise<void> => {
+      const storageDescription = `http://localhost:${cssPort}/alice/.well-known/solid`;
+      const storageResponse = await fetch(storageDescription, {
+        headers: { accept: 'text/turtle' },
+      });
+
+      expect(storageResponse.status).toBe(200);
+      expect(storageResponse.headers.has('WWW-Authenticate')).toBe(false);
+      await expect(storageResponse.text()).resolves.toContain('WebSocketChannel2023');
+
+      const channelDescription = `http://localhost:${cssPort}/.notifications/WebSocketChannel2023/`;
+      const channelResponse = await fetch(channelDescription);
+
+      expect(channelResponse.status).toBe(200);
+      expect(channelResponse.headers.has('WWW-Authenticate')).toBe(false);
+      await expect(channelResponse.json()).resolves.toMatchObject({
+        channelType: 'http://www.w3.org/ns/solid/notifications#WebSocketChannel2023',
+      });
+    });
+
     it('can set up all the necessary policies.', async(): Promise<void> => {
       const owner = 'https://pod.woutslabbinck.com/profile/card#me';
       const url = `http://localhost:${umaPort}/uma/policies`;
@@ -110,6 +130,21 @@ describe('A server setup', (): void => {
     let ticket: string;
     let tokenEndpoint: string;
     let jsonResponse: { access_token: string, token_type: string };
+
+    function createNotificationChannelRequest(topic: string): RequestInit & { headers: Record<string, string> } {
+      return {
+        method: 'POST',
+        headers: { 'content-type': 'application/ld+json' },
+        body: JSON.stringify({
+          '@context': {
+            notify: 'http://www.w3.org/ns/solid/notifications#',
+          },
+          '@id': 'http://example.org/subscription',
+          '@type': 'notify:WebSocketChannel2023',
+          'notify:topic': { '@id': topic },
+        }),
+      };
+    }
 
     it('RS: sends a WWW-Authenticate response when access is private.', async(): Promise<void> => {
       const noTokenResponse = await fetch(collectionResource, {
@@ -186,6 +221,45 @@ describe('A server setup', (): void => {
     it('RS: does not allow public read access to the new resource.', async(): Promise<void> => {
       const response = await fetch(collectionResource);
       expect(response.status).toBe(401);
+    });
+
+    it('RS: does not create a notification channel without read permission on the topic.', async(): Promise<void> => {
+      const request = createNotificationChannelRequest(collectionResource);
+      const response = await fetch(`http://localhost:${cssPort}/.notifications/WebSocketChannel2023/`, {
+        ...request,
+        headers: {
+          ...request.headers,
+          authorization: `${jsonResponse.token_type} ${jsonResponse.access_token}`,
+        },
+      });
+
+      expect(response.status).toBe(403);
+      expect(response.headers.get('WWW-Authenticate')).toMatch(/^UMA /u);
+    });
+
+    it('RS: creates a notification channel with read permission on the topic.', async(): Promise<void> => {
+      const response = await umaFetch(
+        `http://localhost:${cssPort}/.notifications/WebSocketChannel2023/`,
+        createNotificationChannelRequest(collectionResource),
+        `http://localhost:${cssPort}/alice/profile/card#me`,
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        type: 'http://www.w3.org/ns/solid/notifications#WebSocketChannel2023',
+        topic: collectionResource,
+      });
+    });
+
+    it('RS: allows the pod owner to read the new resource through UMA.', async(): Promise<void> => {
+      const response = await umaFetch(
+        collectionResource,
+        undefined,
+        `http://localhost:${cssPort}/alice/profile/card#me`,
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.text()).resolves.toEqual('Some text ...');
     });
 
     it('the resource can be made publicly accessible by having an anonymous assignee.', async(): Promise<void> => {

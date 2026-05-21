@@ -16,6 +16,8 @@ describe('Config', (): void => {
         permission_endpoint: 'http://example.com/uma/ticket',
         introspection_endpoint: 'http://example.com/uma/introspect',
         resource_registration_endpoint: 'http://example.com/uma/resources/',
+        resource_owner_assets_endpoint: 'http://example.com/uma/resource-owner/assets',
+        policy_management_endpoint: 'http://example.com/uma/policies',
         uma_profiles_supported: ['http://openid.net/specs/openid-connect-core-1_0.html#IDToken'],
         dpop_signing_alg_values_supported:
           expect.arrayContaining(['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'PS256', 'PS384', 'PS512']),

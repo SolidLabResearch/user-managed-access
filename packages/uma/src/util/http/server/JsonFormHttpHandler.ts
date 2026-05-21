@@ -74,6 +74,8 @@ export class JsonFormHttpHandler extends HttpHandler<HttpHandlerContext<Buffer>,
         responseData = Buffer.from(response.body, 'utf8');
       } else if (Buffer.isBuffer(response.body)) {
         responseData = response.body;
+      } else {
+        return response as HttpHandlerResponse<Buffer>;
       }
     }
 

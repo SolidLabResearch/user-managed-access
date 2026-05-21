@@ -5,8 +5,16 @@ import {
   TargetExtractor
 } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
+import { Readable } from 'node:stream';
 import { buffer } from 'node:stream/consumers';
+import { finished } from 'node:stream/promises';
 import { HttpHandler, HttpHandlerContext, HttpHandlerRequest } from '../models/HttpHandler';
+
+const isStreamBody = (body: unknown): body is NodeJS.ReadableStream =>
+  body instanceof Readable || Boolean(body && typeof (body as NodeJS.ReadableStream).pipe === 'function');
+
+const getBodyLength = (body: unknown): string | undefined =>
+  typeof body === 'string' || Buffer.isBuffer(body) ? Buffer.byteLength(body).toString() : undefined;
 
 /**
  * A { NodeHttpStreamsHandler } reading the request stream into a { HttpHandlerRequest },
@@ -76,27 +84,36 @@ export class NodeHttpRequestResponseHandler extends NodeHttpStreamsHandler {
 
     let response = await this.httpHandler.handleSafe(context);
 
+    const responseContentLength = getBodyLength(response.body);
     response.headers = {
       // headers could be undefined at this point
       ...response.headers,
-      ...response.body && { 'content-length': Buffer.byteLength(response.body).toString() }
+      ...responseContentLength && { 'content-length': responseContentLength }
     }
 
     this.logger.debug('Sending response');
 
     responseStream.writeHead(response.status, response.headers);
-    if (response.body) {
+    if (isStreamBody(response.body)) {
+      response.body.pipe(responseStream);
+      await finished(responseStream).catch(() => undefined);
+    } else if (response.body) {
       responseStream.write(response.body);
+      responseStream.end();
+    } else {
+      responseStream.end();
     }
-
-    responseStream.end();
 
     this.logger.info(`Domestic response: ${JSON.stringify({
       eventType: 'domestic_response',
       response: {
         ... response,
         // Limit max length in logs
-        ... response.body && { body: (response.body.length > 200 ? '<Buffer>' : response.body.toString()) },
+        ... response.body && {
+          body: isStreamBody(response.body) ?
+            '<Stream>' :
+            (response.body.length > 200 ? '<Buffer>' : response.body.toString())
+        },
       }
     })}`);
   }

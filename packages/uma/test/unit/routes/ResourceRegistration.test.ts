@@ -15,6 +15,12 @@ import { ODRL_P, OWL } from '../../../src/ucp/util/Vocabularies';
 import { HttpHandlerContext } from '../../../src/util/http/models/HttpHandler';
 import { RequestValidator } from '../../../src/util/http/validate/RequestValidator';
 import { RegistrationStore } from '../../../src/util/RegistrationStore';
+import {
+  createOwnerAccessPolicy,
+  getOwnerAccessPermissionId,
+  getOwnerAccessPolicyId,
+  OWNER_ACCESS_ACTIONS,
+} from '../../../src/util/SystemPolicy';
 import { ResourceDescription } from '../../../src/views/ResourceDescription';
 
 vi.mock('node:crypto', () => ({
@@ -96,7 +102,12 @@ describe('ResourceRegistration', (): void => {
         body: { _id: 'name', user_access_policy_uri: 'TODO: implement policy UI' },
       });
       expect(registrationStore.set).toHaveBeenCalledTimes(1);
-      expect(registrationStore.set).lastCalledWith('name', { owner, description: input.request.body });
+      expect(registrationStore.set).lastCalledWith('name', expect.objectContaining({
+        owner,
+        description: input.request.body,
+        registeredAt: expect.any(String),
+        updatedAt: expect.any(String),
+      }));
     });
 
     it('stores newly created asset collections.', async(): Promise<void> => {
@@ -112,6 +123,7 @@ describe('ResourceRegistration', (): void => {
       expect(policies.addRule).toHaveBeenCalledTimes(1);
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
+        ...createOwnerAccessPolicy('name', owner).getQuads(null, null, null, null),
         DF.quad(DF.namedNode('collection:1'), RDF.terms.type, ODRL.terms.AssetCollection),
         DF.quad(DF.namedNode('collection:1'), ODRL.terms.source, DF.namedNode('name')),
         DF.quad(DF.namedNode('collection:1'), ODRL_P.terms.relation, DF.namedNode('pred')),
@@ -148,6 +160,7 @@ describe('ResourceRegistration', (): void => {
       expect(policies.addRule).toHaveBeenCalledTimes(1);
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
+        ...createOwnerAccessPolicy('entry', owner).getQuads(null, null, null, null),
         DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:1')),
         DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:2')),
       ]);
@@ -189,7 +202,38 @@ describe('ResourceRegistration', (): void => {
         body: { _id: 'name', user_access_policy_uri: 'TODO: implement policy UI' },
       });
       expect(registrationStore.set).toHaveBeenCalledTimes(1);
-      expect(registrationStore.set).lastCalledWith('name', { owner, description: input.request.body });
+      expect(registrationStore.set).lastCalledWith('name', expect.objectContaining({
+        owner,
+        description: input.request.body,
+        registeredAt: expect.any(String),
+        updatedAt: expect.any(String),
+      }));
+    });
+
+    it('upgrades existing read-only owner policies with missing owner access permissions.', async(): Promise<void> => {
+      const policy = DF.namedNode(getOwnerAccessPolicyId('name'));
+      const readPermission = DF.namedNode(getOwnerAccessPermissionId('name', ODRL.terms.read.value));
+      policyStore.addQuads(createOwnerAccessPolicy('name', owner)
+        .getQuads(null, null, null, null)
+        .filter((entry) =>
+          (entry.subject.equals(policy) && !entry.predicate.equals(ODRL.terms.permission)) ||
+          (entry.subject.equals(policy) && entry.object.equals(readPermission)) ||
+          entry.subject.equals(readPermission)));
+
+      await expect(handler.handle(input)).resolves.toEqual({
+        status: 200,
+        body: { _id: 'name', user_access_policy_uri: 'TODO: implement policy UI' },
+      });
+
+      expect(policies.addRule).toHaveBeenCalledTimes(1);
+      const newStore = policies.addRule.mock.calls[0][0];
+      expect(newStore.countQuads(policy, ODRL.terms.permission, readPermission, null)).toBe(0);
+      for (const action of OWNER_ACCESS_ACTIONS.filter((action) => action.value !== ODRL.terms.read.value)) {
+        const permission = DF.namedNode(getOwnerAccessPermissionId('name', action.value));
+        expect(newStore.countQuads(policy, ODRL.terms.permission, permission, null)).toBe(1);
+        expect(newStore.countQuads(permission, ODRL.terms.action, action, null)).toBe(1);
+        expect(newStore.countQuads(permission, ODRL.terms.target, DF.namedNode('name'), null)).toBe(1);
+      }
     });
 
     it('stores newly created asset collections.', async(): Promise<void> => {
@@ -204,6 +248,7 @@ describe('ResourceRegistration', (): void => {
       expect(policies.addRule).toHaveBeenCalledTimes(1);
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
+        ...createOwnerAccessPolicy('name', owner).getQuads(null, null, null, null),
         DF.quad(DF.namedNode('collection:1'), RDF.terms.type, ODRL.terms.AssetCollection),
         DF.quad(DF.namedNode('collection:1'), ODRL.terms.source, DF.namedNode('name')),
         DF.quad(DF.namedNode('collection:1'), ODRL_P.terms.relation, DF.namedNode('pred')),
@@ -239,6 +284,7 @@ describe('ResourceRegistration', (): void => {
       expect(policies.addRule).toHaveBeenCalledTimes(1);
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
+        ...createOwnerAccessPolicy('entry', owner).getQuads(null, null, null, null),
         DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:1')),
         DF.quad(DF.namedNode('entry'), ODRL.terms.partOf, DF.namedNode('collection:2')),
       ]);
@@ -272,6 +318,10 @@ describe('ResourceRegistration', (): void => {
 
     it('deletes the resource.', async(): Promise<void> => {
       await expect(handler.handle(input)).resolves.toEqual({ status: 204 });
+      expect(policies.removeData).toHaveBeenCalledTimes(1);
+      expect(policies.removeData.mock.calls[0][0]).toBeRdfIsomorphic(
+        createOwnerAccessPolicy('name', owner).getQuads(null, null, null, null),
+      );
       expect(registrationStore.delete).toHaveBeenCalledTimes(1);
       expect(registrationStore.delete).toHaveBeenLastCalledWith('name');
     });

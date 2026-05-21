@@ -1,6 +1,10 @@
+import { RDF } from '@solid/community-server';
+import { DataFactory, Store } from "n3";
 import { v4 as uuid } from 'uuid';
-import { Store } from "n3";
+import { ODRL } from '../../ucp/util/Vocabularies';
 import {queryEngine} from './index';
+
+const { namedNode, quad } = DataFactory;
 
 /**
  * Update a policy in the store, provided that the client is its assigner.
@@ -10,20 +14,31 @@ import {queryEngine} from './index';
  * the function simply returns without applying changes.
  *
  * @param store the store to update
- * @param _policyID identifier of the policy entity (unused here)
+ * @param policyID identifier of the policy entity
  * @param resourceOwner identifier of the client attempting the update
  * @param query update to apply if the client is the assigner
  */
 export const patchPolicy = async (
     store: Store,
-    _policyID: string,
+    policyID: string,
     resourceOwner: string,
     query: string
 ) => {
-    // check ownership of resource -- is client assigner?
-    const isOwner = store.countQuads(null, "http://www.w3.org/ns/odrl/2/assigner", resourceOwner, null) !== 0;
-    if (!isOwner) throw new PatchError(403, "resource owner doesn't match") ; // ? shouldn't this throw an error -- drawback would be information leakage
-    else await queryEngine.queryVoid(query.toString(), { sources: [store] });
+    const policy = store.getSubjects(ODRL.terms.uid, namedNode(policyID), null)
+      .find((subject) =>
+        (
+          store.has(quad(subject, RDF.terms.type, ODRL.terms.Agreement)) ||
+          store.has(quad(subject, RDF.terms.type, ODRL.terms.Set))
+        ) &&
+        store.getObjects(subject, ODRL.terms.permission, null)
+          .some((permission) =>
+            (permission.termType === 'NamedNode' || permission.termType === 'BlankNode') &&
+            store.has(quad(permission, ODRL.terms.assigner, namedNode(resourceOwner))))
+      );
+
+    if (!policy) throw new PatchError(403, "resource owner doesn't match");
+
+    await queryEngine.queryVoid(query.toString(), { sources: [store] });
 }
 
 // ! link between target and resource owner is not always included through a policy

@@ -16,6 +16,7 @@
     "sai-uma:config/routes/client-registration.json",
     "sai-uma:config/routes/keys.json",
     "sai-uma:config/routes/resources.json",
+    "sai-uma:config/routes/resource-owner-assets.json",
     "sai-uma:config/routes/tickets.json",
     "sai-uma:config/routes/tokens.json",
     "sai-uma:config/routes/log.json",
@@ -139,6 +140,8 @@
                   { "@id": "urn:uma:default:PermissionRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationRoute" },
                   { "@id": "urn:uma:default:ResourceRegistrationOpsRoute" },
+                  { "@id": "urn:uma:default:ResourceOwnerAssetsRoute" },
+                  { "@id": "urn:uma:default:ResourceOwnerAssetRoute" },
                   { "@id": "urn:uma:default:IntrospectionRoute" },
                   { "@id": "urn:uma:default:ClientRegistrationRoute" },
                   { "@id": "urn:uma:default:ClientRegistrationIdRoute" }

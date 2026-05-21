@@ -1,7 +1,8 @@
 import { Store, DataFactory } from "n3";
 import {queryEngine} from './index';
 import { BadRequestHttpError, ForbiddenHttpError, RDF, XSD } from "@solid/community-server";
-const {literal, namedNode} = DataFactory
+import { ODRL } from '../../ucp/util/Vocabularies';
+const {literal, namedNode, quad} = DataFactory
 /**
  * Run a query against the store and extract exactly one matching subgraph.
  *
@@ -43,7 +44,10 @@ const executePost = async (
         bindings.on('end', () => {
             const result: Store = new Store();
             results.forEach((store) => result.addAll(store));
-            if (results.length === 0) rejects('failed to create');
+            if (results.length === 0) rejects(new BadRequestHttpError(
+                'No valid ODRL policy found. Agreement policies require an assignee; ' +
+                'use an odrl:Set policy without an assignee for public access.',
+            ));
             else resolve(store);
         });
     });
@@ -93,9 +97,22 @@ export const postPolicy = async (store: Store, resourceOwner: string): Promise<S
     const isOwner = store.countQuads(null, 'http://www.w3.org/ns/odrl/2/assigner', resourceOwner, null) !== 0;
     if (!isOwner) throw new ForbiddenHttpError();
 
+    normalizePublicAgreements(store);
+
     const result = await executePost(store, buildPolicyCreationQuery(resourceOwner), ["p", "r"]);
 
     return result;
+}
+
+const normalizePublicAgreements = (store: Store): void => {
+    for (const policy of store.getSubjects(RDF.terms.type, ODRL.terms.Agreement, null)) {
+        const permissions = store.getObjects(policy, ODRL.terms.permission, null);
+        if (permissions.length > 0 &&
+            permissions.every((permission) => store.countQuads(permission, ODRL.terms.assignee, null, null) === 0)) {
+            store.removeQuad(quad(policy, RDF.terms.type, ODRL.terms.Agreement));
+            store.addQuad(policy, RDF.terms.type, ODRL.terms.Set);
+        }
+    }
 }
 
 /**

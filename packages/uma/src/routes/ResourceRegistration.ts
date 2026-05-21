@@ -19,15 +19,20 @@ import {
   HttpHandlerRequest,
   HttpHandlerResponse
 } from '../util/http/models/HttpHandler';
+import { Registration } from '../util/RegistrationStore';
+import { ResourceOwnerAssetEventEmitter } from '../util/ResourceOwnerAssetEvents';
 import { RequestValidator } from '../util/http/validate/RequestValidator';
 import { RegistrationStore } from '../util/RegistrationStore';
 import { reType } from '../util/ReType';
+import { createOwnerAccessPolicy, hasOwnerAccessPolicy } from '../util/SystemPolicy';
 import { ResourceDescription } from '../views/ResourceDescription';
 
 /**
  * The necessary metadata to describe an asset collection based on a relation.
  */
 export type CollectionMetadata = { relation: NamedNode, source: NamedNode, reverse: boolean };
+
+const getCurrentTimestamp = (): string => new Date().toISOString().replace(/\.\d{3}Z$/u, 'Z');
 
 /**
  * A ResourceRegistrationRequestHandler is tasked with implementing
@@ -47,22 +52,27 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     protected readonly registrationStore: RegistrationStore,
     protected readonly policies: UCRulesStorage,
     protected readonly validator: RequestValidator,
+    protected readonly assetEvents?: ResourceOwnerAssetEventEmitter,
   ) {
     super();
   }
 
   public async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
-    const { owner } = await this.validator.handleSafe({ request });
+    const { owner, resourceServer } = await this.validator.handleSafe({ request });
 
     switch (request.method) {
-      case 'POST': return this.handlePost(request, owner);
-      case 'PUT': return this.handlePut(request, owner);
+      case 'POST': return this.handlePost(request, owner, resourceServer);
+      case 'PUT': return this.handlePut(request, owner, resourceServer);
       case 'DELETE': return this.handleDelete(request, owner);
       default: throw new MethodNotAllowedHttpError([ request.method ]);
     }
   }
 
-  protected async handlePost(request: HttpHandlerRequest, owner: string): Promise<HttpHandlerResponse> {
+  protected async handlePost(
+    request: HttpHandlerRequest,
+    owner: string,
+    resourceServer?: string,
+  ): Promise<HttpHandlerResponse> {
     const { body } = request;
 
     try {
@@ -87,7 +97,8 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     }
 
     // Set the resource metadata
-    await this.setResourceMetadata(resource, body, owner);
+    const registration = await this.setResourceMetadata(resource, body, owner, resourceServer);
+    this.assetEvents?.emit({ type: 'created', id: resource, owner, registration });
 
     return ({
       status: 201,
@@ -99,7 +110,11 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     });
   }
 
-  protected async handlePut({ body, parameters }: HttpHandlerRequest, owner: string): Promise<HttpHandlerResponse> {
+  protected async handlePut(
+    { body, parameters }: HttpHandlerRequest,
+    owner: string,
+    resourceServer?: string,
+  ): Promise<HttpHandlerResponse> {
     if (typeof parameters?.id !== 'string') {
       throw new InternalServerError('URI for PUT operation should include an id.');
     }
@@ -121,7 +136,8 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     }
 
     // Update the resource metadata
-    await this.setResourceMetadata(parameters.id, body, owner);
+    const registration = await this.setResourceMetadata(parameters.id, body, owner, resourceServer);
+    this.assetEvents?.emit({ type: 'updated', id: parameters.id, owner, registration });
 
     return ({
       status: 200,
@@ -146,7 +162,9 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
       throw new ForbiddenHttpError(`${owner} is not the owner of this resource.`);
     }
 
+    await this.policies.removeData(createOwnerAccessPolicy(parameters.id, owner));
     await this.registrationStore.delete(parameters.id);
+    this.assetEvents?.emit({ type: 'deleted', id: parameters.id, owner, registration: entry });
     this.logger.info(`Deleted resource ${parameters.id}.`);
 
     return ({ status: 204 });
@@ -158,13 +176,24 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
    * @param description - The new {@link ResourceDescription} for the resource.
    * @param owner - The owner of the resource.
    */
-  protected async setResourceMetadata(id: string, description: ResourceDescription, owner: string): Promise<void> {
+  protected async setResourceMetadata(
+    id: string,
+    description: ResourceDescription,
+    owner: string,
+    resourceServer?: string,
+  ): Promise<Registration> {
+    const previous = await this.registrationStore.get(id);
     const policyStore = await this.policies.getStore();
+    const ownerPolicyQuads = hasOwnerAccessPolicy(policyStore, id)
+      ? []
+      : createOwnerAccessPolicy(id, owner)
+        .getQuads(null, null, null, null)
+        .filter((entry) => !policyStore.has(entry));
     const collectionQuads = await this.updateCollections(policyStore, id, description);
     const relationQuads = await this.updateRelations(policyStore, id, description);
-    const addQuads = [ ...collectionQuads.add, ...relationQuads.add ];
+    const addQuads = [ ...ownerPolicyQuads, ...collectionQuads.add, ...relationQuads.add ];
     if (addQuads.length > 0) {
-      await this.policies.addRule(new Store([...collectionQuads.add, ...relationQuads.add]));
+      await this.policies.addRule(new Store(addQuads));
     }
     const removeQuads = [ ...collectionQuads.remove, ...relationQuads.remove ];
     if (removeQuads.length > 0) {
@@ -174,8 +203,17 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     // Store the new UMA ID (or update the contents of the existing one)
     // Note that we only do this after generating and updating the relation metadata,
     // as errors could be thrown there.
-    await this.registrationStore.set(id, { description, owner });
+    const timestamp = getCurrentTimestamp();
+    const registration: Registration = {
+      description,
+      owner,
+      resourceServer: resourceServer ?? previous?.resourceServer,
+      registeredAt: previous?.registeredAt ?? timestamp,
+      updatedAt: timestamp,
+    };
+    await this.registrationStore.set(id, registration);
     this.logger.info(`Updated registration for ${id}.`);
+    return registration;
   }
 
   /**

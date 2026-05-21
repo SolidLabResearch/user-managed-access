@@ -46,6 +46,6 @@ export class PatRequestValidator extends RequestValidator {
       throw new InternalServerError('Unable to find matching client for PAT.');
     }
 
-    return { owner: registration.userId };
+    return { owner: registration.userId, resourceServer: registration.clientUri };
   }
 }

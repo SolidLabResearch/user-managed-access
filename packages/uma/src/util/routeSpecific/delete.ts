@@ -1,4 +1,5 @@
 import { Store } from "n3"
+import { SYSTEM_POLICY_TYPE_IRI } from '../SystemPolicy';
 import {queryEngine} from './index';
 
 /**
@@ -35,6 +36,7 @@ const buildPolicyDeletionQuery = (policyID: string, resourceOwner: string) => `
         ?policy odrl:permission ?permission ;
                 odrl:uid <${policyID}> .
         ?permission odrl:assigner <${resourceOwner}> .
+        FILTER NOT EXISTS { ?policy a <${SYSTEM_POLICY_TYPE_IRI}> . }
 
         {
             ?policy a odrl:Agreement .
@@ -55,8 +57,9 @@ const buildPolicyDeletionQuery = (policyID: string, resourceOwner: string) => `
  * @param resourceOwner ID of the resource owner (assigner) responsible for the policy
  * @returns a promise resolving when deletion is completed
  */
-export const deletePolicy = (store: Store, policyID: string, resourceOwner: string) =>
-    executeDelete(store, buildPolicyDeletionQuery(policyID, resourceOwner));
+export const deletePolicy = async (store: Store, policyID: string, resourceOwner: string): Promise<void> => {
+    await executeDelete(store, buildPolicyDeletionQuery(policyID, resourceOwner));
+}
 
 /**
  * Build a query that deletes an access request and its related triples.

@@ -194,7 +194,10 @@ export class BaseHandler extends HttpHandler {
 
         return {
             status: status,
-            body: message
+            ...message && {
+                body: message,
+                headers: { 'content-type': 'text/plain; charset=utf-8' }
+            }
         };
     }
 }

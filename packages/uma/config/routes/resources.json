@@ -8,7 +8,8 @@
       "@type": "ResourceRegistrationRequestHandler",
       "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
       "policies": { "@id": "urn:uma:default:RulesStorage" },
-      "validator": { "@id": "urn:uma:default:RequestValidator" }
+      "validator": { "@id": "urn:uma:default:RequestValidator" },
+      "assetEvents": { "@id": "urn:uma:default:ResourceOwnerAssetEventEmitter" }
     },
     {
       "@id": "urn:uma:default:ResourceRegistrationRoute",

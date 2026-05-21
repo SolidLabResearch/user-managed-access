@@ -1,0 +1,35 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solidlab/uma/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:uma:default:ResourceOwnerAssetsHandler",
+      "@type": "ResourceOwnerAssetsRequestHandler",
+      "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
+      "policies": { "@id": "urn:uma:default:RulesStorage" },
+      "credentialParser": { "@id": "urn:uma:default:CredentialParser" },
+      "verifier": { "@id": "urn:uma:default:Verifier" },
+      "baseUrl": { "@id": "urn:uma:variables:baseUrl" },
+      "assetEvents": { "@id": "urn:uma:default:ResourceOwnerAssetEventEmitter" }
+    },
+    {
+      "@id": "urn:uma:default:ResourceOwnerAssetEventEmitter",
+      "@type": "ResourceOwnerAssetEventEmitter"
+    },
+    {
+      "@id": "urn:uma:default:ResourceOwnerAssetsRoute",
+      "@type": "HttpHandlerRoute",
+      "methods": [ "GET" ],
+      "handler": { "@id": "urn:uma:default:ResourceOwnerAssetsHandler" },
+      "path": "/uma/resource-owner/assets"
+    },
+    {
+      "@id": "urn:uma:default:ResourceOwnerAssetRoute",
+      "@type": "HttpHandlerRoute",
+      "methods": [ "GET" ],
+      "handler": { "@id": "urn:uma:default:ResourceOwnerAssetsHandler" },
+      "path": "/uma/resource-owner/assets/{id}"
+    }
+  ]
+}

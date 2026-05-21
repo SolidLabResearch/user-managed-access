@@ -42,6 +42,7 @@ export * from './routes/Introspection';
 export * from './routes/Jwks';
 export * from './routes/Ticket';
 export * from './routes/ResourceRegistration';
+export * from './routes/ResourceOwnerAssets';
 export * from './routes/Token';
 export * from './routes/Config';
 export * from './routes/Log';
@@ -94,6 +95,7 @@ export * from './ucp/util/Vocabularies';
 export * from './util/ConvertUtil';
 export * from './util/HttpMessageSignatures';
 export * from './util/RegistrationStore';
+export * from './util/ResourceOwnerAssetEvents';
 export * from './util/Result';
 export * from './util/ReType';
 

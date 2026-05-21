@@ -1,5 +1,6 @@
 import { AsyncHandler } from 'asynchronous-handlers';
 import { OutgoingHttpHeaders } from 'http';
+import { Readable } from 'node:stream';
 
 export interface HttpHandlerContext<B = unknown> {
   request: HttpHandlerRequest<B>;
@@ -12,6 +13,8 @@ export interface HttpHandlerRequest<B = unknown> {
   headers: { [key: string]: string };
   body?: B;
 }
+
+export type StreamResponseBody = Readable | NodeJS.ReadableStream;
 
 export interface HttpHandlerResponse<B = unknown> {
   body?: B;
