@@ -1,50 +1,38 @@
 import { NotImplementedHttpError, RDF, XSD } from '@solid/community-server';
-import { DataFactory as DF, Parser, Store } from 'n3';
-import { ODRLEvaluator } from 'odrl-evaluator';
+import { DataFactory as DF, Store } from 'n3';
 import { Mocked } from 'vitest';
+import { CLIENTID, WEBID } from '../../../../src/credentials/Claims';
 import { OdrlAuthorizer } from '../../../../src/policies/authorizers/OdrlAuthorizer';
-import { basicPolicy } from '../../../../src/ucp/policy/ODRL';
 import { UCRulesStorage } from '../../../../src/ucp/storage/UCRulesStorage';
+import { ODRL } from '../../../../src/ucp/util/Vocabularies';
 import { Permission } from '../../../../src/views/Permission';
 
-const now = new Date();
+const now = new Date('2026-05-15T12:00:00.000Z');
 vi.useFakeTimers({ now });
 
-vi.mock('../../../../src/ucp/policy/ODRL', async(importOriginal) => ({
-    ...await importOriginal(),
-    basicPolicy: vi.fn(),
-}));
+const CSS = {
+  read: 'urn:example:css:modes:read',
+  append: 'urn:example:css:modes:append',
+  create: 'urn:example:css:modes:create',
+  delete: 'urn:example:css:modes:delete',
+  write: 'urn:example:css:modes:write',
+};
 
 describe('OdrlAuthorizer', (): void => {
-  const sotw = [ DF.quad(
-    DF.namedNode('http://example.com/request/currentTime'),
-    DF.namedNode('http://purl.org/dc/terms/issued'),
-    DF.literal(now.toISOString(), XSD.terms.dateTime),
-  )];
-
-  const evaluate = vi.spyOn(ODRLEvaluator.prototype, 'evaluate');
-
-  const requestQuads = [ DF.quad(DF.namedNode('req'), RDF.terms.type, DF.namedNode('Request')) ];
-  let policyStore = new Store([ DF.quad(DF.namedNode('policy'), RDF.terms.type, DF.namedNode('Policy')) ]);
+  const webId = 'http://example.com/#me';
+  let policyStore: Store;
   let policies: Mocked<UCRulesStorage>;
   let authorizer: OdrlAuthorizer;
 
   beforeEach(async(): Promise<void> => {
     vi.clearAllMocks();
-    evaluate.mockResolvedValue([]);
-
-    vi.mocked(basicPolicy).mockReturnValueOnce({
-      ruleIRIs:[],
-      policyIRI: '',
-      representation: new Store(requestQuads),
-    });
 
     policyStore = new Store();
     policies = {
       getStore: vi.fn().mockResolvedValue(policyStore),
     } satisfies Partial<UCRulesStorage> as any;
 
-    authorizer = new OdrlAuthorizer(policies);
+    authorizer = new OdrlAuthorizer(policies, 'eye');
   });
 
   it('does not support credentials requests.', async(): Promise<void> => {
@@ -53,163 +41,218 @@ describe('OdrlAuthorizer', (): void => {
 
   it('returns an empty result if there is no query.', async(): Promise<void> => {
     await expect(authorizer.permissions({})).resolves.toEqual([]);
-    expect(evaluate).toHaveBeenCalledTimes(0);
+    expect(policies.getStore).toHaveBeenCalledTimes(0);
   });
 
-  it('calls the evaluator with the generated policy request.', async(): Promise<void> => {
-    const query: Permission[] = [{ resource_id: 'rid', resource_scopes: [ 'urn:example:css:modes:read' ] }];
+  it('grants scopes matching assignee, action, and target.', async(): Promise<void> => {
+    addPermission({
+      policy: 'urn:policy',
+      permission: 'urn:permission',
+      actions: [ ODRL.read ],
+      targets: [ 'rid' ],
+      assignees: [ webId ],
+    });
 
-    // No result as the current evaluate mock returns an empty list
-    await expect(authorizer.permissions({}, query)).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [] }]);
-    expect(basicPolicy).toHaveBeenCalledTimes(1);
-    expect(basicPolicy).toHaveBeenLastCalledWith({
-      type: 'http://www.w3.org/ns/odrl/2/Request',
-      rules: [{
-        action: 'http://www.w3.org/ns/odrl/2/read',
-        resource: 'rid',
-        requestingParty: 'urn:solidlab:uma:id:anonymous'
+    await expect(authorizer.permissions({ [WEBID]: webId }, [
+      { resource_id: 'rid', resource_scopes: [ CSS.read, CSS.write ] },
+    ])).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [ CSS.read ] }]);
+    expect(policies.getStore).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not grant scopes to a different assignee.', async(): Promise<void> => {
+    addPermission({
+      policy: 'urn:policy',
+      permission: 'urn:permission',
+      actions: [ ODRL.read ],
+      targets: [ 'rid' ],
+      assignees: [ 'http://other.example/#me' ],
+    });
+
+    await expect(authorizer.permissions({ [WEBID]: webId }, [
+      { resource_id: 'rid', resource_scopes: [ CSS.read ] },
+    ])).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [] }]);
+  });
+
+  it('uses the anonymous subject when there is no WebID claim.', async(): Promise<void> => {
+    addPermission({
+      policy: 'urn:policy',
+      permission: 'urn:permission',
+      actions: [ ODRL.read ],
+      targets: [ 'rid' ],
+      assignees: [ 'urn:solidlab:uma:id:anonymous' ],
+    });
+
+    await expect(authorizer.permissions({}, [
+      { resource_id: 'rid', resource_scopes: [ CSS.read ] },
+    ])).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [ CSS.read ] }]);
+  });
+
+  it('treats a Set policy without assignee as public.', async(): Promise<void> => {
+    addPermission({
+      policy: 'urn:policy',
+      permission: 'urn:permission',
+      policyType: ODRL.Set,
+      actions: [ ODRL.read ],
+      targets: [ 'rid' ],
+      assignees: [],
+    });
+
+    await expect(authorizer.permissions({}, [
+      { resource_id: 'rid', resource_scopes: [ CSS.read ] },
+    ])).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [ CSS.read ] }]);
+  });
+
+  it('treats odrl:modify as a CSS write grant for compatibility with existing policies.', async(): Promise<void> => {
+    addPermission({
+      policy: 'urn:policy',
+      permission: 'urn:permission',
+      actions: [ `${ODRL.namespace}modify` ],
+      targets: [ 'rid' ],
+      assignees: [ webId ],
+    });
+
+    await expect(authorizer.permissions({ [WEBID]: webId }, [
+      { resource_id: 'rid', resource_scopes: [ CSS.write, CSS.read ] },
+    ])).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [ CSS.write ] }]);
+  });
+
+  it('grants all CSS scopes for odrl:use.', async(): Promise<void> => {
+    addPermission({
+      policy: 'urn:policy',
+      permission: 'urn:permission',
+      actions: [ `${ODRL.namespace}use` ],
+      targets: [ 'rid' ],
+      assignees: [ webId ],
+    });
+
+    await expect(authorizer.permissions({ [WEBID]: webId }, [
+      { resource_id: 'rid', resource_scopes: [ CSS.read, CSS.append, CSS.create, CSS.delete, CSS.write ] },
+    ])).resolves.toEqual([{
+      resource_id: 'rid',
+      resource_scopes: [ CSS.read, CSS.append, CSS.create, CSS.delete, CSS.write ],
+    }]);
+  });
+
+  it('matches AssetCollection targets through odrl:partOf membership.', async(): Promise<void> => {
+    addPermission({
+      policy: 'urn:policy',
+      permission: 'urn:permission',
+      actions: [ ODRL.read ],
+      targets: [ 'urn:collection' ],
+      assignees: [ webId ],
+    });
+    policyStore.addQuads([
+      DF.quad(DF.namedNode('urn:collection'), RDF.terms.type, ODRL.terms.AssetCollection),
+      DF.quad(DF.namedNode('rid'), ODRL.terms.partOf, DF.namedNode('urn:collection')),
+    ]);
+
+    await expect(authorizer.permissions({ [WEBID]: webId }, [
+      { resource_id: 'rid', resource_scopes: [ CSS.read ] },
+    ])).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [ CSS.read ] }]);
+  });
+
+  it('requires matching client IDs for purpose constraints.', async(): Promise<void> => {
+    addPermission({
+      policy: 'urn:policy',
+      permission: 'urn:permission',
+      actions: [ ODRL.read ],
+      targets: [ 'rid' ],
+      assignees: [ webId ],
+      constraints: [{
+        id: 'urn:constraint',
+        leftOperand: ODRL.purpose,
+        operator: ODRL.eq,
+        rightOperand: DF.namedNode('http://example.com/client'),
       }],
     });
-    expect(evaluate).toHaveBeenCalledTimes(1);
-    expect(evaluate).toHaveBeenLastCalledWith(
-      policyStore.getQuads(null, null, null, null),
-      [ ...new Store(requestQuads) ],
-      sotw,
-    );
+
+    const query = [{ resource_id: 'rid', resource_scopes: [ CSS.read ] }];
+    await expect(authorizer.permissions({ [WEBID]: webId }, query))
+      .resolves.toEqual([{ resource_id: 'rid', resource_scopes: [] }]);
+    await expect(authorizer.permissions({ [WEBID]: webId, [CLIENTID]: 'http://example.com/client' }, query))
+      .resolves.toEqual([{ resource_id: 'rid', resource_scopes: [ CSS.read ] }]);
   });
 
-  it('calls the evaluator with the WebID claim if there is one.', async(): Promise<void> => {
-    const claims = { 'urn:solidlab:uma:claims:types:webid': 'http://example.com/#me' };
-    const query: Permission[] = [{ resource_id: 'rid', resource_scopes: [ 'urn:example:css:modes:read' ] }];
-
-    // No result as the current evaluate mock returns an empty list
-    await expect(authorizer.permissions(claims, query)).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [] }]);
-    expect(basicPolicy).toHaveBeenCalledTimes(1);
-    expect(basicPolicy).toHaveBeenLastCalledWith({
-      type: 'http://www.w3.org/ns/odrl/2/Request',
-      rules: [{
-        action: 'http://www.w3.org/ns/odrl/2/read',
-        resource: 'rid',
-        requestingParty: 'http://example.com/#me'
+  it('evaluates dateTime constraints against the current time.', async(): Promise<void> => {
+    addPermission({
+      policy: 'urn:policy',
+      permission: 'urn:permission',
+      actions: [ ODRL.read ],
+      targets: [ 'rid' ],
+      assignees: [ webId ],
+      constraints: [{
+        id: 'urn:constraint',
+        leftOperand: ODRL.dateTime,
+        operator: ODRL.gt,
+        rightOperand: DF.literal('2026-05-14T12:00:00.000Z', XSD.terms.dateTime),
       }],
     });
-    expect(evaluate).toHaveBeenCalledTimes(1);
-    expect(evaluate).toHaveBeenLastCalledWith(
-      policyStore.getQuads(null, null, null, null),
-      [ ...new Store(requestQuads) ],
-      sotw,
-    );
+
+    await expect(authorizer.permissions({ [WEBID]: webId }, [
+      { resource_id: 'rid', resource_scopes: [ CSS.read ] },
+    ])).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [ CSS.read ] }]);
   });
 
-  it('extracts the allowed scopes from the resulting report.', async(): Promise<void> => {
-    const query: Permission[] = [{ resource_id: 'rid', resource_scopes: [ 'urn:example:css:modes:read' ] }];
+  it('handles many policies without per-scope external evaluator work.', async(): Promise<void> => {
+    for (let i = 0; i < 1_000; i++) {
+      addPermission({
+        policy: `urn:policy:${i}`,
+        permission: `urn:permission:${i}`,
+        actions: [ i % 2 === 0 ? ODRL.read : ODRL.write ],
+        targets: [ `urn:resource:${i}` ],
+        assignees: [ webId ],
+      });
+    }
+    const query: Permission[] = Array.from({ length: 100 }, (_, i) => ({
+      resource_id: `urn:resource:${i}`,
+      resource_scopes: [ CSS.read, CSS.write ],
+    }));
 
-    const report = `
-      @prefix cr: <https://w3id.org/force/compliance-report#> .
-      @prefix dc: <http://purl.org/dc/terms/> .
-      @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-      <urn:policyReport> a cr:PolicyReport ;
-        cr:ruleReport <urn:ruleReport> .
-      <urn:ruleReport> a cr:PermissionReport ;
-        cr:activationState cr:Active ;
-        cr:premiseReport <urn:premiseReport> .
-      <urn:premiseReport> a cr:Target-Report ;
-        cr:satisfactionState cr:Satisfied .
-    `;
-    evaluate.mockResolvedValueOnce(new Parser().parse(report));
+    const started = performance.now();
+    const result = await authorizer.permissions({ [WEBID]: webId }, query);
+    const elapsed = performance.now() - started;
 
-    await expect(authorizer.permissions({}, query)).resolves
-      .toEqual([{ resource_id: 'rid', resource_scopes: [ 'urn:example:css:modes:read' ] }]);
-    expect(basicPolicy).toHaveBeenCalledTimes(1);
-    expect(evaluate).toHaveBeenCalledTimes(1);
+    expect(result).toHaveLength(100);
+    expect(result[0]).toEqual({ resource_id: 'urn:resource:0', resource_scopes: [ CSS.read ] });
+    expect(result[1]).toEqual({ resource_id: 'urn:resource:1', resource_scopes: [ CSS.write ] });
+    expect(policies.getStore).toHaveBeenCalledTimes(1);
+    expect(elapsed).toBeLessThan(1_000);
   });
 
-  it('does not grant scopes if the report is inactive.', async(): Promise<void> => {
-    const query: Permission[] = [{ resource_id: 'rid', resource_scopes: [ 'urn:example:css:modes:read' ] }];
+  function addPermission(input: {
+    policy: string;
+    permission: string;
+    policyType?: string;
+    actions: string[];
+    targets: string[];
+    assignees: string[];
+    constraints?: {
+      id: string;
+      leftOperand: string;
+      operator: string;
+      rightOperand: ReturnType<typeof DF.namedNode> | ReturnType<typeof DF.literal>;
+    }[];
+  }): void {
+    const policy = DF.namedNode(input.policy);
+    const permission = DF.namedNode(input.permission);
 
-    const report = `
-      @prefix cr: <https://w3id.org/force/compliance-report#> .
-      @prefix dc: <http://purl.org/dc/terms/> .
-      @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-      <urn:policyReport> a cr:PolicyReport ;
-        cr:ruleReport <urn:ruleReport> .
-      <urn:ruleReport> a cr:PermissionReport ;
-        cr:activationState cr:Inactive ;
-        cr:premiseReport <urn:premiseReport> .
-      <urn:premiseReport> a cr:Target-Report ;
-        cr:satisfactionState cr:Satisfied .
-    `;
-    evaluate.mockResolvedValueOnce(new Parser().parse(report));
+    policyStore.addQuads([
+      DF.quad(policy, RDF.terms.type, DF.namedNode(input.policyType ?? ODRL.Agreement)),
+      DF.quad(policy, ODRL.terms.permission, permission),
+      DF.quad(permission, RDF.terms.type, ODRL.terms.Permission),
+      ...input.actions.map((action) => DF.quad(permission, ODRL.terms.action, DF.namedNode(action))),
+      ...input.targets.map((target) => DF.quad(permission, ODRL.terms.target, DF.namedNode(target))),
+      ...input.assignees.map((assignee) => DF.quad(permission, ODRL.terms.assignee, DF.namedNode(assignee))),
+    ]);
 
-    await expect(authorizer.permissions({}, query)).resolves
-      .toEqual([{ resource_id: 'rid', resource_scopes: [] }]);
-    expect(basicPolicy).toHaveBeenCalledTimes(1);
-    expect(evaluate).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not grant scopes if the report is a prohibition.', async(): Promise<void> => {
-    const query: Permission[] = [{ resource_id: 'rid', resource_scopes: [ 'urn:example:css:modes:read' ] }];
-
-    const report = `
-      @prefix cr: <https://w3id.org/force/compliance-report#> .
-      @prefix dc: <http://purl.org/dc/terms/> .
-      @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-      <urn:policyReport> a cr:PolicyReport ;
-        cr:ruleReport <urn:ruleReport> .
-      <urn:ruleReport> a cr:ProhibitionReport ;
-        cr:activationState cr:Active ;
-        cr:premiseReport <urn:premiseReport> .
-      <urn:premiseReport> a cr:Target-Report ;
-        cr:satisfactionState cr:Satisfied .
-    `;
-    evaluate.mockResolvedValueOnce(new Parser().parse(report));
-
-    await expect(authorizer.permissions({}, query)).resolves
-      .toEqual([{ resource_id: 'rid', resource_scopes: [] }]);
-    expect(basicPolicy).toHaveBeenCalledTimes(1);
-    expect(evaluate).toHaveBeenCalledTimes(1);
-  });
-
-  it('performs a query for every resource and scope.', async(): Promise<void> => {
-    const query: Permission[] = [
-      { resource_id: 'rid1', resource_scopes: [ 'urn:example:css:modes:read' ] },
-      { resource_id: 'rid2', resource_scopes: [ 'urn:example:css:modes:write', 'urn:example:css:modes:create' ] },
-    ];
-
-    const permissionReport = `
-      @prefix cr: <https://w3id.org/force/compliance-report#> .
-      @prefix dc: <http://purl.org/dc/terms/> .
-      @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-      <urn:policyReport> a cr:PolicyReport ;
-        cr:ruleReport <urn:ruleReport> .
-      <urn:ruleReport> a cr:PermissionReport ;
-        cr:activationState cr:Active ;
-        cr:premiseReport <urn:premiseReport> .
-      <urn:premiseReport> a cr:Target-Report ;
-        cr:satisfactionState cr:Satisfied .
-    `;
-    const prohibitionReport = `
-      @prefix cr: <https://w3id.org/force/compliance-report#> .
-      @prefix dc: <http://purl.org/dc/terms/> .
-      @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-      <urn:policyReport> a cr:PolicyReport ;
-        cr:ruleReport <urn:ruleReport> .
-      <urn:ruleReport> a cr:ProhibitionReport ;
-        cr:activationState cr:Active ;
-        cr:premiseReport <urn:premiseReport> .
-      <urn:premiseReport> a cr:Target-Report ;
-        cr:satisfactionState cr:Satisfied .
-    `;
-    evaluate.mockResolvedValueOnce(new Parser().parse(permissionReport));
-    evaluate.mockResolvedValueOnce(new Parser().parse(prohibitionReport));
-    evaluate.mockResolvedValueOnce(new Parser().parse(permissionReport));
-
-    await expect(authorizer.permissions({}, query)).resolves
-      .toEqual([
-        { resource_id: 'rid1', resource_scopes: [ 'urn:example:css:modes:read' ] },
-        { resource_id: 'rid2', resource_scopes: [ 'urn:example:css:modes:create' ]
-      }]);
-    expect(basicPolicy).toHaveBeenCalledTimes(3);
-    expect(evaluate).toHaveBeenCalledTimes(3);
-  });
+    for (const constraintInput of input.constraints ?? []) {
+      const constraint = DF.namedNode(constraintInput.id);
+      policyStore.addQuads([
+        DF.quad(permission, ODRL.terms.constraint, constraint),
+        DF.quad(constraint, ODRL.terms.leftOperand, DF.namedNode(constraintInput.leftOperand)),
+        DF.quad(constraint, ODRL.terms.operator, DF.namedNode(constraintInput.operator)),
+        DF.quad(constraint, ODRL.terms.rightOperand, constraintInput.rightOperand),
+      ]);
+    }
+  }
 });
