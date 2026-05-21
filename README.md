@@ -44,6 +44,8 @@ in [documentation/getting-started.md](documentation/getting-started.md).
 
 More information on policy management can be found in
 [documentation/policy-management](documentation/policy-management.md).
+Policy management clients can discover manageable registered resources through
+[documentation/resource-owner-assets.md](documentation/resource-owner-assets.md).
 
 ## Demonstration
 

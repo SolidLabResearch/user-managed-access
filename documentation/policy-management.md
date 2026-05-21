@@ -3,6 +3,11 @@
 The *policy management API* allows users to configure the policies that govern access to their data.
 First we cover the available operations, after which we cover the known issues and limitations of the API.
 
+Policy management clients can discover which registered resources are available for a resource owner through
+the [resource-owner assets endpoint](resource-owner-assets.md).
+That endpoint also supports Server-Sent Events for clients that need to keep their policy UI synchronized with
+resource registration changes.
+
 ## API
 
 The current implementation supports the following requests on the UMA server:
