@@ -67,11 +67,9 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
     }
 
     if (unmatchedPermissions.length > 0) {
-      // TODO: due to the current format, scopes are not linked to resources,
-      //       so this will be weird for requests with multiple target resources.
-      return Failure([{
-        resource_scopes: unmatchedPermissions.flatMap((perm) => perm.resource_scopes),
-      }]);
+      // TODO: RequiredClaim has no field indicating for which the scopes are missing, could add one.
+      //       The resource_scopes field itself is already custom (added because of aggregation spec)
+      return Failure(unmatchedPermissions.map((perm) => ({ resource_scopes: perm.resource_scopes })));
     }
 
     return Success(permissions);
