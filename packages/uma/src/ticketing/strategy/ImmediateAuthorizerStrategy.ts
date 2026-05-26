@@ -10,12 +10,17 @@ import { Authorizer } from "../../policies/authorizers/Authorizer";
 /**
  * A TicketingStrategy that simply stores provided Claims, and calculates all
  * available Permissions from them upon resolution.
+ *
+ * If `allowPartialSuccess` is set to true,
+ * the strategy will return all available permissions,
+ * even if not all required permissions are granted.
  */
 export class ImmediateAuthorizerStrategy implements TicketingStrategy {
   protected readonly logger = getLoggerFor(this);
 
   constructor(
     protected authorizer: Authorizer,
+    protected readonly allowPartialSuccess = false,
   ) {}
 
   /** @inheritdoc */
@@ -45,9 +50,12 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
 
     const permissions = await this.calculatePermissions(ticket);
 
+    // Always fail if no results at all, even with allowPartialSuccess
     if (permissions.length === 0) return Failure([]);
 
-    // TODO: if, in the future, we want to allow partial results, this will need to change
+    // With partial success enabled, any non-empty authorization result is accepted
+    if (this.allowPartialSuccess) return Success(permissions);
+
     // Verify all required scopes have been granted
     const unmatchedPermissions: Permission[] = [];
     for (const required of ticket.permissions) {
