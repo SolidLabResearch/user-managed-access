@@ -64,4 +64,29 @@ describe('ImmediateAuthorizerStrategy', (): void => {
     await expect(strategy.resolveTicket(ticket)).resolves
       .toEqual({ success: false, value: [{ resource_scopes: ['scopes'] }] });
   });
+
+  it('resolves with partial permissions when allowPartialSuccess is enabled.', async(): Promise<void> => {
+    const partialStrategy = new ImmediateAuthorizerStrategy(authorizer, true);
+    const ticket: Ticket = {
+      permissions: [{ resource_id: 'id', resource_scopes: [ 'read', 'write' ] }],
+      provided: {},
+    };
+    const authResponse: Permission[] = [
+      { resource_id: 'id', resource_scopes: [ 'read' ] },
+    ];
+    authorizer.permissions.mockResolvedValueOnce(authResponse);
+    await expect(partialStrategy.resolveTicket(ticket)).resolves
+      .toEqual({ success: true, value: authResponse });
+  });
+
+  it('rejects when no permissions are resolved, even with allowPartialSuccess enabled.', async(): Promise<void> => {
+    const partialStrategy = new ImmediateAuthorizerStrategy(authorizer, true);
+    const ticket: Ticket = {
+      permissions,
+      provided: {},
+    };
+    authorizer.permissions.mockResolvedValueOnce([]);
+    await expect(partialStrategy.resolveTicket(ticket)).resolves
+      .toEqual({ success: false, value: [] });
+  });
 });
