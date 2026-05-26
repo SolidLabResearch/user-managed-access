@@ -22,7 +22,7 @@ describe('A server supporting OIDC tokens', (): void => {
   const oidcFormat = 'http://openid.net/specs/openid-connect-core-1_0.html#IDToken';
 
   beforeAll(async(): Promise<void> => {
-    setGlobalLoggerFactory(new WinstonLoggerFactory('info'));
+    setGlobalLoggerFactory(new WinstonLoggerFactory('off'));
 
     umaApp = await instantiateFromConfig(
       'urn:uma:default:App',
