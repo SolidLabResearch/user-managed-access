@@ -54,8 +54,8 @@
     "build:ts": "yarn run -T tsc",
     "build:components": "yarn run -T componentsjs-generator -r sai-uma -s src -c dist/components -i .componentsignore --lenient",
     "start": "node bin/main.js",
-    "start:odrl": "node bin/odrl.js",
-    "demo": "node bin/demo.js"
+    "start:odrl": "node bin/main.js -c ./config/odrl.json -l silly",
+    "demo": "node bin/main.js -c ./config/demo.json -l silly"
   },
   "dependencies": {
     "@comunica/query-sparql": "^4.4.1",

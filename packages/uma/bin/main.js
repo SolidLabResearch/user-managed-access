@@ -4,7 +4,16 @@ const { hideBin } = require('yargs/helpers');
 const { ComponentsManager } = require('componentsjs');
 const { setGlobalLoggerFactory, WinstonLoggerFactory } = require('global-logger-factory');
 
+const rootDir = path.join(__dirname, '../');
+
 const argv = yargs(hideBin(process.argv))
+  .option('config', {
+    alias: 'c',
+    type: 'string',
+    array: true,
+    description: 'Components.js configuration file path(s)',
+    default: [path.join(rootDir, './config/default.json')]
+  })
   .option('port', {
     alias: 'p',
     type: 'number',
@@ -32,16 +41,14 @@ const argv = yargs(hideBin(process.argv))
   .alias('help', 'h')
   .argv;
 
-const rootDir = path.join(__dirname, '../');
-
 const launch = async () => {
   const variables = {};
 
   variables['urn:uma:variables:port'] = argv.port;
   variables['urn:uma:variables:baseUrl'] = argv.baseUrl ?? `http://localhost:${argv.port}/uma`;
   variables['urn:uma:variables:backupFilePath'] = argv.backupFilePath;
-
-  const configPath = path.join(rootDir, './config/default.json');
+  // Debug edge case for demo config
+  variables['urn:uma:variables:policyContainer'] = 'http://localhost:3000/settings/policies/';
 
   setGlobalLoggerFactory(new WinstonLoggerFactory(argv.loggingLevel));
 
@@ -51,7 +58,9 @@ const launch = async () => {
     typeChecking: false,
   });
 
-  await manager.configRegistry.register(configPath);
+  for (const configPath of argv.config) {
+    await manager.configRegistry.register(configPath);
+  }
 
   const umaServer = await manager.instantiate('urn:uma:default:App',{variables});
   await umaServer.start();
