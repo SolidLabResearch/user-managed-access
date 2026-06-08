@@ -56,6 +56,8 @@
     "build": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited -t run build",
     "test": "vitest run",
     "start": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run start",
+    "start:uma": "yarn workspace @solidlab/uma run start",
+    "start:css": "yarn workspace @solidlab/uma-css run start",
     "start:odrl": "yarn workspace @solidlab/uma run start:odrl & yarn workspace @solidlab/uma-css run start",
     "start:demo": "yarn workspaces foreach --include 'packages/*' -A -pi -j unlimited run demo",
     "script:demo": "yarn exec tsx ./demo/flow.ts",
