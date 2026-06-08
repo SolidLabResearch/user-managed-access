@@ -43,6 +43,7 @@ so some information might change depending on which version and branch you're us
       - [Authentication methods](#authentication-methods)
       - [Customizing OIDC verification](#customizing-oidc-verification)
     + [Generate token](#generate-token)
+      - [Partial permission tokens](#partial-permission-tokens)
     + [Use token](#use-token)
   * [Policies](#policies)
     + [Client application identification](#client-application-identification)
@@ -380,6 +381,32 @@ How these policies work will be covered later on.
 If successful, the server will return a 200 response with a JSON body containing, among others,
 an `access_token` field containing the access token, and a `token_type` field describing the token type.
 If the claims are insufficient, a 403 response will be given instead.
+
+#### Partial permission tokens
+
+It is possible to set up the server so it also returns tokens
+if only some of the requested permissions are granted,
+instead of returning a 403 response.
+This can be useful for setups where the RS requires only one of the requested permissions to perform a request.
+The disadvantage is that the client might receive a token
+that does not have all permissions to perform the intended action.
+
+To enable this, start the UMA server with both `default.json` and `enable-partial.json`.
+
+From the repository root:
+```bash
+yarn start:uma -- -c ./config/default.json -c ./config/enable-partial.json
+```
+
+From `packages/uma`:
+```bash
+yarn start -c ./config/default.json -c ./config/enable-partial.json
+```
+
+With this enabled:
+- If at least one requested permission can be authorized, the AS returns `200` with an access token.
+- If not all requested permissions are granted, that response body includes `partial: true`.
+- If no requested permission can be authorized, the AS returns `403`.
 
 ### Use token
 
