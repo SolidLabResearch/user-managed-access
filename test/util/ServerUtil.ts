@@ -12,6 +12,7 @@ const portNames = [
   'Demo',
   'ODRL',
   'OIDC',
+  'Partial',
   'Policies',
 ] as const;
 
