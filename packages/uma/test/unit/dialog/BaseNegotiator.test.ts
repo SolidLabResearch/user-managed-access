@@ -49,7 +49,7 @@ describe('BaseNegotiator', (): void => {
       validateClaims: vi.fn().mockResolvedValue(ticket),
       resolveTicket: vi.fn().mockResolvedValue({
         success: true,
-        value: { resource_id: 'id1', resource_scopes: [ 'scope1' ] },
+        value: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ],
       }),
     };
 
@@ -76,7 +76,7 @@ describe('BaseNegotiator', (): void => {
     expect(ticketingStrategy.validateClaims).toHaveBeenCalledTimes(0);
     expect(tokenFactory.serialize).toHaveBeenCalledTimes(1);
     expect(tokenFactory.serialize).toHaveBeenLastCalledWith(
-      { permissions: { resource_id: 'id1', resource_scopes: [ 'scope1' ] } });
+      { permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ] });
   });
 
   it('errors if there is no existing ticket and no permission request.', async(): Promise<void> => {
@@ -128,7 +128,7 @@ describe('BaseNegotiator', (): void => {
     expect(ticketingStrategy.validateClaims).toHaveBeenCalledTimes(0);
     expect(tokenFactory.serialize).toHaveBeenCalledTimes(1);
     expect(tokenFactory.serialize).toHaveBeenLastCalledWith(
-      { permissions: { resource_id: 'id1', resource_scopes: [ 'scope1' ] } });
+      { permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ] });
   });
 
   it('errors if invalid credentials are provided.', async(): Promise<void> => {
@@ -152,7 +152,7 @@ describe('BaseNegotiator', (): void => {
     expect(ticketingStrategy.validateClaims).toHaveBeenLastCalledWith(ticket, claims);
     expect(tokenFactory.serialize).toHaveBeenCalledTimes(1);
     expect(tokenFactory.serialize).toHaveBeenLastCalledWith(
-      { permissions: { resource_id: 'id1', resource_scopes: [ 'scope1' ] } });
+      { permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ] });
   });
 
   it('supports multiple claim tokens.', async(): Promise<void> => {
@@ -170,5 +170,21 @@ describe('BaseNegotiator', (): void => {
     expect(verifier.verify).toHaveBeenCalledWith({ token: 'token2', format: 'format2' });
     expect(ticketingStrategy.validateClaims).toHaveBeenCalledTimes(2);
     expect(ticketingStrategy.validateClaims).toHaveBeenCalledWith(ticket, claims);
+  });
+
+  it('includes partial=true when resolved permissions do not cover all requested scopes.', async(): Promise<void> => {
+    ticketingStrategy.initializeTicket.mockResolvedValueOnce({
+      permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1', 'scope2' ] } ],
+      provided: {},
+    });
+    ticketingStrategy.resolveTicket.mockResolvedValueOnce({
+      success: true,
+      value: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ],
+    });
+
+    await expect(negotiator.negotiate({
+      permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1', 'scope2' ] } ]
+    }))
+      .resolves.toEqual({ access_token: 'token', token_type: 'type', partial: true });
   });
 });

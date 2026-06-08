@@ -9,6 +9,7 @@ import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../ticketing/Ticket';
 import { TokenFactory } from '../tokens/TokenFactory';
 import { reType } from '../util/ReType';
+import { Permission } from '../views/Permission';
 import { DialogInput } from './Input';
 import { Negotiator } from './Negotiator';
 import { DialogOutput } from './Output';
@@ -55,6 +56,7 @@ export class BaseNegotiator implements Negotiator {
 
     // ... on success, create Access Token
     if (resolved.success) {
+      const partial = this.isPartialResult(updatedTicket.permissions, resolved.value);
 
       // Retrieve / create instantiated policy
       const { token, tokenType } = await this.tokenFactory.serialize({ permissions: resolved.value });
@@ -68,6 +70,7 @@ export class BaseNegotiator implements Negotiator {
       return ({
         access_token: token,
         token_type: tokenType,
+        ...(partial ? { partial: true } : {}),
       });
     }
 
@@ -85,6 +88,31 @@ export class BaseNegotiator implements Negotiator {
     throw new NeedInfoError('Need more info to authorize request ...', id, {
       required_claims: requirements,
     });
+  }
+
+  /**
+   * Checks if the granted permissions are a partial result of the requested permissions.
+   *
+   * Currently, the responsibility to verify that a result is partial lies here and not with the strategy.
+   * An alternative would be to let the strategy include an additional parameter indicating the result is partial.
+   */
+  protected isPartialResult(requested: Permission[], granted: Permission[]): boolean {
+    if (requested.length !== granted.length) {
+      return true;
+    }
+
+    for (const request of requested) {
+      const match = granted.find((grant): boolean =>
+        grant.resource_id === request.resource_id &&
+        grant.resource_scopes.length === request.resource_scopes.length &&
+        request.resource_scopes.every((scope): boolean => grant.resource_scopes.includes(scope))
+      );
+      if (!match) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**

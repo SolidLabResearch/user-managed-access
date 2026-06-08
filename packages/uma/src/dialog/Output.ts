@@ -7,6 +7,7 @@ export const DialogOutput = ({
   access_token: string,
   refresh_token: $(string),
   token_type: string,
+  partial: $(boolean),
   expires_in: $(number),
   upgraded: $(boolean),
   derivation_resource_id: $(string),
