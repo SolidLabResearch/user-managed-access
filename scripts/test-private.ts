@@ -16,6 +16,25 @@ async function main() {
 
   console.log('\n\n');
 
+  console.log(`=== Setting up the policy to allow access with correct credentials.\n`);
+  const policy = `
+    @prefix ex: <http://example.org/1707120963224#> .
+    @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+    ex:usagePolicy2 a odrl:Agreement .
+    ex:usagePolicy2 odrl:uid ex:usagePolicy2 .
+    ex:usagePolicy2 odrl:permission ex:permission2 .
+    ex:permission2 a odrl:Permission .
+    ex:permission2 odrl:action odrl:create .
+    ex:permission2 odrl:target <http://localhost:3000/alice/> .
+    ex:permission2 odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> .
+    ex:permission2 odrl:assigner <https://localhost:3000/alice/profile/card#me> .`;
+  const response = await fetch(`http://localhost:4000/uma/policies`, {
+    method: 'POST',
+    headers: { authorization: `WebID ${encodeURIComponent('https://localhost:3000/alice/profile/card#me')}`, 'content-type': 'text/turtle' },
+    body: policy,
+  });
+  console.log(`= Status: ${response.status}\n`);
+
   console.log(`=== Trying to create private resource <${privateResource}> without access token.\n`);
 
   const noTokenResponse = await fetch(privateResource, request);
