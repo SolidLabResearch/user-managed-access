@@ -1,5 +1,6 @@
 import { ForbiddenHttpError, KeyValueStorage } from '@solid/community-server';
 import { Mocked, MockInstance } from 'vitest';
+import { WEBID } from '../../../src/credentials/Claims';
 import { ClaimSet } from '../../../src/credentials/ClaimSet';
 import { Verifier } from '../../../src/credentials/verify/Verifier';
 import { ContractNegotiator } from '../../../src/dialog/ContractNegotiator';
@@ -9,13 +10,6 @@ import { TicketingStrategy } from '../../../src/ticketing/strategy/TicketingStra
 import { Ticket } from '../../../src/ticketing/Ticket';
 import { SerializedToken, TokenFactory } from '../../../src/tokens/TokenFactory';
 import { ODRLContract } from '../../../src/views/Contract';
-
-// vi.mock('../../../src/policies/contracts/ContractManager', () => ({
-//   ContractManager: vi.fn().mockReturnValue({
-//     createContract: vi.fn(),
-//     findContract: vi.fn(),
-//   }),
-// }))
 
 describe('ContractNegotiator', (): void => {
   const input: DialogInput = {
@@ -27,7 +21,6 @@ describe('ContractNegotiator', (): void => {
   const claims: ClaimSet = { claim1: 'value1', claim2: 'value2' };
   const ticket: Ticket = {
     permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ],
-    required: [],
     provided: { claim: 'value' },
   };
   const token: SerializedToken = { token: 'token', tokenType: 'type' };
@@ -141,5 +134,22 @@ describe('ContractNegotiator', (): void => {
     ticketingStrategy.resolveTicket.mockResolvedValueOnce({ success: false, value: [] });
     await expect(negotiator.negotiate(input)).rejects.toThrow(ForbiddenHttpError);
     expect(ticketStore.set).toHaveBeenCalledTimes(0);
+  });
+
+  it('includes the WEBID claim in generated tokens as sub value.', async(): Promise<void> => {
+    const webId = 'https://example.com/profile/card#me';
+    ticketingStrategy.validateClaims.mockResolvedValueOnce({
+      ...ticket,
+      provided: { [WEBID]: webId },
+    });
+
+    await expect(negotiator.negotiate({ ...input, claim_token: 'token', claim_token_format: 'format' })).resolves
+      .toEqual({ access_token: 'token', token_type: 'type' });
+
+    expect(tokenFactory.serialize).toHaveBeenLastCalledWith({
+      contract,
+      permissions: [{ resource_id: 'target', resource_scopes: [ 'https://w3id.org/oac#action' ] }],
+      sub: webId,
+    });
   });
 });

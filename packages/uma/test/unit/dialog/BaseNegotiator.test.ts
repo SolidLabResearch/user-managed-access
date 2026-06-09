@@ -1,5 +1,6 @@
 import { ForbiddenHttpError, KeyValueStorage } from '@solid/community-server';
 import { Mocked } from 'vitest';
+import { WEBID } from '../../../src/credentials/Claims';
 import { ClaimSet } from '../../../src/credentials/ClaimSet';
 import { Verifier } from '../../../src/credentials/verify/Verifier';
 import { BaseNegotiator } from '../../../src/dialog/BaseNegotiator';
@@ -170,6 +171,22 @@ describe('BaseNegotiator', (): void => {
     expect(verifier.verify).toHaveBeenCalledWith({ token: 'token2', format: 'format2' });
     expect(ticketingStrategy.validateClaims).toHaveBeenCalledTimes(2);
     expect(ticketingStrategy.validateClaims).toHaveBeenCalledWith(ticket, claims);
+  });
+
+  it('includes the WEBID claim in generated tokens as sub value.', async(): Promise<void> => {
+    const webId = 'https://example.com/profile/card#me';
+    ticketingStrategy.validateClaims.mockResolvedValueOnce({
+      ...ticket,
+      provided: { [WEBID]: webId },
+    });
+
+    await expect(negotiator.negotiate({ ...input, claim_token: 'token', claim_token_format: 'format' })).resolves
+      .toEqual({ access_token: 'token', token_type: 'type' });
+
+    expect(tokenFactory.serialize).toHaveBeenLastCalledWith({
+      permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ],
+      sub: webId,
+    });
   });
 
   it('includes partial=true when resolved permissions do not cover all requested scopes.', async(): Promise<void> => {

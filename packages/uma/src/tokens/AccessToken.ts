@@ -4,8 +4,8 @@ import { Type, array, optional as $, string, intersection, optional } from "../u
 
 export const AccessToken = {
   permissions: array(Permission),
+  sub: optional(string),
   contract: optional(ODRLContract)
 }
 
 export type AccessToken = Type<typeof AccessToken>;
-
