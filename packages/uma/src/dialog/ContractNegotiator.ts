@@ -1,5 +1,6 @@
 import { createErrorMessage, KeyValueStorage } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
+import { WEBID } from '../credentials/Claims';
 import { Verifier } from '../credentials/verify/Verifier';
 import { RequiredClaim } from '../errors/NeedInfoError';
 import { ContractManager } from '../policies/contracts/ContractManager';
@@ -66,7 +67,7 @@ export class ContractNegotiator extends BaseNegotiator {
 
     if (result.success) {
       // TODO:
-      return this.toResponse(result.value);
+      return this.toResponse(result.value, updatedTicket);
     }
 
     // ... on failure, deny if no solvable requirements
@@ -121,7 +122,7 @@ export class ContractNegotiator extends BaseNegotiator {
   }
 
   // TODO: name
-  protected async toResponse(contract: ODRLContract): Promise<DialogOutput> {
+  protected async toResponse(contract: ODRLContract, ticket: Ticket): Promise<DialogOutput> {
 
     this.logger.debug(JSON.stringify(contract, null, 2))
 
@@ -149,7 +150,11 @@ export class ContractNegotiator extends BaseNegotiator {
     this.logger.debug(`granting permissions: ${JSON.stringify(permissions)}`);
 
     // Create response
-    const tokenContents: AccessToken = { permissions, contract }
+    const tokenContents: AccessToken = {
+      permissions,
+      contract,
+      ...(typeof ticket.provided[WEBID] === 'string' ? { sub: ticket.provided[WEBID] } : {}),
+    };
 
     this.logger.debug(`resolved result ${JSON.stringify(contract)}`);
 

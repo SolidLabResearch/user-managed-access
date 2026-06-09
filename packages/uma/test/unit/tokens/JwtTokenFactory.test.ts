@@ -20,6 +20,7 @@ describe('JwtTokenFactory', (): void => {
 
   const token: AccessToken = {
     permissions: [ { resource_id: 'id', resource_scopes: [ 'scopes' ]} ],
+    sub: 'https://example.com/profile/card#me',
     contract: {
       uid: 'uid',
       permission: [{
@@ -60,7 +61,9 @@ describe('JwtTokenFactory', (): void => {
     expect(result.tokenType).toBe('Bearer');
     const parsed = await jwtVerify(result.token, keys.publicKey);
     expect(parsed.payload).toEqual({
-      ...token,
+      permissions: token.permissions,
+      contract: token.contract,
+      sub: token.sub,
       iat: Math.floor(now.getTime()/1000),
       iss: issuer,
       aud: 'solid',
@@ -79,7 +82,10 @@ describe('JwtTokenFactory', (): void => {
       .setIssuer(issuer)
       .setAudience('solid')
       .sign(keys.privateKey);
-    await expect(factory.deserialize(jwt)).resolves.toEqual({ permissions: token.permissions });
+    await expect(factory.deserialize(jwt)).resolves.toEqual({
+      permissions: token.permissions,
+      sub: token.sub,
+    });
   });
 
   it('errors deserializing tokens with no aud field.', async(): Promise<void> => {
