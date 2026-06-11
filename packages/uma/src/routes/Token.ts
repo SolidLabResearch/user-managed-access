@@ -11,9 +11,15 @@ import { getLoggerFor } from 'global-logger-factory';
 import { importJWK, SignJWT } from 'jose';
 import ms, { StringValue } from 'ms';
 import { randomUUID } from 'node:crypto';
+import {
+  DERIVATION_CREATION_SCOPE,
+  DERIVATION_MANAGEMENT_SCOPE,
+  hasScope
+} from '../derivation/Derivation';
 import { DialogInput } from '../dialog/Input';
 import { Negotiator } from '../dialog/Negotiator';
 import { NeedInfoError } from '../errors/NeedInfoError';
+import { ensureJwkKid } from '../util/Jwk';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
 import { reType } from '../util/ReType';
 import { CLIENT_REGISTRATION_STORAGE_DESCRIPTION, CLIENT_REGISTRATION_STORAGE_TYPE } from './ClientRegistration';
@@ -29,6 +35,10 @@ export const PAT_STORAGE_DESCRIPTION = {
   refreshToken: 'string',
   registration: `id:${CLIENT_REGISTRATION_STORAGE_TYPE}`,
 } as const;
+
+export function generateDerivationResourceId(): string {
+  return `urn:uuid:${randomUUID()}`;
+}
 
 /**
  * The TokenRequestHandler implements the interface of the UMA Token Endpoint.
@@ -83,6 +93,29 @@ export class TokenRequestHandler extends HttpHandler {
     try {
       const tokenResponse = await this.negotiator.negotiate(params);
 
+      if (hasScope(params.scope, DERIVATION_CREATION_SCOPE)) {
+        const derivationResourceId = params.derivation_resource_id ?? generateDerivationResourceId();
+        const { derivation_resource_owner: derivationResourceOwner, ...publicTokenResponse } = tokenResponse;
+        if (!derivationResourceOwner) {
+          throw new BadRequestHttpError('Derivation creation response did not identify the resource owner.');
+        }
+        return {
+          status: 200,
+          body: {
+            ...publicTokenResponse,
+            derivation_resource_id: derivationResourceId,
+            management_access_token: {
+              access_token: await this.generateManagementToken(
+                derivationResourceId,
+                derivationResourceOwner,
+                params.client_id,
+              ),
+              token_type: 'Bearer',
+            },
+          },
+        };
+      }
+
       return {
         status: 200,
         body: tokenResponse
@@ -91,6 +124,7 @@ export class TokenRequestHandler extends HttpHandler {
       if (NeedInfoError.isInstance(e)) return ({
         status: 403,
         body: {
+          error: 'need_info',
           ticket: e.ticket,
           ...e.additionalParams
         }
@@ -149,7 +183,7 @@ export class TokenRequestHandler extends HttpHandler {
     Promise<HttpHandlerResponse<any>> {
     const refresh_token = randomUUID();
     const expiration = Date.now() + this.tokenExpiration * 1000;
-    const key = await this.keyGen.getPrivateKey();
+    const key = await ensureJwkKid(await this.keyGen.getPrivateKey());
     const jwk = await importJWK(key, key.alg);
     const pat = await new SignJWT({
       scope: 'uma_protection',
@@ -181,5 +215,26 @@ export class TokenRequestHandler extends HttpHandler {
         scope: 'uma_protection',
       }
     }
+  }
+
+  protected async generateManagementToken(
+    derivationResourceId: string,
+    resourceOwner: string,
+    clientId?: string,
+  ): Promise<string> {
+    const key = await ensureJwkKid(await this.keyGen.getPrivateKey());
+    const jwk = await importJWK(key, key.alg);
+    return new SignJWT({
+      scope: DERIVATION_MANAGEMENT_SCOPE,
+      derivation_resource_id: derivationResourceId,
+      ...(clientId && { client_id: clientId, azp: clientId }),
+    }).setProtectedHeader({ alg: key.alg, kid: key.kid })
+      .setIssuedAt()
+      .setSubject(resourceOwner)
+      .setIssuer(this.baseUrl)
+      .setAudience(this.baseUrl)
+      .setExpirationTime(Math.floor(Date.now() / 1000) + this.tokenExpiration)
+      .setJti(randomUUID())
+      .sign(jwk);
   }
 }

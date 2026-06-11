@@ -88,7 +88,7 @@ export class OidcVerifier implements Verifier {
     if (!config.jwks_uri) {
       throw new BadRequestHttpError(`Missing jwks_uri from ${configUrl}`);
     }
-    const jwkSet = createRemoteJWKSet(new URL(config.jwks_uri));
+    const jwkSet = createRemoteJWKSet(new URL(config.jwks_uri, configUrl));
     const decoded = await jwtVerify(token, jwkSet, this.verifyOptions);
     if (!decoded.payload.sub) {
       throw new BadRequestHttpError('Invalid OIDC token: missing `sub` claim');

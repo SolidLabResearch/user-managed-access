@@ -1,3 +1,4 @@
+import { DerivedFrom } from '../derivation/Derivation';
 import { Type, array, optional as $, string, dict, union } from '../util/ReType';
 
 export const ResourceDescription = {
@@ -8,6 +9,7 @@ export const ResourceDescription = {
   name: $(string),
   icon_uri: $(string),
   description: $(string),
+  derived_from: $(array(DerivedFrom)),
 };
 
 export type ResourceDescription = Type<typeof ResourceDescription>;

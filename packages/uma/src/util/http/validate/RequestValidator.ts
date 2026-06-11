@@ -8,6 +8,8 @@ export interface RequestValidatorInput {
 export interface RequestValidatorOutput {
   owner: string;
   resourceServer?: string;
+  resourceId?: string;
+  allowCreate?: boolean;
 }
 
 /**

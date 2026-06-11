@@ -68,7 +68,7 @@ describe('JwtTokenFactory', (): void => {
       jti: '1-2-3-4-5',
     });
     expect(parsed.protectedHeader.alg).toBe(alg);
-    expect(parsed.protectedHeader.kid).toBe(privateKey.kid);
+    expect(parsed.protectedHeader.kid).toEqual(expect.any(String));
     expect(tokenStore.set).toHaveBeenCalledTimes(1);
     expect(tokenStore.set).toHaveBeenLastCalledWith(result.token, token);
   });

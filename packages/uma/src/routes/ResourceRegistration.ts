@@ -21,7 +21,7 @@ import {
 } from '../util/http/models/HttpHandler';
 import { Registration } from '../util/RegistrationStore';
 import { ResourceOwnerAssetEventEmitter } from '../util/ResourceOwnerAssetEvents';
-import { RequestValidator } from '../util/http/validate/RequestValidator';
+import { RequestValidator, RequestValidatorOutput } from '../util/http/validate/RequestValidator';
 import { RegistrationStore } from '../util/RegistrationStore';
 import { reType } from '../util/ReType';
 import { createOwnerAccessPolicy, hasOwnerAccessPolicy } from '../util/SystemPolicy';
@@ -58,14 +58,44 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
   }
 
   public async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
-    const { owner, resourceServer } = await this.validator.handleSafe({ request });
+    const validation = await this.validator.handleSafe({ request });
+    const { owner, resourceServer } = validation;
 
     switch (request.method) {
+      case 'GET':
+        if (typeof request.parameters?.id === 'string') {
+          return this.handleGet(request, owner, validation);
+        }
+        throw new MethodNotAllowedHttpError([ request.method ]);
       case 'POST': return this.handlePost(request, owner, resourceServer);
-      case 'PUT': return this.handlePut(request, owner, resourceServer);
-      case 'DELETE': return this.handleDelete(request, owner);
+      case 'PUT': return this.handlePut(request, owner, resourceServer, validation);
+      case 'DELETE': return this.handleDelete(request, owner, validation);
       default: throw new MethodNotAllowedHttpError([ request.method ]);
     }
+  }
+
+  protected async handleGet(
+    { parameters }: HttpHandlerRequest,
+    owner: string,
+    validation: RequestValidatorOutput,
+  ): Promise<HttpHandlerResponse> {
+    if (typeof parameters?.id !== 'string') {
+      throw new InternalServerError('URI for GET operation should include an id.');
+    }
+    this.validateBoundResource(parameters.id, validation);
+
+    const entry = await this.registrationStore.get(parameters.id);
+    if (!entry) {
+      throw new NotFoundHttpError();
+    }
+    if (entry.owner !== owner) {
+      throw new ForbiddenHttpError(`${owner} is not the owner of this resource.`);
+    }
+
+    return {
+      status: 200,
+      body: entry.description,
+    };
   }
 
   protected async handlePost(
@@ -114,17 +144,19 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     { body, parameters }: HttpHandlerRequest,
     owner: string,
     resourceServer?: string,
+    validation: RequestValidatorOutput = { owner },
   ): Promise<HttpHandlerResponse> {
     if (typeof parameters?.id !== 'string') {
       throw new InternalServerError('URI for PUT operation should include an id.');
     }
+    this.validateBoundResource(parameters.id, validation);
 
     const entry = await this.registrationStore.get(parameters.id);
-    if (!entry) {
+    if (!entry && !validation.allowCreate) {
       throw new NotFoundHttpError();
     }
 
-    if (entry.owner !== owner) {
+    if (entry && entry.owner !== owner) {
       throw new ForbiddenHttpError(`${owner} is not the owner of this resource.`);
     }
 
@@ -148,10 +180,15 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     });
   }
 
-  protected async handleDelete({ parameters }: HttpHandlerRequest, owner: string): Promise<HttpHandlerResponse> {
+  protected async handleDelete(
+    { parameters }: HttpHandlerRequest,
+    owner: string,
+    validation: RequestValidatorOutput = { owner },
+  ): Promise<HttpHandlerResponse> {
     if (typeof parameters?.id !== 'string') {
       throw new InternalServerError('URI for DELETE operation should include an id.');
     }
+    this.validateBoundResource(parameters.id, validation);
 
     const entry = await this.registrationStore.get(parameters.id);
     if (!entry) {
@@ -168,6 +205,12 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
     this.logger.info(`Deleted resource ${parameters.id}.`);
 
     return ({ status: 204 });
+  }
+
+  protected validateBoundResource(id: string, validation: RequestValidatorOutput): void {
+    if (validation.resourceId && validation.resourceId !== id) {
+      throw new ForbiddenHttpError('Authorization is not valid for this resource.');
+    }
   }
 
   /**

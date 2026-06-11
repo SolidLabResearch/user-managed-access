@@ -2,6 +2,7 @@ import { BadRequestHttpError, createErrorMessage, JwkGenerator, KeyValueStorage 
 import { getLoggerFor } from 'global-logger-factory';
 import { importJWK, jwtVerify, SignJWT } from 'jose';
 import { randomUUID } from 'node:crypto';
+import { ensureJwkKid } from '../util/Jwk';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
 import { AccessToken } from './AccessToken';
@@ -42,7 +43,7 @@ export class JwtTokenFactory extends TokenFactory {
    * @return {Promise<SerializedToken>} - access token response
    */
   public async serialize(token: AccessToken): Promise<SerializedToken> {
-    const key = await this.keyGen.getPrivateKey();
+    const key = await ensureJwkKid(await this.keyGen.getPrivateKey());
     const jwk = await importJWK(key, key.alg);
     const jwt = await new SignJWT({ permissions: token.permissions, contract: token.contract })
       .setProtectedHeader({ alg: key.alg, kid: key.kid })
@@ -64,7 +65,7 @@ export class JwtTokenFactory extends TokenFactory {
    * @return {Promise<AccessToken>} - deserialized access token
    */
   public async deserialize(token: string): Promise<AccessToken> {
-    const key = await this.keyGen.getPublicKey();
+    const key = await ensureJwkKid(await this.keyGen.getPublicKey());
     const jwk = await importJWK(key, key.alg);
     try {
       const { payload } = await jwtVerify(token, jwk, {

@@ -104,5 +104,17 @@ describe('OidcVerifier', (): void => {
         ['urn:solidlab:uma:claims:types:clientid']: 'client',
       });
     });
+
+    it('resolves relative JWKS URIs against the discovery URL.', async(): Promise<void> => {
+      fetchMock.mockResolvedValueOnce({
+        status: 200,
+        json: vi.fn().mockResolvedValue({ jwks_uri: '/jwks' }),
+      } as any);
+
+      await expect(verifier.verify(credential)).resolves.toEqual({
+        ['urn:solidlab:uma:claims:types:webid']: 'sub',
+      });
+      expect(createRemoteJWKSet).toHaveBeenLastCalledWith(new URL('http://example.org/jwks'));
+    });
   });
 });

@@ -13,7 +13,12 @@ import {
   CLIENT_REGISTRATION_STORAGE_DESCRIPTION,
   CLIENT_REGISTRATION_STORAGE_TYPE
 } from '../../../src/routes/ClientRegistration';
-import { PAT_STORAGE_DESCRIPTION, PAT_STORAGE_TYPE, TokenRequestHandler } from '../../../src/routes/Token';
+import {
+  generateDerivationResourceId,
+  PAT_STORAGE_DESCRIPTION,
+  PAT_STORAGE_TYPE,
+  TokenRequestHandler
+} from '../../../src/routes/Token';
 import { HttpHandlerRequest } from '../../../src/util/http/models/HttpHandler';
 
 vi.useFakeTimers();
@@ -104,10 +109,82 @@ describe('Token', (): void => {
       expect(negotiator.negotiate).toHaveBeenLastCalledWith(request.body);
     });
 
+    it('adds derivation resource management data for derivation creation requests.', async(): Promise<void> => {
+      negotiator.negotiate.mockResolvedValueOnce({
+        access_token: 'upstream-token',
+        token_type: 'Bearer',
+        derivation_resource_owner: 'charlie',
+      });
+      request.body.scope = 'urn:knows:uma:scopes:derivation-creation';
+      request.body.client_id = 'aggregator-client';
+      request.body.derivation_resource_id = 'handle-id-1';
+
+      const response = await handler.handle({ request });
+      expect(response).toEqual({
+        status: 200,
+        body: {
+          access_token: 'upstream-token',
+          token_type: 'Bearer',
+          derivation_resource_id: 'handle-id-1',
+          management_access_token: {
+            access_token: expect.any(String),
+            token_type: 'Bearer',
+          },
+        },
+      });
+
+      const jwk = await importJWK(publicKey, publicKey.alg);
+      const decodedToken = await jwtVerify(response.body.management_access_token.access_token, jwk, {
+        issuer: baseUrl,
+        audience: baseUrl,
+      });
+      expect(decodedToken.payload).toEqual({
+        scope: 'urn:knows:uma:scopes:derivation-management',
+        derivation_resource_id: 'handle-id-1',
+        client_id: 'aggregator-client',
+        azp: 'aggregator-client',
+        iat: Math.floor(now/1000),
+        sub: 'charlie',
+        iss: baseUrl,
+        aud: baseUrl,
+        exp: Math.floor(now/1000) + 1800,
+        jti: expect.any(String),
+      });
+    });
+
+    it('generates urn:uuid derivation resource identifiers.', async(): Promise<void> => {
+      expect(generateDerivationResourceId()).toMatch(
+        /^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
+      );
+    });
+
+    it('uses urn:uuid identifiers for generated derivation resources.', async(): Promise<void> => {
+      negotiator.negotiate.mockResolvedValueOnce({
+        access_token: 'upstream-token',
+        token_type: 'Bearer',
+        derivation_resource_owner: 'charlie',
+      });
+      request.body.scope = 'urn:knows:uma:scopes:derivation-creation';
+      request.body.client_id = 'aggregator-client';
+
+      const response = await handler.handle({ request });
+      expect(response.body.derivation_resource_id).toMatch(
+        /^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u,
+      );
+
+      const jwk = await importJWK(publicKey, publicKey.alg);
+      const decodedToken = await jwtVerify(response.body.management_access_token.access_token, jwk, {
+        issuer: baseUrl,
+        audience: baseUrl,
+      });
+      expect(decodedToken.payload.derivation_resource_id).toBe(response.body.derivation_resource_id);
+    });
+
     it('returns a 403 with the ticket if negotiation needs more info.', async(): Promise<void> => {
       const needInfo = new NeedInfoError('msg', 'ticket', { required_claims: { claim_token_format: [[ 'format' ]] } });
       negotiator.negotiate.mockRejectedValueOnce(needInfo);
       await expect(handler.handle({ request })).resolves.toEqual({ status: 403, body: {
+          error: 'need_info',
           ticket: 'ticket',
           required_claims: { claim_token_format: [[ 'format' ]] },
         }});

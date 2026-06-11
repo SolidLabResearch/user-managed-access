@@ -6,6 +6,9 @@ export * from './credentials/Credential';
 export * from './credentials/CredentialParser';
 export * from './credentials/Formats';
 
+// Derivation
+export * from './derivation/Derivation';
+
 // CredentialParsers
 export * from './credentials/parse/MappedSchemeParser';
 
@@ -76,7 +79,9 @@ export * from './util/http/server/JsonHttpErrorHandler';
 export * from './util/http/server/JsonFormHttpHandler';
 export * from './util/http/server/NodeHttpRequestResponseHandler';
 export * from './util/http/server/RoutedHttpRequestHandler';
+export * from './util/http/validate/CompositeRequestValidator';
 export * from './util/http/validate/HttpMessageValidator';
+export * from './util/http/validate/DerivationManagementTokenValidator';
 export * from './util/http/validate/PatRequestValidator';
 export * from './util/http/validate/RequestValidator';
 

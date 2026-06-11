@@ -8,6 +8,7 @@ import { NeedInfoError, RequiredClaimsInfo } from '../../../src/errors/NeedInfoE
 import { TicketingStrategy } from '../../../src/ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../../../src/ticketing/Ticket';
 import { SerializedToken, TokenFactory } from '../../../src/tokens/TokenFactory';
+import { RegistrationStore } from '../../../src/util/RegistrationStore';
 
 describe('BaseNegotiator', (): void => {
   const input: DialogInput = {
@@ -29,6 +30,7 @@ describe('BaseNegotiator', (): void => {
   let ticketStore: Mocked<KeyValueStorage<string, Ticket>>;
   let ticketingStrategy: Mocked<TicketingStrategy>;
   let tokenFactory: Mocked<TokenFactory>;
+  let registrationStore: Mocked<RegistrationStore>;
   let negotiator: BaseNegotiator;
 
   beforeEach(async(): Promise<void> => {
@@ -58,6 +60,10 @@ describe('BaseNegotiator', (): void => {
       serialize: vi.fn().mockResolvedValue(token),
       deserialize: vi.fn(),
     };
+
+    registrationStore = {
+      get: vi.fn(),
+    } as any;
 
     negotiator = new BaseNegotiator(verifier, ticketStore, ticketingStrategy, tokenFactory);
   });
@@ -109,6 +115,42 @@ describe('BaseNegotiator', (): void => {
     expect(ticketStore.set).toHaveBeenCalledTimes(1);
   });
 
+  it('requires upstream access token claims for registered derived resources.', async(): Promise<void> => {
+    ticketingStrategy.initializeTicket.mockResolvedValueOnce({
+      permissions: [{ resource_id: 'derived', resource_scopes: ['read'] }],
+      provided: {},
+      required: [{}],
+    });
+    registrationStore.get.mockResolvedValueOnce({
+      owner: 'owner',
+      description: {
+        resource_scopes: ['read'],
+        derived_from: [{
+          issuer: 'https://upstream.example/',
+          derivation_resource_id: 'handle-id-1',
+        }],
+      },
+    });
+    negotiator = new BaseNegotiator(verifier, ticketStore, ticketingStrategy, tokenFactory, registrationStore);
+
+    try {
+      await negotiator.negotiate({ permissions: [{ resource_id: 'derived', resource_scopes: ['read'] }] });
+    } catch (error) {
+      expect(error).toBeInstanceOf(NeedInfoError);
+      expect((error as NeedInfoError).additionalParams).toEqual({
+        required_claims: [{
+          claim_type: 'https://w3id.org/aggregator#derivation-access',
+          claim_token_format: 'urn:ietf:params:oauth:token-type:access_token',
+          issuer: 'https://upstream.example/',
+          derivation_resource_id: 'handle-id-1',
+          resource_scopes: ['read'],
+        }],
+      });
+    }
+    expect(ticketingStrategy.resolveTicket).toHaveBeenCalledTimes(0);
+    expect(ticketStore.set).toHaveBeenCalledTimes(1);
+  });
+
   it('errors if an invalid ticket is provided.', async(): Promise<void> => {
     await expect(negotiator.negotiate({ ...input, ticket: 'ticket' }))
       .rejects.toThrow('The provided ticket is not valid.');
@@ -131,6 +173,43 @@ describe('BaseNegotiator', (): void => {
     expect(tokenFactory.serialize).toHaveBeenCalledTimes(1);
     expect(tokenFactory.serialize).toHaveBeenLastCalledWith(
       { permissions: { resource_id: 'id1', resource_scopes: [ 'scope1' ] } });
+  });
+
+  it('requires upstream access token claims for stored tickets targeting derived resources.', async(): Promise<void> => {
+    ticketData.set('ticket', {
+      permissions: [{ resource_id: 'derived', resource_scopes: ['read'] }],
+      provided: {},
+      required: [],
+    });
+    registrationStore.get.mockResolvedValueOnce({
+      owner: 'owner',
+      description: {
+        resource_scopes: ['read'],
+        derived_from: [{
+          issuer: 'https://upstream.example/',
+          derivation_resource_id: 'handle-id-1',
+        }],
+      },
+    });
+    negotiator = new BaseNegotiator(verifier, ticketStore, ticketingStrategy, tokenFactory, registrationStore);
+
+    try {
+      await negotiator.negotiate({ ticket: 'ticket' });
+    } catch (error) {
+      expect(error).toBeInstanceOf(NeedInfoError);
+      expect((error as NeedInfoError).additionalParams).toEqual({
+        required_claims: [{
+          claim_type: 'https://w3id.org/aggregator#derivation-access',
+          claim_token_format: 'urn:ietf:params:oauth:token-type:access_token',
+          issuer: 'https://upstream.example/',
+          derivation_resource_id: 'handle-id-1',
+          resource_scopes: ['read'],
+        }],
+      });
+    }
+    expect(ticketStore.delete).toHaveBeenCalledTimes(1);
+    expect(ticketingStrategy.resolveTicket).toHaveBeenCalledTimes(0);
+    expect(ticketStore.set).toHaveBeenCalledTimes(1);
   });
 
   it('errors if invalid credentials are provided.', async(): Promise<void> => {

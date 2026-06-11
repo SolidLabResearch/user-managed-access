@@ -6,6 +6,12 @@ import {
 } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { randomUUID } from 'node:crypto';
+import {
+  ACCESS_TOKEN_CLAIM_FORMAT,
+  DERIVATION_ACCESS_CLAIM_TYPE,
+  DerivationRequiredClaim,
+  derivationRequirementKey,
+} from '../derivation/Derivation';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../ticketing/Ticket';
 import { HttpHandler, HttpHandlerContext, HttpHandlerResponse } from '../util/http/models/HttpHandler';
@@ -56,11 +62,19 @@ export class TicketRequestHandler extends HttpHandler {
       }
     }
 
-    const ticket = await this.ticketingStrategy.initializeTicket(request.body);
+    const ticket = await this.addDerivationRequirements(await this.ticketingStrategy.initializeTicket(request.body));
+    if (ticket.required_claims?.some((requirement) => ticket.provided[derivationRequirementKey(requirement)] !== true)) {
+      return this.storeTicket(ticket);
+    }
+
     const resolved = await this.ticketingStrategy.resolveTicket(ticket);
 
     if (resolved.success) return { status: 200 };
 
+    return this.storeTicket(ticket);
+  }
+
+  protected async storeTicket(ticket: Ticket): Promise<HttpHandlerResponse> {
     const id = randomUUID();
     await this.ticketStore.set(id, ticket);
 
@@ -68,5 +82,36 @@ export class TicketRequestHandler extends HttpHandler {
       status: 201,
       body: { ticket: id },
     };
+  }
+
+  protected async addDerivationRequirements(ticket: Ticket): Promise<Ticket> {
+    const requiredClaims: DerivationRequiredClaim[] = [];
+    for (const permission of ticket.permissions) {
+      const registration = await this.registrationStore.get(permission.resource_id);
+      for (const derivedFrom of registration?.description.derived_from ?? []) {
+        requiredClaims.push({
+          claim_type: DERIVATION_ACCESS_CLAIM_TYPE,
+          claim_token_format: ACCESS_TOKEN_CLAIM_FORMAT,
+          issuer: derivedFrom.issuer,
+          derivation_resource_id: derivedFrom.derivation_resource_id,
+          resource_scopes: permission.resource_scopes,
+        });
+      }
+    }
+
+    if (requiredClaims.length === 0) {
+      return ticket;
+    }
+
+    ticket.required_claims = requiredClaims;
+    const requirementKeys = Object.fromEntries(requiredClaims.map((requirement) => [
+      derivationRequirementKey(requirement),
+      async (value: unknown): Promise<boolean> => value === true,
+    ]));
+    ticket.required = ticket.required.length > 0 ?
+      ticket.required.map((requirements) => ({ ...requirements, ...requirementKeys })) :
+      [ requirementKeys ];
+
+    return ticket;
   }
 }

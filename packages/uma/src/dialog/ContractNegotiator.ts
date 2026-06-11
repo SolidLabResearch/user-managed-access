@@ -7,6 +7,7 @@ import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../ticketing/Ticket';
 import { AccessToken } from '../tokens/AccessToken';
 import { TokenFactory } from '../tokens/TokenFactory';
+import { RegistrationStore } from '../util/RegistrationStore';
 import { processRequestPermission, switchODRLandCSSPermission } from '../util/rdf/RequestProcessing';
 import { Result, Success } from '../util/Result';
 import { reType } from '../util/ReType';
@@ -36,8 +37,9 @@ export class ContractNegotiator extends BaseNegotiator {
     protected ticketStore: KeyValueStorage<string, Ticket>,
     protected ticketingStrategy: TicketingStrategy,
     protected tokenFactory: TokenFactory,
+    protected registrationStore?: RegistrationStore,
   ) {
-    super(verifier, ticketStore, ticketingStrategy, tokenFactory);
+    super(verifier, ticketStore, ticketingStrategy, tokenFactory, registrationStore);
     this.logger.warn('The Contract Negotiator is for demonstration purposes only! DO NOT USE THIS IN PRODUCTION !!!');
   }
 
@@ -61,12 +63,16 @@ export class ContractNegotiator extends BaseNegotiator {
     const updatedTicket = await this.processCredentials(input, ticket);
     this.logger.debug(`Processed credentials ${JSON.stringify(updatedTicket)}`);
 
+    if (!this.hasRequiredDerivationClaims(updatedTicket)) {
+      this.denyRequest(updatedTicket);
+    }
+
     // TODO:
     const result = await this.toContract(updatedTicket);
 
     if (result.success) {
       // TODO:
-      return this.toResponse(result.value);
+      return this.addDerivationResourceOwner(input, updatedTicket, await this.toResponse(result.value));
     }
 
     // ... on failure, deny if no solvable requirements

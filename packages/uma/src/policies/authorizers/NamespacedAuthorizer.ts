@@ -5,7 +5,13 @@ import { RegistrationStore } from '../../util/RegistrationStore';
 import { Permission } from '../../views/Permission';
 import { Authorizer } from './Authorizer';
 
-const namespace = (resource: string) => new URL(resource).pathname.split('/')?.[2] ?? '';
+const namespace = (resource: string): string | undefined => {
+  try {
+    return new URL(resource).pathname.split('/')?.[2] ?? '';
+  } catch {
+    return;
+  }
+};
 
 /**
  * An authorizer delegating to different authorizers based on the namespaces in the request.

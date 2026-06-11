@@ -186,6 +186,26 @@ describe('ResourceRegistration', (): void => {
       await expect(handler.handle(input)).rejects.toThrow(NotFoundHttpError);
     });
 
+    it('allows a bound management token to create its derivation resource with PUT.', async(): Promise<void> => {
+      input.request.parameters = { id: 'handle-id-1' };
+      validator.handleSafe.mockResolvedValueOnce({
+        owner,
+        resourceId: 'handle-id-1',
+        allowCreate: true,
+      });
+      registrationStore.get.mockResolvedValueOnce(undefined);
+
+      await expect(handler.handle(input)).resolves.toEqual({
+        status: 200,
+        body: { _id: 'handle-id-1', user_access_policy_uri: 'TODO: implement policy UI' },
+      });
+      expect(registrationStore.set).toHaveBeenCalledTimes(1);
+      expect(registrationStore.set).lastCalledWith('handle-id-1', expect.objectContaining({
+        owner,
+        description: input.request.body,
+      }));
+    });
+
     it('errors if the body syntax is wrong.', async(): Promise<void> => {
       (input.request.body as any).resource_scopes = 'apple';
       await expect(handler.handle(input)).rejects.toThrow('Request has bad syntax: value is not an array');

@@ -8,7 +8,7 @@
       "@type": "ResourceRegistrationRequestHandler",
       "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
       "policies": { "@id": "urn:uma:default:RulesStorage" },
-      "validator": { "@id": "urn:uma:default:RequestValidator" },
+      "validator": { "@id": "urn:uma:default:ResourceRegistrationValidator" },
       "assetEvents": { "@id": "urn:uma:default:ResourceOwnerAssetEventEmitter" }
     },
     {
@@ -21,9 +21,23 @@
     {
       "@id": "urn:uma:default:ResourceRegistrationOpsRoute",
       "@type": "HttpHandlerRoute",
-      "methods": [ "PUT", "DELETE" ],
+      "methods": [ "GET", "PUT", "DELETE" ],
       "handler": { "@id": "urn:uma:default:ResourceRegistrationHandler" },
       "path": "/uma/resources/{id}"
+    },
+    {
+      "@id": "urn:uma:default:DerivationManagementValidator",
+      "@type": "DerivationManagementTokenValidator",
+      "keyGen": { "@id": "urn:uma:default:JwkGenerator" },
+      "baseUrl": { "@id": "urn:uma:variables:baseUrl" }
+    },
+    {
+      "@id": "urn:uma:default:ResourceRegistrationValidator",
+      "@type": "CompositeRequestValidator",
+      "validators": [
+        { "@id": "urn:uma:default:RequestValidator" },
+        { "@id": "urn:uma:default:DerivationManagementValidator" }
+      ]
     }
   ]
 }

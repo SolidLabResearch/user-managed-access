@@ -15,6 +15,11 @@ vi.mock('node:crypto', () => ({
 
 describe('Ticket', (): void => {
   const owner = 'owner';
+  const ticket: Ticket = {
+    permissions: [{ resource_id: 'id', resource_scopes: [ 'scope' ] }],
+    provided: {},
+    required: [],
+  };
   let request: HttpHandlerContext;
 
   let ticketingStrategy: Mocked<TicketingStrategy>;
@@ -32,13 +37,14 @@ describe('Ticket', (): void => {
     }]}} as any;
 
     ticketingStrategy = {
-      initializeTicket: vi.fn().mockResolvedValue('ticket'),
+      initializeTicket: vi.fn().mockResolvedValue(ticket),
       resolveTicket: vi.fn(),
       validateClaims: vi.fn(),
     };
 
     registrationStore = {
       has: vi.fn().mockResolvedValue(true),
+      get: vi.fn().mockResolvedValue({ owner, description: { resource_scopes: [ 'scope' ] } }),
     } satisfies Partial<KeyValueStorage<string, ResourceDescription>> as any;
 
     ticketStore = {
@@ -67,7 +73,39 @@ describe('Ticket', (): void => {
     ticketingStrategy.resolveTicket.mockResolvedValue({ success: false, value: [] });
     await expect(handler.handle(request)).resolves.toEqual({ status: 201, body: { ticket: '1-2-3-4-5' }});
     expect(ticketStore.set).toHaveBeenCalledTimes(1);
-    expect(ticketStore.set).toHaveBeenLastCalledWith('1-2-3-4-5', 'ticket');
+    expect(ticketStore.set).toHaveBeenLastCalledWith('1-2-3-4-5', ticket);
+  });
+
+  it('stores a ticket for derived resources even if policy resolution would otherwise succeed.', async(): Promise<void> => {
+    ticketingStrategy.resolveTicket.mockResolvedValue({ success: true, value: [] });
+    registrationStore.get.mockResolvedValueOnce({
+      owner,
+      description: {
+        resource_scopes: [ 'scope' ],
+        derived_from: [{
+          issuer: 'https://upstream.example/',
+          derivation_resource_id: 'handle-id-1',
+        }],
+      },
+    });
+
+    await expect(handler.handle(request)).resolves.toEqual({ status: 201, body: { ticket: '1-2-3-4-5' }});
+    expect(ticketingStrategy.resolveTicket).toHaveBeenCalledTimes(0);
+    expect(ticketStore.set).toHaveBeenCalledTimes(1);
+    expect(ticketStore.set).toHaveBeenLastCalledWith('1-2-3-4-5', {
+      permissions: [{ resource_id: 'id', resource_scopes: [ 'scope' ] }],
+      provided: {},
+      required: [{
+        'https://w3id.org/aggregator#derivation-access|https://upstream.example/|handle-id-1|scope': expect.any(Function),
+      }],
+      required_claims: [{
+        claim_type: 'https://w3id.org/aggregator#derivation-access',
+        claim_token_format: 'urn:ietf:params:oauth:token-type:access_token',
+        issuer: 'https://upstream.example/',
+        derivation_resource_id: 'handle-id-1',
+        resource_scopes: [ 'scope' ],
+      }],
+    });
   });
 
   it('returns with invalid_resource_id if one of the targets is unknown.', async(): Promise<void> => {

@@ -16,6 +16,7 @@ describe('Config', (): void => {
         permission_endpoint: 'http://example.com/uma/ticket',
         introspection_endpoint: 'http://example.com/uma/introspect',
         resource_registration_endpoint: 'http://example.com/uma/resources/',
+        derivation_resource_registration_endpoint: 'http://example.com/uma/resources/',
         resource_owner_assets_endpoint: 'http://example.com/uma/resource-owner/assets',
         policy_management_endpoint: 'http://example.com/uma/policies',
         uma_profiles_supported: ['http://openid.net/specs/openid-connect-core-1_0.html#IDToken'],

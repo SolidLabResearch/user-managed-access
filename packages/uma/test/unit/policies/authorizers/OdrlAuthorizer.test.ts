@@ -1,5 +1,5 @@
 import { NotImplementedHttpError, RDF, XSD } from '@solid/community-server';
-import { DataFactory as DF, Store } from 'n3';
+import { DataFactory as DF, Parser, Store } from 'n3';
 import { Mocked } from 'vitest';
 import { CLIENTID, WEBID } from '../../../../src/credentials/Claims';
 import { OdrlAuthorizer } from '../../../../src/policies/authorizers/OdrlAuthorizer';
@@ -57,6 +57,30 @@ describe('OdrlAuthorizer', (): void => {
       { resource_id: 'rid', resource_scopes: [ CSS.read, CSS.write ] },
     ])).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [ CSS.read ] }]);
     expect(policies.getStore).toHaveBeenCalledTimes(1);
+  });
+
+  it('matches urn:uuid resource identifiers as policy targets.', async(): Promise<void> => {
+    const resourceId = 'urn:uuid:3c9af6e0-a707-470b-b08a-a77e0fd917c2';
+    const parsed = new Store(new Parser().parse(`
+      @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+      <urn:solidlab:uma:policy:owner-access:test> a odrl:Agreement ;
+        odrl:permission <http://example.org/rule> .
+
+      <http://example.org/rule> a odrl:Permission ;
+        odrl:target <${resourceId}> ;
+        odrl:action odrl:read ;
+        odrl:assignee <${webId}> ;
+        odrl:assigner <http://rs.local:3000/demo/profile/card#me> .
+    `));
+    policyStore.addQuads([ ...parsed ]);
+
+    expect(policyStore.getObjects(DF.namedNode('http://example.org/rule'), ODRL.terms.target, null)[0]).toEqual(
+      DF.namedNode(resourceId),
+    );
+    await expect(authorizer.permissions({ [WEBID]: webId }, [
+      { resource_id: resourceId, resource_scopes: [ CSS.read ] },
+    ])).resolves.toEqual([{ resource_id: resourceId, resource_scopes: [ CSS.read ] }]);
   });
 
   it('does not grant scopes to a different assignee.', async(): Promise<void> => {

@@ -9,6 +9,12 @@ export const DialogOutput = ({
   token_type: string,
   expires_in: $(number),
   upgraded: $(boolean),
+  derivation_resource_id: $(string),
+  management_access_token: $({
+    access_token: string,
+    token_type: string,
+  }),
+  derivation_resource_owner: $(string),
 });
 
 /**
