@@ -22,7 +22,11 @@ export class OpaqueTokenFactory extends TokenFactory {
    */
   public async serialize(token: AccessToken): Promise<SerializedToken> {
     const serialized = randomUUID();
-    await this.tokenStore.set(serialized, token);
+    await this.tokenStore.set(serialized, {
+      ...token,
+      iat: Math.floor(Date.now() / 1000),
+      issued_at: Date.now(),
+    });
     return {tokenType: 'Bearer', token: serialized};
   }
 

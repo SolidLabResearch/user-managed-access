@@ -6,7 +6,7 @@
     {
       "@id": "urn:uma:default:TokenFactory",
       "@type": "JwtTokenFactory",
-      "params_expirationTime": "5m",
+      "params_expirationTime": "1w",
       "params_aud": "solid",
       "issuer": { "@id": "urn:uma:variables:baseUrl" },
       "keyGen": { "@id": "urn:uma:default:JwkGenerator" },

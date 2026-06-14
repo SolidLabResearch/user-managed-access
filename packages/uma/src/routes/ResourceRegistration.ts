@@ -32,7 +32,7 @@ import { ResourceDescription } from '../views/ResourceDescription';
  */
 export type CollectionMetadata = { relation: NamedNode, source: NamedNode, reverse: boolean };
 
-const getCurrentTimestamp = (): string => new Date().toISOString().replace(/\.\d{3}Z$/u, 'Z');
+const getCurrentTimestamp = (): string => new Date().toISOString();
 
 /**
  * A ResourceRegistrationRequestHandler is tasked with implementing

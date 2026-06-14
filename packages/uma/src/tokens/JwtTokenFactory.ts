@@ -45,7 +45,11 @@ export class JwtTokenFactory extends TokenFactory {
   public async serialize(token: AccessToken): Promise<SerializedToken> {
     const key = await ensureJwkKid(await this.keyGen.getPrivateKey());
     const jwk = await importJWK(key, key.alg);
-    const jwt = await new SignJWT({ permissions: token.permissions, contract: token.contract })
+    const jwt = await new SignJWT({
+      permissions: token.permissions,
+      contract: token.contract,
+      issued_at: Date.now(),
+    })
       .setProtectedHeader({ alg: key.alg, kid: key.kid })
       .setIssuedAt()
       .setIssuer(this.issuer)
@@ -81,7 +85,12 @@ export class JwtTokenFactory extends TokenFactory {
 
       reType(permissions, array(Permission));
 
-      return { permissions };
+      const accessToken: AccessToken = { permissions };
+      if (payload.iat !== undefined) accessToken.iat = payload.iat;
+      if (payload.exp !== undefined) accessToken.exp = payload.exp;
+      if (payload.nbf !== undefined) accessToken.nbf = payload.nbf;
+      if (typeof payload.issued_at === 'number') accessToken.issued_at = payload.issued_at;
+      return accessToken;
     } catch (error: unknown) {
       const msg = `Invalid Access Token provided, error while parsing: ${createErrorMessage(error)}`;
       this.logger.warn(msg);

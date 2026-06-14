@@ -61,6 +61,7 @@ describe('JwtTokenFactory', (): void => {
     const parsed = await jwtVerify(result.token, keys.publicKey);
     expect(parsed.payload).toEqual({
       ...token,
+      issued_at: now.getTime(),
       iat: Math.floor(now.getTime()/1000),
       iss: issuer,
       aud: 'solid',
