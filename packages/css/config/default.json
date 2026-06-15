@@ -41,24 +41,6 @@
   "@graph": [
     {
       "comment": "A single-pod server that trusts a pre-configured UMA AS."
-    },
-    {
-      "@id": "urn:solid-server:default:IdentityProviderFactoryOverride",
-      "@type": "Override",
-      "overrideInstance": {
-        "@id": "urn:solid-server:default:IdentityProviderFactory"
-      },
-      "overrideParameters": {
-        "@type": "IdentityProviderFactory",
-        "config": {
-          "ttl": {
-            "AccessToken": 604800,
-            "IdToken": 604800,
-            "RefreshToken": 604800,
-            "Session": 1209600
-          }
-        }
-      }
     }
   ]
 }
