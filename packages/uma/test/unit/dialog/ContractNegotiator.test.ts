@@ -1,6 +1,6 @@
 import { ForbiddenHttpError, KeyValueStorage } from '@solid/community-server';
 import { Mocked, MockInstance } from 'vitest';
-import { WEBID } from '../../../src/credentials/Claims';
+import { ORIGINAL, WEBID } from '../../../src/credentials/Claims';
 import { ClaimSet } from '../../../src/credentials/ClaimSet';
 import { Verifier } from '../../../src/credentials/verify/Verifier';
 import { ContractNegotiator } from '../../../src/dialog/ContractNegotiator';
@@ -150,6 +150,27 @@ describe('ContractNegotiator', (): void => {
       contract,
       permissions: [{ resource_id: 'target', resource_scopes: [ 'https://w3id.org/oac#action' ] }],
       sub: webId,
+    });
+  });
+
+  it('prefers the original WEBID claim over the normalized value for token sub.', async(): Promise<void> => {
+    ticketingStrategy.validateClaims.mockResolvedValueOnce({
+      ...ticket,
+      provided: {
+        [WEBID]: 'http://example.com/id/user',
+        [ORIGINAL]: {
+          [WEBID]: 'user',
+        },
+      },
+    });
+
+    await expect(negotiator.negotiate({ ...input, claim_token: 'token', claim_token_format: 'format' })).resolves
+      .toEqual({ access_token: 'token', token_type: 'type' });
+
+    expect(tokenFactory.serialize).toHaveBeenLastCalledWith({
+      contract,
+      permissions: [{ resource_id: 'target', resource_scopes: [ 'https://w3id.org/oac#action' ] }],
+      sub: 'user',
     });
   });
 });

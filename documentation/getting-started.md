@@ -380,6 +380,10 @@ Based on the stored policies, it then determines if the provided claims are suff
 How these policies work will be covered later on.
 If successful, the server will return a 200 response with a JSON body containing, among others,
 an `access_token` field containing the access token, and a `token_type` field describing the token type.
+
+The generated access token will also contain a `sub` claim.
+This value indicates the identity from the original identification input that was provided during token exchange.
+
 If the claims are insufficient, a 403 response will be given instead.
 
 #### Partial permission tokens

@@ -1,5 +1,5 @@
 import { Mocked } from 'vitest';
-import { CLIENTID, WEBID } from '../../../../src/credentials/Claims';
+import { CLIENTID, ORIGINAL, WEBID } from '../../../../src/credentials/Claims';
 import { Credential } from '../../../../src/credentials/Credential';
 import { IriVerifier } from '../../../../src/credentials/verify/IriVerifier';
 import { Verifier } from '../../../../src/credentials/verify/Verifier';
@@ -42,6 +42,10 @@ describe('IriVerifier', (): void => {
     await expect(verifier.verify(credential)).resolves.toEqual({
       [WEBID]: 'http://example.com/id/webId',
       [CLIENTID]: 'http://example.com/id/clientId',
+      [ORIGINAL]: {
+        [WEBID]: 'webId',
+        [CLIENTID]: 'clientId',
+      },
       fruit: 'http://example.org/apple',
     });
     expect(source.verify).toHaveBeenCalledTimes(1);

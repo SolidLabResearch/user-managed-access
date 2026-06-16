@@ -1,6 +1,6 @@
 import { AlgJwk, App, CachedJwkGenerator, MemoryMapStorage } from '@solid/community-server';
 import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
-import { importJWK, SignJWT } from 'jose';
+import { decodeJwt, importJWK, SignJWT } from 'jose';
 import { randomUUID } from 'node:crypto';
 import { createServer, Server } from 'node:http';
 import path from 'node:path';
@@ -156,6 +156,11 @@ describe('A server supporting OIDC tokens', (): void => {
         body: JSON.stringify(content),
       });
       expect(response.status).toBe(200);
+
+      const { access_token } = await response.json() as { access_token: string };
+      const payload = decodeJwt(access_token);
+      expect(payload.sub).toBe(sub);
+      expect(payload.sub).not.toBe(`http://example.com/id/${sub}`);
     });
   });
 
