@@ -1,6 +1,6 @@
 import { createErrorMessage, KeyValueStorage } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
-import { WEBID } from '../credentials/Claims';
+import { getOriginalClaimValue, WEBID } from '../credentials/Claims';
 import { Verifier } from '../credentials/verify/Verifier';
 import { RequiredClaim } from '../errors/NeedInfoError';
 import { ContractManager } from '../policies/contracts/ContractManager';
@@ -149,11 +149,13 @@ export class ContractNegotiator extends BaseNegotiator {
     let permissions: Permission[] = Object.values(permissionMap);
     this.logger.debug(`granting permissions: ${JSON.stringify(permissions)}`);
 
+    const tokenSub = getOriginalClaimValue(ticket.provided, WEBID);
+
     // Create response
     const tokenContents: AccessToken = {
       permissions,
       contract,
-      ...(typeof ticket.provided[WEBID] === 'string' ? { sub: ticket.provided[WEBID] } : {}),
+      ...(typeof tokenSub === 'string' ? { sub: tokenSub } : {}),
     };
 
     this.logger.debug(`resolved result ${JSON.stringify(contract)}`);

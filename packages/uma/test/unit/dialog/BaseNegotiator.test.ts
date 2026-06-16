@@ -1,6 +1,6 @@
 import { ForbiddenHttpError, KeyValueStorage } from '@solid/community-server';
 import { Mocked } from 'vitest';
-import { WEBID } from '../../../src/credentials/Claims';
+import { ORIGINAL, WEBID } from '../../../src/credentials/Claims';
 import { ClaimSet } from '../../../src/credentials/ClaimSet';
 import { Verifier } from '../../../src/credentials/verify/Verifier';
 import { BaseNegotiator } from '../../../src/dialog/BaseNegotiator';
@@ -186,6 +186,26 @@ describe('BaseNegotiator', (): void => {
     expect(tokenFactory.serialize).toHaveBeenLastCalledWith({
       permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ],
       sub: webId,
+    });
+  });
+
+  it('prefers the original WEBID claim over the normalized value for token sub.', async(): Promise<void> => {
+    ticketingStrategy.validateClaims.mockResolvedValueOnce({
+      ...ticket,
+      provided: {
+        [WEBID]: 'http://example.com/id/user',
+        [ORIGINAL]: {
+          [WEBID]: 'user',
+        },
+      },
+    });
+
+    await expect(negotiator.negotiate({ ...input, claim_token: 'token', claim_token_format: 'format' })).resolves
+      .toEqual({ access_token: 'token', token_type: 'type' });
+
+    expect(tokenFactory.serialize).toHaveBeenLastCalledWith({
+      permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ],
+      sub: 'user',
     });
   });
 

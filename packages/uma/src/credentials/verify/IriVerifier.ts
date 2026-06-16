@@ -1,6 +1,6 @@
 import { joinUrl } from '@solid/community-server';
 import { isIri } from '../../util/ConvertUtil';
-import { CLIENTID, WEBID } from '../Claims';
+import { CLIENTID, ORIGINAL, WEBID } from '../Claims';
 import { ClaimSet } from '../ClaimSet';
 import { Credential } from '../Credential';
 import { Verifier } from './Verifier';
@@ -16,17 +16,20 @@ export class IriVerifier implements Verifier {
 
   public async verify(credential: Credential): Promise<ClaimSet> {
     const claims = await this.verifier.verify(credential);
-    return {
-      ...claims,
-      ...typeof claims[WEBID] === 'string' ? { [WEBID]: this.toIri(claims[WEBID]) } : {},
-      ...typeof claims[CLIENTID] === 'string' ? { [CLIENTID]: this.toIri(claims[CLIENTID]) } : {},
-    };
-  }
+    const result = { ...claims };
 
-  protected toIri(value: string): string {
-    if (isIri(value)) {
-      return value;
+    const original: Record<string, string> = {};
+    for (const claim of [WEBID, CLIENTID]) {
+      if (typeof claims[claim] === 'string' && !isIri(claims[claim])) {
+        result[claim] = joinUrl(this.baseUrl, encodeURIComponent(claims[claim]));
+        original[claim] = claims[claim];
+      }
     }
-    return joinUrl(this.baseUrl, encodeURIComponent(value));
+
+    if (Object.keys(original).length > 0) {
+      result[ORIGINAL] = original;
+    }
+
+    return result;
   }
 }
