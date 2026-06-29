@@ -112,19 +112,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
       throw new BadRequestHttpError(`Request has bad syntax: ${createErrorMessage(e)}`);
     }
 
-    // We are using the name as the UMA identifier for now.
-    // Reason being that there is not yet a good way to determine what the identifier would be when writing policies.
-    let resource = body.name;
-    if (resource) {
-      if (await this.registrationStore.has(resource)) {
-        throw new ConflictHttpError(
-          `A resource with name ${resource} is already registered. Use PUT to update existing registrations.`,
-        );
-      }
-    } else {
-      resource = randomUUID();
-      this.logger.warn('No resource name was provided so a random identifier was generated.');
-    }
+    const resource = randomUUID();
 
     // Set the resource metadata
     const registration = await this.setResourceMetadata(resource, body, owner, resourceServer);
