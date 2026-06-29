@@ -92,11 +92,11 @@ describe('ResourceRegistration', (): void => {
     it('registers the resource using a generated UUID as identifier.', async(): Promise<void> => {
       await expect(handler.handle(input)).resolves.toEqual({
         status: 201,
-        headers: { location: `http://example.com/foo/uuid` },
-        body: { _id: 'uuid', user_access_policy_uri: 'TODO: implement policy UI' },
+        headers: { location: `http://example.com/foo/urn%3Auuid%3Auuid` },
+        body: { _id: 'urn:uuid:uuid', user_access_policy_uri: 'TODO: implement policy UI' },
       });
       expect(registrationStore.set).toHaveBeenCalledTimes(1);
-      expect(registrationStore.set).lastCalledWith('uuid', expect.objectContaining({
+      expect(registrationStore.set).lastCalledWith('urn:uuid:uuid', expect.objectContaining({
         owner,
         description: input.request.body,
         registeredAt: expect.any(String),
@@ -111,18 +111,18 @@ describe('ResourceRegistration', (): void => {
       input.request.body!.resource_defaults = { pred: [ 'scope' ], '@reverse': { 'rPred': [ 'otherScope' ]}};
       await expect(handler.handle(input)).resolves.toEqual({
         status: 201,
-        headers: { location: `http://example.com/foo/1` },
-        body: { _id: '1', user_access_policy_uri: 'TODO: implement policy UI' },
+        headers: { location: `http://example.com/foo/urn%3Auuid%3A1` },
+        body: { _id: 'urn:uuid:1', user_access_policy_uri: 'TODO: implement policy UI' },
       });
       expect(policies.addRule).toHaveBeenCalledTimes(1);
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
-        ...createOwnerAccessPolicy('1', owner).getQuads(null, null, null, null),
+        ...createOwnerAccessPolicy('urn:uuid:1', owner).getQuads(null, null, null, null),
         DF.quad(DF.namedNode('collection:2'), RDF.terms.type, ODRL.terms.AssetCollection),
-        DF.quad(DF.namedNode('collection:2'), ODRL.terms.source, DF.namedNode('1')),
+        DF.quad(DF.namedNode('collection:2'), ODRL.terms.source, DF.namedNode('urn:uuid:1')),
         DF.quad(DF.namedNode('collection:2'), ODRL_P.terms.relation, DF.namedNode('pred')),
         DF.quad(DF.namedNode('collection:3'), RDF.terms.type, ODRL.terms.AssetCollection),
-        DF.quad(DF.namedNode('collection:3'), ODRL.terms.source, DF.namedNode('1')),
+        DF.quad(DF.namedNode('collection:3'), ODRL.terms.source, DF.namedNode('urn:uuid:1')),
         DF.quad(DF.namedNode('collection:3'), ODRL_P.terms.relation, DF.blankNode('n3-0')),
         DF.quad(DF.blankNode('n3-0'), OWL.terms.inverseOf, DF.namedNode('rPred')),
       ]);
@@ -148,15 +148,15 @@ describe('ResourceRegistration', (): void => {
       input.request.body!.name = 'entry';
       await expect(handler.handle(input)).resolves.toEqual({
         status: 201,
-        headers: { location: `http://example.com/foo/uuid` },
-        body: { _id: 'uuid', user_access_policy_uri: 'TODO: implement policy UI' },
+        headers: { location: `http://example.com/foo/urn%3Auuid%3Auuid` },
+        body: { _id: 'urn:uuid:uuid', user_access_policy_uri: 'TODO: implement policy UI' },
       });
       expect(policies.addRule).toHaveBeenCalledTimes(1);
       const newStore = policies.addRule.mock.calls[0][0];
       expect(newStore).toBeRdfIsomorphic([
-        ...createOwnerAccessPolicy('uuid', owner).getQuads(null, null, null, null),
-        DF.quad(DF.namedNode('uuid'), ODRL.terms.partOf, DF.namedNode('collection:1')),
-        DF.quad(DF.namedNode('uuid'), ODRL.terms.partOf, DF.namedNode('collection:2')),
+        ...createOwnerAccessPolicy('urn:uuid:uuid', owner).getQuads(null, null, null, null),
+        DF.quad(DF.namedNode('urn:uuid:uuid'), ODRL.terms.partOf, DF.namedNode('collection:1')),
+        DF.quad(DF.namedNode('urn:uuid:uuid'), ODRL.terms.partOf, DF.namedNode('collection:2')),
       ]);
     });
   });

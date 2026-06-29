@@ -34,6 +34,8 @@ export type CollectionMetadata = { relation: NamedNode, source: NamedNode, rever
 
 const getCurrentTimestamp = (): string => new Date().toISOString();
 
+const generateResourceId = (): string => `urn:uuid:${randomUUID()}`;
+
 /**
  * A ResourceRegistrationRequestHandler is tasked with implementing
  * section 3.2 from the User-Managed Access (UMA) Federated Auth 2.0.
@@ -112,7 +114,7 @@ export class ResourceRegistrationRequestHandler extends HttpHandler {
       throw new BadRequestHttpError(`Request has bad syntax: ${createErrorMessage(e)}`);
     }
 
-    const resource = randomUUID();
+    const resource = generateResourceId();
 
     // Set the resource metadata
     const registration = await this.setResourceMetadata(resource, body, owner, resourceServer);
