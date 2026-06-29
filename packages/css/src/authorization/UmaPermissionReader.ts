@@ -1,6 +1,7 @@
 import {
   createErrorMessage,
   IdentifierMap,
+  KeyValueStorage,
   MultiPermissionMap,
   PermissionReader,
   PermissionReaderInput,
@@ -22,6 +23,7 @@ export class UmaPermissionReader extends PermissionReader {
 
   public constructor(
     protected readonly ownerUtil?: OwnerUtil,
+    protected readonly umaIdStore?: KeyValueStorage<string, string>,
   ) {
     super();
   }
@@ -52,7 +54,12 @@ export class UmaPermissionReader extends PermissionReader {
     }
 
     for (const { resource_id, resource_scopes, iat: p_iat, exp: p_exp, nbf: p_nbf } of permissions ?? []) {
-      if (!await this.isIssuerAllowed({ path: resource_id }, rpt.iss)) {
+      const resource = await this.getResourceIdentifier(resource_id);
+      if (!resource) {
+        this.logger.warn(`Ignoring UMA permission for ${resource_id}: no matching registered resource was found.`);
+        continue;
+      }
+      if (!await this.isIssuerAllowed(resource, rpt.iss)) {
         this.logger.warn(`Ignoring UMA permission for ${resource_id}: token issuer is not linked to the resource.`);
         continue;
       }
@@ -75,9 +82,21 @@ export class UmaPermissionReader extends PermissionReader {
         return [toCssMode(scope as VocabularyValue<typeof MODES>), true];
       }));
 
-      result.set({ path: resource_id }, permissionSet);
+      result.set(resource, permissionSet);
     }
     return result;
+  }
+
+  protected async getResourceIdentifier(resourceId: string): Promise<ResourceIdentifier | undefined> {
+    if (!this.umaIdStore) {
+      return { path: resourceId };
+    }
+
+    for await (const [ path, umaId ] of this.umaIdStore.entries()) {
+      if (umaId === resourceId) {
+        return { path };
+      }
+    }
   }
 
   protected async isIssuerAllowed(resource: ResourceIdentifier, issuer?: string): Promise<boolean> {

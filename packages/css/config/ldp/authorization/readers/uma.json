@@ -31,6 +31,9 @@
             "@type": "UmaPermissionReader",
             "ownerUtil": {
               "@id": "urn:solid-server:default:OwnerUtil"
+            },
+            "umaIdStore": {
+              "@id": "urn:solid-server:default:UmaIdStore"
             }
           }
         ]

@@ -1,5 +1,6 @@
-import { IdentifierMap, PermissionReaderInput } from '@solid/community-server';
+import { IdentifierMap, KeyValueStorage, PermissionReaderInput } from '@solid/community-server';
 import { PERMISSIONS } from '@solidlab/policy-engine';
+import { Mocked } from 'vitest';
 import { UmaPermissionReader } from '../../../src/authorization/UmaPermissionReader';
 import { UmaClaims } from '../../../src/uma/UmaClient';
 import { OwnerUtil } from '../../../src/util/OwnerUtil';
@@ -23,6 +24,26 @@ describe('UmaPermissionReader', (): void => {
     expect([ ...result.keys() ]).toEqual([ { path: 'id1' }, { path: 'id2' } ]);
     expect(result.get({ path: 'id1' })).toEqual({ [PERMISSIONS.Read]: true, [PERMISSIONS.Modify]: true });
     expect(result.get({ path: 'id2' })).toEqual({ [PERMISSIONS.Create]: true });
+  });
+
+  it('maps UMA resource ids back to CSS resource paths.', async(): Promise<void> => {
+    const umaIdStore = {
+      entries: vi.fn(async function*(): AsyncIterableIterator<[string, string]> {
+        yield [ '/foo', 'uuid-1' ];
+        yield [ '/bar', 'uuid-2' ];
+      }),
+    } satisfies Partial<KeyValueStorage<string, string>> as Mocked<KeyValueStorage<string, string>>;
+    const mappingReader = new UmaPermissionReader(undefined, umaIdStore);
+
+    rpt.permissions = [
+      { resource_id: 'uuid-1', resource_scopes: [ 'urn:example:css:modes:read' ]},
+      { resource_id: 'uuid-2', resource_scopes: [ 'urn:example:css:modes:create' ]},
+    ];
+
+    const result = await mappingReader.handle(input);
+    expect([ ...result.keys() ]).toEqual([ { path: '/foo' }, { path: '/bar' } ]);
+    expect(result.get({ path: '/foo' })).toEqual({ [PERMISSIONS.Read]: true });
+    expect(result.get({ path: '/bar' })).toEqual({ [PERMISSIONS.Create]: true });
   });
 
   it('returns an empty result if the token has invalid time restrictions.', async(): Promise<void> => {
