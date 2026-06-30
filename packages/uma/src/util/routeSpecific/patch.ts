@@ -3,6 +3,7 @@ import { DataFactory, Store } from "n3";
 import { v4 as uuid } from 'uuid';
 import { ODRL } from '../../ucp/util/Vocabularies';
 import {queryEngine} from './index';
+import { resolveAccessRequestId } from './get';
 
 const { namedNode, quad } = DataFactory;
 
@@ -137,11 +138,12 @@ export const patchAccessRequest = async (
     patchInformation: string
 ) => {
     if (!['accepted', 'denied'].includes(patchInformation)) return ; // ? perhaps throw an error?
-    const patchQuery = buildAccessRequestModificationQuery(accessRequestID, resourceOwner, patchInformation);
+    const resolvedAccessRequestID = resolveAccessRequestId(store, accessRequestID);
+    const patchQuery = buildAccessRequestModificationQuery(resolvedAccessRequestID, resourceOwner, patchInformation);
     await queryEngine.queryVoid(patchQuery, { sources: [store] });
 
     if (patchInformation === 'accepted') {
-        const newPolicyQuery = buildPolicyCreationFromAccessRequestQuery(accessRequestID, uuid(), uuid(), resourceOwner);
+        const newPolicyQuery = buildPolicyCreationFromAccessRequestQuery(resolvedAccessRequestID, uuid(), uuid(), resourceOwner);
         await queryEngine.queryVoid(newPolicyQuery, { sources: [store] });
     }
 }

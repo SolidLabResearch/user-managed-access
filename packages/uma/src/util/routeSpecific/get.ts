@@ -1,5 +1,35 @@
-import { Store } from "n3";
+import { BadRequestHttpError, RDF } from '@solid/community-server';
+import { DataFactory, Store } from "n3";
 import {queryEngine} from './index';
+
+const { namedNode } = DataFactory;
+const ACCESS_REQUEST_TYPE = namedNode("https://w3id.org/force/sotw#EvaluationRequest");
+
+export const resolveAccessRequestId = (store: Store, accessRequestID: string): string => {
+    const decodedID = decodeURIComponent(accessRequestID);
+    const candidateIDs = [
+        accessRequestID,
+        decodedID,
+        decodedID.startsWith('2F') ? decodedID.slice(2) : decodedID,
+    ].filter((id, index, ids) => id && ids.indexOf(id) === index);
+
+    const requestIDs = store
+        .getSubjects(RDF.terms.type, ACCESS_REQUEST_TYPE, null)
+        .filter((subject) => subject.termType === 'NamedNode')
+        .map((subject) => subject.value);
+
+    const exactMatch = requestIDs.find((requestID) => candidateIDs.includes(requestID));
+    if (exactMatch) return exactMatch;
+
+    const matches = requestIDs.filter((requestID) =>
+        candidateIDs.some((candidateID) =>
+            !candidateID.includes('://') && requestID.endsWith(`/${candidateID}`)));
+
+    if (matches.length > 1) {
+        throw new BadRequestHttpError(`Ambiguous access request id ${accessRequestID}.`);
+    }
+    return matches[0] ?? accessRequestID;
+};
 
 /**
  * Run a query against a store and collect the matching subgraphs.
@@ -137,6 +167,7 @@ const buildAccessRequestRetrievalQuery = (requestID: string, requestingPartyOrRe
 
     SELECT DISTINCT ?req
     WHERE {
+        BIND(<${requestID}> AS ?req)
         {
             <${requestID}> sotw:requestingParty <${requestingPartyOrResourceOwner}> .
         } 
@@ -161,7 +192,7 @@ const buildAccessRequestRetrievalQuery = (requestID: string, requestingPartyOrRe
  * @returns a store containing the request
  */
 export const getAccessRequest = (store: Store, accessRequestID: string, requestingPartyOrResourceOwner: string) =>
-    executeGet(store, buildAccessRequestRetrievalQuery(accessRequestID, requestingPartyOrResourceOwner), ['req']);
+    executeGet(store, buildAccessRequestRetrievalQuery(resolveAccessRequestId(store, accessRequestID), requestingPartyOrResourceOwner), ['req']);
 
 /**
  * Build a query to retrieve all requests for a client,
