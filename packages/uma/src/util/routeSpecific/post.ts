@@ -2,7 +2,61 @@ import { Store, DataFactory } from "n3";
 import {queryEngine} from './index';
 import { BadRequestHttpError, ForbiddenHttpError, RDF, XSD } from "@solid/community-server";
 import { ODRL } from '../../ucp/util/Vocabularies';
+import { randomUUID } from 'node:crypto';
+import { Ticket } from '../../ticketing/Ticket';
 const {literal, namedNode, quad} = DataFactory
+
+const EX = 'http://example.org/';
+const SOTW = 'https://w3id.org/force/sotw#';
+const DCTERMS = 'http://purl.org/dc/terms/';
+
+const scopeCssToOdrl: Record<string, string> = {
+    'urn:example:css:modes:read': ODRL.read,
+    'urn:example:css:modes:append': ODRL.append,
+    'urn:example:css:modes:create': ODRL.create,
+    'urn:example:css:modes:delete': ODRL.delete,
+    'urn:example:css:modes:write': ODRL.write,
+};
+
+const toOdrlAction = (scope: string): string => {
+    const action = scopeCssToOdrl[scope];
+    if (!action) {
+        throw new BadRequestHttpError(`Unsupported action ${scope}`);
+    }
+    return action;
+};
+
+const generateAccessRequestId = (): string => `urn:uuid:${randomUUID()}`;
+
+export const createAccessRequestsFromTicket = (ticket: Ticket, requestingParty: string): Store => {
+    const result = new Store();
+    const issued = literal(new Date().toISOString(), XSD.terms.dateTime);
+
+    for (const permission of ticket.permissions) {
+        if (permission.resource_scopes.length === 0) {
+            throw new BadRequestHttpError('Cannot create an access request without requested scopes.');
+        }
+
+        const request = namedNode(generateAccessRequestId());
+        result.addQuads([
+            quad(request, RDF.terms.type, namedNode(`${SOTW}EvaluationRequest`)),
+            quad(request, namedNode(`${DCTERMS}issued`), issued),
+            quad(request, namedNode(`${SOTW}requestedTarget`), namedNode(permission.resource_id)),
+            quad(request, namedNode(`${SOTW}requestingParty`), namedNode(requestingParty)),
+            quad(request, namedNode(`${EX}requestStatus`), namedNode(`${EX}requested`)),
+        ]);
+
+        for (const scope of permission.resource_scopes) {
+            result.addQuad(request, namedNode(`${SOTW}requestedAction`), namedNode(toOdrlAction(scope)));
+        }
+    }
+
+    if (result.size === 0) {
+        throw new BadRequestHttpError('Cannot create an access request from a ticket without permissions.');
+    }
+
+    return result;
+};
 /**
  * Run a query against the store and extract exactly one matching subgraph.
  *

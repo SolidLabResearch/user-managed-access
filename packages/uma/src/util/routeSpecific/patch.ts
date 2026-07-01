@@ -7,6 +7,13 @@ import { resolveAccessRequestId } from './get';
 
 const { namedNode, quad } = DataFactory;
 
+const EX = 'http://example.org/';
+const SOTW = 'https://w3id.org/force/sotw#';
+const ACCESS_REQUEST_TYPE = namedNode(`${SOTW}EvaluationRequest`);
+const REQUEST_STATUS = namedNode(`${EX}requestStatus`);
+const REQUESTED_STATUS = namedNode(`${EX}requested`);
+const REQUESTED_TARGET = namedNode(`${SOTW}requestedTarget`);
+
 /**
  * Update a policy in the store, provided that the client is its assigner.
  *
@@ -139,12 +146,35 @@ export const patchAccessRequest = async (
 ) => {
     if (!['accepted', 'denied'].includes(patchInformation)) return ; // ? perhaps throw an error?
     const resolvedAccessRequestID = resolveAccessRequestId(store, accessRequestID);
+    validatePatchAccessRequest(store, resolvedAccessRequestID, resourceOwner);
+
     const patchQuery = buildAccessRequestModificationQuery(resolvedAccessRequestID, resourceOwner, patchInformation);
     await queryEngine.queryVoid(patchQuery, { sources: [store] });
 
     if (patchInformation === 'accepted') {
         const newPolicyQuery = buildPolicyCreationFromAccessRequestQuery(resolvedAccessRequestID, uuid(), uuid(), resourceOwner);
         await queryEngine.queryVoid(newPolicyQuery, { sources: [store] });
+    }
+}
+
+const validatePatchAccessRequest = (store: Store, accessRequestID: string, resourceOwner: string): void => {
+    const request = namedNode(accessRequestID);
+    if (!store.has(quad(request, RDF.terms.type, ACCESS_REQUEST_TYPE))) {
+        throw new PatchError(404, 'Unknown access request.');
+    }
+    if (!store.has(quad(request, REQUEST_STATUS, REQUESTED_STATUS))) {
+        throw new PatchError(400, 'Access request is not pending.');
+    }
+
+    const targets = store.getObjects(request, REQUESTED_TARGET, null);
+    const canManage = targets.some((target) =>
+        store.getSubjects(ODRL.terms.target, target, null)
+            .some((permission) =>
+                (permission.termType === 'NamedNode' || permission.termType === 'BlankNode') &&
+                store.has(quad(permission, ODRL.terms.assigner, namedNode(resourceOwner)))));
+
+    if (!canManage) {
+        throw new PatchError(403, "resource owner doesn't match");
     }
 }
 

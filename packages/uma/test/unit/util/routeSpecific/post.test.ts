@@ -1,7 +1,9 @@
 import { RDF } from '@solid/community-server';
-import { Parser, Store } from 'n3';
-import { postPolicy } from '../../../../src/util/routeSpecific/post';
+import { DataFactory, Parser, Store } from 'n3';
+import { createAccessRequestsFromTicket, postPolicy } from '../../../../src/util/routeSpecific/post';
 import { ODRL } from '../../../../src/ucp/util/Vocabularies';
+
+const { namedNode } = DataFactory;
 
 describe('routeSpecific/post', (): void => {
   const owner = 'http://rs.local:3000/alice/profile/card#me';
@@ -44,6 +46,28 @@ describe('routeSpecific/post', (): void => {
     const result = await postPolicy(store, owner);
 
     expect(result.size).toBe(store.size);
+  });
+
+  it('creates access requests from ticket permissions with repeated requested actions.', (): void => {
+    const result = createAccessRequestsFromTicket({
+      permissions: [{
+        resource_id: target,
+        resource_scopes: [
+          'urn:example:css:modes:read',
+          'urn:example:css:modes:write',
+        ],
+      }],
+      required: [],
+      provided: {},
+    }, owner);
+
+    const request = result.getSubjects(RDF.terms.type, namedNode('https://w3id.org/force/sotw#EvaluationRequest'), null)[0];
+
+    expect(request).toBeDefined();
+    expect(result.countQuads(request, namedNode('https://w3id.org/force/sotw#requestedTarget'), namedNode(target), null)).toBe(1);
+    expect(result.countQuads(request, namedNode('https://w3id.org/force/sotw#requestingParty'), namedNode(owner), null)).toBe(1);
+    expect(result.countQuads(request, namedNode('https://w3id.org/force/sotw#requestedAction'), ODRL.terms.read, null)).toBe(1);
+    expect(result.countQuads(request, namedNode('https://w3id.org/force/sotw#requestedAction'), ODRL.terms.write, null)).toBe(1);
   });
 
   function parsePolicy(policy: string): Store {

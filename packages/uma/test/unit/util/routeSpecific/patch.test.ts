@@ -8,15 +8,44 @@ describe('routeSpecific/patch', (): void => {
   const requester = 'http://rs.local:3000/bob/profile/card#me';
   const target = 'http://rs.local:3000/alice/resource.txt';
   const request = 'https://solid4media.ilabt.imec.be/uma/access-requests/34f152162e6e5e3c';
+  const urnRequest = 'urn:uuid:fb26b948-9f9e-4c74-8192-36e7a560ba79';
 
   it('can accept an access request by compact id.', async(): Promise<void> => {
-    const store = new Store(new Parser().parse(`
+    const store = createStore(request);
+
+    await patchAccessRequest(store, '2F34f152162e6e5e3c', owner, 'accepted');
+
+    expect(store.countQuads(namedNode(request), namedNode('http://example.org/requestStatus'), namedNode('http://example.org/accepted'), null)).toBe(1);
+    expect(store.countQuads(null, namedNode('http://www.w3.org/ns/odrl/2/assignee'), namedNode(requester), null)).toBe(1);
+  });
+
+  it('can accept an access request by encoded URN id.', async(): Promise<void> => {
+    const store = createStore(urnRequest);
+
+    await patchAccessRequest(store, 'urn%3Auuid%3Afb26b948-9f9e-4c74-8192-36e7a560ba79', owner, 'accepted');
+
+    expect(store.countQuads(namedNode(urnRequest), namedNode('http://example.org/requestStatus'), namedNode('http://example.org/accepted'), null)).toBe(1);
+    expect(store.countQuads(null, namedNode('http://www.w3.org/ns/odrl/2/assignee'), namedNode(requester), null)).toBe(1);
+  });
+
+  it('rejects access request acceptance by a non-owner.', async(): Promise<void> => {
+    const store = createStore(urnRequest);
+
+    await expect(patchAccessRequest(store, 'urn%3Auuid%3Afb26b948-9f9e-4c74-8192-36e7a560ba79', requester, 'accepted'))
+      .rejects.toMatchObject({ status: 403 });
+
+    expect(store.countQuads(namedNode(urnRequest), namedNode('http://example.org/requestStatus'), namedNode('http://example.org/accepted'), null)).toBe(0);
+    expect(store.countQuads(null, namedNode('http://www.w3.org/ns/odrl/2/assignee'), namedNode(requester), null)).toBe(0);
+  });
+
+  function createStore(requestId: string): Store {
+    return new Store(new Parser().parse(`
       @prefix ex: <http://example.org/> .
       @prefix sotw: <https://w3id.org/force/sotw#> .
       @prefix dcterms: <http://purl.org/dc/terms/> .
       @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 
-      <${request}> a sotw:EvaluationRequest ;
+      <${requestId}> a sotw:EvaluationRequest ;
         dcterms:issued "2026-06-30T00:00:00.000Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
         sotw:requestedTarget <${target}> ;
         sotw:requestedAction odrl:read ;
@@ -30,10 +59,5 @@ describe('routeSpecific/patch', (): void => {
         odrl:target <${target}> ;
         odrl:assigner <${owner}> .
     `));
-
-    await patchAccessRequest(store, '2F34f152162e6e5e3c', owner, 'accepted');
-
-    expect(store.countQuads(namedNode(request), namedNode('http://example.org/requestStatus'), namedNode('http://example.org/accepted'), null)).toBe(1);
-    expect(store.countQuads(null, namedNode('http://www.w3.org/ns/odrl/2/assignee'), namedNode(requester), null)).toBe(1);
-  });
+  }
 });
