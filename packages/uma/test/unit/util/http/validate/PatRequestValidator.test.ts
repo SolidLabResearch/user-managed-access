@@ -4,7 +4,7 @@ import {
   CLIENT_REGISTRATION_STORAGE_DESCRIPTION,
   CLIENT_REGISTRATION_STORAGE_TYPE
 } from '../../../../../src/routes/ClientRegistration';
-import { PAT_STORAGE_DESCRIPTION, PAT_STORAGE_TYPE } from '../../../../../src/routes/Token';
+import { PAT_STORAGE_DESCRIPTION, PAT_STORAGE_TYPE } from '../../../../../src/routes/token/UmaProtection';
 import { HttpHandlerRequest } from '../../../../../src/util/http/models/HttpHandler';
 import { PatRequestValidator } from '../../../../../src/util/http/validate/PatRequestValidator';
 

@@ -54,6 +54,7 @@ export * from './routes/Contract';
 export * from './routes/BaseHandler';
 export * from './routes/ClientRegistration';
 export * from './routes/Collection';
+export * from './routes/token/UmaProtection';
 
 // Tickets
 export * from './ticketing/Ticket';
