@@ -1,51 +1,15 @@
-import {
-  AlgJwk,
-  ForbiddenHttpError,
-  IndexedStorage,
-  JwkGenerator,
-  UnauthorizedHttpError
-} from '@solid/community-server';
-import { decodeJwt, exportJWK, generateKeyPair, GenerateKeyPairResult, importJWK, jwtVerify, KeyLike } from 'jose';
-import { beforeAll, Mocked } from 'vitest';
+import { Mocked } from 'vitest';
 import { Negotiator } from '../../../src/dialog/Negotiator';
 import { NeedInfoError } from '../../../src/errors/NeedInfoError';
-import {
-  CLIENT_REGISTRATION_STORAGE_DESCRIPTION,
-  CLIENT_REGISTRATION_STORAGE_TYPE
-} from '../../../src/routes/ClientRegistration';
-import { PAT_STORAGE_DESCRIPTION, PAT_STORAGE_TYPE, TokenRequestHandler } from '../../../src/routes/Token';
-import { HttpHandlerRequest } from '../../../src/util/http/models/HttpHandler';
-
-vi.useFakeTimers();
+import { TokenRequestHandler } from '../../../src/routes/Token';
+import { HttpHandler, HttpHandlerContext, HttpHandlerRequest } from '../../../src/util/http/models/HttpHandler';
 
 describe('Token', (): void => {
-  const now = Date.now();
-  const clientUri = 'http://example.org';
-  const baseUrl = 'http://example.com';
-  const userId = 'userId';
-  const registrationId = 'registrationId';
-  const clientId = 'clientId';
-  const clientSecret = 'sec ret';
-  const encoded = Buffer.from('clientId:sec%20ret', 'utf8').toString('base64');
-  const alg = 'ES256';
-  let keys: GenerateKeyPairResult;
-  let publicKey: AlgJwk;
-  let privateKey: AlgJwk;
   let request: HttpHandlerRequest;
 
   let negotiator: Mocked<Negotiator>;
-  let storage: Mocked<IndexedStorage<{
-    [CLIENT_REGISTRATION_STORAGE_TYPE]: typeof CLIENT_REGISTRATION_STORAGE_DESCRIPTION,
-    [PAT_STORAGE_TYPE]: typeof PAT_STORAGE_DESCRIPTION,
-  }>>;
-  let keyGen: Mocked<JwkGenerator>;
+  let umaProtection: Mocked<HttpHandler>;
   let handler: TokenRequestHandler;
-
-  beforeAll(async(): Promise<void> => {
-    keys = await generateKeyPair(alg);
-    publicKey = { ...await exportJWK(keys.publicKey), alg };
-    privateKey = { ...await exportJWK(keys.privateKey), alg };
-  });
 
   beforeEach(async(): Promise<void> => {
     request = {
@@ -60,22 +24,10 @@ describe('Token', (): void => {
       negotiate: vi.fn().mockResolvedValue('response'),
     };
 
-    storage = {
-      defineType: vi.fn(),
-      createIndex: vi.fn(),
-      find: vi.fn().mockResolvedValue([{ id: registrationId, clientId, clientSecret, clientUri, userId }]),
-      findIds: vi.fn().mockResolvedValue([]),
-      set: vi.fn(),
-      create: vi.fn(),
-    } as any;
-
-    keyGen = {
-      alg: alg,
-      getPublicKey: vi.fn().mockResolvedValue(publicKey),
-      getPrivateKey: vi.fn().mockResolvedValue(privateKey),
-    };
-
-    handler = new TokenRequestHandler(negotiator, storage as any, keyGen, baseUrl);
+    umaProtection = {
+      handleSafe: vi.fn().mockResolvedValue({ status: 201, body: { access_token: 'pat' }}),
+    } satisfies Partial<HttpHandler> as any;
+    handler = new TokenRequestHandler(negotiator, umaProtection);
   });
 
   it('throws an error if the body is invalid.', async(): Promise<void> => {
@@ -105,11 +57,11 @@ describe('Token', (): void => {
     });
 
     it('returns a 403 with the ticket if negotiation needs more info.', async(): Promise<void> => {
-      const needInfo = new NeedInfoError('msg', 'ticket', { required_claims: { claim_token_format: [[ 'format' ]] } });
+      const needInfo = new NeedInfoError('msg', 'ticket', { required_claims: [{ claim_token_format: 'format' }] });
       negotiator.negotiate.mockRejectedValueOnce(needInfo);
       await expect(handler.handle({ request })).resolves.toEqual({ status: 403, body: {
           ticket: 'ticket',
-          required_claims: { claim_token_format: [[ 'format' ]] },
+          required_claims: [{ claim_token_format: 'format' }],
         }});
     });
 
@@ -119,203 +71,29 @@ describe('Token', (): void => {
     });
   });
 
-  describe('using client credentials', (): void => {
+  describe('delegating uma_protection requests', (): void => {
     beforeEach(async(): Promise<void> => {
       request.headers = {
-        authorization: `Basic ${encoded}`,
+        authorization: 'Basic encoded',
       };
       request.body =  {
-        grant_type: 'client_credentials',
+        grant_type: 'not supported here',
         scope: 'uma_protection',
       };
     });
 
-    it('errors if the authorization header is missing.', async(): Promise<void> => {
-      delete request.headers.authorization;
-      await expect(handler.handle({ request })).rejects.toThrow(UnauthorizedHttpError);
-    });
-
-    it('errors if the scope is wrong.', async(): Promise<void> => {
-      request.body = { grant_type: 'client_credentials' };
-      await expect(handler.handle({ request })).rejects.toThrow(`Expected scope 'uma_protection'`);
-    });
-
-    it('errors for non-Basic authorization schemes.', async(): Promise<void> => {
-      request.headers.authorization = `Bearer ${encoded}`;
-      await expect(handler.handle({ request })).rejects.toThrow(`Expected scheme 'Basic'`);
-    });
-
-    it('errors if the credentials are not known.', async(): Promise<void> => {
-      storage.find.mockResolvedValueOnce([]);
-      await expect(handler.handle({ request })).rejects.toThrow(ForbiddenHttpError);
-    });
-
-    it('generates a token response.', async(): Promise<void> => {
+    it('returns the delegated response unchanged.', async(): Promise<void> => {
       const response = await handler.handle({ request });
-      expect(response).toEqual({
-        status: 201,
-        body: {
-          access_token: expect.any(String),
-          refresh_token: expect.any(String),
-          token_type: 'Bearer',
-          expires_in: 1800,
-          scope: 'uma_protection',
-        }
-      });
-
-      expect(storage.find).toHaveBeenCalledTimes(1);
-      expect(storage.find).toHaveBeenLastCalledWith(CLIENT_REGISTRATION_STORAGE_TYPE, {
-        clientId: clientId,
-        clientSecret: clientSecret,
-      });
-      expect(storage.findIds).toHaveBeenCalledTimes(1);
-      expect(storage.findIds).toHaveBeenLastCalledWith(PAT_STORAGE_TYPE, { registration: registrationId });
-      expect(storage.create).toHaveBeenCalledTimes(1);
-      expect(storage.create).toHaveBeenLastCalledWith(PAT_STORAGE_TYPE, {
-        pat: response.body.access_token,
-        refreshToken: response.body.refresh_token,
-        expiration: now + 1800 * 1000,
-        registration: registrationId,
-      });
-
-      const jwk = await importJWK(publicKey, publicKey.alg);
-      const decodedToken = await jwtVerify(response.body.access_token, jwk);
-      expect(decodedToken.payload).toEqual({
-        scope: 'uma_protection',
-        azp: clientId,
-        client_id: clientId,
-        iat: Math.floor(now/1000),
-        sub: userId,
-        iss: baseUrl,
-        aud: baseUrl,
-        exp: Math.floor(now/1000) + 1800,
-        jti: expect.any(String),
-      })
+      expect(response).toEqual({ status: 201, body: { access_token: 'pat' }});
+      expect(umaProtection.handleSafe).toHaveBeenCalledTimes(1);
+      expect(umaProtection.handleSafe).toHaveBeenLastCalledWith({ request });
+      expect(negotiator.negotiate).toHaveBeenCalledTimes(0);
     });
 
-    it('replaces the token for the given credentials if there is one.', async(): Promise<void> => {
-      storage.findIds.mockResolvedValueOnce(['patId']);
-      const response = await handler.handle({ request });
-      expect(response).toEqual({
-        status: 201,
-        body: {
-          access_token: expect.any(String),
-          refresh_token: expect.any(String),
-          token_type: 'Bearer',
-          expires_in: 1800,
-          scope: 'uma_protection',
-        }
-      });
-      expect(storage.create).toHaveBeenCalledTimes(0);
-      expect(storage.set).toHaveBeenCalledTimes(1);
-      expect(storage.set).toHaveBeenLastCalledWith(PAT_STORAGE_TYPE, {
-        id: 'patId',
-        pat: response.body.access_token,
-        refreshToken: response.body.refresh_token,
-        expiration: now + 1800 * 1000,
-        registration: registrationId,
-      });
-    });
-  });
-
-  describe('using a refresh token', (): void => {
-    const refreshToken = 'refreshToken';
-    const patId = 'patId';
-
-    beforeEach(async(): Promise<void> => {
-      request.headers = {
-        authorization: `Basic ${encoded}`,
-      };
-      request.body =  {
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-        scope: 'uma_protection',
-      };
-
-      storage.find.mockImplementation((type): any => {
-        if (type === CLIENT_REGISTRATION_STORAGE_TYPE) {
-          return [{ id: registrationId, clientId, clientSecret, clientUri, userId }];
-        }
-        return [{ id: patId, registration: registrationId, refreshToken: refreshToken }];
-      });
-    });
-
-    it('errors if no refresh token is provided.', async(): Promise<void> => {
-      request.body = {
-        grant_type: 'refresh_token',
-        scope: 'uma_protection',
-      };
-      await expect(handler.handle({ request })).rejects.toThrow('Missing refresh_token parameter');
-    });
-
-    it('errors if no matching refresh token could be found.', async(): Promise<void> => {
-      storage.find.mockResolvedValueOnce([]);
-      await expect(handler.handle({ request })).rejects.toThrow(`Unknown refresh token ${refreshToken}`);
-    });
-
-    it('errors if the authorization header is missing.', async(): Promise<void> => {
-      delete request.headers.authorization;
-      await expect(handler.handle({ request })).rejects.toThrow(UnauthorizedHttpError);
-    });
-
-    it('errors if the scope is wrong.', async(): Promise<void> => {
-      request.body = { grant_type: 'client_credentials' };
-      await expect(handler.handle({ request })).rejects.toThrow(`Expected scope 'uma_protection'`);
-    });
-
-    it('errors for non-Basic authorization schemes.', async(): Promise<void> => {
-      request.headers.authorization = `Bearer ${encoded}`;
-      await expect(handler.handle({ request })).rejects.toThrow(`Expected scheme 'Basic'`);
-    });
-
-    it('errors if the credentials are not known.', async(): Promise<void> => {
-      storage.find.mockImplementation((type): any => {
-        if (type === CLIENT_REGISTRATION_STORAGE_TYPE) {
-          return [];
-        }
-        return [{ id: patId, registration: registrationId, refreshToken: refreshToken }];
-      });
-      await expect(handler.handle({ request })).rejects.toThrow(ForbiddenHttpError);
-    });
-
-    it('errors if the refresh token is not associated with these credentials.', async(): Promise<void> => {
-      storage.find.mockImplementation((type): any => {
-        if (type === CLIENT_REGISTRATION_STORAGE_TYPE) {
-          return [{ id: 'wrongId', clientId, clientSecret, clientUri, userId }];
-        }
-        return [{ id: patId, registration: registrationId, refreshToken: refreshToken }];
-      });
-      await expect(handler.handle({ request })).rejects.toThrow(`Wrong credentials for refresh token ${refreshToken}`);
-    });
-
-    it('generates a token response.', async(): Promise<void> => {
-      const response = await handler.handle({ request });
-      expect(response).toEqual({
-        status: 201,
-        body: {
-          access_token: expect.any(String),
-          refresh_token: expect.any(String),
-          token_type: 'Bearer',
-          expires_in: 1800,
-          scope: 'uma_protection',
-        }
-      });
-
-      expect(storage.find).toHaveBeenCalledTimes(2);
-      expect(storage.find).nthCalledWith(1, PAT_STORAGE_TYPE, { refreshToken });
-      expect(storage.find).nthCalledWith(2, CLIENT_REGISTRATION_STORAGE_TYPE, {
-        clientId: clientId,
-        clientSecret: clientSecret,
-      });
-      expect(storage.create).toHaveBeenCalledTimes(0);
-      expect(storage.set).toHaveBeenCalledTimes(1);
-      expect(storage.set).toHaveBeenLastCalledWith(PAT_STORAGE_TYPE, {
-        id: 'patId',
-        pat: response.body.access_token,
-        refreshToken: response.body.refresh_token,
-        expiration: now + 1800 * 1000,
-        registration: registrationId,
-      });
+    it('routes based on scope before checking if Token supports the grant type.', async(): Promise<void> => {
+      umaProtection.handleSafe.mockResolvedValueOnce({ status: 400, body: { error: 'from-uma' }});
+      await expect(handler.handle({ request })).resolves.toEqual({ status: 400, body: { error: 'from-uma' }});
+      expect(umaProtection.handleSafe).toHaveBeenCalledTimes(1);
     });
   });
 });

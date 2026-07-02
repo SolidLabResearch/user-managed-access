@@ -8,7 +8,7 @@ import {
   CLIENT_REGISTRATION_STORAGE_DESCRIPTION,
   CLIENT_REGISTRATION_STORAGE_TYPE
 } from '../../../routes/ClientRegistration';
-import { PAT_STORAGE_DESCRIPTION, PAT_STORAGE_TYPE } from '../../../routes/Token';
+import { PAT_STORAGE_DESCRIPTION, PAT_STORAGE_TYPE } from '../../../routes/token/UmaProtection';
 import { RequestValidator, RequestValidatorInput, RequestValidatorOutput } from './RequestValidator';
 
 /**
