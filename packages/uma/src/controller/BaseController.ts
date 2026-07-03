@@ -19,7 +19,7 @@ export abstract class BaseController {
         protected readonly sanitizeDelete: (store: Store, entityID: string, clientID: string) => Promise<void>,
         protected readonly sanitizeGets: (store: Store, clientID: string) => Promise<Store>,
         protected readonly sanitizeGet: (store: Store, entityID: string, clientID: string) => Promise<Store>,
-        protected readonly sanitizePatch: (store: Store, entityID: string, clientID: string, patchInformation: string) => Promise<void>
+        protected readonly sanitizePatch: (store: Store, entityID: string | undefined, clientID: string, patchInformation: string) => Promise<void>
     ) { }
 
     /**
@@ -58,7 +58,7 @@ export abstract class BaseController {
     /**
      * Retrieve a single policy (including its rules) or access request identified by `entityID` for a given `clientID`.
      *
-     * @param entityID ID pointing to the policy or access request
+     * @param entityID ID pointing to the policy or access request, if supplied by the route
      * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
      * @returns a Turtle-serialized representation of the policy/access request and HTTP status code (200),
      *          or an empty body with status 404 if not found
@@ -121,13 +121,17 @@ export abstract class BaseController {
      * @returns a status code:
      *          - 204 if patching was successful
      */
-    public async patchEntity(entityID: string, patchInformation: string, clientID: string, isolate: boolean = true): Promise<{ status: number, message: string }> {
+    public async patchEntity(entityID: string | undefined, patchInformation: string, clientID: string, isolate: boolean = true): Promise<{ status: number, message: string }> {
         let response = { status: 204, message: '' };
         let filteredStore = new Store(await this.store.getStore());
         let omitStore: Store;
 
+        if (isolate && entityID === undefined) {
+            return { status: 400, message: 'Missing entity id.' };
+        }
+
         if (isolate) { // requires isolating all information about the entity provided, as e.g. the patchinformation has a query to be executed
-            filteredStore = await this.sanitizeGet(filteredStore, entityID, clientID);
+            filteredStore = await this.sanitizeGet(filteredStore, entityID!, clientID);
             omitStore = new Store(await this.store.getStore());
             omitStore.removeQuads([ ...filteredStore]);
         }
@@ -135,7 +139,7 @@ export abstract class BaseController {
         try {
             await this.sanitizePatch(filteredStore, entityID, clientID, patchInformation);
         } catch (e) {
-            response = { status: e.status || 500, message: e.message };
+            return { status: e.status || 500, message: e.message };
         }
 
         if (isolate) {
@@ -143,7 +147,7 @@ export abstract class BaseController {
             // * bonus: filters out extra quads
             // ! drawback: PATCH may still be used to DELETE all information about the entity
             // TODO: check if PATCH is smth we want for all resources, make patchEntity optional otherwise
-            filteredStore = await this.sanitizeGet(filteredStore, entityID, clientID) || filteredStore;
+            filteredStore = await this.sanitizeGet(filteredStore, entityID!, clientID) || filteredStore;
             omitStore!.addAll(filteredStore);
             filteredStore = omitStore!;
         }

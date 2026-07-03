@@ -14,7 +14,7 @@ The current implementation supports the following requests on the UMA server:
 
 - [`GET`](#reading-policies) to both `uma/policies` and `uma/policies/<encodedPolicyID>`
 - [`POST`](#creating-policies) to `uma/policies`
-- [`PATCH`](#updating-policies) to `uma/policies/<encodedPolicyID>`
+- [`PATCH`](#updating-policies) to `uma/policies` or `uma/policies/<encodedPolicyID>`
 - [`PUT`](#updating-policies) to `uma/policies/<encodedPolicyID>`
 - [`DELETE`](#deleting-policies) to `uma/policies/<encodedPolicyID>`
 
@@ -114,7 +114,8 @@ curl --location 'http://localhost:4000/uma/policies' \
 
 ### Updating policies
 
-Updating a policy can be done through a PUT or a PATCH request to `/uma/policies/<encodedPolicyID>`,
+Updating a policy can be done through a PUT request to `/uma/policies/<encodedPolicyID>`,
+or through a PATCH request to `/uma/policies` or `/uma/policies/<encodedPolicyID>`,
 each with different semantics.
 
 #### PUT
@@ -167,13 +168,16 @@ ex:permission a odrl:Permission ;
 
 #### PATCH
 
-A PATCH request will update the policy and its related rules using a SPARQL update query.
+A PATCH request will update policies and their related rules using a SPARQL update query.
 The `content-type` header must be set to `application/sparql-update`.
 
-The policy will be isolated from the store before executing the query, to make sure no other quads are affected.
+When the policy ID is part of the URL, the policy will be isolated from the store before executing the query,
+to make sure no other quads are affected.
 After this, the query can be executed.
 To make sure the policy remains a valid policy, the policy is isolated and checked again
 before inserting the modified store back in the store.
+When the policy ID is omitted from the URL, the query is executed on a copy of the full policy store.
+The update is accepted only if every changed policy and rule triple is in scope of the authenticated user.
 
 ##### Example PATCH request
 

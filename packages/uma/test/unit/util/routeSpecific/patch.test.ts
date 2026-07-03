@@ -1,5 +1,5 @@
 import { DataFactory, Parser, Store } from 'n3';
-import { patchAccessRequest } from '../../../../src/util/routeSpecific/patch';
+import { patchAccessRequest, patchPolicy } from '../../../../src/util/routeSpecific/patch';
 
 const { namedNode } = DataFactory;
 
@@ -9,6 +9,44 @@ describe('routeSpecific/patch', (): void => {
   const target = 'http://rs.local:3000/alice/resource.txt';
   const request = 'https://solid4media.ilabt.imec.be/uma/access-requests/34f152162e6e5e3c';
   const urnRequest = 'urn:uuid:fb26b948-9f9e-4c74-8192-36e7a560ba79';
+
+  it('can patch in-scope policies without a policy id.', async(): Promise<void> => {
+    const store = createPolicyStore();
+
+    await patchPolicy(store, undefined, owner, `
+      PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
+
+      DELETE {
+        <http://example.org/owner-rule> odrl:action odrl:read .
+      } INSERT {
+        <http://example.org/owner-rule> odrl:action odrl:write .
+      } WHERE {
+        <http://example.org/owner-rule> odrl:action odrl:read .
+      }
+    `);
+
+    expect(store.countQuads(namedNode('http://example.org/owner-rule'), namedNode('http://www.w3.org/ns/odrl/2/action'), namedNode('http://www.w3.org/ns/odrl/2/read'), null)).toBe(0);
+    expect(store.countQuads(namedNode('http://example.org/owner-rule'), namedNode('http://www.w3.org/ns/odrl/2/action'), namedNode('http://www.w3.org/ns/odrl/2/write'), null)).toBe(1);
+  });
+
+  it('rejects id-less policy patches outside the owner scope without mutating the store.', async(): Promise<void> => {
+    const store = createPolicyStore();
+
+    await expect(patchPolicy(store, undefined, owner, `
+      PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
+
+      DELETE {
+        <http://example.org/requester-rule> odrl:action odrl:read .
+      } INSERT {
+        <http://example.org/requester-rule> odrl:action odrl:write .
+      } WHERE {
+        <http://example.org/requester-rule> odrl:action odrl:read .
+      }
+    `)).rejects.toMatchObject({ status: 403 });
+
+    expect(store.countQuads(namedNode('http://example.org/requester-rule'), namedNode('http://www.w3.org/ns/odrl/2/action'), namedNode('http://www.w3.org/ns/odrl/2/read'), null)).toBe(1);
+    expect(store.countQuads(namedNode('http://example.org/requester-rule'), namedNode('http://www.w3.org/ns/odrl/2/action'), namedNode('http://www.w3.org/ns/odrl/2/write'), null)).toBe(0);
+  });
 
   it('can accept an access request by compact id.', async(): Promise<void> => {
     const store = createStore(request);
@@ -58,6 +96,32 @@ describe('routeSpecific/patch', (): void => {
       <http://example.org/owner-permission> a odrl:Permission ;
         odrl:target <${target}> ;
         odrl:assigner <${owner}> .
+    `));
+  }
+
+  function createPolicyStore(): Store {
+    return new Store(new Parser().parse(`
+      @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+      <http://example.org/owner-policy> a odrl:Agreement ;
+        odrl:uid <http://example.org/owner-policy> ;
+        odrl:permission <http://example.org/owner-rule> .
+
+      <http://example.org/owner-rule> a odrl:Permission ;
+        odrl:action odrl:read ;
+        odrl:target <${target}> ;
+        odrl:assignee <${requester}> ;
+        odrl:assigner <${owner}> .
+
+      <http://example.org/requester-policy> a odrl:Agreement ;
+        odrl:uid <http://example.org/requester-policy> ;
+        odrl:permission <http://example.org/requester-rule> .
+
+      <http://example.org/requester-rule> a odrl:Permission ;
+        odrl:action odrl:read ;
+        odrl:target <${target}> ;
+        odrl:assignee <${owner}> ;
+        odrl:assigner <${requester}> .
     `));
   }
 });

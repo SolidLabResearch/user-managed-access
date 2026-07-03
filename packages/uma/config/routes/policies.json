@@ -23,6 +23,7 @@
             "methods": [
                 "GET",
                 "POST",
+                "PATCH",
                 "OPTIONS"
             ],
             "handler": { "@id": "urn:uma:default:PolicyHandler" },

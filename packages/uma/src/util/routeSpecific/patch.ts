@@ -28,10 +28,20 @@ const REQUESTED_TARGET = namedNode(`${SOTW}requestedTarget`);
  */
 export const patchPolicy = async (
     store: Store,
-    policyID: string,
+    policyID: string | undefined,
     resourceOwner: string,
     query: string
 ) => {
+    if (policyID === undefined) {
+        const original = new Store(store.getQuads(null, null, null, null));
+        const patched = new Store(store.getQuads(null, null, null, null));
+        await queryEngine.queryVoid(query.toString(), { sources: [patched] });
+        validateScopedPolicyDiff(original, patched, resourceOwner);
+        store.removeQuads(store.getQuads(null, null, null, null));
+        store.addQuads(patched.getQuads(null, null, null, null));
+        return;
+    }
+
     const policy = store.getSubjects(ODRL.terms.uid, namedNode(policyID), null)
       .find((subject) =>
         (
@@ -47,6 +57,52 @@ export const patchPolicy = async (
     if (!policy) throw new PatchError(403, "resource owner doesn't match");
 
     await queryEngine.queryVoid(query.toString(), { sources: [store] });
+}
+
+const termKey = (term: { termType: string; value: string }): string => `${term.termType}:${term.value}`;
+
+const getScopedPolicySubjects = (store: Store, resourceOwner: string): Set<string> => {
+    const scoped = new Set<string>();
+
+    for (const policy of store.getSubjects(ODRL.terms.uid, null, null)) {
+        const isPolicy =
+            store.has(quad(policy, RDF.terms.type, ODRL.terms.Agreement)) ||
+            store.has(quad(policy, RDF.terms.type, ODRL.terms.Set));
+        if (!isPolicy) continue;
+
+        const permissions = store.getObjects(policy, ODRL.terms.permission, null)
+            .filter((permission) =>
+                (permission.termType === 'NamedNode' || permission.termType === 'BlankNode') &&
+                store.has(quad(permission, ODRL.terms.assigner, namedNode(resourceOwner))));
+        if (permissions.length === 0) continue;
+
+        scoped.add(termKey(policy));
+        permissions.forEach((permission) => scoped.add(termKey(permission)));
+    }
+
+    return scoped;
+}
+
+const validateScopedPolicyDiff = (before: Store, after: Store, resourceOwner: string): void => {
+    const scopedBefore = getScopedPolicySubjects(before, resourceOwner);
+    const scopedAfter = getScopedPolicySubjects(after, resourceOwner);
+    const removed = before.difference(after) as Store;
+    const added = after.difference(before) as Store;
+
+    for (const change of removed) {
+        if (!scopedBefore.has(termKey(change.subject))) {
+            throw new PatchError(403, "resource owner doesn't match");
+        }
+    }
+
+    for (const change of added) {
+        const subject = termKey(change.subject);
+        const subjectExistedBefore = before.countQuads(change.subject, null, null, null) > 0;
+        const allowed = subjectExistedBefore ? scopedBefore.has(subject) : scopedAfter.has(subject);
+        if (!allowed) {
+            throw new PatchError(403, "resource owner doesn't match");
+        }
+    }
 }
 
 // ! link between target and resource owner is not always included through a policy
@@ -140,11 +196,12 @@ const buildPolicyCreationFromAccessRequestQuery = (
  */
 export const patchAccessRequest = async (
     store: Store,
-    accessRequestID: string,
+    accessRequestID: string | undefined,
     resourceOwner: string,
     patchInformation: string
 ) => {
     if (!['accepted', 'denied'].includes(patchInformation)) return ; // ? perhaps throw an error?
+    if (accessRequestID === undefined) throw new PatchError(400, 'Missing access request id.');
     const resolvedAccessRequestID = resolveAccessRequestId(store, accessRequestID);
     validatePatchAccessRequest(store, resolvedAccessRequestID, resourceOwner);
 

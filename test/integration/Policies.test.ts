@@ -238,7 +238,10 @@ describe('A policy server setup', (): void => {
     let response = await fetchPolicy('PATCH', webIds.b, 'http://example.org/usagePolicy1', changePolicy1, true);
     expect(response.status).toBe(403);
 
-    response = await fetchPolicy('PATCH', webIds.a, 'http://example.org/usagePolicy1', changePolicy1, true);
+    response = await fetchPolicy('PATCH', webIds.b, undefined, changePolicy1, true);
+    expect(response.status).toBe(403);
+
+    response = await fetchPolicy('PATCH', webIds.a, undefined, changePolicy1, true);
     expect(response.status).toBe(204);
     response = await fetchPolicy('GET', webIds.a, 'http://example.org/usagePolicy1');
     expect(response.status).toBe(200);

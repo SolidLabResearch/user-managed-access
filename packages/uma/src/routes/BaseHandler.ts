@@ -79,6 +79,7 @@ export class BaseHandler extends HttpHandler {
             switch (request.method) {
                 case 'GET': return this.handleGet(userId);
                 case 'POST': return this.handlePost(request as HttpHandlerRequest<string>, userId);
+                case 'PATCH': return this.handlePatch(request as HttpHandlerRequest<string>, undefined, userId);
                 default: throw new MethodNotAllowedHttpError();
             }
         }
@@ -116,20 +117,21 @@ export class BaseHandler extends HttpHandler {
      * Supports multiple patch content types, depending on `patchContentType`.
      *
      * @param request HttpHandlerRequest containing the PATCH body
-     * @param entityID ID of the policy or access request to patch
+     * @param entityID ID of the policy or access request to patch, if supplied by the route
      * @param clientID ID pointing to the resource owner (RO) or requesting party (RP)
      * @returns a response with status code 204 if successful, or error status otherwise
      * @throws BadRequestHttpError if request body is missing or invalid
      */
-    private async handlePatch(request: HttpHandlerRequest<string>, entityID: string, clientID: string): Promise<HttpHandlerResponse<void>> {
+    private async handlePatch(request: HttpHandlerRequest<string>, entityID: string | undefined, clientID: string): Promise<HttpHandlerResponse<void>> {
         let response = { status: 204, message: '' };
 
         if (!request.body) throw new BadRequestHttpError();
         if (this.patchContentType === 'application/json') {
+            if (!entityID) throw new BadRequestHttpError();
             const body = JSON.parse(request.body);
             if (body.status) response = (await this.controller.patchEntity(entityID, body.status, clientID, false));
             else throw new BadRequestHttpError();
-        } else response = (await this.controller.patchEntity(entityID, request.body, clientID));
+        } else response = (await this.controller.patchEntity(entityID, request.body, clientID, entityID !== undefined));
 
         return response;
     }
