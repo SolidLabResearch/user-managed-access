@@ -10,8 +10,8 @@
       "handler": {
         "@type": "IntrospectionHandler",
         "tokenFactory": { "@id": "urn:uma:default:TokenFactory" },
-        "validator": { "@id": "urn:uma:default:RequestValidator" },
-        "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" }
+        "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
+        "revocationStore": { "@id": "urn:uma:default:TokenRevocationStore" }
       },
       "path": "/uma/introspect"
     }

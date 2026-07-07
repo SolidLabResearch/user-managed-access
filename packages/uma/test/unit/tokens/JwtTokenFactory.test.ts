@@ -80,7 +80,7 @@ describe('JwtTokenFactory', (): void => {
       .setIssuer(issuer)
       .setAudience('solid')
       .sign(keys.privateKey);
-    await expect(factory.deserialize(jwt)).resolves.toEqual({ permissions: token.permissions });
+    await expect(factory.deserialize(jwt)).resolves.toEqual({ permissions: token.permissions, iss: issuer });
   });
 
   it('errors deserializing tokens with no aud field.', async(): Promise<void> => {

@@ -462,20 +462,16 @@ describe('UmaClient', (): void => {
     });
 
     it('returns the introspected payload if the token is active and valid.', async(): Promise<void> => {
+      const decoded = { iss: 'issuer', key: 'value' };
       const resp = {
         ...response,
         status: 200,
-        json: vi.fn().mockResolvedValue({ active: 'true' })
+        json: vi.fn().mockResolvedValue({ active: true, ...decoded })
       };
-      const decoded = { iss: 'issuer', key: 'value' };
       fetcher.fetch.mockResolvedValueOnce(resp);
-      createRemoteJWKSet.mockResolvedValueOnce(jwkSet as any);
-      jwtVerify.mockResolvedValueOnce({ payload: decoded } as any);
       await expect(client.verifyOpaqueToken(token, issuer)).resolves.toEqual(decoded);
-      expect(createRemoteJWKSet).toHaveBeenCalledTimes(1);
-      expect(createRemoteJWKSet).toHaveBeenLastCalledWith(new URL(umaConfig.jwks_uri));
-      expect(jwtVerify).toHaveBeenCalledTimes(1);
-      expect(jwtVerify).toHaveBeenLastCalledWith({ active: 'true' }, jwkSet, { issuer: issuer, audience: 'solid' });
+      expect(createRemoteJWKSet).toHaveBeenCalledTimes(0);
+      expect(jwtVerify).toHaveBeenCalledTimes(0);
     });
   });
 

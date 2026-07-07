@@ -86,6 +86,7 @@ export class JwtTokenFactory extends TokenFactory {
       reType(permissions, array(Permission));
 
       const accessToken: AccessToken = { permissions };
+      if (typeof payload.iss === 'string') accessToken.iss = payload.iss;
       if (payload.iat !== undefined) accessToken.iat = payload.iat;
       if (payload.exp !== undefined) accessToken.exp = payload.exp;
       if (payload.nbf !== undefined) accessToken.nbf = payload.nbf;

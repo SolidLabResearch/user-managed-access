@@ -1,4 +1,4 @@
-import { BadRequestHttpError } from '@solid/community-server';
+import { BadRequestHttpError, KeyValueStorage } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { TokenFactory } from '../tokens/TokenFactory';
 import { AccessToken } from '../tokens/AccessToken';
@@ -31,14 +31,15 @@ export class IntrospectionHandler extends HttpHandler {
    */
   constructor(
     private readonly tokenFactory: TokenFactory,
-    private readonly validator: RequestValidator,
+    private readonly validator: RequestValidator | undefined,
     private readonly registrationStore: RegistrationStore,
+    private readonly revocationStore?: KeyValueStorage<string, number>,
   ) {
     super();
   }
 
   public async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<IntrospectionResponse>> {
-    await this.validator.handleSafe({ request });
+    await this.validator?.handleSafe({ request });
 
     if (!request.body) {
       throw new BadRequestHttpError('Missing request body.');
@@ -77,6 +78,11 @@ export class IntrospectionHandler extends HttpHandler {
 
       const updatedAt = Date.parse(registration.updatedAt ?? registration.registeredAt ?? '');
       if (issuedAt !== undefined && !Number.isNaN(updatedAt) && issuedAt < updatedAt) {
+        return false;
+      }
+
+      const revokedAt = await this.revocationStore?.get(permission.resource_id);
+      if (issuedAt !== undefined && revokedAt !== undefined && issuedAt < revokedAt) {
         return false;
       }
     }

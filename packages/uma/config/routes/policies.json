@@ -6,7 +6,8 @@
         {
             "@id": "urn:uma:default:PolicyController",
             "@type": "PolicyController",
-            "store": { "@id": "urn:uma:default:RulesStorage" }
+            "store": { "@id": "urn:uma:default:RulesStorage" },
+            "revocationStore": { "@id": "urn:uma:default:TokenRevocationStore" }
         },
         {
             "@id": "urn:uma:default:PolicyHandler",

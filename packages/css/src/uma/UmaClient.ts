@@ -226,15 +226,7 @@ export class UmaClient implements SingleThreaded {
     return json.ticket;
   }
 
-  private async verifyTokenData(token: string, issuer: string, jwks: string): Promise<UmaClaims> {
-    const jwkSet = await createRemoteJWKSet(new URL(jwks));
-
-    const { payload } = await jwtVerify(token, jwkSet, {
-      ...this.options,
-      issuer: issuer,
-      audience: 'solid',
-    });
-
+  private validateTokenPayload(payload: JWTPayload): UmaClaims {
     if (!('permissions' in payload)) return payload;
 
     for (const permission of Array.isArray(payload.permissions) ? payload.permissions : []) {
@@ -250,6 +242,18 @@ export class UmaClient implements SingleThreaded {
     }
 
     return payload;
+  }
+
+  private async verifyTokenData(token: string, issuer: string, jwks: string): Promise<UmaClaims> {
+    const jwkSet = await createRemoteJWKSet(new URL(jwks));
+
+    const { payload } = await jwtVerify(token, jwkSet, {
+      ...this.options,
+      issuer: issuer,
+      audience: 'solid',
+    });
+
+    return this.validateTokenPayload(payload);
   }
 
   /**
@@ -283,23 +287,28 @@ export class UmaClient implements SingleThreaded {
   public async verifyOpaqueToken(token: string, issuer: string): Promise<UmaClaims> {
     const config = await this.fetchUmaConfig(issuer);
 
+    const body = new URLSearchParams({
+      token_type_hint: 'access_token',
+      token,
+    });
+
     const res = await this.fetcher.fetch(config.introspection_endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json',
       },
-      body: `token_type_hint=access_token&token=${token}`,
+      body,
     });
 
     if (res.status >= 400) {
       throw new Error(`Unable to introspect UMA RPT for Authorization Server '${config.issuer}'`);
     }
 
-    const jwt = await res.json() as any;
-    if (jwt.active !== 'true') throw new Error(`The provided UMA RPT is not active.`);
+    const { active, ...payload } = await res.json() as { active?: boolean | string } & JWTPayload;
+    if (active !== true && active !== 'true') throw new Error(`The provided UMA RPT is not active.`);
 
-    return await this.verifyTokenData(jwt, config.issuer, config.jwks_uri);
+    return this.validateTokenPayload(payload);
   }
 
   /**

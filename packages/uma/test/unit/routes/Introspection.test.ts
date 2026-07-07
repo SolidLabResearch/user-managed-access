@@ -1,3 +1,4 @@
+import { KeyValueStorage } from '@solid/community-server';
 import { Mocked } from 'vitest';
 import { IntrospectionHandler } from '../../../src/routes/Introspection';
 import { TokenFactory } from '../../../src/tokens/TokenFactory';
@@ -11,6 +12,7 @@ describe('Introspection', (): void => {
   let factory: Mocked<TokenFactory>;
   let validator: Mocked<RequestValidator>;
   let registrationStore: Mocked<RegistrationStore>;
+  let revocationStore: Mocked<KeyValueStorage<string, number>>;
   let handler: IntrospectionHandler;
 
   beforeEach(async(): Promise<void> => {
@@ -31,7 +33,11 @@ describe('Introspection', (): void => {
       }),
     } satisfies Partial<RegistrationStore> as any;
 
-    handler = new IntrospectionHandler(factory, validator, registrationStore);
+    revocationStore = {
+      get: vi.fn().mockResolvedValue(undefined),
+    } satisfies Partial<KeyValueStorage<string, number>> as any;
+
+    handler = new IntrospectionHandler(factory, validator, registrationStore, revocationStore);
   });
 
   it('throws an error if there is no body.', async(): Promise<void> => {
@@ -39,6 +45,15 @@ describe('Introspection', (): void => {
     await expect(handler.handle(emptyRequest)).rejects.toThrow('Missing request body.');
     expect(validator.handleSafe).toHaveBeenCalledTimes(1);
     expect(validator.handleSafe).toHaveBeenLastCalledWith({ request: {}});
+  });
+
+  it('can introspect without a request validator.', async(): Promise<void> => {
+    handler = new IntrospectionHandler(factory, undefined, registrationStore, revocationStore);
+    await expect(handler.handle(request)).resolves.toEqual({
+      status: 200,
+      body: { ...token, active: true },
+    });
+    expect(validator.handleSafe).toHaveBeenCalledTimes(0);
   });
 
   it('returns the token.', async(): Promise<void> => {
@@ -98,5 +113,18 @@ describe('Introspection', (): void => {
     });
     expect(registrationStore.get).toHaveBeenCalledTimes(1);
     expect(registrationStore.get).toHaveBeenLastCalledWith('id');
+  });
+
+  it('returns an inactive response if a target resource was revoked since the token was issued.', async():
+    Promise<void> => {
+    revocationStore.get.mockResolvedValueOnce(1500);
+
+    await expect(handler.handle(request)).resolves.toEqual({
+      status: 200,
+      body: { active: false },
+    });
+    expect(factory.deserialize).toHaveBeenCalledTimes(1);
+    expect(revocationStore.get).toHaveBeenCalledTimes(1);
+    expect(revocationStore.get).toHaveBeenLastCalledWith('id');
   });
 });

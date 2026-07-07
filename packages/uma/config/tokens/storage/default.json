@@ -6,6 +6,10 @@
     {
       "@id": "urn:uma:default:TokenStore",
       "@type": "MemoryMapStorage"
+    },
+    {
+      "@id": "urn:uma:default:TokenRevocationStore",
+      "@type": "MemoryMapStorage"
     }
   ]
 }
