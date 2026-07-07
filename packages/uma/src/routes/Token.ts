@@ -18,6 +18,7 @@ export class TokenRequestHandler extends HttpHandler {
   constructor(
     protected negotiator: Negotiator,
     protected readonly umaProtection: HttpHandler,
+    protected readonly refreshTokenHandler: HttpHandler,
   ) {
     super();
   }
@@ -37,6 +38,7 @@ export class TokenRequestHandler extends HttpHandler {
     }
 
     switch (params.grant_type) {
+      case 'refresh_token': return this.refreshTokenHandler.handleSafe(input);
       case GRANT_TYPE_UMA_TICKET: return this.handleUmaGrant(params);
       default: throw new BadRequestHttpError(`Unsupported grant_type ${params.grant_type}`);
     }

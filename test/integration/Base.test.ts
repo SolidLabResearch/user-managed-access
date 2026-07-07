@@ -101,14 +101,17 @@ describe('A server setup', (): void => {
   });
 
   describe('using ODRL authorization', (): void => {
-    const collectionResource = `http://localhost:${cssPort}/alice/resource.txt`;
+    const newResource = `http://localhost:${cssPort}/alice/resource.txt`;
+    const newResource2 = `http://localhost:${cssPort}/alice/private/resource.txt`;
     let wwwAuthenticateHeader: string;
     let ticket: string;
     let tokenEndpoint: string;
-    let jsonResponse: { access_token: string, token_type: string };
+    let refreshToken: string;
+    let jsonResponse: { access_token: string, token_type: string, refresh_token?: string };
+    let refreshedResponse: { access_token: string, token_type: string, refresh_token: string };
 
     it('RS: sends a WWW-Authenticate response when access is private.', async(): Promise<void> => {
-      const noTokenResponse = await fetch(collectionResource, {
+      const noTokenResponse = await fetch(newResource, {
         method: 'PUT',
         body: 'Some text ...' ,
       });
@@ -158,6 +161,8 @@ describe('A server setup', (): void => {
       jsonResponse = await asRequestResponse.json() as any;
       expect(typeof jsonResponse.access_token).toBe('string');
       expect(jsonResponse.token_type).toBe('Bearer');
+      expect(typeof jsonResponse.refresh_token).toBe('string');
+      refreshToken = jsonResponse.refresh_token!;
       const token = JSON.parse(Buffer.from(jsonResponse.access_token.split('.')[1], 'base64').toString());
       expect(Array.isArray(token.permissions)).toBe(true);
       expect(token.permissions).toHaveLength(1);
@@ -170,7 +175,7 @@ describe('A server setup', (): void => {
     });
 
     it('RS: provides access when receiving a valid token.', async(): Promise<void> => {
-      const response = await fetch(collectionResource, {
+      const response = await fetch(newResource, {
         method: 'PUT',
         headers: { 'Authorization': `${jsonResponse.token_type} ${jsonResponse.access_token}` },
         body: 'Some text ...' ,
@@ -179,8 +184,57 @@ describe('A server setup', (): void => {
       expect(response.status).toBe(201);
     });
 
+    it('AS: can refresh a token and rotates the refresh token.', async(): Promise<void> => {
+      const refreshResponse = await fetch(tokenEndpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+        }),
+      });
+
+      expect(refreshResponse.status).toBe(200);
+      refreshedResponse = await refreshResponse.json() as {
+        access_token: string,
+        token_type: string,
+        refresh_token: string,
+      };
+      expect(typeof refreshedResponse.access_token).toBe('string');
+      expect(refreshedResponse.token_type).toBe('Bearer');
+      expect(typeof refreshedResponse.refresh_token).toBe('string');
+      expect(refreshedResponse.refresh_token).not.toBe(refreshToken);
+
+      const oldRefreshResponse = await fetch(tokenEndpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+        }),
+      });
+      expect(oldRefreshResponse.status).toBe(400);
+
+      refreshToken = refreshedResponse.refresh_token;
+    });
+
+    it('RS: provides access when receiving the refreshed token.', async(): Promise<void> => {
+      // Targeting a new resource as the token gives create access to /alice/,
+      // and newResource was created with the previous request.
+      const response = await fetch(newResource2, {
+        method: 'PUT',
+        headers: {
+          Authorization: `${refreshedResponse.token_type} ${refreshedResponse.access_token}`,
+          'content-type': 'text/plain',
+        },
+        body: 'Some text from refreshed token ...',
+      });
+
+      expect(response.status).toBe(201);
+    });
+
     it('RS: does not allow public read access to the new resource.', async(): Promise<void> => {
-      const response = await fetch(collectionResource);
+      const response = await fetch(newResource);
       expect(response.status).toBe(401);
     });
 
@@ -197,7 +251,7 @@ describe('A server setup', (): void => {
           odrl:permission ex:publicAnonPermission .
         ex:publicAnonPermission a odrl:Permission ;
           odrl:action odrl:read , odrl:modify ;
-          odrl:target <${collectionResource}> ;
+          odrl:target <${newResource}> ;
           odrl:assignee <urn:solidlab:uma:id:anonymous> ;
           odrl:assigner <${owner}> .
       `;
@@ -209,14 +263,14 @@ describe('A server setup', (): void => {
       });
       expect(policyResponse.status).toBe(201);
 
-      const putResponse = await fetch(collectionResource, {
+      const putResponse = await fetch(newResource, {
         method: 'PUT',
         headers: { 'content-type': 'text/plain' },
         body: 'Some new text!',
       });
       expect(putResponse.status).toBe(205);
 
-      const getResponse = await fetch(collectionResource);
+      const getResponse = await fetch(newResource);
       expect(getResponse.status).toBe(200);
       await expect(getResponse.text()).resolves.toEqual('Some new text!');
     });
@@ -234,7 +288,7 @@ describe('A server setup', (): void => {
           odrl:permission ex:publicPermission .
         ex:publicPermission a odrl:Permission ;
           odrl:action odrl:read , odrl:modify ;
-          odrl:target <${collectionResource}> ;
+          odrl:target <${newResource}> ;
           odrl:assigner <${owner}> .
       `;
 
@@ -245,14 +299,14 @@ describe('A server setup', (): void => {
       });
       expect(policyResponse.status).toBe(201);
 
-      const putResponse = await fetch(collectionResource, {
+      const putResponse = await fetch(newResource, {
         method: 'PUT',
         headers: { 'content-type': 'text/plain' },
         body: 'Some new text!',
       });
       expect(putResponse.status).toBe(205);
 
-      const getResponse = await fetch(collectionResource);
+      const getResponse = await fetch(newResource);
       expect(getResponse.status).toBe(200);
       await expect(getResponse.text()).resolves.toEqual('Some new text!');
     });

@@ -2,13 +2,14 @@ import { Mocked } from 'vitest';
 import { Negotiator } from '../../../src/dialog/Negotiator';
 import { NeedInfoError } from '../../../src/errors/NeedInfoError';
 import { TokenRequestHandler } from '../../../src/routes/Token';
-import { HttpHandler, HttpHandlerContext, HttpHandlerRequest } from '../../../src/util/http/models/HttpHandler';
+import { HttpHandler, HttpHandlerRequest } from '../../../src/util/http/models/HttpHandler';
 
 describe('Token', (): void => {
   let request: HttpHandlerRequest;
 
   let negotiator: Mocked<Negotiator>;
   let umaProtection: Mocked<HttpHandler>;
+  let refreshTokenHandler: Mocked<HttpHandler>;
   let handler: TokenRequestHandler;
 
   beforeEach(async(): Promise<void> => {
@@ -27,7 +28,12 @@ describe('Token', (): void => {
     umaProtection = {
       handleSafe: vi.fn().mockResolvedValue({ status: 201, body: { access_token: 'pat' }}),
     } satisfies Partial<HttpHandler> as any;
-    handler = new TokenRequestHandler(negotiator, umaProtection);
+
+    refreshTokenHandler = {
+      handleSafe: vi.fn().mockResolvedValue({ status: 200, body: { access_token: 'rpt', refresh_token: 'next' }}),
+    } satisfies Partial<HttpHandler> as any;
+
+    handler = new TokenRequestHandler(negotiator, umaProtection, refreshTokenHandler);
   });
 
   it('throws an error if the body is invalid.', async(): Promise<void> => {
@@ -88,12 +94,31 @@ describe('Token', (): void => {
       expect(umaProtection.handleSafe).toHaveBeenCalledTimes(1);
       expect(umaProtection.handleSafe).toHaveBeenLastCalledWith({ request });
       expect(negotiator.negotiate).toHaveBeenCalledTimes(0);
+      expect(refreshTokenHandler.handleSafe).toHaveBeenCalledTimes(0);
     });
 
     it('routes based on scope before checking if Token supports the grant type.', async(): Promise<void> => {
       umaProtection.handleSafe.mockResolvedValueOnce({ status: 400, body: { error: 'from-uma' }});
       await expect(handler.handle({ request })).resolves.toEqual({ status: 400, body: { error: 'from-uma' }});
       expect(umaProtection.handleSafe).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('delegating standard refresh token requests', (): void => {
+    beforeEach(async(): Promise<void> => {
+      request.body = {
+        grant_type: 'refresh_token',
+        refresh_token: 'token',
+      };
+    });
+
+    it('returns the delegated refresh response unchanged.', async(): Promise<void> => {
+      await expect(handler.handle({ request })).resolves
+        .toEqual({ status: 200, body: { access_token: 'rpt', refresh_token: 'next' }});
+      expect(refreshTokenHandler.handleSafe).toHaveBeenCalledTimes(1);
+      expect(refreshTokenHandler.handleSafe).toHaveBeenLastCalledWith({ request });
+      expect(umaProtection.handleSafe).toHaveBeenCalledTimes(0);
+      expect(negotiator.negotiate).toHaveBeenCalledTimes(0);
     });
   });
 });
