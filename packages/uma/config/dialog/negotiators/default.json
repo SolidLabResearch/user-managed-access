@@ -9,11 +9,17 @@
       "ticketStore": { "@id": "urn:uma:default:TicketStore" },
       "registrationStore": { "@id": "urn:uma:default:ResourceRegistrationStore" },
       "negotiator": {
+        "@id": "urn:uma:default:BaseNegotiator",
         "@type": "BaseNegotiator",
         "verifier": { "@id": "urn:uma:default:Verifier" },
         "ticketStore": { "@id": "urn:uma:default:TicketStore" },
         "ticketingStrategy": { "@id": "urn:uma:default:TicketingStrategy" },
-        "tokenFactory": { "@id": "urn:uma:default:TokenFactory" }
+        "tokenFactory": { "@id": "urn:uma:default:TokenFactory" },
+        "refreshTokenIssuer": {
+          "@id": "urn:uma:default:RefreshTokenIssuer",
+          "@type": "StoredRefreshTokenIssuer",
+          "refreshStore": { "@id": "urn:uma:default:RefreshTokenStore" }
+        }
       }
     }
   ]

@@ -8,6 +8,7 @@ import { DialogInput } from '../../../src/dialog/Input';
 import { NeedInfoError } from '../../../src/errors/NeedInfoError';
 import { TicketingStrategy } from '../../../src/ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../../../src/ticketing/Ticket';
+import { RefreshTokenIssuer } from '../../../src/tokens/RefreshTokenIssuer';
 import { SerializedToken, TokenFactory } from '../../../src/tokens/TokenFactory';
 
 describe('BaseNegotiator', (): void => {
@@ -29,6 +30,7 @@ describe('BaseNegotiator', (): void => {
   let ticketStore: Mocked<KeyValueStorage<string, Ticket>>;
   let ticketingStrategy: Mocked<TicketingStrategy>;
   let tokenFactory: Mocked<TokenFactory>;
+  let refreshTokenIssuer: Mocked<RefreshTokenIssuer>;
   let negotiator: BaseNegotiator;
 
   beforeEach(async(): Promise<void> => {
@@ -59,7 +61,11 @@ describe('BaseNegotiator', (): void => {
       deserialize: vi.fn(),
     };
 
-    negotiator = new BaseNegotiator(verifier, ticketStore, ticketingStrategy, tokenFactory);
+    refreshTokenIssuer = {
+      issue: vi.fn().mockResolvedValue('refresh-token'),
+    };
+
+    negotiator = new BaseNegotiator(verifier, ticketStore, ticketingStrategy, tokenFactory, refreshTokenIssuer);
   });
 
   it('errors if the input is in the wrong type.', async(): Promise<void> => {
@@ -67,7 +73,11 @@ describe('BaseNegotiator', (): void => {
   });
 
   it('returns the token if everything was successful.', async(): Promise<void> => {
-    await expect(negotiator.negotiate(input)).resolves.toEqual({ access_token: 'token', token_type: 'type' });
+    await expect(negotiator.negotiate(input)).resolves.toEqual({
+      access_token: 'token',
+      token_type: 'type',
+      refresh_token: 'refresh-token',
+    });
     expect(ticketStore.get).toHaveBeenCalledTimes(0);
     expect(ticketStore.set).toHaveBeenCalledTimes(0);
     expect(ticketStore.delete).toHaveBeenCalledTimes(0);
@@ -78,6 +88,26 @@ describe('BaseNegotiator', (): void => {
     expect(tokenFactory.serialize).toHaveBeenCalledTimes(1);
     expect(tokenFactory.serialize).toHaveBeenLastCalledWith(
       { permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ] });
+    expect(refreshTokenIssuer.issue).toHaveBeenCalledTimes(1);
+    expect(refreshTokenIssuer.issue).toHaveBeenLastCalledWith(
+      { claim: 'value' },
+      [{ resource_id: 'id1', resource_scopes: [ 'scope1' ] }]);
+  });
+
+  it('does not return refresh token if refresh token issuer is not configured.', async(): Promise<void> => {
+    const noRefreshNegotiator = new BaseNegotiator(
+      verifier,
+      ticketStore,
+      ticketingStrategy,
+      tokenFactory,
+    );
+
+    await expect(noRefreshNegotiator.negotiate(input)).resolves.toEqual({
+      access_token: 'token',
+      token_type: 'type',
+    });
+    expect(tokenFactory.serialize).toHaveBeenCalledTimes(1);
+    expect(refreshTokenIssuer.issue).toHaveBeenCalledTimes(0);
   });
 
   it('errors if there is no existing ticket and no permission request.', async(): Promise<void> => {
@@ -118,7 +148,7 @@ describe('BaseNegotiator', (): void => {
   it('uses the stored ticket if it is known.', async(): Promise<void> => {
     ticketData.set('ticket', ticket);
     await expect(negotiator.negotiate({ ...input, ticket: 'ticket' })).resolves
-      .toEqual({ access_token: 'token', token_type: 'type' });
+      .toEqual({ access_token: 'token', token_type: 'type', refresh_token: 'refresh-token' });
     expect(ticketStore.get).toHaveBeenCalledTimes(1);
     expect(ticketStore.get).toHaveBeenLastCalledWith('ticket');
     expect(ticketStore.set).toHaveBeenCalledTimes(0);
@@ -130,6 +160,10 @@ describe('BaseNegotiator', (): void => {
     expect(tokenFactory.serialize).toHaveBeenCalledTimes(1);
     expect(tokenFactory.serialize).toHaveBeenLastCalledWith(
       { permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ] });
+    expect(refreshTokenIssuer.issue).toHaveBeenCalledTimes(1);
+    expect(refreshTokenIssuer.issue).toHaveBeenLastCalledWith(
+      { claim: 'value' },
+      [{ resource_id: 'id1', resource_scopes: [ 'scope1' ] }]);
   });
 
   it('errors if invalid credentials are provided.', async(): Promise<void> => {
@@ -141,7 +175,7 @@ describe('BaseNegotiator', (): void => {
 
   it('processes the credentials if they are provided.', async(): Promise<void> => {
     await expect(negotiator.negotiate({ ...input, claim_token: 'token', claim_token_format: 'format' })).resolves
-      .toEqual({ access_token: 'token', token_type: 'type' });
+      .toEqual({ access_token: 'token', token_type: 'type', refresh_token: 'refresh-token' });
     expect(ticketStore.get).toHaveBeenCalledTimes(0);
     expect(ticketStore.set).toHaveBeenCalledTimes(0);
     expect(ticketStore.delete).toHaveBeenCalledTimes(0);
@@ -154,6 +188,10 @@ describe('BaseNegotiator', (): void => {
     expect(tokenFactory.serialize).toHaveBeenCalledTimes(1);
     expect(tokenFactory.serialize).toHaveBeenLastCalledWith(
       { permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ] });
+    expect(refreshTokenIssuer.issue).toHaveBeenCalledTimes(1);
+    expect(refreshTokenIssuer.issue).toHaveBeenLastCalledWith(
+      { claim: 'value' },
+      [{ resource_id: 'id1', resource_scopes: [ 'scope1' ] }]);
   });
 
   it('supports multiple claim tokens.', async(): Promise<void> => {
@@ -163,7 +201,7 @@ describe('BaseNegotiator', (): void => {
         { claim_token: 'token2', claim_token_format: 'format2' },
       ],
     })).resolves
-      .toEqual({ access_token: 'token', token_type: 'type' });
+      .toEqual({ access_token: 'token', token_type: 'type', refresh_token: 'refresh-token' });
     expect(ticketingStrategy.initializeTicket).toHaveBeenCalledTimes(1);
     expect(ticketingStrategy.initializeTicket).toHaveBeenLastCalledWith(input.permissions);
     expect(verifier.verify).toHaveBeenCalledTimes(2);
@@ -181,7 +219,7 @@ describe('BaseNegotiator', (): void => {
     });
 
     await expect(negotiator.negotiate({ ...input, claim_token: 'token', claim_token_format: 'format' })).resolves
-      .toEqual({ access_token: 'token', token_type: 'type' });
+      .toEqual({ access_token: 'token', token_type: 'type', refresh_token: 'refresh-token' });
 
     expect(tokenFactory.serialize).toHaveBeenLastCalledWith({
       permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ],
@@ -201,7 +239,7 @@ describe('BaseNegotiator', (): void => {
     });
 
     await expect(negotiator.negotiate({ ...input, claim_token: 'token', claim_token_format: 'format' })).resolves
-      .toEqual({ access_token: 'token', token_type: 'type' });
+      .toEqual({ access_token: 'token', token_type: 'type', refresh_token: 'refresh-token' });
 
     expect(tokenFactory.serialize).toHaveBeenLastCalledWith({
       permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ],
@@ -222,6 +260,6 @@ describe('BaseNegotiator', (): void => {
     await expect(negotiator.negotiate({
       permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1', 'scope2' ] } ]
     }))
-      .resolves.toEqual({ access_token: 'token', token_type: 'type', partial: true });
+      .resolves.toEqual({ access_token: 'token', token_type: 'type', refresh_token: 'refresh-token', partial: true });
   });
 });

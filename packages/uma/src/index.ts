@@ -15,6 +15,7 @@ export * from './credentials/verify/UnsecureVerifier';
 export * from './credentials/verify/OidcVerifier';
 export * from './credentials/verify/JwtVerifier';
 export * from './credentials/verify/IriVerifier';
+export * from './credentials/verify/RefreshTokenVerifier';
 
 // Dialog
 export * from './dialog/AggregatorNegotiator';
@@ -55,6 +56,7 @@ export * from './routes/BaseHandler';
 export * from './routes/ClientRegistration';
 export * from './routes/Collection';
 export * from './routes/token/UmaProtection';
+export * from './routes/token/RefreshTokenHandler';
 
 // Tickets
 export * from './ticketing/Ticket';
@@ -66,6 +68,8 @@ export * from './ticketing/strategy/ImmediateAuthorizerStrategy';
 export * from './tokens/AccessToken';
 export * from './tokens/JwtTokenFactory';
 export * from './tokens/OpaqueTokenFactory';
+export * from './tokens/RefreshTokenIssuer';
+export * from './tokens/StoredRefreshTokenIssuer';
 export * from './tokens/TokenFactory';
 
 // Views

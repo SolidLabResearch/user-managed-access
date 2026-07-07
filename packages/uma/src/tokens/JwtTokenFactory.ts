@@ -61,6 +61,8 @@ export class JwtTokenFactory extends TokenFactory {
     const jwt = await signJwt.sign(jwk);
 
     this.logger.debug(`Issued new JWT Token ${JSON.stringify(token)}`);
+    // TODO: tokenstore should expire tokens eventually; can use expiring storage,
+    //       or just normal store with timer-based cleanup.
     await this.tokenStore.set(jwt, token);
     return { token: jwt, tokenType: 'Bearer' };
   }

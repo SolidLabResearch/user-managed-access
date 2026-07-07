@@ -8,6 +8,7 @@ import { getOperationLogger } from '../logging/OperationLogger';
 import { serializePolicyInstantiation } from '../logging/OperationSerializer';
 import { TicketingStrategy } from '../ticketing/strategy/TicketingStrategy';
 import { Ticket } from '../ticketing/Ticket';
+import { RefreshTokenIssuer } from '../tokens/RefreshTokenIssuer';
 import { TokenFactory } from '../tokens/TokenFactory';
 import { reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
@@ -29,12 +30,14 @@ export class BaseNegotiator implements Negotiator {
    * @param ticketStore - A KeyValueStorage to track Tickets.
    * @param ticketingStrategy - The strategy describing the life cycle of a Ticket.
    * @param tokenFactory - A factory for minting Access Tokens.
+   * @param refreshTokenIssuer - An optional issuer for refresh tokens.
    */
   public constructor(
-    protected verifier: Verifier,
-    protected ticketStore: KeyValueStorage<string, Ticket>,
-    protected ticketingStrategy: TicketingStrategy,
-    protected tokenFactory: TokenFactory,
+    protected readonly verifier: Verifier,
+    protected readonly ticketStore: KeyValueStorage<string, Ticket>,
+    protected readonly ticketingStrategy: TicketingStrategy,
+    protected readonly tokenFactory: TokenFactory,
+    protected readonly refreshTokenIssuer?: RefreshTokenIssuer,
   ) {}
 
   /**
@@ -67,6 +70,9 @@ export class BaseNegotiator implements Negotiator {
       });
       this.logger.debug(`Minted token ${JSON.stringify(token)}`);
 
+      const refreshToken = this.refreshTokenIssuer ?
+        await this.refreshTokenIssuer.issue({ ...updatedTicket.provided }, resolved.value) : undefined;
+
       // TODO:: test logging
       this.operationLogger.addLogEntry(serializePolicyInstantiation())
 
@@ -75,6 +81,7 @@ export class BaseNegotiator implements Negotiator {
       return ({
         access_token: token,
         token_type: tokenType,
+        refresh_token: refreshToken,
         ...(partial ? { partial: true } : {}),
       });
     }
