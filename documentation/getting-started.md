@@ -464,9 +464,7 @@ The `azp` claim of the token will be used.
 
 To restrict a policy to a certain client application,
 a constraint needs to be added to the policy.
-Due to some issues with internal libraries,
-the `odrl:purpose` constraint is currently used to identify the client.
-This will be fixed in the near future.
+For this, we use the odrl:deliveryChannel left operand.
 
 To restrict a policy to only permit access when using the application `http://example.com/client`,
 the policy should look as follows:
@@ -482,7 +480,7 @@ ex:permission a odrl:Permission ;
               odrl:target <http://localhost:3000/alice/private/> ;
               odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> ;
               odrl:constraint ex:constraint .
-ex:constraint odrl:leftOperand odrl:purpose ;
+ex:constraint odrl:leftOperand odrl:deliveryChannel ;
               odrl:operator odrl:eq ;
               odrl:rightOperand <http://example.com/client> .
 ```

@@ -195,7 +195,7 @@ describe('A server supporting OIDC tokens', (): void => {
         odrl:constraint ex:constraintStandardClient.
 
       ex:constraintStandardClient
-        odrl:leftOperand odrl:purpose ;
+        odrl:leftOperand odrl:deliveryChannel ;
         odrl:operator odrl:eq ;
         odrl:rightOperand <http://example.com/id/${client}> .`;
 
@@ -333,7 +333,7 @@ describe('A server supporting OIDC tokens', (): void => {
         odrl:constraint ex:constraintSolidClient.
 
       ex:constraintSolidClient
-        odrl:leftOperand odrl:purpose ;
+        odrl:leftOperand odrl:deliveryChannel ;
         odrl:operator odrl:eq ;
         odrl:rightOperand <${client}> .`;
 

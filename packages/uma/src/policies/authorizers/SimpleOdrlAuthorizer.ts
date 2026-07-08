@@ -151,7 +151,7 @@ export class SimpleOdrlAuthorizer implements Authorizer {
    * Determines if all constraints for the given rule are valid.
    * Returns true if all constraints are valid, false if any constraint is not valid,
    * and undefined if any constraint is too complex to evaluate.
-   * Only supports purpose (for client ID) and dateTime constraints.
+   * Only supports deliveryChannel (for client ID) and dateTime constraints.
    */
   protected validateConstraints(rule: Quad_Subject, policies: ReadOnlyStore, claims: ClaimSet): boolean | undefined {
     const constraints = policies.getObjects(rule, ODRL.terms.constraint, null).map(constraint => ({
@@ -165,8 +165,7 @@ export class SimpleOdrlAuthorizer implements Authorizer {
     }
     for (const constraint of constraints) {
       // Return undefined if any of these are too complex or unknown
-      // TODO: because of weird hack described in OdrlAuthorizer, needs to change to term that makes more sense
-      if (constraint.leftOperand.equals(ODRL.terms.purpose)) {
+      if (constraint.leftOperand.equals(ODRL.terms.deliveryChannel)) {
         if (!constraint.operator.equals(ODRL.terms.eq)) {
           return false;
         }

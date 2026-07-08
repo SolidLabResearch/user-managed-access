@@ -1,7 +1,7 @@
-import { BadRequestHttpError, DC, RDF } from '@solid/community-server';
+import { RDF } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
-import { DataFactory, Quad, Store, Writer } from 'n3';
-import { EyelingReasoner, EyeReasoner, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator';
+import { DataFactory, Quad, Store } from 'n3';
+import { EyelingReasoner, ODRL, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator';
 import { CLIENTID, WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { basicPolicy } from '../../ucp/policy/ODRL';
@@ -9,7 +9,6 @@ import { PrioritizeProhibitionStrategy } from '../../ucp/policy/PrioritizeProhib
 import { Strategy } from '../../ucp/policy/Strategy';
 import { UCPPolicy } from '../../ucp/policy/UsageControlPolicy';
 import { UCRulesStorage } from '../../ucp/storage/UCRulesStorage';
-import { ODRL } from '../../ucp/util/Vocabularies';
 import { Permission } from '../../views/Permission';
 import { Authorizer } from './Authorizer';
 
@@ -76,17 +75,10 @@ export class OdrlAuthorizer implements Authorizer {
         if (typeof claims[CLIENTID] === 'string') {
             clientQuads.push(
                 quad(clientSubject, RDF.terms.type, ODRL.terms.Constraint),
-                // TODO: using purpose as other constraints are not supported in current version of ODRL evaluator
-                //       https://github.com/SolidLabResearch/ODRL-Evaluator/blob/v0.5.0/ODRL-Support.md#left-operands
-                quad(clientSubject, ODRL.terms.leftOperand, namedNode(ODRL.namespace + 'purpose')),
+                quad(clientSubject, ODRL.terms.leftOperand, ODRL.terms.deliveryChannel),
                 quad(clientSubject, ODRL.terms.operator, ODRL.terms.eq),
                 quad(clientSubject, ODRL.terms.rightOperand, namedNode(claims[CLIENTID])),
             );
-            // constraints.push({
-            //     type: ODRL.namespace + 'deliveryChannel',
-            //     operator: ODRL.eq,
-            //     value: namedNode(claims[CLIENTID]),
-            // });
         }
 
         for (const { resource_id, resource_scopes } of query) {
