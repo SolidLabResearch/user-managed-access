@@ -1,4 +1,4 @@
-import { AlgJwk, App, CachedJwkGenerator, MemoryMapStorage } from '@solid/community-server';
+import { AlgJwk, App, CachedJwkGenerator, joinUrl, MemoryMapStorage } from '@solid/community-server';
 import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
 import { decodeJwt, importJWK, SignJWT } from 'jose';
 import { randomUUID } from 'node:crypto';
@@ -165,6 +165,14 @@ describe('A server supporting OIDC tokens', (): void => {
       expect(payload.sub).toBe(sub);
       expect(payload.sub).not.toBe(`http://example.com/id/${sub}`);
     });
+
+    it('can remove the policy.', async(): Promise<void> => {
+      const response = await fetch(joinUrl(policyEndpoint, encodeURIComponent('http://example.org/policyStandard')), {
+        method: 'DELETE',
+        headers: { authorization: `WebID ${encodeURIComponent(webId)}`, 'content-type': 'text/turtle' },
+      });
+      expect(response.status).toBe(204);
+    });
   });
 
   describe('accessing a resource using a standard OIDC token with a specific client.', (): void => {
@@ -233,6 +241,14 @@ describe('A server supporting OIDC tokens', (): void => {
       });
       expect(response.status).toBe(200);
     });
+
+    it('can remove the policy.', async(): Promise<void> => {
+      const response = await fetch(joinUrl(policyEndpoint, encodeURIComponent('http://example.org/policyStandardClient')), {
+        method: 'DELETE',
+        headers: { authorization: `WebID ${encodeURIComponent(webId)}`, 'content-type': 'text/turtle' },
+      });
+      expect(response.status).toBe(204);
+    });
   });
 
   describe('accessing a resource using a Solid OIDC token.', (): void => {
@@ -285,6 +301,14 @@ describe('A server supporting OIDC tokens', (): void => {
         body: JSON.stringify(content),
       });
       expect(response.status).toBe(200);
+    });
+
+    it('can remove the policy.', async(): Promise<void> => {
+      const response = await fetch(joinUrl(policyEndpoint, encodeURIComponent('http://example.org/policySolid')), {
+        method: 'DELETE',
+        headers: { authorization: `WebID ${encodeURIComponent(webId)}`, 'content-type': 'text/turtle' },
+      });
+      expect(response.status).toBe(204);
     });
   });
 
@@ -355,6 +379,14 @@ describe('A server supporting OIDC tokens', (): void => {
         body: JSON.stringify(content),
       });
       expect(response.status).toBe(200);
+    });
+
+    it('can remove the policy.', async(): Promise<void> => {
+      const response = await fetch(joinUrl(policyEndpoint, encodeURIComponent('http://example.org/policySolidClient')), {
+        method: 'DELETE',
+        headers: { authorization: `WebID ${encodeURIComponent(webId)}`, 'content-type': 'text/turtle' },
+      });
+      expect(response.status).toBe(204);
     });
   });
 });
