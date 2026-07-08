@@ -1,7 +1,9 @@
-import { NotImplementedHttpError, RDF, XSD } from '@solid/community-server';
+import 'jest-rdf';
+import { RDF, XSD } from '@solid/community-server';
 import { DataFactory as DF, Parser, Store } from 'n3';
-import { ODRLEvaluator } from 'odrl-evaluator';
+import { ODRL, ODRLEvaluator } from 'odrl-evaluator';
 import { Mocked } from 'vitest';
+import { CLIENTID } from '../../../../src/credentials/Claims';
 import { OdrlAuthorizer } from '../../../../src/policies/authorizers/OdrlAuthorizer';
 import { basicPolicy } from '../../../../src/ucp/policy/ODRL';
 import { UCRulesStorage } from '../../../../src/ucp/storage/UCRulesStorage';
@@ -34,7 +36,7 @@ describe('OdrlAuthorizer', (): void => {
     evaluate.mockResolvedValue([]);
 
     vi.mocked(basicPolicy).mockReturnValue({
-      ruleIRIs:[],
+      ruleIRIs: [ 'urn:req-rule' ],
       policyIRI: 'req',
       representation: new Store(requestQuads),
     });
@@ -95,6 +97,30 @@ describe('OdrlAuthorizer', (): void => {
       [ ...new Store(requestQuads) ],
       sotw,
     );
+  });
+
+  it('adds client claim context using odrl:deliveryChannel', async(): Promise<void> => {
+    const claims = { [CLIENTID]: 'client-a' };
+    const query: Permission[] = [{ resource_id: 'rid', resource_scopes: [ 'urn:example:css:modes:read' ] }];
+
+    await expect(authorizer.permissions(claims, query)).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [] }]);
+
+    expect(evaluate).toHaveBeenCalledTimes(1);
+    const generatedRequest = evaluate.mock.calls[0][1];
+    const clientConstraintQuad = generatedRequest.find((quad) =>
+      quad.predicate.equals(ODRL.terms.leftOperand) && quad.object.equals(ODRL.terms.deliveryChannel));
+
+    expect(clientConstraintQuad).toBeDefined();
+    const clientConstraintSubject = clientConstraintQuad!.subject;
+    const clientConstraintQuads = generatedRequest.filter((quad) =>
+      quad.subject.equals(clientConstraintSubject));
+
+    expect(clientConstraintQuads).toEqualRdfQuadArray([
+      DF.quad(clientConstraintSubject, RDF.terms.type, ODRL.terms.Constraint),
+      DF.quad(clientConstraintSubject, ODRL.terms.leftOperand, ODRL.terms.deliveryChannel),
+      DF.quad(clientConstraintSubject, ODRL.terms.operator, ODRL.terms.eq),
+      DF.quad(clientConstraintSubject, ODRL.terms.rightOperand, DF.namedNode('client-a')),
+    ]);
   });
 
   it('extracts the allowed scopes from the resulting report.', async(): Promise<void> => {

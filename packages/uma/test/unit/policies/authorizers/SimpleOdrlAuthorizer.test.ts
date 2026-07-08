@@ -134,11 +134,11 @@ describe('SimpleOdrlAuthorizer', () => {
     expect(fallback.permissions).toHaveBeenCalledWith({}, query);
   });
 
-  it('returns empty if constraint is not satisfied (purpose)', async () => {
+  it('returns empty if constraint is not satisfied (deliveryChannel)', async () => {
     const rule = addRule({});
     addConstraint({
       rule,
-      leftOperand: ODRL.terms.purpose,
+      leftOperand: ODRL.terms.deliveryChannel,
       operator: ODRL.terms.eq,
       rightOperand: 'clientA',
     });
@@ -150,11 +150,11 @@ describe('SimpleOdrlAuthorizer', () => {
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
-  it('returns permission if constraint is satisfied (purpose)', async () => {
+  it('returns permission if constraint is satisfied (deliveryChannel)', async () => {
     const rule = addRule({});
     addConstraint({
       rule,
-      leftOperand: ODRL.terms.purpose,
+      leftOperand: ODRL.terms.deliveryChannel,
       operator: ODRL.terms.eq,
       rightOperand: 'clientA',
     });
