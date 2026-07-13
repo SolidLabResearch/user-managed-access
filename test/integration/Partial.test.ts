@@ -18,7 +18,8 @@ interface UmaConfig {
 describe('A server with partial results enabled', (): void => {
   const owner = 'http://example.com/alice#me';
   const user = `http://example.com/bob`;
-  const resource = `http://localhost:${rsPort}/alice/data`;
+  const aliceResource = `http://localhost:${rsPort}/alice/data`;
+  const bobResource = `http://localhost:${rsPort}/bob/data`;
   const readScope = 'http://www.w3.org/ns/odrl/2/read';
   const writeScope = 'http://www.w3.org/ns/odrl/2/write';
   let umaApp: App;
@@ -75,18 +76,31 @@ describe('A server with partial results enabled', (): void => {
     const patJson = await patResponse.json() as { access_token: string, token_type: string };
     pat = `${patJson.token_type} ${patJson.access_token}`;
 
-    const registrationBody = {
-      name: resource,
-      resource_scopes: [ readScope, writeScope ],
-    };
-    const resourceRegistrationResponse = await fetch(umaConfig.resource_registration_endpoint, {
+    let resourceRegistrationResponse = await fetch(umaConfig.resource_registration_endpoint, {
       method: 'POST',
       headers: {
         Authorization: pat,
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      body: JSON.stringify(registrationBody),
+      body: JSON.stringify({
+        name: aliceResource,
+        resource_scopes: [ readScope, writeScope ],
+      }),
+    });
+    expect(resourceRegistrationResponse.status).toBe(201);
+
+    resourceRegistrationResponse = await fetch(umaConfig.resource_registration_endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: pat,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        name: bobResource,
+        resource_scopes: [ readScope, writeScope ],
+      }),
     });
     expect(resourceRegistrationResponse.status).toBe(201);
 
@@ -99,7 +113,7 @@ describe('A server with partial results enabled', (): void => {
         }
 
         const auth = request.headers.authorization;
-        if (hasScope(auth, resource, readScope)) {
+        if (hasScope(auth, aliceResource, readScope)) {
           response.statusCode = 200;
           response.end('protected data');
           return;
@@ -114,7 +128,7 @@ describe('A server with partial results enabled', (): void => {
           },
           body: JSON.stringify([
             {
-              resource_id: resource,
+              resource_id: aliceResource,
               resource_scopes: [ readScope ],
             }
           ]),
@@ -174,13 +188,13 @@ describe('A server with partial results enabled', (): void => {
         odrl:assigner <${owner}> ;
         odrl:action odrl:create, odrl:modify ;
         odrl:target <http://localhost:${rsPort}/alice/> ,
-                    <${resource}> .
+                    <${aliceResource}> .
 
       ex:userPermission a odrl:Permission ;
         odrl:assignee <${user}> ;
         odrl:assigner <${owner}> ;
         odrl:action odrl:read ;
-        odrl:target <${resource}> .`;
+        odrl:target <${aliceResource}> .`;
 
     const url = `http://localhost:${umaPort}/uma/policies`;
     let response = await fetch(url, {
@@ -190,11 +204,11 @@ describe('A server with partial results enabled', (): void => {
     });
     expect(response.status).toBe(201);
 
-    response = await umaFetch(resource, {}, user);
+    response = await umaFetch(aliceResource, {}, user);
     expect(response.status).toBe(200);
   });
 
-  it('returns partial=true when not all requested scopes are granted.', async(): Promise<void> => {
+  it('returns partial=true for mixed namespaces when not all scopes are granted.', async(): Promise<void> => {
     const permissionResponse = await fetch(umaConfig.permission_endpoint, {
       method: 'POST',
       headers: {
@@ -204,9 +218,13 @@ describe('A server with partial results enabled', (): void => {
       },
       body: JSON.stringify([
         {
-          resource_id: resource,
+          resource_id: aliceResource,
           resource_scopes: [ readScope, writeScope ],
-        }
+        },
+        {
+          resource_id: bobResource,
+          resource_scopes: [ readScope ],
+        },
       ]),
     });
     expect(permissionResponse.status).toBe(201);
@@ -220,14 +238,14 @@ describe('A server with partial results enabled', (): void => {
     // Verify the token contains the allowed scope
     const jwtPayload = JSON.parse(Buffer.from(token.access_token.split('.')[1], 'base64').toString());
     expect(Array.isArray(jwtPayload.permissions)).toBe(true);
-    expect(jwtPayload.permissions).toContainEqual({
-      resource_id: resource,
+    expect(jwtPayload.permissions).toEqual([{
+      resource_id: aliceResource,
       resource_scopes: [ readScope ]
-    });
+    }]);
   });
 
   it('can access a protected resource with partial results.', async(): Promise<void> => {
-    const response = await umaFetch(resource, {}, user);
+    const response = await umaFetch(aliceResource, {}, user);
     expect(response.status).toBe(200);
   });
 });

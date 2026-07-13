@@ -6,6 +6,9 @@ import { Registration, RegistrationStore } from '../../../../src/util/Registrati
 
 describe('NamespacedAuthorizer', (): void => {
   const claims: ClaimSet = { claim: 'set' };
+  const perm1 = [{ resource_id: 'res1', resource_scopes: [ 'scope1' ] }];
+  const perm2 = [{ resource_id: 'res2', resource_scopes: [ 'scope2' ] }];
+  const fallbackPerm = [{ resource_id: 'fallback', resource_scopes: [ 'scopef' ] }];
 
   let authorizers: Record<string, Mocked<Authorizer>>;
   let fallback: Mocked<Authorizer>;
@@ -14,11 +17,11 @@ describe('NamespacedAuthorizer', (): void => {
 
   beforeEach(async(): Promise<void> => {
     authorizers = {
-      ns1: { permissions: vi.fn().mockResolvedValue('perm1'), },
-      ns2: { permissions: vi.fn().mockResolvedValue('perm2'), },
+      ns1: { permissions: vi.fn().mockResolvedValue(perm1), },
+      ns2: { permissions: vi.fn().mockResolvedValue(perm2), },
     };
 
-    fallback = { permissions: vi.fn().mockResolvedValue('perm'), };
+    fallback = { permissions: vi.fn().mockResolvedValue(fallbackPerm), };
 
     const descriptions: Record<string, Registration> = {
       res1: { description: { name: 'http://example.com/foo/ns1/res', resource_scopes: [] }, owner: 'owner1' },
@@ -33,11 +36,9 @@ describe('NamespacedAuthorizer', (): void => {
   });
 
   describe('.permissions', (): void => {
-    it('returns an empty list if there is no query or multiple identifiers.', async(): Promise<void> => {
+    it('returns an empty list if there is no query.', async(): Promise<void> => {
       await expect(authorizer.permissions(claims)).resolves.toEqual([]);
       await expect(authorizer.permissions(claims, [])).resolves.toEqual([]);
-      const query = [{ resource_id: 'res1' }, { resource_id: 'res2' }];
-      await expect(authorizer.permissions(claims, query)).resolves.toEqual([]);
       expect(authorizers.ns1.permissions).toHaveBeenCalledTimes(0);
       expect(authorizers.ns2.permissions).toHaveBeenCalledTimes(0);
       expect(fallback.permissions).toHaveBeenCalledTimes(0);
@@ -45,7 +46,7 @@ describe('NamespacedAuthorizer', (): void => {
 
     it('calls the matching authorizer.', async(): Promise<void> => {
       const query = [{ resource_id: 'res2', resource_scopes: [ 'scope1' ] }];
-      await expect(authorizer.permissions(claims, query)).resolves.toEqual('perm2');
+      await expect(authorizer.permissions(claims, query)).resolves.toEqual(perm2);
       expect(authorizers.ns1.permissions).toHaveBeenCalledTimes(0);
       expect(authorizers.ns2.permissions).toHaveBeenCalledTimes(1);
       expect(authorizers.ns2.permissions).toHaveBeenLastCalledWith(claims, query);
@@ -55,21 +56,41 @@ describe('NamespacedAuthorizer', (): void => {
     it('calls the fallback authorizer if there is no match.', async(): Promise<void> => {
       const query1 = [{ resource_id: 'res3' }];
       const query2 = [{ resource_id: 'unknown' }];
-      await expect(authorizer.permissions(claims, query1)).resolves.toEqual('perm');
-      await expect(authorizer.permissions(claims, query2)).resolves.toEqual('perm');
+      await expect(authorizer.permissions(claims, query1)).resolves.toEqual(fallbackPerm);
+      await expect(authorizer.permissions(claims, query2)).resolves.toEqual(fallbackPerm);
       expect(authorizers.ns1.permissions).toHaveBeenCalledTimes(0);
       expect(authorizers.ns2.permissions).toHaveBeenCalledTimes(0);
       expect(fallback.permissions).toHaveBeenCalledTimes(2);
       expect(fallback.permissions).toHaveBeenCalledWith(claims, query1);
       expect(fallback.permissions).toHaveBeenCalledWith(claims, query2);
     });
+
+    it('merges permissions of mixed namespaces.', async(): Promise<void> => {
+      const query = [
+        { resource_id: 'res1', resource_scopes: [ 'scope1' ] },
+        { resource_id: 'res2', resource_scopes: [ 'scope2' ] },
+        { resource_id: 'res3', resource_scopes: [ 'scope3' ] },
+      ];
+
+      await expect(authorizer.permissions(claims, query)).resolves.toEqual([ ...perm1, ...perm2, ...fallbackPerm ]);
+
+      expect(authorizers.ns1.permissions).toHaveBeenCalledTimes(1);
+      expect(authorizers.ns1.permissions).toHaveBeenCalledWith(claims, [ query[0] ]);
+      expect(authorizers.ns2.permissions).toHaveBeenCalledTimes(1);
+      expect(authorizers.ns2.permissions).toHaveBeenCalledWith(claims, [ query[1] ]);
+      expect(fallback.permissions).toHaveBeenCalledTimes(1);
+      expect(fallback.permissions).toHaveBeenCalledWith(claims, [ query[2] ]);
+    });
   });
 
   it('can be configured to use a different path segment.', async(): Promise<void> => {
-    authorizers.res = { permissions: vi.fn().mockResolvedValue('perm-res'), };
+    authorizers.res = {
+      permissions: vi.fn().mockResolvedValue([{ resource_id: 'res1', resource_scopes: [ 'perm-res' ] }]),
+    };
     const authorizer = new NamespacedAuthorizer(authorizers, fallback, registrationStore, 3);
     const query = [{ resource_id: 'res1' }];
-    await expect(authorizer.permissions(claims, query)).resolves.toEqual('perm-res');
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([{ resource_id: 'res1', resource_scopes: [ 'perm-res' ] }]);
     expect(authorizers.res.permissions).toHaveBeenCalledTimes(1);
     expect(authorizers.res.permissions).toHaveBeenLastCalledWith(claims, query);
   });

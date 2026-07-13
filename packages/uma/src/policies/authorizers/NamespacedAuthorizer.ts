@@ -35,22 +35,27 @@ export class NamespacedAuthorizer implements Authorizer {
     // No permissions if no query
     if (!query || query.length === 0) return [];
 
-    // Base namespace on first resource
-    const ns = query[0].resource_id ? await this.findNamespace(query[0].resource_id) : undefined;
+    // Group requested permissions by applicable authorizer
+    const groupedQueries = new Map<Authorizer, Partial<Permission>[]>();
+    for (const permission of query) {
+      const ns = permission.resource_id ? await this.findNamespace(permission.resource_id) : undefined;
+      const authorizer = (ns && this.authorizers[ns]) || this.fallback;
+      const existing = groupedQueries.get(authorizer);
 
-    // Check namespaces of other resources
-    for (let i = 1; i < query.length; ++i) {
-      if ((query[i].resource_id ? await this.findNamespace(query[i].resource_id) : undefined) !== ns) {
-        this.logger.warn(`Cannot calculate permissions over multiple namespaces at once.`);
-        return [];
+      if (existing) {
+        existing.push(permission);
+      } else {
+        groupedQueries.set(authorizer, [ permission ]);
       }
     }
 
-    // Find applicable authorizer
-    const authorizer = (ns && this.authorizers[ns]) || this.fallback;
-
-    // Delegate to authorizer
-    return authorizer.permissions(claims, query);
+    // Delegate each namespace-specific subset and merge all granted permissions.
+    const permissionSets = await Promise.all(
+      [ ...groupedQueries.entries() ].map(
+        ([ authorizer, groupedQuery ]) => authorizer.permissions(claims, groupedQuery),
+      ),
+    );
+    return permissionSets.flat();
   }
 
   /**
