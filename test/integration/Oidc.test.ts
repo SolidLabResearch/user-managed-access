@@ -26,7 +26,10 @@ describe('A server supporting OIDC tokens', (): void => {
 
     umaApp = await instantiateFromConfig(
       'urn:uma:default:App',
-      path.join(__dirname, '../../packages/uma/config/default.json'),
+      [
+        path.join(__dirname, '../../packages/uma/config/default.json'),
+        path.join(__dirname, '../../packages/uma/config/enable-sub.json')
+      ],
       {
         'urn:uma:variables:port': umaPort,
         'urn:uma:variables:baseUrl': `http://localhost:${umaPort}/uma`,
