@@ -16,6 +16,7 @@ export * from './credentials/verify/OidcVerifier';
 export * from './credentials/verify/JwtVerifier';
 export * from './credentials/verify/IriVerifier';
 export * from './credentials/verify/RefreshTokenVerifier';
+export * from './credentials/verify/KeyValueVerifier';
 
 // Dialog
 export * from './dialog/AggregatorNegotiator';

@@ -41,6 +41,7 @@ so some information might change depending on which version and branch you're us
       - [Publicly accessible resources](#publicly-accessible-resources)
     + [Exchange ticket](#exchange-ticket)
       - [Authentication methods](#authentication-methods)
+        - [Additional claims](#additional-claims)
       - [Customizing OIDC verification](#customizing-oidc-verification)
     + [Generate token](#generate-token)
       - [Enabling optional token features](#enabling-optional-token-features)
@@ -325,6 +326,20 @@ The `claim_token_format` explains to the AS how the `claim_token` should be inte
 In this case, this is a custom format designed for this server,
 where the token is a URL-encoded WebID.
 
+It is also possible to provide multiple claims by using an array for `claim_token`:
+```json
+{
+  "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
+  "ticket": "TICKET_ID",
+  "claim_token": [
+    { "claim_token": "eyJhbGciOiJSUzI1NiIsInR5cCI...", "claim_token_format": "http://openid.net/specs/openid-connect-core-1_0.html#IDToken" },
+    { "claim_token": "https://w3id.org/dpv#ScientificResearch", "claim_token_format": "http://www.w3.org/ns/odrl/2/purpose" }
+  ]
+}
+```
+When multiple claims are provided, each claim must include both a `claim_token` and `claim_token_format`.
+The AS will verify all provided claims and use them collectively to determine authorization.
+
 #### Authentication methods
 
 The above claim token format indicates that the claim token should be interpreted as a valid WebID.
@@ -335,12 +350,22 @@ In that case the body is expected to be an OIDC ID token.
 Both Solid and standard OIDC tokens are supported.
 In case of standard tokens, the value of the `sub` field will be used to match the assignee in the policies.
 
+Multiple authentication methods can be combined in a single request by providing multiple claims as shown above.
+This allows the AS to verify multiple credentials simultaneously and combine their claims.
+
 The values that are extracted from the OIDC token are expected to be IRIs.
 In case the `sub` or `azp`, which is discussed below, values are not IRIs,
 the server wil internally convert them by URL encoding the value, and prepending them with `http://example.com/id/`.
 This means that your policies should reference the converted ID.
 For example, if your `sub` value is `my id`, your policy needs to target `http://example.com/id/my%20id`.
 This base URL will be updated in the future once we have settled on a fixed value.
+
+##### Additional claims
+
+Besides claims that identify the user and client, additional claims can also be provided containing additional information.
+Currently, the only additional claim that is supported is the `purpose` claim.
+This can be provided with a `claim_token_format` of `http://www.w3.org/ns/odrl/2/purpose`,
+and with the `claim_token` being the IRI of the purpose.
 
 #### Customizing OIDC verification
 

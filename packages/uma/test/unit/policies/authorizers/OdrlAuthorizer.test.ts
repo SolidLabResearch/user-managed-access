@@ -3,7 +3,7 @@ import { RDF, XSD } from '@solid/community-server';
 import { DataFactory as DF, Parser, Store } from 'n3';
 import { ODRL, ODRLEvaluator } from 'odrl-evaluator';
 import { Mocked } from 'vitest';
-import { CLIENTID } from '../../../../src/credentials/Claims';
+import { CLIENTID, PURPOSE } from '../../../../src/credentials/Claims';
 import { OdrlAuthorizer } from '../../../../src/policies/authorizers/OdrlAuthorizer';
 import { basicPolicy } from '../../../../src/ucp/policy/ODRL';
 import { UCRulesStorage } from '../../../../src/ucp/storage/UCRulesStorage';
@@ -120,6 +120,30 @@ describe('OdrlAuthorizer', (): void => {
       DF.quad(clientConstraintSubject, ODRL.terms.leftOperand, ODRL.terms.deliveryChannel),
       DF.quad(clientConstraintSubject, ODRL.terms.operator, ODRL.terms.eq),
       DF.quad(clientConstraintSubject, ODRL.terms.rightOperand, DF.namedNode('client-a')),
+    ]);
+  });
+
+  it('adds purpose claim context using odrl:purpose', async(): Promise<void> => {
+    const claims = { [PURPOSE]: 'https://w3id.org/dpv#ScientificResearch' };
+    const query: Permission[] = [{ resource_id: 'rid', resource_scopes: [ 'urn:example:css:modes:read' ] }];
+
+    await expect(authorizer.permissions(claims, query)).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [] }]);
+
+    expect(evaluate).toHaveBeenCalledTimes(1);
+    const generatedRequest = evaluate.mock.calls[0][1];
+    const purposeConstraintQuad = generatedRequest.find((quad) =>
+      quad.predicate.equals(ODRL.terms.leftOperand) && quad.object.equals(ODRL.terms.purpose));
+
+    expect(purposeConstraintQuad).toBeDefined();
+    const purposeConstraintSubject = purposeConstraintQuad!.subject;
+    const purposeConstraintQuads = generatedRequest.filter((quad) =>
+      quad.subject.equals(purposeConstraintSubject));
+
+    expect(purposeConstraintQuads).toEqualRdfQuadArray([
+      DF.quad(purposeConstraintSubject, RDF.terms.type, ODRL.terms.Constraint),
+      DF.quad(purposeConstraintSubject, ODRL.terms.leftOperand, ODRL.terms.purpose),
+      DF.quad(purposeConstraintSubject, ODRL.terms.operator, ODRL.terms.eq),
+      DF.quad(purposeConstraintSubject, ODRL.terms.rightOperand, DF.namedNode('https://w3id.org/dpv#ScientificResearch')),
     ]);
   });
 
