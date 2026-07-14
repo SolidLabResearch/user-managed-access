@@ -26,12 +26,14 @@ export class JwtTokenFactory extends TokenFactory {
    * @param issuer - server URL to assign to the issuer field
    * @param tokenStore - stores the link between JWT and access token
    * @param params - additional parameters for the generated JWT
+   * @param addSub - if true, adds a sub claim to the JWT if available in the input token
    */
   constructor(
     protected readonly keyGen: JwkGenerator,
     protected readonly issuer: string,
     protected readonly tokenStore: KeyValueStorage<string, AccessToken>,
     protected readonly params: JwtTokenParams = { expirationTime: '30m', aud: 'solid' },
+    protected readonly addSub = false,
   ) {
     super();
   }
@@ -52,7 +54,7 @@ export class JwtTokenFactory extends TokenFactory {
       .setExpirationTime(this.params.expirationTime)
       .setJti(randomUUID());
 
-    if (token.sub) {
+    if (this.addSub && token.sub) {
       signJwt = signJwt.setSubject(token.sub);
     }
 

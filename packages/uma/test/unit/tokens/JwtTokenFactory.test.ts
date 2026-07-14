@@ -1,5 +1,5 @@
 import { AlgJwk, JwkGenerator, KeyValueStorage } from '@solid/community-server';
-import { exportJWK, generateKeyPair, GenerateKeyPairResult, jwtVerify, KeyLike, SignJWT } from 'jose';
+import { exportJWK, generateKeyPair, GenerateKeyPairResult, jwtVerify, SignJWT } from 'jose';
 import { beforeAll, Mocked } from 'vitest';
 import { AccessToken } from '../../../src/tokens/AccessToken';
 import { JwtTokenFactory } from '../../../src/tokens/JwtTokenFactory';
@@ -63,7 +63,6 @@ describe('JwtTokenFactory', (): void => {
     expect(parsed.payload).toEqual({
       permissions: token.permissions,
       contract: token.contract,
-      sub: token.sub,
       iat: Math.floor(now.getTime()/1000),
       iss: issuer,
       aud: 'solid',
@@ -115,5 +114,22 @@ describe('JwtTokenFactory', (): void => {
       .sign(keys.privateKey);
     await expect(factory.deserialize(jwt)).rejects
       .toThrow('Invalid Access Token provided, error while parsing: value is not an array');
+  });
+
+  it('includes the sub claim when addSub is true.', async(): Promise<void> => {
+    const factoryWithSub = new JwtTokenFactory(keyGen, issuer, tokenStore, undefined, true);
+    const result = await factoryWithSub.serialize(token);
+    const parsed = await jwtVerify(result.token, keys.publicKey);
+    expect(parsed.payload.sub).toBe(token.sub);
+    expect(parsed.payload).toEqual({
+      permissions: token.permissions,
+      contract: token.contract,
+      sub: token.sub,
+      iat: Math.floor(now.getTime()/1000),
+      iss: issuer,
+      aud: 'solid',
+      exp: Math.floor(now.getTime()/1000) + 30 * 60,
+      jti: '1-2-3-4-5',
+    });
   });
 });
