@@ -7,7 +7,7 @@ import { Authorizer } from '../../../../src/policies/authorizers/Authorizer';
 import { SimpleOdrlAuthorizer } from '../../../../src/policies/authorizers/SimpleOdrlAuthorizer';
 import { UCRulesStorage } from '../../../../src/ucp/storage/UCRulesStorage';
 import { Permission } from '../../../../src/views/Permission';
-import { WEBID, CLIENTID } from '../../../../src/credentials/Claims';
+import { WEBID, CLIENTID, PURPOSE } from '../../../../src/credentials/Claims';
 
 describe('SimpleOdrlAuthorizer', () => {
   const resource = 'res';
@@ -163,6 +163,38 @@ describe('SimpleOdrlAuthorizer', () => {
     const result = await authorizer.permissions(claims, query);
 
     expect(result).toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+  });
+
+  it('returns permission if purpose constraint is satisfied', async () => {
+    const rule = addRule({});
+    addConstraint({
+      rule,
+      leftOperand: ODRL.terms.purpose,
+      operator: ODRL.terms.eq,
+      rightOperand: 'https://w3id.org/dpv#ScientificResearch',
+    });
+    const claims = { [PURPOSE]: 'https://w3id.org/dpv#ScientificResearch' };
+
+    const result = await authorizer.permissions(claims, query);
+
+    expect(result).toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+  });
+
+  it('returns empty if claim constraint is not satisfied', async () => {
+    const rule = addRule({});
+    addConstraint({
+      rule,
+      leftOperand: ODRL.terms.purpose,
+      operator: ODRL.terms.eq,
+      rightOperand: 'http://example.com/purpose-a',
+    });
+    const claims = { [PURPOSE]: 'http://example.com/purpose-b' };
+
+    const result = await authorizer.permissions(claims, query);
+
+    expect(result).toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 

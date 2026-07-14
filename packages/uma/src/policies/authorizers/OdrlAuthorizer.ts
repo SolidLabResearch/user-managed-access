@@ -2,7 +2,7 @@ import { RDF } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory, Quad, Store } from 'n3';
 import { EyelingReasoner, ODRL, ODRLEngineMultipleSteps, ODRLEvaluator } from 'odrl-evaluator';
-import { CLIENTID, WEBID } from '../../credentials/Claims';
+import { CLIENTID, PURPOSE, WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { basicPolicy } from '../../ucp/policy/ODRL';
 import { PrioritizeProhibitionStrategy } from '../../ucp/policy/PrioritizeProhibitionStrategy';
@@ -13,6 +13,11 @@ import { Permission } from '../../views/Permission';
 import { Authorizer } from './Authorizer';
 
 const { quad, namedNode, literal, blankNode } = DataFactory
+
+const claimOperandMap: Record<string, string> = {
+    [CLIENTID]: ODRL.deliveryChannel,
+    [PURPOSE]: ODRL.purpose,
+} as const;
 
 /**
  * Permission evaluation is performed as follows:
@@ -70,15 +75,22 @@ export class OdrlAuthorizer implements Authorizer {
         );
 
         const subject = typeof claims[WEBID] === 'string' ? claims[WEBID] : 'urn:solidlab:uma:id:anonymous';
-        const clientQuads: Quad[] = [];
-        const clientSubject = blankNode();
-        if (typeof claims[CLIENTID] === 'string') {
-            clientQuads.push(
-                quad(clientSubject, RDF.terms.type, ODRL.terms.Constraint),
-                quad(clientSubject, ODRL.terms.leftOperand, ODRL.terms.deliveryChannel),
-                quad(clientSubject, ODRL.terms.operator, ODRL.terms.eq),
-                quad(clientSubject, ODRL.terms.rightOperand, namedNode(claims[CLIENTID])),
-            );
+        const claimContextConstraints: { subject: ReturnType<typeof blankNode>; quads: Quad[] }[] = [];
+        for (const [ claimKey, leftOperand ] of Object.entries(claimOperandMap)) {
+            const claimValue = claims[claimKey];
+            if (typeof claimValue !== 'string') {
+                continue;
+            }
+            const claimSubject = blankNode();
+            claimContextConstraints.push({
+                subject: claimSubject,
+                quads: [
+                    quad(claimSubject, RDF.terms.type, ODRL.terms.Constraint),
+                    quad(claimSubject, ODRL.terms.leftOperand, namedNode(leftOperand)),
+                    quad(claimSubject, ODRL.terms.operator, ODRL.terms.eq),
+                    quad(claimSubject, ODRL.terms.rightOperand, namedNode(claimValue)),
+                ],
+            });
         }
 
         for (const { resource_id, resource_scopes } of query) {
@@ -101,14 +113,13 @@ export class OdrlAuthorizer implements Authorizer {
                 }
                 const request = basicPolicy(requestPolicy);
                 const requestStore = request.representation
-                // Adding context triples for the client identifier, if there is one
-                if (clientQuads.length > 0) {
+                for (const contextConstraint of claimContextConstraints) {
                     requestStore.addQuad(quad(
                         namedNode(request.ruleIRIs[0]),
                         namedNode('https://w3id.org/force/sotw#context'),
-                        clientSubject,
+                        contextConstraint.subject,
                     ));
-                    requestStore.addQuads(clientQuads);
+                    requestStore.addQuads(contextConstraint.quads);
                 }
 
                 // evaluate policies

@@ -1,5 +1,5 @@
-import { DialogOutput } from '@solidlab/uma';
-import {joinUrl} from '@solid/community-server';
+import { joinUrl } from '@solid/community-server';
+import { DialogInput, DialogOutput } from '@solidlab/uma';
 
 /**
  * The initial request to a RS without a token.
@@ -39,28 +39,50 @@ export async function findTokenEndpoint(uri: string): Promise<string> {
 }
 
 /**
- * Calls the UMA token endpoint with a token and potentially the given WebID to receive a response.
- * Will error if the response is not an access token.
+ * Attempts a token request that may fail.
+ * Returns the response without enforcing a specific status code.
+ * Useful for testing error cases like 403 responses.
+ * Claims are always sent in array format when present.
  */
-export async function getToken(ticket: string, endpoint: string, webId?: string, scope?: string):
-  Promise<DialogOutput> {
-  const content: Record<string, string> = {
+export async function attemptTokenRequest(ticket: string, endpoint: string, webId?: string,
+  additionalClaims?: Array<{ claim_token: string, claim_token_format: string }>, scope?: string):
+  Promise<Response> {
+  const content: DialogInput = {
     grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
     ticket: ticket,
   };
-  if (webId) {
-    content.claim_token = encodeURIComponent(webId);
-    content.claim_token_format = 'urn:solidlab:uma:claims:formats:webid';
+
+  const claims = [
+    ...(webId ? [{
+      claim_token: encodeURIComponent(webId),
+      claim_token_format: 'urn:solidlab:uma:claims:formats:webid',
+    }] : []),
+    ...(additionalClaims ?? []),
+  ];
+
+  if (claims.length > 0) {
+    content.claim_token = claims;
   }
   if (scope) {
     content.scope = scope;
   }
 
-  const response = await fetch(endpoint, {
+  return fetch(endpoint, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(content),
   });
+}
+
+/**
+ * Calls the UMA token endpoint with a ticket and potentially the given WebID to receive a response.
+ * Will error if the response is not an access token.
+ * Optionally supports additional claims beyond the WebID.
+ */
+export async function getToken(ticket: string, endpoint: string, webId?: string, scope?: string,
+  additionalClaims?: Array<{ claim_token: string, claim_token_format: string }>):
+  Promise<DialogOutput> {
+  const response = await attemptTokenRequest(ticket, endpoint, webId, additionalClaims, scope);
 
   expect(response.status).toBe(200);
   expect(response.headers.get('content-type')).toBe('application/json');

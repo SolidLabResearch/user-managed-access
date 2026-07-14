@@ -2,7 +2,7 @@ import { NamedNode } from '@rdfjs/types';
 import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory as DF, Quad_Subject, Store } from 'n3';
 import { ODRL } from 'odrl-evaluator';
-import { CLIENTID, WEBID } from '../../credentials/Claims';
+import { CLIENTID, PURPOSE, WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { ReadOnlyStore, UCRulesStorage } from '../../ucp/storage/UCRulesStorage';
 import { Permission } from '../../views/Permission';
@@ -26,6 +26,11 @@ const dateComparators: NodeJS.Dict<(a: Date, b: Date) => boolean> = {
   [ODRL.gt]: (a: Date, b: Date) => a > b,
   [ODRL.gteq]: (a: Date, b: Date) => a >= b,
 };
+
+const claimOperandMap: Record<string, string> = {
+    [ODRL.deliveryChannel]: CLIENTID,
+    [ODRL.purpose]: PURPOSE
+} as const;
 
 /**
  * A simple authorizer that can handle basic ODRL policies with direct permissions and prohibitions,
@@ -151,7 +156,7 @@ export class SimpleOdrlAuthorizer implements Authorizer {
    * Determines if all constraints for the given rule are valid.
    * Returns true if all constraints are valid, false if any constraint is not valid,
    * and undefined if any constraint is too complex to evaluate.
-   * Only supports deliveryChannel (for client ID) and dateTime constraints.
+   * Only supports deliveryChannel (for client ID), purpose, and dateTime constraints.
    */
   protected validateConstraints(rule: Quad_Subject, policies: ReadOnlyStore, claims: ClaimSet): boolean | undefined {
     const constraints = policies.getObjects(rule, ODRL.terms.constraint, null).map(constraint => ({
@@ -165,21 +170,22 @@ export class SimpleOdrlAuthorizer implements Authorizer {
     }
     for (const constraint of constraints) {
       // Return undefined if any of these are too complex or unknown
-      if (constraint.leftOperand.equals(ODRL.terms.deliveryChannel)) {
-        if (!constraint.operator.equals(ODRL.terms.eq)) {
-          return false;
-        }
-        const clientId = claims[CLIENTID];
-        if (typeof clientId !== 'string' || constraint.rightOperand.value !== clientId) {
-          return false;
-        }
-      } else if (constraint.leftOperand.equals(ODRL.terms.dateTime)) {
+      if (constraint.leftOperand.equals(ODRL.terms.dateTime)) {
         const comparisonDate = new Date(constraint.rightOperand.value);
         const comparator = dateComparators[constraint.operator.value];
         if (!comparator) {
           return false;
         }
         if (!comparator(new Date(), comparisonDate)) {
+          return false;
+        }
+      } else if (claimOperandMap[constraint.leftOperand.value]) {
+        const claimKey = claimOperandMap[constraint.leftOperand.value];
+        if (!constraint.operator.equals(ODRL.terms.eq)) {
+          return false;
+        }
+        const claimValue = claims[claimKey];
+        if (typeof claimValue !== 'string' || constraint.rightOperand.value !== claimValue) {
           return false;
         }
       } else {

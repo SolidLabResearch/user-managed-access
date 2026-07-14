@@ -4,7 +4,7 @@ import { Parser, Writer } from 'n3';
 import { readFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
-import { generateCredentials } from '../util/UmaUtil';
+import { generateCredentials, noTokenFetch, findTokenEndpoint, attemptTokenRequest, getToken } from '../util/UmaUtil';
 
 const [ cssPort, umaPort ] = getPorts('Base');
 
@@ -101,6 +101,7 @@ describe('A server setup', (): void => {
   });
 
   describe('using ODRL authorization', (): void => {
+    const owner = 'https://pod.woutslabbinck.com/profile/card#me';
     const newResource = `http://localhost:${cssPort}/alice/resource.txt`;
     const newResource2 = `http://localhost:${cssPort}/alice/private/resource.txt`;
     let wwwAuthenticateHeader: string;
@@ -238,8 +239,51 @@ describe('A server setup', (): void => {
       expect(response.status).toBe(401);
     });
 
+    it('supports purpose claims.', async(): Promise<void> => {
+      const assignee = 'https://purpose.pod.example/profile/card#me';
+      const purpose = 'https://w3id.org/dpv#ScientificResearch';
+
+      const policy = `
+        @prefix ex: <http://example.org/>.
+        @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+        ex:purposePolicy a odrl:Agreement ;
+          odrl:uid ex:purposePolicy ;
+          odrl:permission ex:purposePermission .
+        ex:purposePermission a odrl:Permission ;
+          odrl:action odrl:read ;
+          odrl:target <${newResource}> ;
+          odrl:assignee <${assignee}> ;
+          odrl:assigner <${owner}> ;
+          odrl:constraint ex:purposeConstraint .
+        ex:purposeConstraint a odrl:Constraint ;
+          odrl:leftOperand odrl:purpose ;
+          odrl:operator odrl:eq ;
+          odrl:rightOperand <${purpose}> .
+      `;
+
+      const policyResponse = await fetch(`http://localhost:${umaPort}/uma/policies`, {
+        method: 'POST',
+        headers: { authorization: `WebID ${encodeURIComponent(owner)}`, 'content-type': 'text/turtle' },
+        body: policy,
+      });
+      expect(policyResponse.status).toBe(201);
+
+      // First request without purpose should be denied
+      const { as_uri, ticket } = await noTokenFetch(newResource);
+      const endpoint = await findTokenEndpoint(as_uri);
+      const deniedResponse = await attemptTokenRequest(ticket, endpoint, assignee);
+      expect(deniedResponse.status).toBe(403);
+
+      // Request new ticket and get token with both WebID and purpose claims
+      const { ticket: newTicket } = await noTokenFetch(newResource);
+      const tokenWithClaims = await getToken(newTicket, endpoint, assignee, undefined, [
+        { claim_token: purpose, claim_token_format: 'http://www.w3.org/ns/odrl/2/purpose' }
+      ]);
+      expect(typeof tokenWithClaims.access_token).toBe('string');
+    });
+
     it('the resource can be made publicly accessible by having an anonymous assignee.', async(): Promise<void> => {
-      const owner = 'https://pod.woutslabbinck.com/profile/card#me';
       const url = `http://localhost:${umaPort}/uma/policies`;
 
       const policy = `
@@ -276,7 +320,6 @@ describe('A server setup', (): void => {
     });
 
     it('the resource can be made publicly accessible by being a Set without assignee.', async(): Promise<void> => {
-      const owner = 'https://pod.woutslabbinck.com/profile/card#me';
       const url = `http://localhost:${umaPort}/uma/policies`;
 
       const policy = `
