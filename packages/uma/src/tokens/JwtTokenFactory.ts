@@ -1,6 +1,7 @@
-import { BadRequestHttpError, createErrorMessage, JwkGenerator, KeyValueStorage } from '@solid/community-server';
+import { BadRequestHttpError, createErrorMessage, ExpiringStorage, JwkGenerator, } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { importJWK, jwtVerify, SignJWT } from 'jose';
+import ms, { StringValue } from 'ms';
 import { randomUUID } from 'node:crypto';
 import { array, reType } from '../util/ReType';
 import { Permission } from '../views/Permission';
@@ -31,7 +32,7 @@ export class JwtTokenFactory extends TokenFactory {
   constructor(
     protected readonly keyGen: JwkGenerator,
     protected readonly issuer: string,
-    protected readonly tokenStore: KeyValueStorage<string, AccessToken>,
+    protected readonly tokenStore: ExpiringStorage<string, AccessToken>,
     protected readonly params: JwtTokenParams = { expirationTime: '30m', aud: 'solid' },
     protected readonly addSub = false,
   ) {
@@ -61,9 +62,7 @@ export class JwtTokenFactory extends TokenFactory {
     const jwt = await signJwt.sign(jwk);
 
     this.logger.debug(`Issued new JWT Token ${JSON.stringify(token)}`);
-    // TODO: tokenstore should expire tokens eventually; can use expiring storage,
-    //       or just normal store with timer-based cleanup.
-    await this.tokenStore.set(jwt, token);
+    await this.tokenStore.set(jwt, token, ms(this.params.expirationTime as StringValue));
     return { token: jwt, tokenType: 'Bearer' };
   }
 

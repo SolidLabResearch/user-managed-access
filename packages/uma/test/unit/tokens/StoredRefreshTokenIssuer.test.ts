@@ -1,4 +1,4 @@
-import { KeyValueStorage } from '@solid/community-server';
+import { ExpiringStorage } from '@solid/community-server';
 import { Mocked } from 'vitest';
 import { RefreshInformation } from '../../../src/credentials/verify/RefreshTokenVerifier';
 import { StoredRefreshTokenIssuer } from '../../../src/tokens/StoredRefreshTokenIssuer';
@@ -14,7 +14,7 @@ describe('StoredRefreshTokenIssuer', (): void => {
   const claims = { webid: 'https://alice.example/#me' };
   const permissions = [ { resource_id: 'id', resource_scopes: [ 'scope' ] } ];
 
-  let refreshStore: Mocked<KeyValueStorage<string, RefreshInformation>>;
+  let refreshStore: Mocked<ExpiringStorage<string, RefreshInformation>>;
   let issuer: StoredRefreshTokenIssuer;
 
   beforeEach(async(): Promise<void> => {
@@ -33,7 +33,7 @@ describe('StoredRefreshTokenIssuer', (): void => {
       claims,
       permissions,
       expiration: now.getTime() + 7 * 24 * 60 * 60 * 1000,
-    });
+    }, 7 * 24 * 60 * 60 * 1000);
     expect(result).toBe('refresh-token-id');
   });
 });

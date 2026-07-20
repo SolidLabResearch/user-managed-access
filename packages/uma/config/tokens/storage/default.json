@@ -5,11 +5,10 @@
   "@graph": [
     {
       "@id": "urn:uma:default:TokenStore",
-      "@type": "MemoryMapStorage"
-    },
-    {
-      "@id": "urn:uma:default:RefreshTokenStore",
-      "@type": "MemoryMapStorage"
+      "@type": "WrappedExpiringStorage",
+      "source": {
+        "@type": "MemoryMapStorage"
+      }
     }
   ]
 }

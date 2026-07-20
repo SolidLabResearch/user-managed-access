@@ -1,4 +1,4 @@
-import { KeyValueStorage } from '@solid/community-server';
+import { ExpiringStorage } from '@solid/community-server';
 import ms, { StringValue } from 'ms';
 import { randomUUID } from 'node:crypto';
 import { ClaimSet } from '../credentials/ClaimSet';
@@ -14,7 +14,7 @@ export class StoredRefreshTokenIssuer implements RefreshTokenIssuer {
   protected readonly refreshExpiration: number;
 
   public constructor(
-    protected readonly refreshStore: KeyValueStorage<string, RefreshInformation>,
+    protected readonly refreshStore: ExpiringStorage<string, RefreshInformation>,
     refreshExpiration: string = '7d',
   ) {
     this.refreshExpiration = ms(refreshExpiration as StringValue);
@@ -22,13 +22,11 @@ export class StoredRefreshTokenIssuer implements RefreshTokenIssuer {
 
   public async issue(claims: ClaimSet, permissions: Permission[]): Promise<string> {
     const refreshToken = randomUUID();
-    // TODO: expired tokens should be removed; can use expiring storage,
-    //       or just normal store with timer-based cleanup.
     await this.refreshStore.set(refreshToken, {
       claims,
       permissions,
       expiration: Date.now() + this.refreshExpiration,
-    });
+    }, this.refreshExpiration);
     return refreshToken;
   }
 }

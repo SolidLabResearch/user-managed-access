@@ -1,4 +1,4 @@
-import { AlgJwk, JwkGenerator, KeyValueStorage } from '@solid/community-server';
+import { AlgJwk, ExpiringStorage, JwkGenerator } from '@solid/community-server';
 import { exportJWK, generateKeyPair, GenerateKeyPairResult, jwtVerify, SignJWT } from 'jose';
 import { beforeAll, Mocked } from 'vitest';
 import { AccessToken } from '../../../src/tokens/AccessToken';
@@ -33,7 +33,7 @@ describe('JwtTokenFactory', (): void => {
   };
 
   let keyGen: Mocked<JwkGenerator>;
-  let tokenStore: Mocked<KeyValueStorage<string, AccessToken>>;
+  let tokenStore: Mocked<ExpiringStorage<string, AccessToken>>;
   let factory: JwtTokenFactory;
 
   beforeAll(async(): Promise<void> => {
@@ -51,7 +51,7 @@ describe('JwtTokenFactory', (): void => {
 
     tokenStore = {
       set: vi.fn(),
-    } satisfies Partial<KeyValueStorage<string, AccessToken>> as any;
+    } satisfies Partial<ExpiringStorage<string, AccessToken>> as any;
 
     factory = new JwtTokenFactory(keyGen, issuer, tokenStore);
   });
@@ -72,7 +72,7 @@ describe('JwtTokenFactory', (): void => {
     expect(parsed.protectedHeader.alg).toBe(alg);
     expect(parsed.protectedHeader.kid).toBe(privateKey.kid);
     expect(tokenStore.set).toHaveBeenCalledTimes(1);
-    expect(tokenStore.set).toHaveBeenLastCalledWith(result.token, token);
+    expect(tokenStore.set).toHaveBeenLastCalledWith(result.token, token, 30 * 60 * 1000);
   });
 
   it('returns the permissions of the deserialized token.', async(): Promise<void> => {
