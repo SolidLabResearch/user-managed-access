@@ -18,7 +18,7 @@
         "refreshTokenIssuer": {
           "@id": "urn:uma:default:RefreshTokenIssuer",
           "@type": "StoredRefreshTokenIssuer",
-          "refreshStore": { "@id": "urn:uma:default:RefreshTokenStore" }
+          "refreshStore": { "@id": "urn:uma:default:TokenStore" }
         }
       }
     }
