@@ -64,4 +64,13 @@ describe('NamespacedAuthorizer', (): void => {
       expect(fallback.permissions).toHaveBeenCalledWith(claims, query2);
     });
   });
+
+  it('can be configured to use a different path segment.', async(): Promise<void> => {
+    authorizers.res = { permissions: vi.fn().mockResolvedValue('perm-res'), };
+    const authorizer = new NamespacedAuthorizer(authorizers, fallback, registrationStore, 3);
+    const query = [{ resource_id: 'res1' }];
+    await expect(authorizer.permissions(claims, query)).resolves.toEqual('perm-res');
+    expect(authorizers.res.permissions).toHaveBeenCalledTimes(1);
+    expect(authorizers.res.permissions).toHaveBeenLastCalledWith(claims, query);
+  });
 });

@@ -4,8 +4,6 @@ import { RegistrationStore } from '../../util/RegistrationStore';
 import { Permission } from '../../views/Permission';
 import { Authorizer } from './Authorizer';
 
-const namespace = (resource: string) => new URL(resource).pathname.split('/')?.[2] ?? '';
-
 /**
  * An authorizer delegating to different authorizers based on the namespaces in the request.
  */
@@ -19,11 +17,15 @@ export class NamespacedAuthorizer implements Authorizer {
    *                      and the value being the corresponding authorizer to use for that namespace.
    * @param fallback - Authorizer to use if there is no namespace match.
    * @param registrationStore - The key/value store containing the resource registrations.
+   * @param namespacePosition - URL segment position to find the namespace, after removing the domain.
+   *                            E.g., if URL is http://localhost:3000/alice/profile/card, `profile` has position 2.
+   *                            Defaults to 2.
    */
   constructor(
-    protected authorizers: Record<string, Authorizer>,
-    protected fallback: Authorizer,
-    protected registrationStore: RegistrationStore,
+    protected readonly authorizers: Record<string, Authorizer>,
+    protected readonly fallback: Authorizer,
+    protected readonly registrationStore: RegistrationStore,
+    protected readonly namespacePosition = 2,
   ) {}
 
   /** @inheritdoc */
@@ -68,9 +70,9 @@ export class NamespacedAuthorizer implements Authorizer {
     const resourceIdentifier = registration.description.name;
     if (!resourceIdentifier) {
       this.logger.warn(`Resource ${resourceId} has no registered name.`);
-      return
+      return;
     }
 
-    return namespace(resourceIdentifier);
+    return new URL(resourceIdentifier).pathname.split('/')?.[this.namespacePosition] ?? '';
   }
 }
