@@ -1,21 +1,14 @@
-import * as getJwks from 'get-jwks';
 import * as jose from 'jose';
 import { Credential } from '../../../../src/credentials/Credential';
 import { JwtVerifier } from '../../../../src/credentials/verify/JwtVerifier';
 
-vi.mock('get-jwks');
 vi.mock('jose');
 
 describe('JwtVerifier', (): void => {
-  const getJwkMock = vi.fn();
-  const getJwksMock = vi.spyOn(getJwks, 'default').mockReturnValue({
-    getJwk: getJwkMock,
-  } as any);
   const decodeMock = vi.spyOn(jose, 'decodeJwt');
-  const decodeHeaderMock = vi.spyOn(jose, 'decodeProtectedHeader');
   const verifyMock = vi.spyOn(jose, 'jwtVerify');
 
-  const issuer = 'issuer';
+  const issuer = 'http://example.com/issuer';
   const credential: Credential = {
     format: 'urn:solidlab:uma:claims:formats:jwt',
     token: 'token',
@@ -32,13 +25,6 @@ describe('JwtVerifier', (): void => {
       claim2: 'val2',
     });
 
-    decodeHeaderMock.mockReturnValue({
-      alg: 'alg',
-      kid: 'kid',
-    });
-
-    getJwkMock.mockResolvedValue({ key: 'value' });
-
     verifier = new JwtVerifier(allowedClaims, false, false);
   });
 
@@ -53,8 +39,6 @@ describe('JwtVerifier', (): void => {
     expect(decodeMock).toHaveBeenLastCalledWith(credential.token);
 
     // Verification is off
-    expect(decodeHeaderMock).toHaveBeenCalledTimes(0);
-    expect(getJwkMock).toHaveBeenCalledTimes(0);
     expect(verifyMock).toHaveBeenCalledTimes(0);
   });
 
@@ -64,8 +48,20 @@ describe('JwtVerifier', (): void => {
   });
 
   describe('with verification enabled.', (): void => {
+    const remoteKeySet = 'remoteKeySet';
+    const fetchMock = vi.spyOn(global, 'fetch');
+    const createRemoteJWKSet = vi.spyOn(jose, 'createRemoteJWKSet');
 
     beforeEach(async(): Promise<void> => {
+      fetchMock.mockResolvedValue({
+        status: 200,
+        json: vi.fn().mockResolvedValue({
+          issuer,
+          jwks_uri: `${issuer}/jwks_uri`
+        }),
+      } as any);
+      createRemoteJWKSet.mockReturnValue(remoteKeySet as any);
+
       verifier = new JwtVerifier(allowedClaims, false, true);
     });
 
@@ -74,26 +70,12 @@ describe('JwtVerifier', (): void => {
       await expect(verifier.verify(credential)).rejects.toThrow("JWT should contain 'iss' claim.");
     });
 
-    it('errors if the header does not contain an alg.', async(): Promise<void> => {
-      decodeHeaderMock.mockReturnValueOnce({ kid: 'kid' });
-      await expect(verifier.verify(credential)).rejects.toThrow("JWT should contain 'alg' header.");
-    });
-
-    it('errors if the header does not contain a kid.', async(): Promise<void> => {
-      decodeHeaderMock.mockReturnValueOnce({ alg: 'alg' });
-      await expect(verifier.verify(credential)).rejects.toThrow("JWT should contain 'kid' header.");
-    });
-
     it('verifies the token.', async(): Promise<void> => {
       await expect(verifier.verify(credential)).resolves.toEqual({ iss: issuer, claim1: 'val1', });
       expect(decodeMock).toHaveBeenCalledTimes(1);
       expect(decodeMock).toHaveBeenLastCalledWith(credential.token);
-      expect(decodeHeaderMock).toHaveBeenCalledTimes(1);
-      expect(decodeHeaderMock).toHaveBeenLastCalledWith(credential.token);
-      expect(getJwkMock).toHaveBeenCalledTimes(1);
-      expect(getJwkMock).toHaveBeenLastCalledWith({ domain: 'issuer', alg: 'alg', kid: 'kid' });
       expect(verifyMock).toHaveBeenCalledTimes(1);
-      expect(verifyMock).toHaveBeenLastCalledWith(credential.token, { key: 'value', type: 'JWK' });
+      expect(verifyMock).toHaveBeenLastCalledWith(credential.token, remoteKeySet);
     });
   });
 });

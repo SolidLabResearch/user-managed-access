@@ -66,7 +66,6 @@
     "@types/n3": "^1.16.4",
     "asynchronous-handlers": "^1.0.2",
     "componentsjs": "^6.3.0",
-    "get-jwks": "^9.0.1",
     "global-logger-factory": "^1.0.0",
     "http-message-signatures": "^1.0.4",
     "jose": "^5.2.2",

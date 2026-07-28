@@ -73,7 +73,7 @@ describe('A server supporting OIDC tokens', (): void => {
         return;
       }
       if (req.url!.endsWith('/.well-known/openid-configuration')) {
-        res.end(JSON.stringify({ jwks_uri: idpUrl }));
+        res.end(JSON.stringify({ jwks_uri: idpUrl, issuer: idpUrl }));
         return;
       }
       // Exposing private keys is fine right
