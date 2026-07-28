@@ -1,6 +1,6 @@
-import buildGetJwks, { GetJwks } from 'get-jwks';
 import { getLoggerFor } from 'global-logger-factory';
-import { decodeJwt, decodeProtectedHeader, jwtVerify } from 'jose';
+import { decodeJwt, jwtVerify } from 'jose';
+import { getJwks } from '../../util/JwtUtil';
 import { ClaimSet } from '../ClaimSet';
 import { Credential } from '../Credential';
 import { JWT } from '../Formats';
@@ -12,7 +12,6 @@ import { Verifier } from './Verifier';
  */
 export class JwtVerifier implements Verifier {
   protected readonly logger = getLoggerFor(this);
-  protected jwks:GetJwks = buildGetJwks();
 
   constructor(
     private readonly allowedClaims: string[],
@@ -34,23 +33,8 @@ export class JwtVerifier implements Verifier {
         throw new Error(`JWT should contain 'iss' claim.`);
       }
 
-      const params = decodeProtectedHeader(credential.token);
-
-      if (!params.alg) {
-        throw new Error(`JWT should contain 'alg' header.`);
-      }
-
-      if (!params.kid) {
-        throw new Error(`JWT should contain 'kid' header.`);
-      }
-
-      const jwk = await this.jwks.getJwk({
-        domain: claims.iss,
-        alg: params.alg,
-        kid: params.kid,
-      });
-
-      await jwtVerify(credential.token, Object.assign(jwk, { type: 'JWK' }));
+      const jwkSet = await getJwks(claims.iss);
+      await jwtVerify(credential.token, jwkSet);
     }
 
     for (const claim of Object.keys(claims)) {

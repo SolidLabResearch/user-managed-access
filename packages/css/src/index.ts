@@ -28,6 +28,5 @@ export * from './util/fetch/Fetcher';
 export * from './util/fetch/BaseFetcher';
 export * from './util/fetch/PausableFetcher';
 export * from './util/fetch/RetryingFetcher';
-export * from './util/fetch/SignedFetcher';
 export * from './util/fetch/StatusDependant';
 export * from './util/fetch/StatusDependantServerConfigurator';
