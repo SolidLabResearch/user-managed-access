@@ -166,7 +166,7 @@ describe('SimpleOdrlAuthorizer', () => {
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
-  it('returns permission if purpose constraint is satisfied', async () => {
+  it('returns permission if other constraints are satisfied', async () => {
     const rule = addRule({});
     addConstraint({
       rule,
@@ -182,7 +182,7 @@ describe('SimpleOdrlAuthorizer', () => {
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
-  it('returns empty if claim constraint is not satisfied', async () => {
+  it('returns empty if other constraints are not satisfied', async () => {
     const rule = addRule({});
     addConstraint({
       rule,

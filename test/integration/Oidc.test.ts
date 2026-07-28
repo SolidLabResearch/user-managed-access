@@ -216,7 +216,6 @@ describe('A server supporting OIDC tokens', (): void => {
       });
       const endpoint = await findTokenEndpoint(as_uri);
 
-      // TODO: also add token that fails
       const jwk = await importJWK(privateKey, privateKey.alg);
       const jwt = await new SignJWT({ azp: client })
         .setSubject(sub)
