@@ -9,6 +9,7 @@ import { PrioritizeProhibitionStrategy } from '../../ucp/policy/PrioritizeProhib
 import { Strategy } from '../../ucp/policy/Strategy';
 import { UCPPolicy } from '../../ucp/policy/UsageControlPolicy';
 import { UCRulesStorage } from '../../ucp/storage/UCRulesStorage';
+import { isIri } from '../../util/ConvertUtil';
 import { Permission } from '../../views/Permission';
 import { Authorizer } from './Authorizer';
 
@@ -76,9 +77,9 @@ export class OdrlAuthorizer implements Authorizer {
 
         const subject = typeof claims[WEBID] === 'string' ? claims[WEBID] : 'urn:solidlab:uma:id:anonymous';
         const claimContextConstraints: { subject: ReturnType<typeof blankNode>; quads: Quad[] }[] = [];
-        for (const [ claimKey, leftOperand ] of Object.entries(claimOperandMap)) {
-            const claimValue = claims[claimKey];
-            if (typeof claimValue !== 'string') {
+        for (const [ key, value ] of Object.entries(claims)) {
+            const leftOperand = claimOperandMap[key] ?? key;
+            if (!isIri(leftOperand) || typeof value !== 'string') {
                 continue;
             }
             const claimSubject = blankNode();
@@ -88,7 +89,7 @@ export class OdrlAuthorizer implements Authorizer {
                     quad(claimSubject, RDF.terms.type, ODRL.terms.Constraint),
                     quad(claimSubject, ODRL.terms.leftOperand, namedNode(leftOperand)),
                     quad(claimSubject, ODRL.terms.operator, ODRL.terms.eq),
-                    quad(claimSubject, ODRL.terms.rightOperand, namedNode(claimValue)),
+                    quad(claimSubject, ODRL.terms.rightOperand, namedNode(value)),
                 ],
             });
         }

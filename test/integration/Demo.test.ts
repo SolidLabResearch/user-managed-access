@@ -1,9 +1,9 @@
 import { App } from '@solid/community-server';
 import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
-import { Parser, Store } from 'n3';
+import { UnsecuredJWT } from 'jose';
 import * as path from 'node:path';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
-import { findTokenEndpoint, getToken, noTokenFetch, generateCredentials, tokenFetch, umaFetch } from '../util/UmaUtil';
+import { findTokenEndpoint, generateCredentials, getToken, noTokenFetch, tokenFetch, umaFetch } from '../util/UmaUtil';
 
 const [ cssPort, umaPort ] = getPorts('Demo');
 
@@ -142,69 +142,40 @@ _:rename a solid:InsertDeletePatch;
   }.`,
     }, terms.agents.ruben);
     expect(response.status).toBe(205);
-
-    // TODO: Do I need this though
-    // Add necessary triples to WebID
-    response = await fetch(terms.agents.ruben, {
-      method: 'PATCH',
-      headers: { 'content-type': 'text/n3' },
-      body: `
-@prefix solid: <http://www.w3.org/ns/solid/terms#>.
-
-_:rename a solid:InsertDeletePatch;
-  solid:inserts {
-    <${terms.agents.ruben}> solid:umaServer <http://localhost:${umaPort}/uma/>
-  }.`,
-    });
-    expect(response.status).toBe(205);
-  });
-
-  it('finds the UMA server of the user in their WebID.', async(): Promise<void> => {
-    // TODO: what is the point of any of this? the as_uri response should have this data?
-    // TODO: find out why it doesn't work though as the term does get added at the end of the previous test
-    const response = await fetch(terms.agents.ruben, {
-      headers: { 'accept': 'text/turtle' },
-    });
-    expect(response.status).toBe(200);
-    const parser = new Parser({ baseIRI: terms.agents.ruben });
-    const store = new Store(parser.parse(await response.text()));
-    expect(store.countQuads(terms.agents.ruben, terms.solid.umaServer, null, null)).toBe(1);
-    const umaServer = store.getObjects(terms.agents.ruben, terms.solid.umaServer, null)[0].value;
   });
 
   it('can add a healthcare policy to the server.', async(): Promise<void> => {
-    // TODO: policy currently not linking to constraints as these need to be added to the ODRL evaluator
-    // odrl:constraint <http://example.org/HCPX-agreement-permission-purpose>,
-    //                 <http://example.org/HCPX-agreement-permission-lb> .
     const healthcare_patient_policy =
       `PREFIX dcterms: <http://purl.org/dc/terms/>
-PREFIX eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#>
-PREFIX oac: <https://w3id.org/oac#>
-PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+       PREFIX eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#>
+       PREFIX oac: <https://w3id.org/oac#>
+       PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
+       PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+       
+       PREFIX ex: <http://example.org/>
 
-PREFIX ex: <http://example.org/>
-
-  <http://example.org/HCPX-agreement> a odrl:Agreement ;
-    odrl:uid ex:HCPX-agreement ;
-    odrl:profile oac: ;
-    odrl:permission <http://example.org/HCPX-agreement-permission> .
-
-<http://example.org/HCPX-agreement-permission> a odrl:Permission ;
-    odrl:action odrl:read ;
-    odrl:target <${terms.resources.smartwatch}> ;
-    odrl:assigner <${terms.agents.ruben}> ;
-    odrl:assignee <${terms.agents.alice}> .
-
-<http://example.org/HCPX-agreement-permission-purpose> a odrl:Constraint ;
-    odrl:leftOperand odrl:purpose ; # can also be oac:Purpose, to conform with OAC profile
-    odrl:operator odrl:eq ;
-    odrl:rightOperand ex:bariatric-care .
-
-<http://example.org/HCPX-agreement-permission-lb> a odrl:Constraint ;
-    odrl:leftOperand oac:LegalBasis ;
-    odrl:operator odrl:eq ;
-    odrl:rightOperand eu-gdpr:A9-2-a .`
+       <http://example.org/HCPX-agreement> a odrl:Agreement ;
+         odrl:uid ex:HCPX-agreement ;
+         odrl:profile oac: ;
+         odrl:permission <http://example.org/HCPX-agreement-permission> .
+      
+       <http://example.org/HCPX-agreement-permission> a odrl:Permission ;
+         odrl:action odrl:read ;
+         odrl:target <${terms.resources.smartwatch}> ;
+         odrl:assigner <${terms.agents.ruben}> ;
+         odrl:assignee <${terms.agents.alice}> ;
+         odrl:constraint <http://example.org/HCPX-agreement-permission-purpose>,
+                         <http://example.org/HCPX-agreement-permission-lb> .
+      
+       <http://example.org/HCPX-agreement-permission-purpose> a odrl:Constraint ;
+         odrl:leftOperand odrl:purpose ;
+         odrl:operator odrl:eq ;
+         odrl:rightOperand ex:bariatric-care .
+      
+       <http://example.org/HCPX-agreement-permission-lb> a odrl:Constraint ;
+         odrl:leftOperand oac:LegalBasis ;
+         odrl:operator odrl:eq ;
+         odrl:rightOperand eu-gdpr:A9-2-a .`
 
     const medicalPolicyCreationResponse = await fetch(policyContainer, {
       method: 'POST',
@@ -215,15 +186,25 @@ PREFIX ex: <http://example.org/>
   });
 
   it('requires authorized access for patient data.', async(): Promise<void> => {
-    // TODO: should do the steps individually here so we can check the contents of the tokens/tickets
     // Parse ticket and UMA server URL from header
     const parsedHeader = await noTokenFetch(terms.resources.smartwatch);
 
     // Find UMA server token endpoint
     const tokenEndpoint = await findTokenEndpoint(parsedHeader.as_uri);
 
+    const jwt = new UnsecuredJWT({
+      'http://www.w3.org/ns/odrl/2/purpose': 'http://example.org/bariatric-care',
+      'urn:solidlab:uma:claims:types:webid': terms.agents.alice,
+      'https://w3id.org/oac#LegalBasis': 'https://w3id.org/dpv/legal/eu/gdpr#A9-2-a'
+    }).encode();
+
     // Send ticket request to UMA server and extract token from response
-    const token = await getToken(parsedHeader.ticket, tokenEndpoint, terms.agents.alice);
+    const token = await getToken(
+      parsedHeader.ticket,
+      tokenEndpoint,
+      undefined,
+      undefined,
+      [{ claim_token: jwt, claim_token_format: 'urn:solidlab:uma:claims:formats:jwt' }]);
     const accessToken = JSON.parse(Buffer.from(token.access_token.split('.')[1], 'base64').toString());
     expect(accessToken).toMatchObject({
       permissions:[{
@@ -235,7 +216,7 @@ PREFIX ex: <http://example.org/>
       aud: 'solid',
       exp: expect.any(Number),
       jti: expect.any(String),
-    })
+    });
 
     // Perform new call with token
     const response = await tokenFetch(token, terms.resources.smartwatch);
