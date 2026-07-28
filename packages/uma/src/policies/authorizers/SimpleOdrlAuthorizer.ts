@@ -29,7 +29,6 @@ const dateComparators: NodeJS.Dict<(a: Date, b: Date) => boolean> = {
 
 const claimOperandMap: Record<string, string> = {
     [ODRL.deliveryChannel]: CLIENTID,
-    [ODRL.purpose]: PURPOSE
 } as const;
 
 /**
@@ -172,6 +171,8 @@ export class SimpleOdrlAuthorizer implements Authorizer {
     if (constraints.some(({ leftOperand, operator, rightOperand }) => !leftOperand || !operator || !rightOperand)) {
       return;
     }
+    // TODO: would want middleware step where credentials and other stuff are already extracted into RDF values
+    //       so both ODRL authorizers don't have to bother with this
     for (const constraint of constraints) {
       // Return undefined if any of these are too complex or unknown
       if (constraint.leftOperand.equals(ODRL.terms.dateTime)) {
@@ -190,6 +191,11 @@ export class SimpleOdrlAuthorizer implements Authorizer {
         }
         const claimValue = claims[claimKey];
         if (typeof claimValue !== 'string' || constraint.rightOperand.value !== claimValue) {
+          return false;
+        }
+      } else if (typeof claims[constraint.leftOperand.value] === 'string'
+        && constraint.operator.equals(ODRL.terms.eq)) {
+        if (constraint.rightOperand.value !== claims[constraint.leftOperand.value]) {
           return false;
         }
       } else {
