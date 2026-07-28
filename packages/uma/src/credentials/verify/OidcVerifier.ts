@@ -1,15 +1,10 @@
 import { createSolidTokenVerifier } from '@solid/access-token-verifier';
-import {
-  BadRequestHttpError,
-  ForbiddenHttpError,
-  InternalServerError,
-  joinUrl,
-  KeyValueStorage
-} from '@solid/community-server';
+import { BadRequestHttpError, ForbiddenHttpError, InternalServerError, KeyValueStorage } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
-import { createRemoteJWKSet, decodeJwt, JWTPayload, jwtVerify } from 'jose';
+import { decodeJwt, jwtVerify } from 'jose';
 import { AccessToken } from '../../tokens/AccessToken';
 import { UMA_SCOPES } from '../../ucp/util/Vocabularies';
+import { getJwks } from '../../util/JwtUtil';
 import { reType } from '../../util/ReType';
 import { Permission } from '../../views/Permission';
 import { ACCESS, CLIENTID, WEBID } from '../Claims';
@@ -21,8 +16,7 @@ import { Verifier } from './Verifier';
 /**
  * A Verifier for OIDC Tokens.
  *
- * The `allowedIssuers` list can be used to only allow tokens from these issuers.
- * Default is an empty list, which allows all issuers.
+ * To only allow tokens from certain issuers, set `verifyOptions` to { issuer: [ 'http://example.com/' ] }.
  */
 export class OidcVerifier implements Verifier {
   protected readonly logger = getLoggerFor(this);
@@ -30,10 +24,8 @@ export class OidcVerifier implements Verifier {
   private readonly verifyToken = createSolidTokenVerifier();
 
   public constructor(
-    protected readonly baseUrl: string,
     protected readonly derivationStore: KeyValueStorage<string, string>,
-    protected readonly allowedIssuers: string[] = [],
-    protected readonly verifyOptions: Record<string, unknown> = {},
+    protected readonly verifyOptions: Record<string, unknown> = {}, // JWTVerifyOptions
   ) {}
 
   /** @inheritdoc */
@@ -46,11 +38,10 @@ export class OidcVerifier implements Verifier {
     // We first need to determine if this is a Solid OIDC token or a standard one
     const unsafeDecoded = decodeJwt(credential.token);
     const isSolidToken = (unsafeDecoded.aud === 'solid' ||
-      (Array.isArray(unsafeDecoded.aud) && unsafeDecoded.aud.includes('solid')))
+        (Array.isArray(unsafeDecoded.aud) && unsafeDecoded.aud.includes('solid')))
       && typeof unsafeDecoded.webid === 'string';
 
     try {
-      this.validateToken(unsafeDecoded);
       if (isSolidToken) {
         return await this.verifySolidToken(credential.token);
       } else {
@@ -64,18 +55,13 @@ export class OidcVerifier implements Verifier {
     }
   }
 
-  protected validateToken(payload: JWTPayload): void {
-    // TODO: disable audience check for now, need to investigate required values further
-    // if (payload.aud !== this.baseUrl && !(Array.isArray(payload.aud) && payload.aud.includes(this.baseUrl))) {
-    //   throw new BadRequestHttpError('This server is not valid audience for the token');
-    // }
-    if (!payload.iss || this.allowedIssuers.length > 0 && !this.allowedIssuers.includes(payload.iss)) {
-      throw new BadRequestHttpError('Unsupported issuer');
-    }
-  }
-
   protected async verifySolidToken(token: string): Promise<{ [WEBID]: string, [CLIENTID]?: string }> {
     const claims = await this.verifyToken(`Bearer ${token}`);
+    const issuers = this.verifyOptions.issuer;
+    const allowedIssuers = issuers !== undefined && (typeof issuers === 'string' ? [issuers] : issuers as string[]);
+    if (!claims.iss || (allowedIssuers && !allowedIssuers.includes(claims.iss))) {
+      throw new BadRequestHttpError('Unsupported issuer');
+    }
     // Depends on the spec version which field to use
     const clientId = (claims as { azp?: string }).azp ?? claims.client_id;
 
@@ -91,16 +77,7 @@ export class OidcVerifier implements Verifier {
 
   protected async verifyStandardToken(token: string, format: string, issuer: string):
     Promise<{ [WEBID]?: string, [CLIENTID]?: string, [ACCESS]?: Permission[] }> {
-    const configUrl = joinUrl(issuer, '/.well-known/openid-configuration');
-    const configResponse = await fetch(configUrl);
-    if (configResponse.status !== 200) {
-      throw new BadRequestHttpError(`Unable to access ${configUrl}`);
-    }
-    const config = await configResponse.json() as { jwks_uri?: string };
-    if (!config.jwks_uri) {
-      throw new BadRequestHttpError(`Missing jwks_uri from ${configUrl}`);
-    }
-    const jwkSet = createRemoteJWKSet(new URL(config.jwks_uri));
+    const jwkSet = await getJwks(issuer);
     const decoded = await jwtVerify(token, jwkSet, this.verifyOptions);
 
     if (format === OIDC) {

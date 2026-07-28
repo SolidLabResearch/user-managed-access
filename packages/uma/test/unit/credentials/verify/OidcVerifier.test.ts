@@ -1,11 +1,9 @@
 import * as accessTokenVerifier from '@solid/access-token-verifier';
 import { KeyValueStorage } from '@solid/community-server';
-import { JWTPayload } from 'jose';
 import * as jose from 'jose';
-import { Mocked, MockInstance } from 'vitest';
-import { ACCESS } from '../../../../src/credentials/Claims';
+import { JWTPayload } from 'jose';
+import { Mocked } from 'vitest';
 import { Credential } from '../../../../src/credentials/Credential';
-import { ACCESS_TOKEN } from '../../../../src/credentials/Formats';
 import { OidcVerifier } from '../../../../src/credentials/verify/OidcVerifier';
 
 vi.mock('jose', () => ({
@@ -16,7 +14,6 @@ vi.mock('jose', () => ({
 
 describe('OidcVerifier', (): void => {
   const issuer = 'http://example.org/issuer';
-  const baseUrl = 'http://example.com/uma';
   let credential: Credential;
 
   let decodedToken: JWTPayload;
@@ -39,13 +36,15 @@ describe('OidcVerifier', (): void => {
     decodedToken =  {
       sub: 'sub',
       iss: issuer,
-      aud: baseUrl,
     };
 
     vi.clearAllMocks();
     fetchMock.mockResolvedValue({
       status: 200,
-      json: vi.fn().mockResolvedValue({ jwks_uri: `${issuer}/jwks_uri` }),
+      json: vi.fn().mockResolvedValue({
+        issuer,
+        jwks_uri: `${issuer}/jwks_uri`
+      }),
     } as any);
     decodeJwt.mockReturnValue(decodedToken);
     jwtVerify.mockResolvedValue({ payload: decodedToken } as any);
@@ -53,14 +52,15 @@ describe('OidcVerifier', (): void => {
 
     verifierMock.mockResolvedValue({
       webid: 'webId',
-      client_id: 'clientId'
+      client_id: 'clientId',
+      iss: issuer,
     });
 
     derivationStore = {
       get: vi.fn(),
     } satisfies Partial<KeyValueStorage<string, string>> as any;
 
-    verifier = new OidcVerifier(baseUrl, derivationStore);
+    verifier = new OidcVerifier(derivationStore);
   });
 
   it('errors on non-OIDC credentials.', async(): Promise<void> => {
@@ -68,19 +68,9 @@ describe('OidcVerifier', (): void => {
       .toThrow("Token format wrong does not match this processor's format.");
   });
 
-  it('errors if the issuer is not allowed.', async(): Promise<void> => {
-    verifier = new OidcVerifier(baseUrl, derivationStore, [ 'otherIssuer' ]);
-    await expect(verifier.verify(credential)).rejects.toThrow('Unsupported issuer');
-
-    verifier = new OidcVerifier(baseUrl, derivationStore, [ issuer ]);
-    await expect(verifier.verify(credential)).resolves.toEqual({
-      ['urn:solidlab:uma:claims:types:webid']: 'sub',
-    });
-  });
-
   describe('parsing a Solid OIDC token', (): void => {
     beforeEach(async(): Promise<void> => {
-      decodeJwt.mockReturnValue({ ...decodedToken, aud: [ baseUrl, 'solid' ], webid: 'webId' });
+      decodeJwt.mockReturnValue({ ...decodedToken, aud: [ 'solid' ], webid: 'webId' });
     });
 
     it('returns the extracted WebID.', async(): Promise<void> => {
@@ -93,6 +83,17 @@ describe('OidcVerifier', (): void => {
     it('throws an error if the token could not be verified.', async(): Promise<void> => {
       verifierMock.mockRejectedValueOnce(new Error('bad data'));
       await expect(verifier.verify(credential)).rejects.toThrow('Error verifying OIDC Token: bad data');
+    });
+
+    it('errors if the issuer is not allowed.', async(): Promise<void> => {
+      verifier = new OidcVerifier(derivationStore, { issuer: [ 'otherIssuer' ] });
+      await expect(verifier.verify(credential)).rejects.toThrow('Unsupported issuer');
+
+      verifier = new OidcVerifier(derivationStore, { issuer: [ issuer ] });
+      await expect(verifier.verify(credential)).resolves.toEqual({
+        ['urn:solidlab:uma:claims:types:webid']: 'webId',
+        ['urn:solidlab:uma:claims:types:clientid']: 'clientId',
+      });
     });
   });
 
@@ -116,6 +117,14 @@ describe('OidcVerifier', (): void => {
         ['urn:solidlab:uma:claims:types:clientid']: 'client',
       });
     });
+
+    it('uses verification options.', async(): Promise<void> => {
+      verifier = new OidcVerifier(derivationStore, { issuer: [ issuer ] });
+      await expect(verifier.verify(credential)).resolves.toEqual({
+        ['urn:solidlab:uma:claims:types:webid']: 'sub',
+      });
+      expect(jwtVerify).toHaveBeenCalledExactlyOnceWith('token', remoteKeySet, { issuer: [ issuer ] });
+    });
   });
 
   describe('parsing access tokens', (): void => {
@@ -129,8 +138,7 @@ describe('OidcVerifier', (): void => {
         { resource_id: 'id2', resource_scopes: [ 'scope2', 'urn:knows:uma:scopes:derivation-read' ] },
         { resource_id: 'id3', resource_scopes: [ 'scope3' ] },
       ];
-      decodedToken.iss = 'issuer';
-      derivationStore.get.mockImplementation(async (id) => 'issuer');
+      derivationStore.get.mockImplementation(async (id) => issuer);
       await expect(verifier.verify(credential)).resolves.toEqual({
         ['urn:solidlab:uma:claims:types:access']: [
           { resource_id: 'id1', resource_scopes: [ 'urn:knows:uma:scopes:derivation-read' ] },
@@ -143,10 +151,9 @@ describe('OidcVerifier', (): void => {
       decodedToken.permissions = [
         { resource_id: 'id1', resource_scopes: [ 'scope1', 'urn:knows:uma:scopes:derivation-read' ] },
       ];
-      decodedToken.iss = 'wrong-issuer';
-      derivationStore.get.mockImplementation(async (id) => 'issuer');
+      derivationStore.get.mockImplementation(async (id) => 'other-issuer');
       await expect(verifier.verify(credential)).rejects
-        .toThrow('Invalid issuer for id1, expected issuer but got wrong-issuer');
+        .toThrow('Invalid issuer for id1, expected other-issuer but got http://example.org/issuer');
     });
   });
 });

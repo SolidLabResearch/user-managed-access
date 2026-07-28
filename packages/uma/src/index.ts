@@ -87,7 +87,6 @@ export * from './util/http/server/JsonHttpErrorHandler';
 export * from './util/http/server/JsonFormHttpHandler';
 export * from './util/http/server/NodeHttpRequestResponseHandler';
 export * from './util/http/server/RoutedHttpRequestHandler';
-export * from './util/http/validate/HttpMessageValidator';
 export * from './util/http/validate/PatRequestValidator';
 export * from './util/http/validate/RequestValidator';
 
@@ -107,7 +106,7 @@ export * from './ucp/util/Vocabularies';
 // Util
 export * from './util/AggregatorUtil';
 export * from './util/ConvertUtil';
-export * from './util/HttpMessageSignatures';
+export * from './util/JwtUtil';
 export * from './util/RegistrationStore';
 export * from './util/Result';
 export * from './util/ReType';
