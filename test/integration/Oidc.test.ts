@@ -388,4 +388,90 @@ describe('A server supporting OIDC tokens', (): void => {
       expect(response.status).toBe(204);
     });
   });
+
+  describe('accessing a resource using a VC.', (): void => {
+    const resource = `http://localhost:${cssPort}/alice/vc`;
+    const policy = `
+      @prefix ex: <http://example.org/>.
+      @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+      @prefix ovc: <https://w3id.org/gaia-x/ovc/1/> .
+      
+      ex:policyVc a odrl:Set;
+          odrl:uid ex:policyVc ;
+          odrl:permission ex:permissionVc .
+          
+      ex:permissionVc a odrl:Permission ;
+        odrl:assigner <${webId}>;
+        odrl:action odrl:read , odrl:create , odrl:modify ;
+        odrl:target <http://localhost:${cssPort}/alice/> ;
+        ovc:constraint ex:constraintVc .
+        
+      ex:constraintVc a odrl:Constraint ;
+        ovc:leftOperand "$.credentialSubject['kss:HCPs']['kss:assignedPatientId']" ;
+        odrl:operator odrl:eq ;
+        odrl:rightOperand <http://example.org/patient-id> ;
+        ovc:credentialSubjectType <http://example.org/UserHcpRelationVC>.`;
+
+    it('can set up the policy.', async(): Promise<void> => {
+      const response = await fetch(policyEndpoint, {
+        method: 'POST',
+        headers: { authorization: `WebID ${encodeURIComponent(webId)}`, 'content-type': 'text/turtle' },
+        body: policy,
+      });
+      expect(response.status).toBe(201);
+    });
+
+    it('can get an access token.', async(): Promise<void> => {
+      const { as_uri, ticket } = await noTokenFetch(resource, {
+        method: 'PUT',
+        headers: { 'content-type': 'text/plain' },
+        body: 'hello',
+      });
+      const endpoint = await findTokenEndpoint(as_uri);
+
+      const jwk = await importJWK(privateKey, privateKey.alg);
+      const jwt = await new SignJWT({
+        vc: {
+          type: [
+            'VerifiableCredential',
+            'http://example.org/UserHcpRelationVC',
+          ],
+          issuanceDate: new Date(Date.now() - 5000).toISOString(),
+          expirationDate: new Date(Date.now() + 5000).toISOString(),
+          credentialSubject: {
+            'kss:HCPs': {
+              'kss:assignedPatientId': 'http://example.org/patient-id',
+            },
+          },
+        },
+      }).setProtectedHeader({ alg: privateKey.alg, kid: privateKey.kid })
+        .setIssuedAt()
+        .setIssuer(idpUrl)
+        .setAudience(`http://localhost:${umaPort}/uma`)
+        .setJti(randomUUID())
+        .sign(jwk);
+
+      const content: Record<string, string> = {
+        grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
+        ticket: ticket,
+        claim_token: jwt,
+        claim_token_format: 'application/vc+jwt',
+      };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(content),
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it('can remove the policy.', async(): Promise<void> => {
+      const response = await fetch(joinUrl(policyEndpoint, encodeURIComponent('http://example.org/policyVc')), {
+        method: 'DELETE',
+        headers: { authorization: `WebID ${encodeURIComponent(webId)}`, 'content-type': 'text/turtle' },
+      });
+      expect(response.status).toBe(204);
+    });
+  });
 });

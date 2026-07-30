@@ -1,10 +1,12 @@
 import { NamedNode } from '@rdfjs/types';
 import { getLoggerFor } from 'global-logger-factory';
-import { DataFactory as DF, Quad_Subject, Store } from 'n3';
+import jp from 'jsonpath';
+import { DataFactory as DF, Quad_Subject } from 'n3';
 import { ODRL } from 'odrl-evaluator';
-import { CLIENTID, PURPOSE, WEBID } from '../../credentials/Claims';
+import { CLIENTID, VC, WEBID } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { ReadOnlyStore, UCRulesStorage } from '../../ucp/storage/UCRulesStorage';
+import { OVC } from '../../ucp/util/Vocabularies';
 import { Permission } from '../../views/Permission';
 import { Authorizer } from './Authorizer';
 
@@ -28,7 +30,7 @@ const dateComparators: NodeJS.Dict<(a: Date, b: Date) => boolean> = {
 };
 
 const claimOperandMap: Record<string, string> = {
-    [ODRL.deliveryChannel]: CLIENTID,
+  [ODRL.deliveryChannel]: CLIENTID,
 } as const;
 
 /**
@@ -109,8 +111,8 @@ export class SimpleOdrlAuthorizer implements Authorizer {
       }
       return ruleAssignees.some(ruleAssignee => assignees.some(assignee => assignee.equals(ruleAssignee)));
     });
-    this.logger.warn('Rejecting request because no rules with a matching assignee or party collection were found');
     if (rules.length === 0) {
+      this.logger.warn('Rejecting request because no rules with a matching assignee or party collection were found');
       return [];
     }
 
@@ -118,9 +120,10 @@ export class SimpleOdrlAuthorizer implements Authorizer {
     const validRules: Quad_Subject[] = [];
     for (const rule of rules) {
       const constraintResponse = this.validateConstraints(rule, policies, claims);
-      if (constraintResponse === true) {
+      const vcConstraintResponse = this.validateOvcConstraints(rule, policies, claims);
+      if (constraintResponse && vcConstraintResponse) {
         validRules.push(rule);
-      } else if (constraintResponse === undefined) {
+      } else if (constraintResponse === undefined || vcConstraintResponse === undefined) {
         return;
       }
     }
@@ -199,6 +202,44 @@ export class SimpleOdrlAuthorizer implements Authorizer {
         return;
       }
     }
+    return true;
+  }
+
+  // https://gitlab.com/gaia-x/lab/policy-reasoning/odrl-vc-profile
+  protected validateOvcConstraints(rule: Quad_Subject, policies: ReadOnlyStore, claims: ClaimSet): boolean | undefined {
+    const constraints = policies.getObjects(rule, OVC.terms.constraint, null).map(constraint => ({
+      leftOperand: policies.getObjects(constraint, OVC.terms.leftOperand, null)[0],
+      operator: policies.getObjects(constraint, ODRL.terms.operator, null)[0],
+      rightOperand: policies.getObjects(constraint, ODRL.terms.rightOperand, null)[0],
+      credentialSubjectType: policies.getObjects(constraint, OVC.terms.credentialSubjectType, null)[0],
+    }));
+    // If any of these are undefined this is too complex to handle here (credentialSubjectType can be undefined)
+    if (constraints.some(({ leftOperand, operator, rightOperand }) => !leftOperand || !operator || !rightOperand)) {
+      return;
+    }
+    // Can't match a VC constraint if there is no VC input
+    const vc = claims[VC];
+    if (constraints.length > 0 && typeof vc !== 'object') {
+      return false;
+    }
+
+    for (const constraint of constraints) {
+      // Only support odrl:eq for now
+      if (!constraint.operator.equals(ODRL.terms.eq)) {
+        return;
+      }
+      const results = jp.query(vc, constraint.leftOperand.value).flat();
+      if (!results.some(result => result === constraint.rightOperand.value)) {
+        return false;
+      }
+      if (constraint.credentialSubjectType) {
+        const types = jp.query(vc, '$.type').flat();
+        if (!types.some(typ => constraint.credentialSubjectType.value === typ)) {
+          return false;
+        }
+      }
+    }
+
     return true;
   }
 }
