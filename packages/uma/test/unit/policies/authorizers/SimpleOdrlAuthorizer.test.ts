@@ -3,11 +3,13 @@ import { DataFactory as DF, Store } from 'n3';
 import { randomUUID } from 'node:crypto';
 import { ODRL } from 'odrl-evaluator';
 import { Mocked } from 'vitest';
+import { CLIENTID, PURPOSE, VC, WEBID } from '../../../../src/credentials/Claims';
+import { ClaimSet } from '../../../../src/credentials/ClaimSet';
 import { Authorizer } from '../../../../src/policies/authorizers/Authorizer';
 import { SimpleOdrlAuthorizer } from '../../../../src/policies/authorizers/SimpleOdrlAuthorizer';
 import { UCRulesStorage } from '../../../../src/ucp/storage/UCRulesStorage';
+import { OVC } from '../../../../src/ucp/util/Vocabularies';
 import { Permission } from '../../../../src/views/Permission';
-import { WEBID, CLIENTID, PURPOSE } from '../../../../src/credentials/Claims';
 
 describe('SimpleOdrlAuthorizer', () => {
   const resource = 'res';
@@ -76,14 +78,12 @@ describe('SimpleOdrlAuthorizer', () => {
   });
 
   it('delegates to fallback if no query is provided', async () => {
-    const result = await authorizer.permissions({});
-    expect(result).toEqual(fallbackPermissions);
+    await expect(authorizer.permissions({})).resolves.toEqual(fallbackPermissions);
     expect(fallback.permissions).toHaveBeenCalledWith({}, undefined);
   });
 
   it('returns empty if no rules match the resource', async () => {
-    const result = await authorizer.permissions({}, query);
-    expect(result).toEqual([]);
+    await expect(authorizer.permissions({}, query)).resolves.toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
@@ -91,18 +91,16 @@ describe('SimpleOdrlAuthorizer', () => {
     addRule({ assignee: 'user' });
     const claims = { [WEBID]: 'user' };
 
-    const result = await authorizer.permissions(claims, query);
-
-    expect(result).toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
   it('returns permission for public access (no assignee)', async () => {
     addRule({});
 
-    const result = await authorizer.permissions({}, query);
-
-    expect(result).toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    await expect(authorizer.permissions({}, query))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
@@ -110,27 +108,21 @@ describe('SimpleOdrlAuthorizer', () => {
     addRule({ assignee: 'other' });
     const claims = { [WEBID]: 'user' };
 
-    const result = await authorizer.permissions(claims, query);
-
-    expect(result).toEqual([]);
+    await expect(authorizer.permissions(claims, query)).resolves.toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
   it('returns empty if rule is a prohibition', async () => {
     addRule({ linkPredicate: ODRL.terms.prohibition });
 
-    const result = await authorizer.permissions({}, query);
-
-    expect(result).toEqual([]);
+    await expect(authorizer.permissions({}, query)).resolves.toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
   it('delegates to fallback if rule has unsupported type', async () => {
     addRule({ linkPredicate: DF.namedNode('unsupported') });
 
-    const result = await authorizer.permissions({}, query);
-
-    expect(result).toEqual(fallbackPermissions);
+    await expect(authorizer.permissions({}, query)).resolves.toEqual(fallbackPermissions);
     expect(fallback.permissions).toHaveBeenCalledWith({}, query);
   });
 
@@ -144,9 +136,7 @@ describe('SimpleOdrlAuthorizer', () => {
     });
     const claims = { [CLIENTID]: 'clientB' };
 
-    const result = await authorizer.permissions(claims, query);
-
-    expect(result).toEqual([]);
+    await expect(authorizer.permissions(claims, query)).resolves.toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
@@ -160,9 +150,8 @@ describe('SimpleOdrlAuthorizer', () => {
     });
     const claims = { [CLIENTID]: 'clientA' };
 
-    const result = await authorizer.permissions(claims, query);
-
-    expect(result).toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
@@ -176,9 +165,8 @@ describe('SimpleOdrlAuthorizer', () => {
     });
     const claims = { [PURPOSE]: 'https://w3id.org/dpv#ScientificResearch' };
 
-    const result = await authorizer.permissions(claims, query);
-
-    expect(result).toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
@@ -192,9 +180,7 @@ describe('SimpleOdrlAuthorizer', () => {
     });
     const claims = { [PURPOSE]: 'http://example.com/purpose-b' };
 
-    const result = await authorizer.permissions(claims, query);
-
-    expect(result).toEqual([]);
+    await expect(authorizer.permissions(claims, query)).resolves.toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
@@ -202,9 +188,7 @@ describe('SimpleOdrlAuthorizer', () => {
     const rule = addRule({});
     store.addQuad(rule, ODRL.terms.constraint, DF.namedNode('constraint3'));
 
-    const result = await authorizer.permissions({}, query);
-
-    expect(result).toEqual(fallbackPermissions);
+    await expect(authorizer.permissions({}, query)).resolves.toEqual(fallbackPermissions);
     expect(fallback.permissions).toHaveBeenCalledWith({}, query);
   });
 
@@ -217,9 +201,7 @@ describe('SimpleOdrlAuthorizer', () => {
       rightOperand: new Date(Date.now() + 1000000).toISOString(),
     });
 
-    const result = await authorizer.permissions({}, query);
-
-    expect(result).toEqual([]);
+    await expect(authorizer.permissions({}, query)).resolves.toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
@@ -232,9 +214,74 @@ describe('SimpleOdrlAuthorizer', () => {
       rightOperand: new Date(Date.now() + 1000000).toISOString(),
     });
 
-    const result = await authorizer.permissions({}, query);
+    await expect(authorizer.permissions({}, query))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+  });
 
-    expect(result).toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+  it('delegates to fallback if OVC constraint is too complex', async () => {
+    const rule = addRule({});
+    store.addQuad(rule, OVC.terms.constraint, DF.namedNode('constraint3'));
+
+    await expect(authorizer.permissions({}, query)).resolves.toEqual(fallbackPermissions);
+    expect(fallback.permissions).toHaveBeenCalledWith({}, query);
+  });
+
+  it('returns empty if there is an OVC constraint but no VC claim.', async(): Promise<void> => {
+    const rule = addRule({});
+
+    const jsonPath = '$.credentialSubject.garden.fruit';
+    const constraint = DF.namedNode(`ovc-constraint-${randomUUID()}`);
+    store.addQuad(rule, OVC.terms.constraint, constraint);
+    store.addQuad(constraint, OVC.terms.leftOperand, DF.namedNode(jsonPath));
+    store.addQuad(constraint, ODRL.terms.operator, ODRL.terms.eq);
+    store.addQuad(constraint, ODRL.terms.rightOperand, DF.literal('apple'));
+
+    await expect(authorizer.permissions({}, query)).resolves.toEqual([]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+  });
+
+  it('returns permissions if the OVC constraint is satisfied.', async(): Promise<void> => {
+    const rule = addRule({});
+
+    const jsonPath = '$.credentialSubject.garden.fruit';
+    const constraint = DF.namedNode(`ovc-constraint-${randomUUID()}`);
+    store.addQuad(rule, OVC.terms.constraint, constraint);
+    store.addQuad(constraint, OVC.terms.leftOperand, DF.namedNode(jsonPath));
+    store.addQuad(constraint, ODRL.terms.operator, ODRL.terms.eq);
+    store.addQuad(constraint, ODRL.terms.rightOperand, DF.literal('apple'));
+    store.addQuad(constraint, OVC.terms.credentialSubjectType, DF.namedNode('http://example.com/type'));
+
+    const claims = { [VC]: {
+        type: [ 'http://example.com/type' ],
+        credentialSubject: { garden: { fruit: 'apple' }}
+      }};
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+  });
+
+  it('returns empty if the OVC constraint is not satisfied.', async(): Promise<void> => {
+    const rule = addRule({});
+
+    const jsonPath = '$.credentialSubject.garden.fruit';
+    const constraint = DF.namedNode(`ovc-constraint-${randomUUID()}`);
+    store.addQuad(rule, OVC.terms.constraint, constraint);
+    store.addQuad(constraint, OVC.terms.leftOperand, DF.namedNode(jsonPath));
+    store.addQuad(constraint, ODRL.terms.operator, ODRL.terms.eq);
+    store.addQuad(constraint, ODRL.terms.rightOperand, DF.literal('apple'));
+    store.addQuad(constraint, OVC.terms.credentialSubjectType, DF.namedNode('http://example.com/type'));
+
+    let claims: ClaimSet = { [VC]: {
+        credentialSubject: { garden: { fruit: 'apple' }}
+      }};
+    await expect(authorizer.permissions(claims, query)).resolves.toEqual([]);
+    claims = { [VC]: {
+        type: [ 'http://example.com/type' ],
+        credentialSubject: { garden: { fruit: 'pear' }}
+      }};
+    await expect(authorizer.permissions(claims, query)).resolves.toEqual([]);
+
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
@@ -250,9 +297,7 @@ describe('SimpleOdrlAuthorizer', () => {
     addRule({ action: odrlScope });
     addRule({ target: resource2, action: odrlScope2 });
 
-    const result = await authorizer.permissions({}, multiQuery);
-
-    expect(result).toEqual([
+    await expect(authorizer.permissions({}, multiQuery)).resolves.toEqual([
       { resource_id: resource, resource_scopes: [scope, odrlScope] },
       { resource_id: resource2, resource_scopes: [scope2] },
     ]);
@@ -269,9 +314,7 @@ describe('SimpleOdrlAuthorizer', () => {
     // rule for resource2 has an unsupported link predicate, triggering fallback
     addRule({ target: resource2, linkPredicate: DF.namedNode('unsupported') });
 
-    const result = await authorizer.permissions({}, multiQuery);
-
-    expect(result).toEqual(fallbackPermissions);
+    await expect(authorizer.permissions({}, multiQuery)).resolves.toEqual(fallbackPermissions);
     expect(fallback.permissions).toHaveBeenCalledWith({}, multiQuery);
   });
 
@@ -280,9 +323,8 @@ describe('SimpleOdrlAuthorizer', () => {
     const writeQuery: Permission[] = [{ resource_id: resource, resource_scopes: [writeScope] }];
     addRule({ action: 'http://www.w3.org/ns/odrl/2/modify' });
 
-    const result = await authorizer.permissions({}, writeQuery);
-
-    expect(result).toEqual([{ resource_id: resource, resource_scopes: [writeScope] }]);
+    await expect(authorizer.permissions({}, writeQuery))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [writeScope] }]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
@@ -291,9 +333,8 @@ describe('SimpleOdrlAuthorizer', () => {
     const appendQuery: Permission[] = [{ resource_id: resource, resource_scopes: [appendScope] }];
     addRule({ action: 'http://www.w3.org/ns/odrl/2/modify' });
 
-    const result = await authorizer.permissions({}, appendQuery);
-
-    expect(result).toEqual([{ resource_id: resource, resource_scopes: [appendScope] }]);
+    await expect(authorizer.permissions({}, appendQuery))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [appendScope] }]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
@@ -302,20 +343,15 @@ describe('SimpleOdrlAuthorizer', () => {
     const writeQuery: Permission[] = [{ resource_id: resource, resource_scopes: [writeScope] }];
     addRule({ action: 'http://www.w3.org/ns/odrl/2/append' });
 
-    const result = await authorizer.permissions({}, writeQuery);
-
-    expect(result).toEqual([]);
+    await expect(authorizer.permissions({}, writeQuery)).resolves.toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 
   it('does not grant odrl:modify scope when rule only has odrl:write action', async () => {
-    const modifyScope = 'urn:example:css:modes:write';
     const rawModifyQuery: Permission[] = [{ resource_id: resource, resource_scopes: ['http://www.w3.org/ns/odrl/2/modify'] }];
     addRule({ action: 'http://www.w3.org/ns/odrl/2/write' });
 
-    const result = await authorizer.permissions({}, rawModifyQuery);
-
-    expect(result).toEqual([]);
+    await expect(authorizer.permissions({}, rawModifyQuery)).resolves.toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
   });
 });
