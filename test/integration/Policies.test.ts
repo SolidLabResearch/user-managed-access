@@ -1,3 +1,4 @@
+import 'jest-rdf';
 import { App } from '@solid/community-server';
 import { ODRL } from '@solidlab/uma';
 import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
@@ -151,6 +152,57 @@ describe('A policy server setup', (): void => {
     expect(response.status).toBe(204);
   });
 
+  it('can replace policies using PUT.', async(): Promise<void> => {
+    const policyA = `
+        @prefix ex: <http://example.org/>.
+        @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+        ex:purposePolicy a odrl:Agreement ;
+          odrl:uid ex:purposePolicy ;
+          odrl:permission ex:purposePermission .
+        ex:purposePermission a odrl:Permission ;
+          odrl:action odrl:read ;
+          odrl:target ex:target ;
+          odrl:assignee ex:assignee ;
+          odrl:assigner <${webIds.a}> ;
+          odrl:constraint ex:constraint1 .
+        ex:constraint1 a odrl:Constraint ;
+          odrl:leftOperand odrl:purpose ;
+          odrl:operator odrl:eq ;
+          odrl:rightOperand ex:purpose1 .
+      `;
+    // There was an issue where constraints were not fully removed when replacing policies with PUT
+    let response = await fetchPolicy('PUT', webIds.a, 'http://example.org/purposePolicy', policyA);
+    expect(response.status).toBe(204);
+
+    const policyB = `
+        @prefix ex: <http://example.org/>.
+        @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+        ex:purposePolicy a odrl:Agreement ;
+          odrl:uid ex:purposePolicy ;
+          odrl:permission ex:purposePermission .
+        ex:purposePermission a odrl:Permission ;
+          odrl:action odrl:read ;
+          odrl:target ex:target ;
+          odrl:assignee ex:assignee ;
+          odrl:assigner <${webIds.a}> ;
+          odrl:constraint ex:constraint1 .
+        ex:constraint1 a odrl:Constraint ;
+          odrl:leftOperand odrl:purpose ;
+          odrl:operator odrl:eq ;
+          odrl:rightOperand ex:purpose3 .
+      `;
+    response = await fetchPolicy('PUT', webIds.a, 'http://example.org/purposePolicy', policyB);
+    expect(response.status).toBe(204);
+
+    response = await fetchPolicy('GET', webIds.a, 'http://example.org/purposePolicy');
+    expect(response.status).toBe(200);
+    const getResponse = await response.text();
+    const parser = new Parser();
+    expect(parser.parse(policyB)).toBeRdfIsomorphic(parser.parse(getResponse));
+  });
+
   it('can show a user their policies.', async(): Promise<void> => {
     let response = await fetch(policyEndpoint);
     expect(response.status).toBe(401);
@@ -160,6 +212,7 @@ describe('A policy server setup', (): void => {
     let store = new Store(new Parser().parse(await response.text()));
     let policies = store.getSubjects(ODRL.terms.uid, null, null);
     expect(policies.map((term) => term.value).sort()).toEqual([
+      'http://example.org/purposePolicy',
       'http://example.org/usagePolicy1',
       'http://example.org/usagePolicy1a',
       'urn:uuid:95efe0e8-4fb7-496d-8f3c-4d78c97829bc',
