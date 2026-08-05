@@ -43,7 +43,13 @@ export function createRuleQuads(rule: UCPRule, policyIRI?: string): { quads: Qua
   const ruleIRI = "urn:ucp:rule:" + randomUUID();
   quads.push(quad(namedNode(ruleIRI), ODRL.terms.action, namedNode(rule.action)))
   quads.push(quad(namedNode(ruleIRI), ODRL.terms.target, namedNode(rule.resource)))
-  quads.push(quad(namedNode(ruleIRI), ODRL.terms.assignee, namedNode(rule.requestingParty)))
+  if (Array.isArray(rule.requestingParty)) {
+    for (const party of rule.requestingParty) {
+      quads.push(quad(namedNode(ruleIRI), ODRL.terms.assignee, namedNode(party)))
+    }
+  } else {
+    quads.push(quad(namedNode(ruleIRI), ODRL.terms.assignee, namedNode(rule.requestingParty)))
+  }
   if (rule.owner) {
     quads.push(quad(namedNode(ruleIRI), ODRL.terms.assigner, namedNode(rule.owner)))
   }

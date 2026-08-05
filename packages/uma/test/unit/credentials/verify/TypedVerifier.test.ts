@@ -4,8 +4,8 @@ import { Verifier } from '../../../../src/credentials/verify/Verifier';
 
 describe('TypedVerifier', (): void => {
   const claims: ClaimSet[] = [
-    { key: 'value1' },
-    { key: 'value2' },
+    { key: [ 'value1' ] },
+    { key: [ 'value2' ] },
   ]
   let verifiers: Record<string, Verifier>;
   let verifier: TypedVerifier;

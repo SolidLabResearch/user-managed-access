@@ -7,7 +7,7 @@ import {
   KeyValueStorage,
   MethodNotAllowedHttpError,
   NotFoundHttpError,
-  RDF
+  RDF, UnauthorizedHttpError
 } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { DataFactory as DF, NamedNode, Store } from 'n3';
@@ -63,10 +63,11 @@ export class CollectionRequestHandler extends HttpHandler {
   public async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse<any>> {
     const credential = await this.credentialParser.handleSafe(request);
     const claims = await this.verifier.verify(credential);
-    const userId = claims[WEBID];
-    if (typeof userId !== 'string') {
-      throw new ForbiddenHttpError(`Missing claim ${WEBID}.`);
+    const userIds = claims[WEBID]?.filter((webId): webId is string => typeof webId === 'string') ?? [];
+    if (userIds.length === 0) {
+      throw new UnauthorizedHttpError();
     }
+    const userId = userIds[0];
 
     switch (request.method) {
       case 'GET': return this.handleGet(request, userId);

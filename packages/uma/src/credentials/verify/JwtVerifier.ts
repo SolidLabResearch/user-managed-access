@@ -27,6 +27,7 @@ export class JwtVerifier implements Verifier {
     }
 
     const claims = decodeJwt(credential.token);
+    const result: ClaimSet = {};
 
     if (this.verifyJwt) {
       if (!claims.iss) {
@@ -38,16 +39,14 @@ export class JwtVerifier implements Verifier {
     }
 
     for (const claim of Object.keys(claims)) {
-      if (!this.allowedClaims.includes(claim)) {
-        if (this.errorOnExtraClaims) {
-          throw new Error(`Claim '${claim}' not allowed.`);
-        }
-
-        delete claims[claim];
+      if (this.allowedClaims.includes(claim)) {
+        result[claim] = Array.isArray(claims[claim]) ? claims[claim] : [claims[claim]];
+      } else if (this.errorOnExtraClaims) {
+        throw new Error(`Claim '${claim}' not allowed.`);
       }
     }
 
-    this.logger.debug(`Returning discovered claims: ${JSON.stringify(claims)}`)
-    return claims;
+    this.logger.debug(`Returning discovered claims: ${JSON.stringify(result)}`)
+    return result;
   }
 }

@@ -1,7 +1,7 @@
 import { BadRequestHttpError, ForbiddenHttpError, HttpErrorClass, KeyValueStorage } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { randomUUID } from 'node:crypto';
-import { getOriginalClaimValue, WEBID } from '../credentials/Claims';
+import { ORIGINAL_WEBID, WEBID } from '../credentials/Claims';
 import { Verifier } from '../credentials/verify/Verifier';
 import { NeedInfoError, RequiredClaim } from '../errors/NeedInfoError';
 import { getOperationLogger } from '../logging/OperationLogger';
@@ -61,12 +61,12 @@ export class BaseNegotiator implements Negotiator {
     // ... on success, create Access Token
     if (resolved.success) {
       const partial = this.isPartialResult(updatedTicket.permissions, resolved.value);
-      const tokenSub = getOriginalClaimValue(updatedTicket.provided, WEBID);
+      const tokenSubs = updatedTicket.provided[ORIGINAL_WEBID] || updatedTicket.provided[WEBID];
 
       // Retrieve / create instantiated policy
       const { token, tokenType } = await this.tokenFactory.serialize({
         permissions: resolved.value,
-        ...(typeof tokenSub === 'string' ? { sub: tokenSub } : {}),
+        ...(Array.isArray(tokenSubs) && typeof tokenSubs[0] === 'string' ? { sub: tokenSubs[0] } : {}),
       });
       this.logger.debug(`Minted token ${JSON.stringify(token)}`);
 

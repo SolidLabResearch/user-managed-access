@@ -55,7 +55,7 @@ export class OidcVerifier implements Verifier {
     }
   }
 
-  protected async verifySolidToken(token: string): Promise<{ [WEBID]: string, [CLIENTID]?: string }> {
+  protected async verifySolidToken(token: string): Promise<ClaimSet> {
     const claims = await this.verifyToken(`Bearer ${token}`);
     const issuers = this.verifyOptions.issuer;
     const allowedIssuers = issuers !== undefined && (typeof issuers === 'string' ? [issuers] : issuers as string[]);
@@ -70,13 +70,12 @@ export class OidcVerifier implements Verifier {
     return ({
       // TODO: would have to use different value than "WEBID"
       // TODO: still want to use WEBID as external value potentially?
-      [WEBID]: claims.webid,
-      ...clientId && { [CLIENTID]: clientId }
+      [WEBID]: [ claims.webid ],
+      ...clientId && { [CLIENTID]: [ clientId ] }
     });
   }
 
-  protected async verifyStandardToken(token: string, format: string, issuer: string):
-    Promise<{ [WEBID]?: string, [CLIENTID]?: string, [ACCESS]?: Permission[] }> {
+  protected async verifyStandardToken(token: string, format: string, issuer: string): Promise<ClaimSet> {
     const jwkSet = await getJwks(issuer);
     const decoded = await jwtVerify(token, jwkSet, this.verifyOptions);
 
@@ -86,8 +85,8 @@ export class OidcVerifier implements Verifier {
       }
       const client = decoded.payload.azp as string | undefined;
       return {
-        [WEBID]: decoded.payload.sub,
-        ...client && { [CLIENTID]: client }
+        [WEBID]: [ decoded.payload.sub ],
+        ...client && { [CLIENTID]: [ client ] }
       };
     } else if (format === ACCESS_TOKEN) {
       const iss = decoded.payload.iss;

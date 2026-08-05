@@ -18,8 +18,7 @@ describe('UnsecureVerifier', (): void => {
       format: 'urn:solidlab:uma:claims:formats:webid',
       token: encodeURIComponent('http://example.com/#me'),
     })).resolves.toEqual({
-      ['urn:solidlab:uma:claims:types:webid']: 'http://example.com/#me',
-      ['urn:solidlab:uma:claims:types:clientid']: false,
+      ['urn:solidlab:uma:claims:types:webid']: [ 'http://example.com/#me' ],
     });
   });
 
@@ -28,8 +27,8 @@ describe('UnsecureVerifier', (): void => {
       format: 'urn:solidlab:uma:claims:formats:webid',
       token: `${encodeURIComponent('http://example.com/#me')}:${encodeURIComponent('http://example.com/#client')}`,
     })).resolves.toEqual({
-      ['urn:solidlab:uma:claims:types:webid']: 'http://example.com/#me',
-      ['urn:solidlab:uma:claims:types:clientid']: 'http://example.com/#client',
+      ['urn:solidlab:uma:claims:types:webid']: [ 'http://example.com/#me' ],
+      ['urn:solidlab:uma:claims:types:clientid']: [ 'http://example.com/#client' ],
     });
   });
 

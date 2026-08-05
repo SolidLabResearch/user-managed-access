@@ -34,7 +34,7 @@ describe('JwtVerifier', (): void => {
   });
 
   it('returns the allowed claims.', async(): Promise<void> => {
-    await expect(verifier.verify(credential)).resolves.toEqual({ iss: issuer, claim1: 'val1', });
+    await expect(verifier.verify(credential)).resolves.toEqual({ iss: [ issuer ], claim1: [ 'val1' ], });
     expect(decodeMock).toHaveBeenCalledTimes(1);
     expect(decodeMock).toHaveBeenLastCalledWith(credential.token);
 
@@ -71,7 +71,7 @@ describe('JwtVerifier', (): void => {
     });
 
     it('verifies the token.', async(): Promise<void> => {
-      await expect(verifier.verify(credential)).resolves.toEqual({ iss: issuer, claim1: 'val1', });
+      await expect(verifier.verify(credential)).resolves.toEqual({ iss: [ issuer ], claim1: [ 'val1' ], });
       expect(decodeMock).toHaveBeenCalledTimes(1);
       expect(decodeMock).toHaveBeenLastCalledWith(credential.token);
       expect(verifyMock).toHaveBeenCalledTimes(1);

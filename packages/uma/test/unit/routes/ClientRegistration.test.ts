@@ -43,7 +43,7 @@ describe('ClientRegistration', (): void => {
     } satisfies Partial<CredentialParser> as any;
 
     verifier = {
-      verify: vi.fn().mockResolvedValue({ [WEBID]: webId }),
+      verify: vi.fn().mockResolvedValue({ [WEBID]: [ webId ] }),
     };
 
     storage = {

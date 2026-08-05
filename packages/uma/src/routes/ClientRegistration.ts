@@ -71,11 +71,11 @@ export class ClientRegistrationRequestHandler extends HttpHandler {
   public async handle({ request }: HttpHandlerContext): Promise<HttpHandlerResponse> {
     const credential = await this.credentialParser.handleSafe(request);
     const claims = await this.verifier.verify(credential);
-    const userId = claims[WEBID];
-
-    if (typeof userId !== 'string') {
+    const userIds = claims[WEBID]?.filter((webId): webId is string => typeof webId === 'string') ?? [];
+    if (userIds.length === 0) {
       throw new UnauthorizedHttpError();
     }
+    const userId = userIds[0];
 
     switch (request.method) {
       case 'GET': return this.getClients(request, userId);

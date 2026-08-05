@@ -1,4 +1,10 @@
-import { BadRequestHttpError, ForbiddenHttpError, joinUrl, MethodNotAllowedHttpError } from '@solid/community-server';
+import {
+    BadRequestHttpError,
+    ForbiddenHttpError,
+    joinUrl,
+    MethodNotAllowedHttpError,
+    UnauthorizedHttpError
+} from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
 import { BaseController } from '../controller/BaseController';
 import { WEBID } from '../credentials/Claims';
@@ -61,10 +67,11 @@ export class BaseHandler extends HttpHandler {
 
         const credential = await this.credentialParser.handleSafe(request);
         const claims = await this.verifier.verify(credential);
-        const userId = claims[WEBID];
-        if (typeof userId !== 'string') {
-            throw new ForbiddenHttpError(`Missing claim ${WEBID}.`);
+        const userIds = claims[WEBID]?.filter((webId): webId is string => typeof webId === 'string') ?? [];
+        if (userIds.length === 0) {
+            throw new UnauthorizedHttpError();
         }
+        const userId = userIds[0];
 
         if (request.parameters?.id) {
             switch (request.method) {

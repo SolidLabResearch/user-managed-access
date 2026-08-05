@@ -1,5 +1,6 @@
 import { BadRequestHttpError, InternalServerError, KeyValueStorage } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
+import { AccessRequest } from '../../controller/AccessRequestController';
 import { ACCESS } from '../../credentials/Claims';
 import { ClaimSet } from '../../credentials/ClaimSet';
 import { RequiredClaim } from '../../errors/NeedInfoError';
@@ -61,7 +62,7 @@ export class AggregatorStrategy implements TicketingStrategy {
     // These IDs will be present on aggregator AS side, if the correct access tokens were provided
     const derivedReadIds = new Set<string>();
     if (Array.isArray(claims[ACCESS])) {
-      for (const { resource_id: id, resource_scopes: scopes } of claims[ACCESS]) {
+      for (const { resource_id: id, resource_scopes: scopes } of claims[ACCESS] as AccessRequest[]) {
         if (scopes.includes(UMA_SCOPES['derivation-read'])) {
           derivedReadIds.add(id);
         }
