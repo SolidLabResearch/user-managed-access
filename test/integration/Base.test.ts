@@ -1,4 +1,4 @@
-import { App } from '@solid/community-server';
+import { App, joinUrl } from '@solid/community-server';
 import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
 import { Parser, Writer } from 'n3';
 import { readFile } from 'node:fs/promises';
@@ -102,6 +102,7 @@ describe('A server setup', (): void => {
 
   describe('using ODRL authorization', (): void => {
     const owner = 'https://pod.woutslabbinck.com/profile/card#me';
+    const assignee = 'https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me';
     const newResource = `http://localhost:${cssPort}/alice/resource.txt`;
     const newResource2 = `http://localhost:${cssPort}/alice/private/resource.txt`;
     let wwwAuthenticateHeader: string;
@@ -142,12 +143,10 @@ describe('A server setup', (): void => {
     });
 
     it('AS: responds with a token when receiving the ticket.', async(): Promise<void> => {
-      const claim_token = 'https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me';
-
       const content = {
         grant_type: 'urn:ietf:params:oauth:grant-type:uma-ticket',
         ticket,
-        claim_token: encodeURIComponent(claim_token),
+        claim_token: encodeURIComponent(assignee),
         claim_token_format: 'urn:solidlab:uma:claims:formats:webid',
       };
 
@@ -317,6 +316,12 @@ describe('A server setup', (): void => {
       const getResponse = await fetch(newResource);
       expect(getResponse.status).toBe(200);
       await expect(getResponse.text()).resolves.toEqual('Some new text!');
+
+      const response = await fetch(joinUrl(url, encodeURIComponent('http://example.org/publicAnonPolicy')), {
+        method: 'DELETE',
+        headers: { authorization: `WebID ${encodeURIComponent(owner)}`, 'content-type': 'text/turtle' },
+      });
+      expect(response.status).toBe(204);
     });
 
     it('the resource can be made publicly accessible by being a Set without assignee.', async(): Promise<void> => {
@@ -352,6 +357,30 @@ describe('A server setup', (): void => {
       const getResponse = await fetch(newResource);
       expect(getResponse.status).toBe(200);
       await expect(getResponse.text()).resolves.toEqual('Some new text!');
+
+      const response = await fetch(joinUrl(url, encodeURIComponent('http://example.org/publicPolicy')), {
+        method: 'DELETE',
+        headers: { authorization: `WebID ${encodeURIComponent(owner)}`, 'content-type': 'text/turtle' },
+      });
+      expect(response.status).toBe(204);
+    });
+
+    it('still works correctly with multiple claims of the same information type.', async(): Promise<void> => {
+      const { as_uri, ticket } = await noTokenFetch(newResource);
+      const endpoint = await findTokenEndpoint(as_uri);
+      const response1 = await attemptTokenRequest(ticket, endpoint, undefined, [
+        { claim_token: encodeURIComponent(assignee), claim_token_format: 'urn:solidlab:uma:claims:formats:webid' },
+        { claim_token: encodeURIComponent('http://example.com/wrong'), claim_token_format: 'urn:solidlab:uma:claims:formats:webid' },
+      ]);
+      expect(response1.status).toBe(200);
+
+      // Also works with claims in reverse order
+      const { ticket: newTicket } = await noTokenFetch(newResource);
+      const response2 = await attemptTokenRequest(newTicket, endpoint, undefined, [
+        { claim_token: encodeURIComponent('http://example.com/wrong'), claim_token_format: 'urn:solidlab:uma:claims:formats:webid' },
+        { claim_token: encodeURIComponent(assignee), claim_token_format: 'urn:solidlab:uma:claims:formats:webid' },
+      ]);
+      expect(response2.status).toBe(200);
     });
   });
 });

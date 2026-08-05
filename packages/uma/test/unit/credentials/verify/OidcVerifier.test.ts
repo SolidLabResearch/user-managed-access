@@ -75,8 +75,8 @@ describe('OidcVerifier', (): void => {
 
     it('returns the extracted WebID.', async(): Promise<void> => {
       await expect(verifier.verify(credential)).resolves.toEqual({
-        ['urn:solidlab:uma:claims:types:webid']: 'webId',
-        ['urn:solidlab:uma:claims:types:clientid']: 'clientId',
+        ['urn:solidlab:uma:claims:types:webid']: [ 'webId' ],
+        ['urn:solidlab:uma:claims:types:clientid']: [ 'clientId' ],
       });
     });
 
@@ -91,8 +91,8 @@ describe('OidcVerifier', (): void => {
 
       verifier = new OidcVerifier(derivationStore, { issuer: [ issuer ] });
       await expect(verifier.verify(credential)).resolves.toEqual({
-        ['urn:solidlab:uma:claims:types:webid']: 'webId',
-        ['urn:solidlab:uma:claims:types:clientid']: 'clientId',
+        ['urn:solidlab:uma:claims:types:webid']: [ 'webId' ],
+        ['urn:solidlab:uma:claims:types:clientid']: [ 'clientId' ],
       });
     });
   });
@@ -105,7 +105,7 @@ describe('OidcVerifier', (): void => {
 
     it('returns the extracted identity.', async(): Promise<void> => {
       await expect(verifier.verify(credential)).resolves.toEqual({
-        ['urn:solidlab:uma:claims:types:webid']: 'sub',
+        ['urn:solidlab:uma:claims:types:webid']: [ 'sub' ],
       });
     });
 
@@ -113,15 +113,15 @@ describe('OidcVerifier', (): void => {
       jwtVerify.mockResolvedValue({ payload: { ...decodedToken, azp: 'client' } } as any);
 
       await expect(verifier.verify(credential)).resolves.toEqual({
-        ['urn:solidlab:uma:claims:types:webid']: 'sub',
-        ['urn:solidlab:uma:claims:types:clientid']: 'client',
+        ['urn:solidlab:uma:claims:types:webid']: [ 'sub' ],
+        ['urn:solidlab:uma:claims:types:clientid']: [ 'client' ],
       });
     });
 
     it('uses verification options.', async(): Promise<void> => {
       verifier = new OidcVerifier(derivationStore, { issuer: [ issuer ] });
       await expect(verifier.verify(credential)).resolves.toEqual({
-        ['urn:solidlab:uma:claims:types:webid']: 'sub',
+        ['urn:solidlab:uma:claims:types:webid']: [ 'sub' ],
       });
       expect(jwtVerify).toHaveBeenCalledExactlyOnceWith('token', remoteKeySet, { issuer: [ issuer ] });
     });

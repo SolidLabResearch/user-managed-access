@@ -55,5 +55,21 @@ describe('ODRL', (): void => {
         store.countQuads(constraint, ODRL.terms.rightOperand, DF.literal(now.toISOString(), XSD.terms.dateTime), null),
       ).toBe(1);
     });
+
+    it('creates one assignee quad per requesting party when requestingParty is an array.', async(): Promise<void> => {
+      policy.rules[0].requestingParty = [
+        'http://example.com/me',
+        'http://example.com/teammate',
+      ];
+
+      const result = basicPolicy(policy, 'http://example.com/policy');
+      const ruleTerm = result.ruleIRIs[0];
+      const assignees = result.representation.getObjects(ruleTerm, ODRL.terms.assignee, null);
+
+      expect(assignees.map((term) => term.value).sort()).toEqual([
+        'http://example.com/me',
+        'http://example.com/teammate',
+      ]);
+    });
   });
 });

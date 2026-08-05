@@ -12,7 +12,7 @@ describe('WebIdAuthorizer', (): void => {
 
   it('returns empty permissions if there is no WebID match.', async(): Promise<void> => {
     await expect(authorizer.permissions({})).resolves.toEqual([]);
-    await expect(authorizer.permissions({ [WEBID]: 'unknown' })).resolves.toEqual([]);
+    await expect(authorizer.permissions({ [WEBID]: [ 'unknown' ] })).resolves.toEqual([]);
   });
 
   it('returns full permissions if there is a matching WebID.', async(): Promise<void> => {
@@ -21,7 +21,7 @@ describe('WebIdAuthorizer', (): void => {
       { resource_id: 'id2' },
       { resource_scopes: [ 'scope3' ]},
     ];
-    await expect(authorizer.permissions({ [WEBID]: webIds[0] }, query)).resolves.toEqual([
+    await expect(authorizer.permissions({ [WEBID]: [ webIds[0] ] }, query)).resolves.toEqual([
       { resource_id: 'id1', resource_scopes: [ 'scope1' ]},
       { resource_id: 'id2', resource_scopes: [ 'urn:solidlab:uma:scopes:any' ]},
       { resource_id: 'urn:solidlab:uma:resources:any', resource_scopes: [ 'scope3' ]},

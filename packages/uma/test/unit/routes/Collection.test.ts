@@ -41,7 +41,7 @@ describe('Collection', (): void => {
     } satisfies Partial<CredentialParser> as any;
 
     verifier = {
-      verify: vi.fn().mockResolvedValue({ [WEBID]: userId }),
+      verify: vi.fn().mockResolvedValue({ [WEBID]: [ userId ] }),
     } satisfies Partial<Verifier> as any;
 
     ownershipStore = {

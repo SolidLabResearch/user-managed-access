@@ -10,7 +10,7 @@ export class KeyValueVerifier implements Verifier {
 
   public async verify(credential: Credential): Promise<ClaimSet> {
     return {
-      [credential.format]: credential.token
+      [credential.format]: [ credential.token ],
     }
   }
 }

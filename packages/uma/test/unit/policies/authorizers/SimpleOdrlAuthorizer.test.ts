@@ -89,7 +89,16 @@ describe('SimpleOdrlAuthorizer', () => {
 
   it('returns permission if rule matches resource, action, and assignee', async () => {
     addRule({ assignee: 'user' });
-    const claims = { [WEBID]: 'user' };
+    const claims = { [WEBID]: [ 'user' ] };
+
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+  });
+
+  it('matches assignee when one of multiple WEBID claim values matches.', async () => {
+    addRule({ assignee: 'member' });
+    const claims = { [WEBID]: [ 'user', 'member' ] };
 
     await expect(authorizer.permissions(claims, query))
       .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
@@ -106,7 +115,7 @@ describe('SimpleOdrlAuthorizer', () => {
 
   it('returns empty if assignee does not match', async () => {
     addRule({ assignee: 'other' });
-    const claims = { [WEBID]: 'user' };
+    const claims = { [WEBID]: [ 'user' ] };
 
     await expect(authorizer.permissions(claims, query)).resolves.toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
@@ -134,7 +143,7 @@ describe('SimpleOdrlAuthorizer', () => {
       operator: ODRL.terms.eq,
       rightOperand: 'clientA',
     });
-    const claims = { [CLIENTID]: 'clientB' };
+    const claims = { [CLIENTID]: [ 'clientB' ] };
 
     await expect(authorizer.permissions(claims, query)).resolves.toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
@@ -148,7 +157,7 @@ describe('SimpleOdrlAuthorizer', () => {
       operator: ODRL.terms.eq,
       rightOperand: 'clientA',
     });
-    const claims = { [CLIENTID]: 'clientA' };
+    const claims = { [CLIENTID]: [ 'clientA' ] };
 
     await expect(authorizer.permissions(claims, query))
       .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
@@ -163,7 +172,7 @@ describe('SimpleOdrlAuthorizer', () => {
       operator: ODRL.terms.eq,
       rightOperand: 'https://w3id.org/dpv#ScientificResearch',
     });
-    const claims = { [PURPOSE]: 'https://w3id.org/dpv#ScientificResearch' };
+    const claims = { [PURPOSE]: [ 'https://w3id.org/dpv#ScientificResearch' ] };
 
     await expect(authorizer.permissions(claims, query))
       .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
@@ -178,7 +187,7 @@ describe('SimpleOdrlAuthorizer', () => {
       operator: ODRL.terms.eq,
       rightOperand: 'http://example.com/purpose-a',
     });
-    const claims = { [PURPOSE]: 'http://example.com/purpose-b' };
+    const claims = { [PURPOSE]: [ 'http://example.com/purpose-b' ] };
 
     await expect(authorizer.permissions(claims, query)).resolves.toEqual([]);
     expect(fallback.permissions).not.toHaveBeenCalled();
@@ -252,10 +261,31 @@ describe('SimpleOdrlAuthorizer', () => {
     store.addQuad(constraint, ODRL.terms.rightOperand, DF.literal('apple'));
     store.addQuad(constraint, OVC.terms.credentialSubjectType, DF.namedNode('http://example.com/type'));
 
-    const claims = { [VC]: {
+    const claims = { [VC]: [{
         type: [ 'http://example.com/type' ],
         credentialSubject: { garden: { fruit: 'apple' }}
-      }};
+      }]};
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+  });
+
+  it('returns permissions when any VC entry satisfies the OVC constraint.', async(): Promise<void> => {
+    const rule = addRule({});
+
+    const jsonPath = '$.credentialSubject.garden.fruit';
+    const constraint = DF.namedNode(`ovc-constraint-${randomUUID()}`);
+    store.addQuad(rule, OVC.terms.constraint, constraint);
+    store.addQuad(constraint, OVC.terms.leftOperand, DF.namedNode(jsonPath));
+    store.addQuad(constraint, ODRL.terms.operator, ODRL.terms.eq);
+    store.addQuad(constraint, ODRL.terms.rightOperand, DF.literal('apple'));
+    store.addQuad(constraint, OVC.terms.credentialSubjectType, DF.namedNode('http://example.com/type'));
+
+    const claims = { [VC]: [
+        { type: [ 'http://example.com/type' ], credentialSubject: { garden: { fruit: 'pear' }}},
+        { type: [ 'http://example.com/type' ], credentialSubject: { garden: { fruit: 'apple' }}},
+      ]};
+
     await expect(authorizer.permissions(claims, query))
       .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
     expect(fallback.permissions).not.toHaveBeenCalled();
@@ -272,14 +302,14 @@ describe('SimpleOdrlAuthorizer', () => {
     store.addQuad(constraint, ODRL.terms.rightOperand, DF.literal('apple'));
     store.addQuad(constraint, OVC.terms.credentialSubjectType, DF.namedNode('http://example.com/type'));
 
-    let claims: ClaimSet = { [VC]: {
+    let claims: ClaimSet = { [VC]: [{
         credentialSubject: { garden: { fruit: 'apple' }}
-      }};
+      }]};
     await expect(authorizer.permissions(claims, query)).resolves.toEqual([]);
-    claims = { [VC]: {
+    claims = { [VC]: [{
         type: [ 'http://example.com/type' ],
         credentialSubject: { garden: { fruit: 'pear' }}
-      }};
+      }]};
     await expect(authorizer.permissions(claims, query)).resolves.toEqual([]);
 
     expect(fallback.permissions).not.toHaveBeenCalled();

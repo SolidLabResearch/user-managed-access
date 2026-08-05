@@ -38,7 +38,13 @@ export class ImmediateAuthorizerStrategy implements TicketingStrategy {
     this.logger.info(`Validating claims. ${JSON.stringify({ ticket, claims })}`);
 
     for (const key of Object.keys(claims)) {
-      ticket.provided[key] = claims[key];
+      if (!claims[key]) {
+        continue;
+      }
+      if (!Array.isArray(ticket.provided[key])) {
+        ticket.provided[key] = [];
+      }
+      ticket.provided[key].push(...claims[key]);
     }
 
     return ticket;

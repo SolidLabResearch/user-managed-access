@@ -103,12 +103,13 @@ export class SimpleOdrlAuthorizer implements Authorizer {
       return [];
     }
 
-    let user = claims[WEBID];
     let assignees: NamedNode[] = [ ANONYMOUS ];
-    if (typeof user === 'string') {
-      const userNode = DF.namedNode(user);
-      assignees.push(userNode);
-      assignees.push(...(policies.getObjects(user, ODRL.terms.partOf, null) as NamedNode[]));
+    for (const user of claims[WEBID] ?? []) {
+      if (typeof user === 'string') {
+        const userNode = DF.namedNode(user);
+        assignees.push(userNode);
+        assignees.push(...(policies.getObjects(user, ODRL.terms.partOf, null) as NamedNode[]));
+      }
     }
     rules = rules.filter(rule => {
       const ruleAssignees = policies.getObjects(rule, ODRL.terms.assignee, null);
@@ -177,6 +178,7 @@ export class SimpleOdrlAuthorizer implements Authorizer {
     // TODO: would want middleware step where credentials and other stuff are already extracted into RDF values
     //       so both ODRL authorizers don't have to bother with this
     for (const constraint of constraints) {
+      const claimValues = claims[constraint.leftOperand.value];
       // Return undefined if any of these are too complex or unknown
       if (constraint.leftOperand.equals(ODRL.terms.dateTime)) {
         const comparisonDate = new Date(constraint.rightOperand.value);
@@ -192,13 +194,11 @@ export class SimpleOdrlAuthorizer implements Authorizer {
         if (!constraint.operator.equals(ODRL.terms.eq)) {
           return false;
         }
-        const claimValue = claims[claimKey];
-        if (typeof claimValue !== 'string' || constraint.rightOperand.value !== claimValue) {
+        if (!claims[claimKey]?.some(claim => claim === constraint.rightOperand.value)) {
           return false;
         }
-      } else if (typeof claims[constraint.leftOperand.value] === 'string'
-        && constraint.operator.equals(ODRL.terms.eq)) {
-        if (constraint.rightOperand.value !== claims[constraint.leftOperand.value]) {
+      } else if (claimValues?.every(claim => typeof claim === 'string') && constraint.operator.equals(ODRL.terms.eq)) {
+        if (!claimValues?.some(claim => claim === constraint.rightOperand.value)) {
           return false;
         }
       } else {
@@ -221,9 +221,12 @@ export class SimpleOdrlAuthorizer implements Authorizer {
     if (constraints.some(({ leftOperand, operator, rightOperand }) => !leftOperand || !operator || !rightOperand)) {
       return;
     }
+    if (constraints.length === 0) {
+      return true;
+    }
     // Can't match a VC constraint if there is no VC input
-    const vc = claims[VC];
-    if (constraints.length > 0 && typeof vc !== 'object') {
+    const vcs = claims[VC];
+    if (!vcs || vcs?.length === 0) {
       return false;
     }
 
@@ -232,15 +235,21 @@ export class SimpleOdrlAuthorizer implements Authorizer {
       if (!constraint.operator.equals(ODRL.terms.eq)) {
         return;
       }
-      const results = jp.query(vc, constraint.leftOperand.value).flat();
-      if (!results.some(result => result === constraint.rightOperand.value)) {
-        return false;
-      }
-      if (constraint.credentialSubjectType) {
-        const types = jp.query(vc, '$.type').flat();
-        if (!types.some(typ => constraint.credentialSubjectType.value === typ)) {
+      const foundMatchedVc = vcs.some(vc => {
+        const results = jp.query(vc, constraint.leftOperand.value).flat();
+        if (!results.some(result => result === constraint.rightOperand.value)) {
           return false;
         }
+        if (constraint.credentialSubjectType) {
+          const types = jp.query(vc, '$.type').flat();
+          if (!types.some(typ => constraint.credentialSubjectType.value === typ)) {
+            return false;
+          }
+        }
+        return true;
+      });
+      if (!foundMatchedVc) {
+        return false;
       }
     }
 

@@ -5,17 +5,12 @@ import { ODRL, ODRLEvaluator } from 'odrl-evaluator';
 import { Mocked } from 'vitest';
 import { CLIENTID, PURPOSE } from '../../../../src/credentials/Claims';
 import { OdrlAuthorizer } from '../../../../src/policies/authorizers/OdrlAuthorizer';
-import { basicPolicy } from '../../../../src/ucp/policy/ODRL';
+import * as odrl from '../../../../src/ucp/policy/ODRL';
 import { UCRulesStorage } from '../../../../src/ucp/storage/UCRulesStorage';
 import { Permission } from '../../../../src/views/Permission';
 
 const now = new Date();
 vi.useFakeTimers({ now });
-
-vi.mock('../../../../src/ucp/policy/ODRL', async(importOriginal) => ({
-    ...await importOriginal(),
-    basicPolicy: vi.fn(),
-}));
 
 describe('OdrlAuthorizer', (): void => {
   const sotw = [ DF.quad(
@@ -25,6 +20,7 @@ describe('OdrlAuthorizer', (): void => {
   )];
 
   const evaluate = vi.spyOn(ODRLEvaluator.prototype, 'evaluate');
+  const basicPolicy = vi.spyOn(odrl, 'basicPolicy');
 
   const requestQuads = [ DF.quad(DF.namedNode('req'), RDF.terms.type, DF.namedNode('Request')) ];
   let policyStore = new Store([ DF.quad(DF.namedNode('policy'), RDF.terms.type, DF.namedNode('Policy')) ]);
@@ -65,7 +61,7 @@ describe('OdrlAuthorizer', (): void => {
       rules: [{
         action: 'http://www.w3.org/ns/odrl/2/read',
         resource: 'rid',
-        requestingParty: 'urn:solidlab:uma:id:anonymous'
+        requestingParty: [ 'urn:solidlab:uma:id:anonymous' ],
       }],
     });
     expect(evaluate).toHaveBeenCalledTimes(1);
@@ -77,7 +73,7 @@ describe('OdrlAuthorizer', (): void => {
   });
 
   it('calls the evaluator with the WebID claim if there is one.', async(): Promise<void> => {
-    const claims = { 'urn:solidlab:uma:claims:types:webid': 'http://example.com/#me' };
+    const claims = { 'urn:solidlab:uma:claims:types:webid': [ 'http://example.com/#me' ] };
     const query: Permission[] = [{ resource_id: 'rid', resource_scopes: [ 'urn:example:css:modes:read' ] }];
 
     // No result as the current evaluate mock returns an empty list
@@ -88,7 +84,7 @@ describe('OdrlAuthorizer', (): void => {
       rules: [{
         action: 'http://www.w3.org/ns/odrl/2/read',
         resource: 'rid',
-        requestingParty: 'http://example.com/#me'
+        requestingParty: [ 'http://example.com/#me' ],
       }],
     });
     expect(evaluate).toHaveBeenCalledTimes(1);
@@ -101,7 +97,7 @@ describe('OdrlAuthorizer', (): void => {
   });
 
   it('adds client claim context using odrl:deliveryChannel', async(): Promise<void> => {
-    const claims = { [CLIENTID]: 'client-a' };
+    const claims = { [CLIENTID]: [ 'client-a' ] };
     const query: Permission[] = [{ resource_id: 'rid', resource_scopes: [ 'urn:example:css:modes:read' ] }];
 
     await expect(authorizer.permissions(claims, query)).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [] }]);
@@ -125,7 +121,7 @@ describe('OdrlAuthorizer', (): void => {
   });
 
   it('adds other claims to constraints', async(): Promise<void> => {
-    const claims = { [PURPOSE]: 'https://w3id.org/dpv#ScientificResearch' };
+    const claims = { [PURPOSE]: [ 'https://w3id.org/dpv#ScientificResearch' ] };
     const query: Permission[] = [{ resource_id: 'rid', resource_scopes: [ 'urn:example:css:modes:read' ] }];
 
     await expect(authorizer.permissions(claims, query)).resolves.toEqual([{ resource_id: 'rid', resource_scopes: [] }]);

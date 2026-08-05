@@ -31,10 +31,30 @@ describe('ImmediateAuthorizerStrategy', (): void => {
       permissions,
       provided: {},
     };
-    const claims: ClaimSet = { claim1: 'val1', claim2: 'val2' };
+    const claims: ClaimSet = { claim1: [ 'val1' ], claim2: [ 'val2' ] };
     await expect(strategy.validateClaims(ticket, claims)).resolves.toEqual({
       permissions,
-      provided: { claim1: 'val1', claim2: 'val2' },
+      provided: { claim1: [ 'val1' ], claim2: [ 'val2' ] },
+    });
+  });
+
+  it('appends claim values to existing provided arrays.', async(): Promise<void> => {
+    const ticket: Ticket = {
+      permissions,
+      provided: {
+        claim1: [ 'existing' ],
+        claim3: [ 'keep' ],
+      },
+    };
+    const claims: ClaimSet = { claim1: [ 'val1', 'val2' ], claim2: [ 'val3' ] };
+
+    await expect(strategy.validateClaims(ticket, claims)).resolves.toEqual({
+      permissions,
+      provided: {
+        claim1: [ 'existing', 'val1', 'val2' ],
+        claim2: [ 'val3' ],
+        claim3: [ 'keep' ],
+      },
     });
   });
 

@@ -1,6 +1,6 @@
 import { ForbiddenHttpError, KeyValueStorage } from '@solid/community-server';
 import { Mocked } from 'vitest';
-import { ORIGINAL, WEBID } from '../../../src/credentials/Claims';
+import { ORIGINAL_WEBID, WEBID } from '../../../src/credentials/Claims';
 import { ClaimSet } from '../../../src/credentials/ClaimSet';
 import { Verifier } from '../../../src/credentials/verify/Verifier';
 import { BaseNegotiator } from '../../../src/dialog/BaseNegotiator';
@@ -18,10 +18,10 @@ describe('BaseNegotiator', (): void => {
       { resource_id: 'id2', resource_scopes: [ 'scope2' ] },
     ]
   };
-  const claims: ClaimSet = { claim1: 'value1', claim2: 'value2' };
+  const claims: ClaimSet = { claim1: [ 'value1' ], claim2: [ 'value2' ] };
   const ticket: Ticket = {
     permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ],
-    provided: { claim: 'value' },
+    provided: { claim: [ 'value' ] },
   };
   const token: SerializedToken = { token: 'token', tokenType: 'type' };
   let ticketData: Map<string, Ticket>;
@@ -90,7 +90,7 @@ describe('BaseNegotiator', (): void => {
       { permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ] });
     expect(refreshTokenIssuer.issue).toHaveBeenCalledTimes(1);
     expect(refreshTokenIssuer.issue).toHaveBeenLastCalledWith(
-      { claim: 'value' },
+      { claim: [ 'value' ] },
       [{ resource_id: 'id1', resource_scopes: [ 'scope1' ] }]);
   });
 
@@ -162,7 +162,7 @@ describe('BaseNegotiator', (): void => {
       { permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ] });
     expect(refreshTokenIssuer.issue).toHaveBeenCalledTimes(1);
     expect(refreshTokenIssuer.issue).toHaveBeenLastCalledWith(
-      { claim: 'value' },
+      { claim: [ 'value' ] },
       [{ resource_id: 'id1', resource_scopes: [ 'scope1' ] }]);
   });
 
@@ -190,7 +190,7 @@ describe('BaseNegotiator', (): void => {
       { permissions: [ { resource_id: 'id1', resource_scopes: [ 'scope1' ] } ] });
     expect(refreshTokenIssuer.issue).toHaveBeenCalledTimes(1);
     expect(refreshTokenIssuer.issue).toHaveBeenLastCalledWith(
-      { claim: 'value' },
+      { claim: [ 'value' ] },
       [{ resource_id: 'id1', resource_scopes: [ 'scope1' ] }]);
   });
 
@@ -215,7 +215,7 @@ describe('BaseNegotiator', (): void => {
     const webId = 'https://example.com/profile/card#me';
     ticketingStrategy.validateClaims.mockResolvedValueOnce({
       ...ticket,
-      provided: { [WEBID]: webId },
+      provided: { [WEBID]: [ webId ] },
     });
 
     await expect(negotiator.negotiate({ ...input, claim_token: 'token', claim_token_format: 'format' })).resolves
@@ -231,10 +231,8 @@ describe('BaseNegotiator', (): void => {
     ticketingStrategy.validateClaims.mockResolvedValueOnce({
       ...ticket,
       provided: {
-        [WEBID]: 'http://example.com/id/user',
-        [ORIGINAL]: {
-          [WEBID]: 'user',
-        },
+        [WEBID]: [ 'http://example.com/id/user' ],
+        [ORIGINAL_WEBID]: [ 'user' ],
       },
     });
 

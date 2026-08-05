@@ -23,9 +23,11 @@ export class WebIdAuthorizer implements Authorizer {
   public async permissions(claims: ClaimSet, query?: Partial<Permission>[]): Promise<Permission[]> {
     this.logger.info(`Calculating permissions. ${JSON.stringify({ claims, query })}`);
 
-    const webid = claims[WEBID];
+    const webids = claims[WEBID];
 
-    if (!(typeof webid === 'string' && this.webids.includes(webid))) return [];
+    if (!Array.isArray(webids) || !webids.some(webId => typeof webId === 'string' && this.webids.includes(webId))) {
+      return [];
+    }
 
     return (query ?? []).map(
       (permission): Permission => ({

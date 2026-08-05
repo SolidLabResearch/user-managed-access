@@ -75,23 +75,28 @@ export class OdrlAuthorizer implements Authorizer {
             literal(new Date().toISOString(), namedNode("http://www.w3.org/2001/XMLSchema#dateTime"))),
         );
 
-        const subject = typeof claims[WEBID] === 'string' ? claims[WEBID] : 'urn:solidlab:uma:id:anonymous';
+        let subjects = claims[WEBID] && claims[WEBID].filter(id => typeof id === 'string');
+        if (!subjects || subjects.length === 0) {
+            subjects = [ 'urn:solidlab:uma:id:anonymous' ];
+        }
         const claimContextConstraints: { subject: ReturnType<typeof blankNode>; quads: Quad[] }[] = [];
-        for (const [ key, value ] of Object.entries(claims)) {
-            const leftOperand = claimOperandMap[key] ?? key;
-            if (!isIri(leftOperand) || typeof value !== 'string') {
-                continue;
+        for (const [ key, values ] of Object.entries(claims)) {
+            for (const value of values ?? []) {
+                const leftOperand = claimOperandMap[key] ?? key;
+                if (!isIri(leftOperand) || typeof value !== 'string') {
+                    continue;
+                }
+                const claimSubject = blankNode();
+                claimContextConstraints.push({
+                    subject: claimSubject,
+                    quads: [
+                        quad(claimSubject, RDF.terms.type, ODRL.terms.Constraint),
+                        quad(claimSubject, ODRL.terms.leftOperand, namedNode(leftOperand)),
+                        quad(claimSubject, ODRL.terms.operator, ODRL.terms.eq),
+                        quad(claimSubject, ODRL.terms.rightOperand, namedNode(value)),
+                    ],
+                });
             }
-            const claimSubject = blankNode();
-            claimContextConstraints.push({
-                subject: claimSubject,
-                quads: [
-                    quad(claimSubject, RDF.terms.type, ODRL.terms.Constraint),
-                    quad(claimSubject, ODRL.terms.leftOperand, namedNode(leftOperand)),
-                    quad(claimSubject, ODRL.terms.operator, ODRL.terms.eq),
-                    quad(claimSubject, ODRL.terms.rightOperand, namedNode(value)),
-                ],
-            });
         }
 
         for (const { resource_id, resource_scopes } of query) {
@@ -101,14 +106,14 @@ export class OdrlAuthorizer implements Authorizer {
                 //       IMO this should either happen on the RS,
                 //       or the policies should just use the "CSS" modes (not really though)
                 const action = scopeCssToOdrl.get(scope) ?? scope;
-                this.logger.info(`Evaluating Request [S R AR]: [${subject} ${resource_id} ${action}]`);
+                this.logger.info(`Evaluating Request [S R AR]: [${subjects.join(', ')} ${resource_id} ${action}]`);
                 const requestPolicy: UCPPolicy = {
                     type: ODRL.Request,
                     rules: [
                         {
                             action: action,
                             resource: resource_id,
-                            requestingParty: subject
+                            requestingParty: subjects
                         }
                     ]
                 }
