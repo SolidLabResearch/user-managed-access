@@ -38,14 +38,10 @@ export class VcVerifier implements Verifier {
     const jwkSet = await getJwks(unsafeDecoded.iss);
     const decoded = await jwtVerify(credential.token, jwkSet, this.verifyOptions);
 
-    // TODO: could extract all entries as separate jsonpath claims
-    // TODO: currently only a single VC as input is accepted,
-    //       if the client provides multiple these would override each other
-    const claims = this.extractVcClaims(decoded.payload);
-    return { [VC]: claims };
+    return { [VC]: [ this.extractVcClaims(decoded.payload) ] };
   }
 
-  protected extractVcClaims(payload: JWTPayload): ClaimSet {
+  protected extractVcClaims(payload: JWTPayload): Record<string, unknown> {
     if (!payload.vc || typeof payload.vc !== 'object') {
       throw new BadRequestHttpError(`Token is missing the vc claim.`);
     }

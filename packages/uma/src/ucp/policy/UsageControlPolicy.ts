@@ -15,7 +15,7 @@ export interface UCPRule {
     type?:string, // default Permission
     action: string,
     resource: string,
-    requestingParty: string,
+    requestingParty: string | string[],
     owner?: string,
     constraints?: UCPConstraint[]
 }
@@ -40,4 +40,3 @@ export interface SimplePolicy {
     // identifier of the rule
     ruleIRIs: string[];
 }
-

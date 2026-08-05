@@ -1,6 +1,6 @@
 import { joinUrl } from '@solid/community-server';
 import { isIri } from '../../util/ConvertUtil';
-import { CLIENTID, ORIGINAL, WEBID } from '../Claims';
+import { CLIENTID, ORIGINAL_CLIENTID, ORIGINAL_WEBID, WEBID } from '../Claims';
 import { ClaimSet } from '../ClaimSet';
 import { Credential } from '../Credential';
 import { Verifier } from './Verifier';
@@ -19,15 +19,17 @@ export class IriVerifier implements Verifier {
     const result = { ...claims };
 
     const original: Record<string, string> = {};
-    for (const claim of [WEBID, CLIENTID]) {
-      if (typeof claims[claim] === 'string' && !isIri(claims[claim])) {
-        result[claim] = joinUrl(this.baseUrl, encodeURIComponent(claims[claim]));
-        original[claim] = claims[claim];
+    for (const [ claimType, original ] of [[WEBID, ORIGINAL_WEBID], [CLIENTID, ORIGINAL_CLIENTID]]) {
+      if (Array.isArray(claims[claimType])) {
+        result[original] = [];
+        for (let i = 0; i < claims[claimType].length; i += 1) {
+          const entry = claims[claimType][i];
+          result[original].push(entry);
+          if (typeof entry === 'string' && !isIri(entry)) {
+            result[claimType]![i] = joinUrl(this.baseUrl, encodeURIComponent(entry));
+          }
+        }
       }
-    }
-
-    if (Object.keys(original).length > 0) {
-      result[ORIGINAL] = original;
     }
 
     return result;

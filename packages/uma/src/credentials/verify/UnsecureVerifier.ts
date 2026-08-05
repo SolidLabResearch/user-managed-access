@@ -30,9 +30,9 @@ export class UnsecureVerifier implements Verifier {
     }
 
     try {
-      const claims = {
-        [WEBID]: new URL(decodeURIComponent(raw[0])).toString(),
-        [CLIENTID]: raw.length === 2 && new URL(decodeURIComponent(raw[1])).toString()
+      const claims: ClaimSet = {
+        [WEBID]: [ new URL(decodeURIComponent(raw[0])).toString() ],
+        ...raw.length === 2 && { [CLIENTID]: [ new URL(decodeURIComponent(raw[1])).toString() ] }
       };
 
       this.logger.info(`Authenticated as via unsecure verifier. ${JSON.stringify(claims)}`);

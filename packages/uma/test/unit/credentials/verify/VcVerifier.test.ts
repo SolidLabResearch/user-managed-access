@@ -91,7 +91,7 @@ describe('VcVerifier', (): void => {
 
   it('returns the VC as claim.', async(): Promise<void> => {
     await expect(verifier.verify(credential)).resolves.toEqual({
-      ['urn:solidlab:uma:claims:types:vc']: decodedToken.vc,
+      ['urn:solidlab:uma:claims:types:vc']: [ decodedToken.vc ],
     });
   });
 });
