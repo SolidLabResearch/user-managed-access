@@ -31,7 +31,7 @@ so some information might change depending on which version and branch you're us
   * [Authenticating as Resource Owner](#authenticating-as-resource-owner)
   * [Authenticating as Resource Server](#authenticating-as-resource-server)
     + [Requesting client credentials](#requesting-client-credentials)
-    + [Sending the credentials to the RS (CSS specific)](#sending-the-credentials-to-the-rs--css-specific-)
+    + [Sending the credentials to the RS (CSS specific)](#sending-the-credentials-to-the-rs-css-specific)
     + [Requesting a PAT as RS](#requesting-a-pat-as-rs)
   * [Resource registration](#resource-registration)
     + [About identifiers](#about-identifiers)
@@ -49,7 +49,10 @@ so some information might change depending on which version and branch you're us
       - [Include `sub` claim in access token](#include-sub-claim-in-access-token)
     + [Use token](#use-token)
   * [Policies](#policies)
-    + [Client application identification](#client-application-identification)
+    + [Additional constraints](#additional-constraints)
+      - [Client application identification](#client-application-identification)
+      - [Purpose](#purpose)
+      - [Verifiable Credentials](#verifiable-credentials)
   * [Adding or changing policies](#adding-or-changing-policies)
   * [Policy backups](#policy-backups)
   * [Data aggregation](#data-aggregation)
@@ -363,9 +366,47 @@ This base URL will be updated in the future once we have settled on a fixed valu
 ##### Additional claims
 
 Besides claims that identify the user and client, additional claims can also be provided containing additional information.
-Currently, the only additional claim that is supported is the `purpose` claim.
-This can be provided with a `claim_token_format` of `http://www.w3.org/ns/odrl/2/purpose`,
-and with the `claim_token` being the IRI of the purpose.
+These claims can be used to add extra constraints to ODRL policies.
+
+The purpose claim can be provided with a `claim_token_format` of `http://www.w3.org/ns/odrl/2/purpose`,
+and with the `claim_token` being the IRI of the purpose,
+e.g., `"https://w3id.org/dpv#ScientificResearch"`.
+
+Verifiable Credentials (VCs) can also be provided as additional claims using the token format `urn:solidlab:uma:credentials:jwt:vc`.
+The `claim_token` should be a signed JWT containing a `vc` claim with the credential data.
+For example, a decoded payload could be:
+```json
+{
+    "exp": 1784989353,
+    "nbf": 1784902953,
+    "jti": "urn:uuid:fecdb1de-d2d8-40a1-90ff-0e3cc8bfa3e9",
+    "iss": "http://localhost:28080/alice",
+    "vc": {
+        "type": [
+            "VerifiableCredential",
+            "http://localhost:28080/UserHcpRelationVC"
+        ],
+        "issuer": "http://localhost:28080/alice",
+        "issuanceDate": "2026-07-24T14:22:33.924Z",
+        "expirationDate": "2026-07-25T14:22:33.924Z",
+        "credentialSubject": {
+            "principal": "alice",
+            "rs:HCPs": {
+                "@id": "ex:users/0",
+                "rs:assignedPatientId": "https://ex.example.com/users/123"
+            },
+            "@id": "https://rs.example.com/named-graphs#qr-data",
+            "@context": {
+                "rs": "https://rs.example.com/vocab#",
+                "ex": "https://ex.example.com/"
+            }
+        },
+        "@context": [
+            "https://www.w3.org/ns/credentials/v1"
+        ]
+    }
+}
+```
 
 #### Customizing OIDC verification
 
@@ -481,15 +522,21 @@ ex:permission a odrl:Permission ;
 ```
 This policy says that the above WebID has access to the `create` scope on `<http://localhost:3000/alice/private/>`.
 
-### Client application identification
+### Additional constraints
 
-It is possible to create policies that restrict access based on the client application being used.
-This can only be done when using an OIDC ID token for authentication.
-The `azp` claim of the token will be used.
+Beyond specifying which user and resource a permission applies to,
+policies can also include constraints that add further conditions.
+Constraints use the `odrl:constraint` predicate and follow the general pattern of
+a `odrl:leftOperand`, `odrl:operator`, and `odrl:rightOperand`,
+where the left operand identifies what to check, the operator defines how to compare,
+and the right operand provides the expected value.
 
-To restrict a policy to a certain client application,
-a constraint needs to be added to the policy.
-For this, we use the odrl:deliveryChannel left operand.
+#### Client application identification
+
+It is possible to restrict access based on the client application being used.
+This can only be done when using an OIDC ID token for authentication,
+and uses the `azp` or `client_id` claim of the token.
+The left operand `odrl:deliveryChannel` is used to refer to the client application.
 
 To restrict a policy to only permit access when using the application `http://example.com/client`,
 the policy should look as follows:
@@ -509,6 +556,75 @@ ex:constraint odrl:leftOperand odrl:deliveryChannel ;
               odrl:operator odrl:eq ;
               odrl:rightOperand <http://example.com/client> .
 ```
+
+#### Purpose
+
+It is possible to restrict access based on the purpose for which the resource is being accessed.
+This requires that the client provides a purpose claim during the token exchange,
+as described in the [Additional claims](#additional-claims) section above.
+The left operand `odrl:purpose` is used to refer to the provided purpose.
+
+To restrict a policy to only permit access for the purpose `https://w3id.org/dpv#ScientificResearch`:
+```ttl
+@prefix ex: <http://example.org/1707120963224#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+ex:usagePolicy a odrl:Agreement ;
+                odrl:uid ex:usagePolicy ;
+                odrl:permission ex:permission .
+ex:permission a odrl:Permission ;
+              odrl:action odrl:read ;
+              odrl:target <http://localhost:3000/alice/private/> ;
+              odrl:assignee <https://woslabbi.pod.knows.idlab.ugent.be/profile/card#me> ;
+              odrl:constraint ex:constraint .
+ex:constraint odrl:leftOperand odrl:purpose ;
+              odrl:operator odrl:eq ;
+              odrl:rightOperand <https://w3id.org/dpv#ScientificResearch> .
+```
+
+#### Verifiable Credentials
+
+Policies can also restrict access based on attributes contained in a Verifiable Credential.
+This requires that the client provides a VC claim during the token exchange,
+as described in the [Additional claims](#additional-claims) section above.
+
+VC constraints follow the [ODRL VC profile](https://gitlab.com/gaia-x/lab/policy-reasoning/odrl-vc-profile)
+and use a slightly different vocabulary.
+The predicate `ovc:constraint` is used instead of `odrl:constraint`,
+and `ovc:leftOperand` instead of `odrl:leftOperand`,
+where the left operand value is a JSONPath expression evaluated against the credential data.
+The `ovc:rightOperand` still works the same as in standard ODRL constraints.
+
+To restrict access to users whose VC contains
+`rs:assignedPatientId: "https://ex.example.com/users/123"`
+inside the `rs:HCPs` object of the credential subject:
+```ttl
+@prefix ex: <http://example.org/1707120963224#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix ovc: <https://w3id.org/gaia-x/ovc/1/> .
+
+ex:usagePolicy a odrl:Agreement ;
+                odrl:uid ex:usagePolicy ;
+                odrl:permission ex:permission .
+ex:permission a odrl:Permission ;
+              odrl:action odrl:read ;
+              odrl:target <http://localhost:3000/research/data> ;
+              ovc:constraint ex:constraint .
+ex:constraint ovc:leftOperand "$.credentialSubject['rs:HCPs']['rs:assignedPatientId']" ;
+              odrl:operator odrl:eq ;
+              odrl:rightOperand "https://ex.example.com/users/123" .
+```
+
+Optionally, you can also require the credential to be of a specific type by adding
+the `ovc:credentialSubjectType` property.
+This requires the `type` field in the credential to contain the specified value:
+```ttl
+ex:constraint ovc:leftOperand "$.credentialSubject['rs:HCPs']['rs:assignedPatientId']" ;
+              odrl:operator odrl:eq ;
+              odrl:rightOperand "https://ex.example.com/users/123" ;
+              ovc:credentialSubjectType "http://localhost:28080/UserHcpRelationVC" .
+```
+
 
 ## Adding or changing policies
 
