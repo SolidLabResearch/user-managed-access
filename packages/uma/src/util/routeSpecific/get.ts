@@ -86,7 +86,7 @@ const buildPolicyRetrievalQuery = (policyID: string, resourceOwner: string) => `
  * @returns a store containing the policy and its permissions
  */
 export const getPolicy = (store: Store, policyID: string, resourceOwner: string) =>
-    executeGet(store, buildPolicyRetrievalQuery(policyID, resourceOwner), ['policy', 'perm', 'target']);
+    executeGet(store, buildPolicyRetrievalQuery(policyID, resourceOwner), ['policy', 'perm']);
 
 /**
  * Build a query to retrieve all policies for a given client.
@@ -120,7 +120,7 @@ const buildPoliciesRetrievalQuery = (resourceOwner: string) => `
  * @returns a store containing all policies and their permissions
  */
 export const getPolicies = (store: Store, resourceOwner: string) =>
-    executeGet(store, buildPoliciesRetrievalQuery(resourceOwner), ['perm', 'target']);
+    executeGet(store, buildPoliciesRetrievalQuery(resourceOwner), ['perm']);
 
 // TODO: slight improvement over existing solution so constraints get returned but definitely not ideal yet
 function permissionToQuads(store: Store, permission: Quad_Subject): Quad[] {
