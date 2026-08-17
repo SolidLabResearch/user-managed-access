@@ -243,16 +243,17 @@ describe('SimpleOdrlAuthorizer', () => {
     const scope2 = 'urn:example:css:modes:write';
     const odrlScope2 = 'http://www.w3.org/ns/odrl/2/modify';
     const multiQuery: Permission[] = [
-      { resource_id: resource, resource_scopes: [scope] },
+      { resource_id: resource, resource_scopes: [scope, odrlScope] },
       { resource_id: resource2, resource_scopes: [scope2] },
     ];
     addRule({});
+    addRule({ action: odrlScope });
     addRule({ target: resource2, action: odrlScope2 });
 
     const result = await authorizer.permissions({}, multiQuery);
 
     expect(result).toEqual([
-      { resource_id: resource, resource_scopes: [scope] },
+      { resource_id: resource, resource_scopes: [scope, odrlScope] },
       { resource_id: resource2, resource_scopes: [scope2] },
     ]);
     expect(fallback.permissions).not.toHaveBeenCalled();

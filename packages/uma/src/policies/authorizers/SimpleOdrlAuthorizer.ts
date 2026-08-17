@@ -55,6 +55,7 @@ export class SimpleOdrlAuthorizer implements Authorizer {
 
     let permissions: Permission[] = [];
     for (const { resource_id, resource_scopes } of query) {
+      const allowedScopes: string[] = [];
       for (const scope of resource_scopes) {
         const result = this.getPermissions(store, claims, resource_id, scope);
         if (!result) {
@@ -62,14 +63,20 @@ export class SimpleOdrlAuthorizer implements Authorizer {
           return this.authorizer.permissions(claims, query);
         }
 
-        permissions.push(...result);
+        allowedScopes.push(...result);
+      }
+      if (allowedScopes.length > 0) {
+        permissions.push({
+          resource_id,
+          resource_scopes: allowedScopes,
+        });
       }
     }
     return permissions;
   }
 
   protected getPermissions(policies: ReadOnlyStore, claims: ClaimSet, resource: string, scope: string):
-    Permission[] | undefined {
+    string[] | undefined {
     this.logger.info(`Evaluating Request ${scope}, ${resource} with claims ${JSON.stringify(claims)}`);
     const targets = [ DF.namedNode(resource), ...policies.getObjects(resource, ODRL.terms.partOf, null)];
     let rules = targets.flatMap(target => policies.getSubjects(ODRL.terms.target, target, null));
@@ -145,10 +152,7 @@ export class SimpleOdrlAuthorizer implements Authorizer {
       }
     }
 
-    return [{
-      resource_id: resource,
-      resource_scopes: [ oldScope ],
-    }];
+    return [ oldScope ];
   }
 
   // TODO: 3 modes: valid, not valid, too complicated
