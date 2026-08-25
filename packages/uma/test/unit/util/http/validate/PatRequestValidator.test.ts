@@ -30,31 +30,31 @@ describe('PatRequestValidator', (): void => {
 
     storage = {
       find: vi.fn().mockResolvedValue([{ expiration: Date.now() + 5000, registration: registrationId }]),
+      findIds: vi.fn().mockResolvedValue([ registrationId ]),
       get: vi.fn().mockResolvedValue({ userId }),
     } as any;
 
     validator = new PatRequestValidator(storage as any);
   });
 
+  it('can only handle Bearer tokens.', async(): Promise<void> => {
+    request.headers.authorization = 'Basic 1234';
+    await expect(validator.canHandle({ request })).rejects.toThrow('No Bearer Authorization header specified.');
+  });
+
+  it('can only handle known tokens.', async(): Promise<void> => {
+    storage.findIds.mockResolvedValueOnce([]);
+    await expect(validator.canHandle({ request })).rejects.toThrow('Unknown PAT.');
+  });
+
+  it('can handle known Bearer tokens.', async(): Promise<void> => {
+    await expect(validator.canHandle({ request })).resolves.toBeUndefined();
+  });
+
   it('returns the stored user as owner.', async(): Promise<void> => {
     await expect(validator.handle({ request })).resolves.toEqual({ owner: userId });
     expect(storage.find).toHaveBeenLastCalledWith(PAT_STORAGE_TYPE, { pat });
     expect(storage.get).toHaveBeenLastCalledWith(CLIENT_REGISTRATION_STORAGE_TYPE, registrationId);
-  });
-
-  it('errors on non-Bearer tokens.', async(): Promise<void> => {
-    request.headers.authorization = 'Basic 1234';
-    await expect(validator.handle({ request })).rejects.toThrow('No Bearer Authorization header specified.');
-  });
-
-  it('errors on non-Bearer tokens.', async(): Promise<void> => {
-    request.headers.authorization = 'Basic 1234';
-    await expect(validator.handle({ request })).rejects.toThrow('No Bearer Authorization header specified.');
-  });
-
-  it('errors if no matched token was found.', async(): Promise<void> => {
-    storage.find.mockResolvedValueOnce([]);
-    await expect(validator.handle({ request })).rejects.toThrow('Unknown PAT.');
   });
 
   it('errors if the PAT is expired.', async(): Promise<void> => {
