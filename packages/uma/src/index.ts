@@ -88,6 +88,7 @@ export * from './util/http/server/JsonHttpErrorHandler';
 export * from './util/http/server/JsonFormHttpHandler';
 export * from './util/http/server/NodeHttpRequestResponseHandler';
 export * from './util/http/server/RoutedHttpRequestHandler';
+export * from './util/http/validate/CredentialVerifierRequestValidator';
 export * from './util/http/validate/PatRequestValidator';
 export * from './util/http/validate/RequestValidator';
 

@@ -27,17 +27,24 @@ export class PatRequestValidator extends RequestValidator {
     this.storage = storage;
   }
 
-  public async handle({ request }: RequestValidatorInput): Promise<RequestValidatorOutput> {
+  public async canHandle({ request }: RequestValidatorInput): Promise<void> {
     const { authorization } = request.headers;
     if (!authorization || !/^Bearer /ui.test(authorization)) {
       throw new UnauthorizedHttpError('No Bearer Authorization header specified.');
     }
 
     const token = authorization?.replace(/^Bearer/, '')?.trimStart();
-    const patEntries = await this.storage.find(PAT_STORAGE_TYPE, { pat: token });
-    if (patEntries.length === 0) {
+    const patIds = await this.storage.findIds(PAT_STORAGE_TYPE, { pat: token });
+    if (patIds.length === 0) {
       throw new ForbiddenHttpError('Unknown PAT.');
     }
+  }
+
+  public async handle({ request }: RequestValidatorInput): Promise<RequestValidatorOutput> {
+    const { authorization } = request.headers;
+
+    const token = authorization?.replace(/^Bearer/, '')?.trimStart();
+    const patEntries = await this.storage.find(PAT_STORAGE_TYPE, { pat: token });
     if (patEntries[0].expiration < Date.now()) {
       throw new ForbiddenHttpError('Expired PAT.');
     }
