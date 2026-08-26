@@ -1,4 +1,4 @@
-import type { NamedNode } from '@rdfjs/types';
+import type { NamedNode, Quad, Quad_Subject, Quad_Object, Quad_Predicate } from '@rdfjs/types';
 import { DataFactory as DF, Store } from 'n3';
 import { randomUUID } from 'node:crypto';
 import { ODRL } from 'odrl-evaluator';
@@ -10,6 +10,29 @@ import { SimpleOdrlAuthorizer } from '../../../../src/policies/authorizers/Simpl
 import { UCRulesStorage } from '../../../../src/ucp/storage/UCRulesStorage';
 import { OVC } from '../../../../src/ucp/util/Vocabularies';
 import { Permission } from '../../../../src/views/Permission';
+
+function generateListTriples(subject: Quad_Subject, predicate: Quad_Predicate, objects: Quad_Object[]): Quad[] {
+    if (objects.length === 0) {
+        return [];
+    }
+    const triples: Quad[] = [];
+    let current = DF.blankNode();
+    triples.push(DF.quad(subject, predicate, current));
+    for (let i = 0; i < objects.length; i++) {
+        triples.push(DF.quad(current, DF.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#first'), objects[i]));
+        if (i === objects.length - 1) {
+            triples.push(DF.quad(
+              current,
+              DF.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'),
+              DF.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#nil')));
+        } else {
+            const next = DF.blankNode();
+            triples.push(DF.quad(current, DF.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'), next));
+            current = next;
+        }
+    }
+    return triples;
+}
 
 describe('SimpleOdrlAuthorizer', () => {
   const resource = 'res';
@@ -226,6 +249,84 @@ describe('SimpleOdrlAuthorizer', () => {
     await expect(authorizer.permissions({}, query))
       .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
     expect(fallback.permissions).not.toHaveBeenCalled();
+  });
+
+  it('supports neq constraints.', async(): Promise<void> => {
+    const rule = addRule({});
+    addConstraint({
+      rule,
+      leftOperand: ODRL.terms.purpose,
+      operator: ODRL.terms.neq,
+      rightOperand: 'http://example.com/purpose-a',
+    });
+    const claims = { [PURPOSE]: [ 'http://example.com/purpose-b' ] };
+
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+
+    claims[PURPOSE] = [ 'http://example.com/purpose-a' ];
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+  });
+
+  it('supports isAnyOf constraints.', async(): Promise<void> => {
+    const rule = addRule({});
+    const constraint = DF.namedNode(`constraint-${randomUUID()}`);
+    store.addQuad(rule, ODRL.terms.constraint, constraint);
+    store.addQuad(constraint, ODRL.terms.leftOperand, ODRL.terms.purpose);
+    store.addQuad(constraint, ODRL.terms.operator, ODRL.terms.isAnyOf);
+    store.addQuads(generateListTriples(constraint, ODRL.terms.rightOperand, [
+      DF.namedNode('http://example.com/purpose-a'),
+      DF.namedNode('http://example.com/purpose-b')
+    ]));
+    const claims = { [PURPOSE]: [ 'http://example.com/purpose-b' ] };
+
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+
+    claims[PURPOSE] = [ 'http://example.com/purpose-c' ];
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+  });
+
+  it('supports isNoneOf constraints.', async(): Promise<void> => {
+    const rule = addRule({});
+    const constraint = DF.namedNode(`constraint-${randomUUID()}`);
+    store.addQuad(rule, ODRL.terms.constraint, constraint);
+    store.addQuad(constraint, ODRL.terms.leftOperand, ODRL.terms.purpose);
+    store.addQuad(constraint, ODRL.terms.operator, ODRL.terms.isNoneOf);
+    store.addQuads(generateListTriples(constraint, ODRL.terms.rightOperand, [
+      DF.namedNode('http://example.com/purpose-a'),
+      DF.namedNode('http://example.com/purpose-b')
+    ]));
+    const claims = { [PURPOSE]: [ 'http://example.com/purpose-c' ] };
+
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([{ resource_id: resource, resource_scopes: [scope] }]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+
+    claims[PURPOSE] = [ 'http://example.com/purpose-b' ];
+    await expect(authorizer.permissions(claims, query))
+      .resolves.toEqual([]);
+    expect(fallback.permissions).not.toHaveBeenCalled();
+  });
+
+  it('does not support multiple claims for the same left operand.', async(): Promise<void> => {
+    const rule = addRule({});
+    addConstraint({
+      rule,
+      leftOperand: ODRL.terms.purpose,
+      operator: ODRL.terms.eq,
+      rightOperand: 'http://example.com/purpose-a',
+    });
+    const claims = { [PURPOSE]: [ 'http://example.com/purpose-a', 'http://example.com/purpose-b' ] };
+
+    await expect(authorizer.permissions(claims, query)).resolves.toEqual(fallbackPermissions);
+    expect(fallback.permissions).toHaveBeenCalledWith(claims, query);
   });
 
   it('delegates to fallback if OVC constraint is too complex', async () => {
