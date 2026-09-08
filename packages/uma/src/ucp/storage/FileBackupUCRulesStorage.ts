@@ -18,7 +18,6 @@ export class FileBackupUCRulesStorage extends MemoryUCRulesStorage implements In
 
   public constructor(protected readonly filePath?: string, interval = 5 * 60) {
     super();
-    this.logger.info(`STARTING ${filePath}`);
     if (filePath) {
       const timer = setSafeInterval(
         this.logger,
@@ -30,7 +29,6 @@ export class FileBackupUCRulesStorage extends MemoryUCRulesStorage implements In
   }
 
   public async initialize(): Promise<void> {
-    this.logger.info('CALLING INITIALIZE');
     if (!this.filePath) {
       return;
     }

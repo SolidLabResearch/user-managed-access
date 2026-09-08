@@ -4,14 +4,13 @@ import {
   ForbiddenHttpError,
   KeyValueStorage,
   NotFoundHttpError,
-  RDF
 } from '@solid/community-server';
 import { Parser, Store } from 'n3';
 import { ODRL } from 'odrl-evaluator';
 import { Mocked } from 'vitest';
 import { AccessRequestController } from '../../../src/controller/AccessRequestController';
 import { UCRulesStorage } from '../../../src/ucp/storage/UCRulesStorage';
-import { SOTW } from '../../../src/ucp/util/Vocabularies';
+import { RDF, SOTW } from '../../../src/ucp/util/Vocabularies';
 
 describe('AccessRequestController', (): void => {
   const target = 'http://example.org/resource_id';
@@ -41,9 +40,14 @@ describe('AccessRequestController', (): void => {
           sotw:requestedAction <${scopes[1]}> ;
           odrl:constraint [
             a odrl:Constraint ;
+            odrl:leftOperand odrl:dateTime ;
+            odrl:operator odrl:gt ;
+            odrl:rightOperand "2026-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+          ], [
+            a odrl:Constraint ;
             odrl:leftOperand odrl:purpose ;
-            odrl:operator odrl:eq ;
-            odrl:rightOperand <http://example.org/purpose> 
+            odrl:operator odrl:isAnyOf ;
+            odrl:rightOperand ( <http://example.com/purpose-a> <http://example.com/purpose-b> )
           ] .
       `));
 
@@ -118,6 +122,38 @@ describe('AccessRequestController', (): void => {
       `);
       expect(request).toBeRdfIsomorphic(expected);
     });
+
+    it('can add a request with a list of right operand values.', async(): Promise<void> => {
+      const purposes = [ 'http://example.org/purpose1', 'http://example.org/purpose2' ];
+      const data = JSON.stringify({
+        resource_id: target,
+        resource_scopes: scopes,
+        constraints: [
+          [ 'http://www.w3.org/ns/odrl/2/purpose', 'http://www.w3.org/ns/odrl/2/isAnyOf', purposes ],
+        ],
+      });
+
+      const response = await controller.addEntity(data, client);
+      expect(response.status).toBe(201);
+      expect(store.addRule).toHaveBeenCalledTimes(1);
+
+      const request = store.addRule.mock.calls[0][0];
+      const expected = new Parser().parse(`
+        @prefix sotw: <https://w3id.org/force/sotw#> .
+        @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+        <${response.id}> a sotw:EvaluationRequest ;
+          sotw:requestedTarget <${target}> ;
+          sotw:requestingParty <${client}> ;
+          sotw:requestStatus sotw:requested ;
+          sotw:requestedAction <${scopes[0]}> , <${scopes[1]}> ;
+          odrl:constraint <${response.id}-constraint-1> .
+        <${response.id}-constraint-1> a odrl:Constraint ;
+          odrl:leftOperand odrl:purpose ;
+          odrl:operator odrl:isAnyOf ;
+          odrl:rightOperand ( <${purposes[0]}> <${purposes[1]}> ) .
+      `);
+      expect(request).toBeRdfIsomorphic(expected);
+    });
   });
 
   describe('#getEntities', (): void => {
@@ -150,9 +186,14 @@ describe('AccessRequestController', (): void => {
           sotw:requestedAction <${scopes[1]}> ;
           odrl:constraint [
             a odrl:Constraint ;
+            odrl:leftOperand odrl:dateTime ;  
+            odrl:operator odrl:gt ;
+            odrl:rightOperand "2026-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+          ], [
+            a odrl:Constraint ;
             odrl:leftOperand odrl:purpose ;
-            odrl:operator odrl:eq ;
-            odrl:rightOperand <http://example.org/purpose> 
+            odrl:operator odrl:isAnyOf ;
+            odrl:rightOperand ( <http://example.com/purpose-a> <http://example.com/purpose-b> )
           ] .
       `));
       expect(ownershipStore.get).toHaveBeenCalledExactlyOnceWith(owner);
@@ -192,9 +233,14 @@ describe('AccessRequestController', (): void => {
           sotw:requestedAction <${scopes[1]}> ;
           odrl:constraint [
             a odrl:Constraint ;
+            odrl:leftOperand odrl:dateTime ;
+            odrl:operator odrl:gt ;
+            odrl:rightOperand "2026-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+          ], [
+            a odrl:Constraint ;
             odrl:leftOperand odrl:purpose ;
-            odrl:operator odrl:eq ;
-            odrl:rightOperand <http://example.org/purpose> 
+            odrl:operator odrl:isAnyOf ;
+            odrl:rightOperand ( <http://example.com/purpose-a> <http://example.com/purpose-b> )
           ] .
       `));
     });
@@ -227,7 +273,7 @@ describe('AccessRequestController', (): void => {
       const permissions = quads.getObjects(policies[0], ODRL.terms.permission, null);
       expect(permissions).toHaveLength(1);
       const constraints = quads.getObjects(permissions[0], ODRL.terms.constraint, null);
-      expect(constraints).toHaveLength(1);
+      expect(constraints).toHaveLength(2);
       expect(quads.getQuads(policies[0], null, null, null)).toBeRdfIsomorphic(new Parser().parse(`
         @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
         <${policies[0].value}> a odrl:Agreement ;
@@ -241,14 +287,27 @@ describe('AccessRequestController', (): void => {
           odrl:action <http://example.org/scope2> ;
           odrl:assignee <http://example.org/unknown> ;
           odrl:assigner <${owner}> ;
-          odrl:constraint _:${constraints[0].value} .
+          odrl:constraint _:${constraints[0].value}, _:${constraints[1].value} .
       `));
       expect(quads.getQuads(constraints[0], null, null, null)).toBeRdfIsomorphic(new Parser().parse(`
         @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
         _:${constraints[0].value} a odrl:Constraint ;
+          odrl:leftOperand odrl:dateTime ;
+          odrl:operator odrl:gt ;
+          odrl:rightOperand "2026-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+      `));
+      const listConstraintQuads = [ ...quads.getQuads(constraints[1], null, null, null) ];
+      let listNode = quads.getObjects(constraints[1], ODRL.terms.rightOperand, null)[0];
+      while (listNode && !listNode.equals(RDF.terms.nil)) {
+        listConstraintQuads.push(...quads.getQuads(listNode as any, null, null, null));
+        listNode = quads.getObjects(listNode as any, RDF.terms.rest, null)[0];
+      }
+      expect(listConstraintQuads).toBeRdfIsomorphic(new Parser().parse(`
+        @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+        _:${constraints[1].value} a odrl:Constraint ;
           odrl:leftOperand odrl:purpose ;
-          odrl:operator odrl:eq ;
-          odrl:rightOperand <http://example.org/purpose> .
+          odrl:operator odrl:isAnyOf ;
+          odrl:rightOperand ( <http://example.com/purpose-a> <http://example.com/purpose-b> ) .
       `));
     });
 

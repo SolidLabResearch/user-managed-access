@@ -1,5 +1,4 @@
 import { QueryEngine } from '@comunica/query-sparql';
-import { Quad } from '@rdfjs/types';
 import {
     BadRequestHttpError,
     ConflictHttpError,
@@ -8,26 +7,24 @@ import {
     InternalServerError,
     KeyValueStorage,
     NotFoundHttpError,
-    RDF
 } from '@solid/community-server';
 import { getLoggerFor } from 'global-logger-factory';
-import { DataFactory as DF, Parser, Quad_Object, Quad_Subject, Store } from 'n3';
+import { DataFactory as DF, Quad, Quad_Object, Quad_Subject, Store } from 'n3';
 import { randomUUID } from 'node:crypto';
 import { ODRL } from 'odrl-evaluator';
 import { stringToTerm, termToString } from 'rdf-string';
 import { UCRulesStorage } from '../ucp/storage/UCRulesStorage';
-import { SOTW } from '../ucp/util/Vocabularies';
-import { array, optional as $, reType, string, tuple, Type } from '../util/ReType';
-import { Permission } from '../views/Permission';
+import { RDF, SOTW } from '../ucp/util/Vocabularies';
+import { array, optional as $, reType, string, tuple, Type, union } from '../util/ReType';
 import { BaseController } from './BaseController';
 
 export const AccessRequest = {
     resource_id: string,
     resource_scopes: array(string),
-    constraints: $(array(tuple(string, string, string))),
+    constraints: $(array(tuple(string, string, union(string, array(string))))),
 };
 
-export type AccessRequest = Type<typeof Permission>;
+export type AccessRequest = Type<typeof AccessRequest>;
 
 /**
  * Controller for routes concerning access requests
@@ -93,15 +90,28 @@ export class AccessRequestController extends BaseController {
         ]);
         let constraintIdx = 0;
         for (const constraint of json.constraints ?? []) {
-            const terms = constraint.map((str) => stringToTerm(str)) as Quad_Object[];
             const constraintSubject = DF.namedNode(subject.value + `-constraint-${++constraintIdx}`);
             request.addQuads([
                 DF.quad(subject, ODRL.terms.constraint, constraintSubject),
                 DF.quad(constraintSubject, RDF.terms.type, ODRL.terms.Constraint),
-                DF.quad(constraintSubject, ODRL.terms.leftOperand, terms[0]),
-                DF.quad(constraintSubject, ODRL.terms.operator, terms[1]),
-                DF.quad(constraintSubject, ODRL.terms.rightOperand, terms[2]),
+                DF.quad(constraintSubject, ODRL.terms.leftOperand, stringToTerm(constraint[0]) as Quad_Object),
+                DF.quad(constraintSubject, ODRL.terms.operator, stringToTerm(constraint[1]) as Quad_Object),
             ]);
+            if (Array.isArray(constraint[2])) {
+                if (constraint[2].length === 0) {
+                    throw new BadRequestHttpError('Constraint right operand cannot be an empty list');
+                }
+                const nodes = constraint[2].map(() => DF.blankNode());
+                request.addQuad(constraintSubject, ODRL.terms.rightOperand, nodes[0]);
+                for (let i = 0; i < nodes.length; i++) {
+                    request.addQuad(nodes[i], RDF.terms.first, stringToTerm(constraint[2][i]) as Quad_Object);
+                    request.addQuad(nodes[i], RDF.terms.rest, i === nodes.length - 1 ? RDF.terms.nil : nodes[i + 1]);
+                }
+            } else {
+                request.addQuad(
+                  DF.quad(constraintSubject, ODRL.terms.rightOperand, stringToTerm(constraint[2]) as Quad_Object));
+            }
+
         }
 
         await this.store.addRule(request);
@@ -219,9 +229,9 @@ export class AccessRequestController extends BaseController {
                 DF.quad(permissionNode, ODRL.terms.target, targets[0]),
                 DF.quad(permissionNode, ODRL.terms.assignee, parties[0]),
                 DF.quad(permissionNode, ODRL.terms.assigner, DF.namedNode(clientID)),
-                ...store.getObjects(requestNode, ODRL.terms.constraint, null).flatMap((constraint) => [
+                ...[...this.getConstraintQuads(store, requestNode).entries()].flatMap(([constraint, quads]) => [
                     DF.quad(permissionNode, ODRL.terms.constraint, constraint),
-                    ...store.getQuads(constraint, null, null, null),
+                    ...quads,
                 ]),
             ]);
             this.logger.info(
@@ -234,11 +244,27 @@ export class AccessRequestController extends BaseController {
      */
     protected getRequestQuads(store: Store, subject: Quad_Subject): Quad[] {
         const quads = store.getQuads(subject, null, null, null);
+
         // Constraints go a level deeper
-        const constraints = store.getObjects(subject, ODRL.terms.constraint, null);
-        for (const constraint of constraints) {
-            quads.push(...store.getQuads(constraint, null, null, null));
+        const constraints = this.getConstraintQuads(store, subject);
+        return quads.concat(Array.from(constraints.values()).flat());
+    }
+
+    // Accounts for the fact constraint right operands can be lists
+    protected getConstraintQuads(store: Store, subject: Quad_Subject): Map<Quad_Object, Quad[]> {
+      const quads = new Map<Quad_Object, Quad[]>();
+      const constraints = store.getObjects(subject, ODRL.terms.constraint, null);
+      for (const constraint of constraints) {
+        quads.set(constraint, store.getQuads(constraint, null, null, null));
+        const potentialLists = store.getObjects(constraint, ODRL.terms.rightOperand, null);
+        for (const potentialList of potentialLists) {
+          let listNode = potentialList;
+          while (listNode && !listNode.equals(RDF.terms.nil)) {
+            quads.get(constraint)!.push(...store.getQuads(listNode as Quad_Subject, null, null, null));
+            listNode = store.getObjects(listNode as Quad_Subject, RDF.terms.rest, null)[0] as Quad_Object;
+          }
         }
-        return quads;
+      }
+      return quads;
     }
 }
