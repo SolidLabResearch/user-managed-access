@@ -1,8 +1,8 @@
-import { App, joinUrl } from '@solid/community-server';
-import { ODRL } from '@solidlab/uma';
+import { App } from '@solid/community-server';
 import { setGlobalLoggerFactory, WinstonLoggerFactory } from 'global-logger-factory';
-import { Parser, Store, DataFactory as DF } from 'n3';
+import { DataFactory as DF, Parser, Store } from 'n3';
 import path from 'node:path';
+import { ODRL } from 'odrl-evaluator';
 import { getDefaultCssVariables, getPorts, instantiateFromConfig } from '../util/ServerUtil';
 import { generateCredentials } from '../util/UmaUtil';
 
@@ -222,7 +222,10 @@ describe('An access request server setup', (): void => {
   });
 
   it('can add constraints to requests.', async(): Promise<void> => {
-    const purpose = 'http://example.com/purpose';
+    const dateTimeLiteral = '"2026-01-01T00:00:00Z"^^http://www.w3.org/2001/XMLSchema#dateTime';
+    const dateTimeTerm = DF.literal('2026-01-01T00:00:00Z', DF.namedNode('http://www.w3.org/2001/XMLSchema#dateTime'));
+    const purposeA = 'http://example.com/purpose-a';
+    const purposeB = 'http://example.com/purpose-b';
     let response = await fetch(accessRequestEndpoint, {
       method: 'POST',
       headers: {
@@ -232,7 +235,10 @@ describe('An access request server setup', (): void => {
       body: JSON.stringify({
         resource_id: target,
         resource_scopes: [ 'http://www.w3.org/ns/odrl/2/create' ],
-        constraints: [[ 'http://www.w3.org/ns/odrl/2/purpose', 'http://www.w3.org/ns/odrl/2/eq', purpose ]],
+        constraints: [
+          [ ODRL.dateTime, ODRL.gt, dateTimeLiteral ],
+          [ ODRL.purpose, ODRL.isAnyOf, [ purposeA, purposeB ] ]
+        ],
       }),
     });
 
@@ -243,7 +249,20 @@ describe('An access request server setup', (): void => {
     // Can see the constraints in the request
     response = await fetch(requestLocation, { headers: { authorization: `WebID ${encodeURIComponent(owner)}` }});
     const requestQuads = new Store(new Parser().parse(await response.text()));
-    expect(requestQuads.countQuads(null, ODRL.terms.leftOperand, ODRL.terms.purpose, null)).toBe(1);
+    const constraints = requestQuads.getObjects(null, ODRL.terms.constraint, null);
+    expect(constraints.length).toBe(2);
+    expect(requestQuads.countQuads(constraints[0], ODRL.terms.leftOperand, ODRL.dateTime, null)).toBe(1);
+    expect(requestQuads.countQuads(constraints[0], ODRL.terms.operator, ODRL.gt, null)).toBe(1);
+    expect(requestQuads.countQuads(constraints[0], ODRL.terms.rightOperand, dateTimeTerm, null)).toBe(1);
+    expect(requestQuads.countQuads(constraints[1], ODRL.terms.leftOperand, ODRL.terms.purpose, null)).toBe(1);
+    expect(requestQuads.countQuads(constraints[1], ODRL.terms.operator, ODRL.terms.isAnyOf, null)).toBe(1);
+    const lists = Object.entries(requestQuads.extractLists());
+    expect(lists.length).toBe(1);
+    expect(requestQuads.countQuads(constraints[1], ODRL.terms.rightOperand, DF.blankNode(lists[0][0]), null)).toBe(1);
+    const list = lists[0][1];
+    expect(list.length).toBe(2);
+    expect(list[0].value).toBe(purposeA);
+    expect(list[1].value).toBe(purposeB);
 
     response = await fetch(requestLocation, {
       method: 'PATCH',
@@ -260,5 +279,6 @@ describe('An access request server setup', (): void => {
     const policyQuads = new Store(new Parser().parse(await response.text()));
     expect(policyQuads.countQuads(null, ODRL.terms.action, 'http://www.w3.org/ns/odrl/2/create', null)).toBe(1);
     expect(policyQuads.countQuads(null, ODRL.terms.leftOperand, ODRL.terms.purpose, null)).toBe(1);
+    expect(policyQuads.countQuads(null, ODRL.terms.leftOperand, ODRL.dateTime, null)).toBe(1);
   });
 });

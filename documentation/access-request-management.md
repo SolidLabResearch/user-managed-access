@@ -42,6 +42,18 @@ these can be added in an additional field of the request:
 }
 ```
 
+Multiple values can also be provided for the right operand of a constraint request.
+For example:
+```json
+{
+  "resource_id": "http://example.org/document",
+  "resource_scopes": [ "http://www.w3.org/ns/odrl/2/read" ],
+  "constraints": [
+    [ "http://www.w3.org/ns/odrl/2/purpose", "http://www.w3.org/ns/odrl/2/isAnyOf", [ "http://example.org/purpose-1", "http://example.org/purpose-2" ] ]
+  ]
+}
+```
+
 ## Viewing requests
 
 By performing a GET request to the endpoint, a user can see all requests they have created,
