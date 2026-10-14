@@ -372,7 +372,7 @@ The purpose claim can be provided with a `claim_token_format` of `http://www.w3.
 and with the `claim_token` being the IRI of the purpose,
 e.g., `"https://w3id.org/dpv#ScientificResearch"`.
 
-Verifiable Credentials (VCs) can also be provided as additional claims using the token format `urn:solidlab:uma:credentials:jwt:vc`.
+Verifiable Credentials (VCs) can also be provided as additional claims using the token format `application/vc+jwt`.
 The `claim_token` should be a signed JWT containing a `vc` claim with the credential data.
 For example, a decoded payload could be:
 ```json
